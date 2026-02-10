@@ -286,9 +286,9 @@ function t4_formatPrice($price, $symbol = '₦') {
                             }
                             $hasImage = !empty($itemImage);
                             ?>
-                            <div class="menu-card-animate bg-white border border-charcoal/5 rounded-2xl overflow-hidden flex flex-col <?php echo $hasImage ? 'sm:flex-row' : 'menu-card-no-image'; ?> hover:shadow-xl hover:border-primary/10 transition-shadow duration-300 group relative">
+                            <div class="menu-card-animate bg-white border border-charcoal/5 rounded-2xl overflow-hidden flex flex-col <?php echo $hasImage ? '' : 'menu-card-no-image'; ?> hover:shadow-xl hover:border-primary/10 transition-shadow duration-300 group relative">
                                 <?php if ($hasImage): ?>
-                                <div class="w-full sm:w-44 sm:min-w-[176px] h-48 sm:h-auto sm:min-h-0 sm:self-stretch shrink-0 bg-cover bg-center rounded-t-2xl sm:rounded-l-2xl sm:rounded-tr-none" style="background-image: url('<?php echo htmlspecialchars($itemImage); ?>');"></div>
+                                <div class="w-full h-48 shrink-0 bg-cover bg-center rounded-t-2xl" style="background-image: url('<?php echo htmlspecialchars($itemImage); ?>');"></div>
                                 <?php endif; ?>
                                 <div class="flex-1 flex flex-col justify-center p-6 relative z-10">
                                     <h4 class="text-xl font-bold group-hover:text-primary transition-colors mb-1" style="color: <?php echo htmlspecialchars($menuTitleColor); ?>"><?php echo htmlspecialchars($item['name']); ?></h4>
