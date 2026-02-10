@@ -1,0 +1,63 @@
+# Restaurant Menu Platform .htaccess
+
+# Directory index priority (PHP for marketing site)
+DirectoryIndex index.php index.html
+
+# Enable Rewrite Engine
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+    
+    # Restaurant checkout
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^restaurant/([a-z0-9-]+)/checkout/?$ checkout.php?slug=$1 [L,QSA]
+    
+    # Restaurant menu pages
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^restaurant/([a-z0-9-]+)/?$ restaurant.php?slug=$1 [L,QSA]
+    
+    # QR code redirect
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^qr/([a-z0-9-]+)/?$ qr/index.php?slug=$1 [L,QSA]
+    
+    # Admin restaurant management
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^admin/restaurant/([a-z0-9-]+)/?$ admin/restaurant-view.php?slug=$1 [L,QSA]
+    
+    # Manager dashboard (slug-based)
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^manager/([a-z0-9-]+)/?$ manager/dashboard.php?slug=$1 [L,QSA]
+</IfModule>
+
+# Security Headers
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# Prevent directory browsing
+Options -Indexes
+
+# Protect sensitive files
+<FilesMatch "\.(sql|md|log)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Allow PHP execution in HTML files for marketing pages
+AddType application/x-httpd-php .html
+
+# PHP Settings
+<IfModule mod_php7.c>
+    php_value upload_max_filesize 10M
+    php_value post_max_size 10M
+    php_value max_execution_time 300
+    php_value max_input_time 300
+</IfModule>
+

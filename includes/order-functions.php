@@ -1,0 +1,83 @@
+<?php
+/**
+ * Order-related helper functions
+ */
+
+require_once __DIR__ . '/functions.php';
+require_once __DIR__ . '/restaurant-payment-functions.php';
+
+/**
+ * Create an order from cart data
+ * @param int $restaurantId
+ * @param array $cart Items with id, name, price, quantity
+ * @param array $customer customer_name, customer_phone, customer_email, delivery_address, payment_method (optional)
+ * @param float $deliveryFee
+ * @param float $taxRate 0-1 (e.g. 0.08875 for 8.875%)
+ * @return array ['success' => bool, 'order_id' => int|null, 'errors' => array]
+ */
+function createOrder($restaurantId, $cart, $customer, $deliveryFee = 0, $taxRate = 0) {
+    $errors = [];
+    $pdo = getDBConnection();
+    if (!$pdo) {
+        return ['success' => false, 'order_id' => null, 'errors' => ['Database connection failed.']];
+    }
+
+    $restaurantId = (int) $restaurantId;
+    $customerName = trim($customer['customer_name'] ?? '');
+    $customerPhone = trim($customer['customer_phone'] ?? '');
+    $customerEmail = trim($customer['customer_email'] ?? '');
+    $deliveryAddress = trim($customer['delivery_address'] ?? '');
+    $paymentMethod = trim($customer['payment_method'] ?? '');
+
+    $activeMethods = getRestaurantActivePaymentMethods($restaurantId);
+    $allowedGateways = array_column($activeMethods, 'gateway');
+    if (!empty($allowedGateways) && $paymentMethod && !in_array($paymentMethod, $allowedGateways)) {
+        $errors[] = 'Invalid payment method.';
+    }
+
+    if (empty($customerName)) $errors[] = 'Full name is required.';
+    if (empty($customerPhone)) $errors[] = 'Phone number is required.';
+    if (empty($customerEmail)) $errors[] = 'Email address is required.';
+    if (!isValidEmail($customerEmail)) $errors[] = 'Invalid email address.';
+    if (empty($deliveryAddress)) $errors[] = 'Delivery address is required.';
+    if (empty($cart)) $errors[] = 'Cart is empty.';
+
+    if (!empty($errors)) {
+        return ['success' => false, 'order_id' => null, 'errors' => $errors];
+    }
+
+    $subtotal = 0;
+    foreach ($cart as $item) {
+        $price = (float) ($item['price'] ?? 0);
+        $qty = max(1, (int) ($item['quantity'] ?? 1));
+        $subtotal += $price * $qty;
+    }
+    $tax = $subtotal * (float) $taxRate;
+    $total = $subtotal + (float) $deliveryFee + $tax;
+
+    try {
+        $pdo->beginTransaction();
+
+        $stmt = $pdo->prepare("INSERT INTO orders (restaurant_id, customer_name, customer_phone, customer_email, delivery_address, payment_method, status, subtotal, delivery_fee, tax, total) VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?)");
+        $stmt->execute([$restaurantId, $customerName, $customerPhone, $customerEmail, $deliveryAddress, $paymentMethod ?: null, $subtotal, $deliveryFee, $tax, $total]);
+        $orderId = (int) $pdo->lastInsertId();
+
+        $itemStmt = $pdo->prepare("INSERT INTO order_items (order_id, menu_item_id, name, price, quantity) VALUES (?, ?, ?, ?, ?)");
+        foreach ($cart as $item) {
+            $menuItemId = (int) ($item['id'] ?? 0);
+            $name = trim($item['name'] ?? '');
+            $price = (float) ($item['price'] ?? 0);
+            $quantity = max(1, (int) ($item['quantity'] ?? 1));
+            if ($menuItemId && $name && $price > 0) {
+                $itemStmt->execute([$orderId, $menuItemId, $name, $price, $quantity]);
+            }
+        }
+
+        $pdo->commit();
+        return ['success' => true, 'order_id' => $orderId, 'errors' => []];
+    } catch (PDOException $e) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        error_log("Order creation failed: " . $e->getMessage());
+        return ['success' => false, 'order_id' => null, 'errors' => ['Unable to create order. Please try again.']];
+    }
+}

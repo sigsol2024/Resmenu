@@ -1,0 +1,33 @@
+# PHP
+*.log
+*.cache
+.htaccess.local
+
+# Uploads (keep structure, ignore files)
+uploads/logos/*
+uploads/categories/*
+uploads/menu-items/*
+!uploads/logos/.gitkeep
+!uploads/categories/.gitkeep
+!uploads/menu-items/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Config (if sensitive)
+# config/database.php
+# config/config.php
+
+# Temporary files
+*.tmp
+*.temp
+

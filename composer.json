@@ -1,0 +1,11 @@
+{
+    "name": "restaurant-menu-platform/qr-code-system",
+    "description": "QR Code generation system for restaurant menu platform",
+    "require": {
+        "endroid/qr-code": "^5.0"
+    },
+    "autoload": {
+        "files": []
+    }
+}
+

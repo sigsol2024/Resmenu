@@ -1,0 +1,752 @@
+<?php
+/**
+ * Category Management (Manager)
+ */
+
+require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/subscription-middleware.php';
+
+// Require either admin or manager
+requireLogin();
+if (!isSuperAdmin() && !isManager()) {
+    header('Location: /admin/login.php');
+    exit;
+}
+
+// Get restaurant_id: admin can specify via URL, manager uses session
+$restaurantId = null;
+if (isSuperAdmin()) {
+    // Admin can manage any restaurant via restaurant_id parameter
+    // Check GET first (URL parameter)
+    $restaurantId = isset($_GET['restaurant_id']) ? intval($_GET['restaurant_id']) : null;
+    // Check POST (form submission)
+    if (!$restaurantId && isset($_POST['restaurant_id'])) {
+        $restaurantId = intval($_POST['restaurant_id']);
+    }
+    // Check session (persist across page navigations)
+    if (!$restaurantId && isset($_SESSION['admin_restaurant_id'])) {
+        $restaurantId = intval($_SESSION['admin_restaurant_id']);
+    }
+    if (!$restaurantId) {
+        die('Restaurant ID required for admin access. Please provide restaurant_id parameter.');
+    }
+    // Store in session for persistence
+    $_SESSION['admin_restaurant_id'] = $restaurantId;
+} else {
+    // Manager uses their assigned restaurant
+    $restaurantId = getCurrentUserRestaurantId();
+    if (!$restaurantId) {
+        die('No restaurant associated with your account. Please contact administrator.');
+    }
+}
+$pdo = getDBConnection();
+$message = '';
+$error = '';
+
+// Get restaurant slug for return URL (if coming from admin dashboard)
+$restaurantSlug = null;
+if (isSuperAdmin() && $restaurantId && $pdo) {
+    $stmt = $pdo->prepare("SELECT slug FROM restaurants WHERE id = ?");
+    $stmt->execute([$restaurantId]);
+    $restaurant = $stmt->fetch();
+    if ($restaurant) {
+        $restaurantSlug = $restaurant['slug'];
+    }
+}
+
+// Check if restaurant_id is set
+if (!$restaurantId) {
+    $error = 'No restaurant associated with your account. Please contact administrator.';
+    // Try to get restaurant_id from database
+    $userId = getCurrentUserId();
+    if ($userId && $pdo) {
+        $stmt = $pdo->prepare("SELECT restaurant_id FROM managers WHERE id = ?");
+        $stmt->execute([$userId]);
+        $manager = $stmt->fetch();
+        if ($manager && $manager['restaurant_id']) {
+            $_SESSION['restaurant_id'] = $manager['restaurant_id'];
+            $restaurantId = $manager['restaurant_id'];
+            $error = '';
+        }
+    }
+}
+
+// Handle delete action
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete') {
+    $id = intval($_POST['id'] ?? 0);
+    if ($id > 0 && $restaurantId) {
+        try {
+            // Get category data before deletion
+            $stmt = $pdo->prepare("SELECT image FROM categories WHERE id = ? AND restaurant_id = ?");
+            $stmt->execute([$id, $restaurantId]);
+            $category = $stmt->fetch();
+            
+            if ($category) {
+                // Delete associated menu items
+                $pdo->prepare("DELETE FROM menu_items WHERE category_id = ? AND restaurant_id = ?")->execute([$id, $restaurantId]);
+                // Delete category
+                $pdo->prepare("DELETE FROM categories WHERE id = ? AND restaurant_id = ?")->execute([$id, $restaurantId]);
+                
+                // Delete uploaded file
+                if ($category['image']) {
+                    deleteFile(UPLOAD_PATH . '/categories/' . $category['image']);
+                }
+                
+                // Redirect to prevent form resubmission
+                $redirectUrl = 'categories.php';
+                if (isSuperAdmin() && $restaurantId) {
+                    $redirectUrl .= '?restaurant_id=' . urlencode($restaurantId) . '&success=deleted';
+                } else {
+                    $redirectUrl .= '?success=deleted';
+                }
+                header('Location: ' . $redirectUrl);
+                exit;
+            } else {
+                $error = 'Category not found';
+            }
+        } catch (PDOException $e) {
+            $error = 'Error deleting category: ' . $e->getMessage();
+        }
+    }
+}
+
+// Handle form submissions
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Validate restaurant_id before processing
+    if (!$restaurantId) {
+        $error = 'No restaurant associated with your account. Please contact administrator.';
+    } else {
+    $action = $_POST['action'] ?? '';
+    
+    if ($action === 'create' || $action === 'update') {
+        $name = sanitize($_POST['name'] ?? '');
+        $slug = sanitize($_POST['slug'] ?? '');
+        $description = sanitize($_POST['description'] ?? '');
+        $display_order = intval($_POST['display_order'] ?? 0);
+        $is_active = isset($_POST['is_active']) ? 1 : 0;
+        
+        // Check subscription limits for new categories (skip for admins)
+        if ($action === 'create' && !isSuperAdmin()) {
+            $canAdd = canAddCategory($restaurantId);
+            if (!$canAdd['allowed']) {
+                $error = $canAdd['message'];
+            }
+        }
+        
+        if (empty($name) || empty($slug)) {
+            $error = 'Name and slug are required';
+        } elseif (!$error) {
+            try {
+                $image = null;
+                
+                // Handle image upload
+                if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+                    $uploadResult = uploadFile($_FILES['image'], UPLOAD_PATH . '/categories');
+                    if ($uploadResult['success']) {
+                        $image = $uploadResult['filename'];
+                        
+                        // Delete old image if updating
+                        if ($action === 'update' && isset($_POST['id'])) {
+                            $stmt = $pdo->prepare("SELECT image FROM categories WHERE id = ? AND restaurant_id = ?");
+                            $stmt->execute([$_POST['id'], $restaurantId]);
+                            $oldCategory = $stmt->fetch();
+                            if ($oldCategory && $oldCategory['image']) {
+                                deleteFile(UPLOAD_PATH . '/categories/' . $oldCategory['image']);
+                            }
+                        }
+                    } else {
+                        $error = $uploadResult['message'];
+                    }
+                } else {
+                    // Keep existing image if updating and no new file uploaded
+                    if ($action === 'update' && isset($_POST['id'])) {
+                        $stmt = $pdo->prepare("SELECT image FROM categories WHERE id = ? AND restaurant_id = ?");
+                        $stmt->execute([$_POST['id'], $restaurantId]);
+                        $oldCategory = $stmt->fetch();
+                        $image = $oldCategory['image'] ?? null;
+                    }
+                }
+                
+                if (!$error) {
+                    if ($action === 'create') {
+                        $stmt = $pdo->prepare("INSERT INTO categories (restaurant_id, name, slug, description, image, display_order, is_active) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                        $stmt->execute([$restaurantId, $name, $slug, $description, $image, $display_order, $is_active]);
+                        // Redirect to prevent form resubmission
+                        header('Location: categories.php' . (isSuperAdmin() && $restaurantId ? '?restaurant_id=' . urlencode($restaurantId) : '') . '&success=created');
+                        exit;
+                    } else {
+                        $id = $_POST['id'] ?? 0;
+                        if ($image) {
+                            $stmt = $pdo->prepare("UPDATE categories SET name = ?, slug = ?, description = ?, image = ?, display_order = ?, is_active = ? WHERE id = ? AND restaurant_id = ?");
+                            $stmt->execute([$name, $slug, $description, $image, $display_order, $is_active, $id, $restaurantId]);
+                        } else {
+                            $stmt = $pdo->prepare("UPDATE categories SET name = ?, slug = ?, description = ?, display_order = ?, is_active = ? WHERE id = ? AND restaurant_id = ?");
+                            $stmt->execute([$name, $slug, $description, $display_order, $is_active, $id, $restaurantId]);
+                        }
+                        // Redirect to prevent form resubmission
+                        header('Location: categories.php' . (isSuperAdmin() && $restaurantId ? '?restaurant_id=' . urlencode($restaurantId) : '') . '&success=updated');
+                        exit;
+                    }
+                }
+            } catch (PDOException $e) {
+                $error = 'Error: ' . $e->getMessage();
+            }
+        }
+    }
+    }
+}
+
+// Get category for editing
+$editCategory = null;
+if (isset($_GET['action']) && $_GET['action'] === 'edit' && isset($_GET['id'])) {
+    $stmt = $pdo->prepare("SELECT * FROM categories WHERE id = ? AND restaurant_id = ?");
+    $stmt->execute([$_GET['id'], $restaurantId]);
+    $editCategory = $stmt->fetch();
+}
+
+// Get all categories
+$categories = [];
+if ($pdo && $restaurantId) {
+    $stmt = $pdo->prepare("SELECT * FROM categories WHERE restaurant_id = ? ORDER BY display_order ASC, name ASC");
+    $stmt->execute([$restaurantId]);
+    $categories = $stmt->fetchAll();
+}
+
+// Handle success messages
+if (isset($_GET['success'])) {
+    switch ($_GET['success']) {
+        case 'created':
+            $message = 'Category created successfully';
+            break;
+        case 'updated':
+            $message = 'Category updated successfully';
+            break;
+        case 'deleted':
+            $message = 'Category and all associated menu items deleted successfully';
+            break;
+    }
+}
+
+$pageTitle = 'Category Management';
+include __DIR__ . '/../includes/manager-layout.php';
+?>
+
+        <?php if ($message): ?>
+            <div class="alert alert-success">
+                <?php echo htmlspecialchars($message); ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($error): ?>
+            <div class="alert alert-error">
+                <?php echo htmlspecialchars($error); ?>
+            </div>
+        <?php endif; ?>
+
+        <!-- Create/Edit Category Modal -->
+        <div class="modal" id="categoryModal" style="display: <?php echo $editCategory ? 'flex' : 'none'; ?>;">
+            <div class="modal-overlay" onclick="closeCategoryModal()"></div>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title"><?php echo $editCategory ? 'Edit Category' : 'Create New Category'; ?></h2>
+                    <button class="modal-close" onclick="closeCategoryModal()" aria-label="Close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="" enctype="multipart/form-data">
+                <input type="hidden" name="action" value="<?php echo $editCategory ? 'update' : 'create'; ?>">
+                <?php if ($editCategory): ?>
+                    <input type="hidden" name="id" value="<?php echo $editCategory['id']; ?>">
+                <?php endif; ?>
+                
+                <div class="form-group">
+                    <label class="form-label" for="name">Category Name *</label>
+                    <input type="text" id="name" name="name" class="form-input" required value="<?php echo htmlspecialchars($editCategory['name'] ?? ''); ?>">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="slug">Slug *</label>
+                    <input type="text" id="slug" name="slug" class="form-input" required value="<?php echo htmlspecialchars($editCategory['slug'] ?? ''); ?>">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="description">Description</label>
+                    <textarea id="description" name="description" class="form-textarea" rows="3"><?php echo htmlspecialchars($editCategory['description'] ?? ''); ?></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="image">Category Image</label>
+                    <input type="file" id="image" name="image" class="form-input" accept="image/*">
+                    <?php if ($editCategory && $editCategory['image']): ?>
+                        <div style="margin-top: 10px;">
+                            <p style="margin-bottom: 5px; color: var(--muted);">Current image:</p>
+                            <img src="<?php echo UPLOAD_URL . '/categories/' . htmlspecialchars($editCategory['image']); ?>" alt="Current image" style="max-width: 300px; max-height: 200px; border-radius: 8px; border: 2px solid #e5e7eb;">
+                        </div>
+                    <?php endif; ?>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="display_order">Display Order</label>
+                    <input type="number" id="display_order" name="display_order" class="form-input" value="<?php echo $editCategory['display_order'] ?? 0; ?>">
+                </div>
+                
+                <div class="form-group">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" id="is_active" name="is_active" style="width: 20px; height: 20px;" <?php echo ($editCategory['is_active'] ?? 1) ? 'checked' : ''; ?>>
+                        <label class="form-label" for="is_active" style="margin: 0;">Active</label>
+                    </div>
+                </div>
+                
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" onclick="closeCategoryModal()">Cancel</button>
+                            <button type="submit" class="btn btn-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                                <?php echo $editCategory ? 'Update Category' : 'Create Category'; ?>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Delete Confirmation Modal -->
+        <div class="modal" id="deleteModal" style="display: none;">
+            <div class="modal-overlay" onclick="closeDeleteModal()"></div>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">Delete Category</h2>
+                    <button class="modal-close" onclick="closeDeleteModal()" aria-label="Close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p style="margin-bottom: 20px; font-size: 16px;">Are you sure you want to delete this category?</p>
+                    <p style="margin-bottom: 20px; color: var(--danger); font-weight: 600;">This action cannot be undone. This will delete:</p>
+                    <ul style="margin-left: 20px; margin-bottom: 20px; color: var(--muted);">
+                        <li>The category and all its information</li>
+                        <li>All menu items in this category</li>
+                        <li>The category image</li>
+                    </ul>
+                    <form method="POST" action="" id="deleteForm">
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="id" id="deleteCategoryId" value="">
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                            <button type="submit" class="btn btn-danger">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                Yes, Delete Category
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 class="card-title">All Categories</h2>
+                <?php if (!$editCategory): ?>
+                    <button class="btn btn-primary" onclick="openCategoryModal()">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Create New Category
+                    </button>
+                <?php endif; ?>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Name</th>
+                        <th>Order</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($categories)): ?>
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 40px; color: var(--muted);">No categories found.</td>
+                        </tr>
+                    <?php else: ?>
+                        <?php foreach ($categories as $category): ?>
+                            <tr>
+                                <td>
+                                    <?php if ($category['image']): ?>
+                                        <img src="<?php echo UPLOAD_URL . '/categories/' . htmlspecialchars($category['image']); ?>" alt="" class="menu-item-image">
+                                    <?php else: ?>
+                                        <div class="menu-item-image" style="background: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #999;">No Image</div>
+                                    <?php endif; ?>
+                                </td>
+                                <td><?php echo htmlspecialchars($category['name']); ?></td>
+                                <td><?php echo $category['display_order']; ?></td>
+                                <td><span style="padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; background: <?php echo $category['is_active'] ? '#d1fae5' : '#fee2e2'; ?>; color: <?php echo $category['is_active'] ? '#065f46' : '#991b1b'; ?>"><?php echo $category['is_active'] ? 'Active' : 'Inactive'; ?></span></td>
+                                <td>
+                                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                        <a href="?action=edit&id=<?php echo $category['id']; ?><?php echo isSuperAdmin() && isset($restaurantId) && $restaurantId ? '&restaurant_id=' . urlencode($restaurantId) : ''; ?>" class="btn btn-primary btn-small">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                            Edit
+                                        </a>
+                                        <a href="menu-items.php?category_id=<?php echo $category['id']; ?><?php echo isSuperAdmin() && isset($restaurantId) && $restaurantId ? '&restaurant_id=' . urlencode($restaurantId) : ''; ?>" class="btn btn-secondary btn-small">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            </svg>
+                                            View Items
+                                        </a>
+                                        <button onclick="openDeleteModal(<?php echo $category['id']; ?>, '<?php echo htmlspecialchars(addslashes($category['name'])); ?>')" class="btn btn-danger btn-small">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                            Delete
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    
+<style>
+/* Clean Manager Categories Styles */
+.alert {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 0.875rem;
+}
+
+.alert-success {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+.alert-error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+/* Modal Styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 3001;
+}
+
+.modal-content {
+    position: relative;
+    background: white;
+    border-radius: 8px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    z-index: 3002;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+    color: #111827;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #6b7280;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: color 0.2s;
+}
+
+.modal-close:hover {
+    color: #111827;
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+.modal-footer {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    padding: 20px 24px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 0.875rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+
+.btn svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.btn-primary {
+    background: #111827;
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background: #374151;
+}
+
+.btn-secondary {
+    background: #f3f4f6;
+    color: #111827;
+}
+
+.btn-secondary:hover {
+    background: #e5e7eb;
+}
+
+.btn-danger {
+    background: #dc2626;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #b91c1c;
+}
+
+.btn-small {
+    padding: 6px 12px;
+    font-size: 0.813rem;
+}
+
+.btn-small svg {
+    width: 14px;
+    height: 14px;
+}
+
+.menu-item-image {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+/* Table Styles */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table thead {
+    background: #f9fafb;
+}
+
+.table th {
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.table td {
+    padding: 16px;
+    border-bottom: 1px solid #e5e7eb;
+    color: #111827;
+}
+
+.table tbody tr:hover {
+    background: #f9fafb;
+}
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #111827;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    color: #111827;
+    transition: border-color 0.2s;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+    outline: none;
+    border-color: #111827;
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* Card Styles */
+.card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-bottom: 24px;
+}
+
+.card-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .table {
+        font-size: 0.875rem;
+    }
+    
+    .table th,
+    .table td {
+        padding: 12px 8px;
+    }
+    
+    .modal-content {
+        width: 95%;
+        max-height: 95vh;
+    }
+    
+    .modal-footer {
+        flex-direction: column-reverse;
+    }
+    
+    .modal-footer .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+    
+    <script>
+        // Auto-generate slug from name
+        document.getElementById('name')?.addEventListener('input', function() {
+            const slugInput = document.getElementById('slug');
+            if (slugInput && !slugInput.value) {
+                slugInput.value = this.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+            }
+        });
+        
+        // Category Modal Functions
+        function openCategoryModal() {
+            document.getElementById('categoryModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeCategoryModal() {
+            document.getElementById('categoryModal').style.display = 'none';
+            document.body.style.overflow = '';
+            // Redirect to clear edit mode
+            if (window.location.search.includes('action=edit')) {
+                window.location.href = 'categories.php<?php echo isSuperAdmin() && $restaurantId ? '?restaurant_id=' . urlencode($restaurantId) : ''; ?>';
+            }
+        }
+        
+        // Delete Modal Functions
+        function openDeleteModal(categoryId, categoryName) {
+            document.getElementById('deleteCategoryId').value = categoryId;
+            const modalBody = document.querySelector('#deleteModal .modal-body');
+            const nameParagraph = modalBody.querySelector('p:first-child');
+            if (nameParagraph) {
+                nameParagraph.innerHTML = 'Are you sure you want to delete <strong>"' + categoryName + '"</strong>?';
+            }
+            document.getElementById('deleteModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+            document.body.style.overflow = '';
+        }
+        
+        // Open modal if editing
+        <?php if ($editCategory): ?>
+        document.addEventListener('DOMContentLoaded', function() {
+            openCategoryModal();
+        });
+        <?php endif; ?>
+    </script>
+
+<?php include __DIR__ . '/../includes/admin-footer.php'; ?>
+
