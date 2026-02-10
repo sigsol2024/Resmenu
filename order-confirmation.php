@@ -48,7 +48,8 @@ $orderItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $customization = getCustomizationSettings($restaurant['id']);
 $primaryColor = $customization['primary_color'] ?? '#f20d0d';
 $restaurantName = htmlspecialchars($restaurant['name']);
-$menuUrl = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : '') . '/restaurant/' . $slug;
+$baseUrl = defined('SITE_URL') ? rtrim(SITE_URL, '/') : '';
+$menuUrl = $baseUrl . '/restaurant/' . $slug;
 $currencySymbol = '₦';
 
 $paymentMethod = $order['payment_method'] ?? '';
@@ -156,12 +157,27 @@ $orderCreatedAtUnix = strtotime($order['created_at'] ?? 'now');
             <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 text-green-600 mb-4">
                 <span class="material-symbols-outlined text-4xl">check_circle</span>
             </div>
-            <h1 class="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Thank you for your order!</h1>
-            <p class="text-gray-600">Your payment confirmation has been received. We'll prepare your order shortly.</p>
+            <h1 class="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Thank you!</h1>
+            <p class="text-gray-600">Your order will be approved once payment is confirmed.</p>
         </div>
         <div class="text-center">
             <a href="<?php echo htmlspecialchars($menuUrl); ?>" class="inline-flex items-center justify-center gap-2 w-full sm:w-auto h-14 px-8 rounded-lg text-white font-bold text-base shadow-lg transition-all hover:opacity-90" style="background-color:<?php echo htmlspecialchars($primaryColor); ?>">
                 <span class="material-symbols-outlined">done</span> Done
+            </a>
+        </div>
+    </div>
+
+    <div id="expired-view" class="hidden">
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 text-red-600 mb-4">
+                <span class="material-symbols-outlined text-4xl">cancel</span>
+            </div>
+            <h1 class="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Payment time expired</h1>
+            <p class="text-gray-600">Order cancelled. The payment window has expired. Please place a new order if you still wish to order.</p>
+        </div>
+        <div class="text-center">
+            <a href="<?php echo htmlspecialchars($menuUrl); ?>" class="inline-flex items-center justify-center gap-2 w-full sm:w-auto h-14 px-8 rounded-lg text-white font-bold text-base shadow-lg transition-all hover:opacity-90" style="background-color:<?php echo htmlspecialchars($primaryColor); ?>">
+                <span class="material-symbols-outlined">arrow_back</span> Back to Menu
             </a>
         </div>
     </div>
@@ -178,7 +194,16 @@ $orderCreatedAtUnix = strtotime($order['created_at'] ?? 'now');
             var secs = diff % 60;
             var el = document.getElementById('countdown-text');
             if (el) el.textContent = String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
-            if (diff <= 0) return;
+            if (diff <= 0) {
+                var orderDetails = document.getElementById('order-details-view');
+                var expiredView = document.getElementById('expired-view');
+                if (orderDetails && expiredView) {
+                    orderDetails.classList.add('hidden');
+                    expiredView.classList.remove('hidden');
+                    fetch('<?php echo htmlspecialchars($baseUrl); ?>/api/cancel-bank-transfer-order.php?order_id=<?php echo (int)$orderId; ?>&slug=<?php echo urlencode($slug); ?>', { method: 'POST' }).catch(function() {});
+                }
+                return;
+            }
             setTimeout(updateCountdown, 1000);
         }
         updateCountdown();
