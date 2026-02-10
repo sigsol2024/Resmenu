@@ -260,14 +260,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <?php else: ?>
                 <div class="flex flex-wrap gap-4 mb-8">
                     <?php
-                    $icons = ['paystack' => 'credit_card', 'flutterwave' => 'account_balance_wallet', 'bank_transfer' => 'account_balance'];
+                    $logoUrls = [
+                        'paystack' => 'https://upload.wikimedia.org/wikipedia/commons/0/0b/Paystack_Logo.png',
+                        'flutterwave' => 'https://static.cdnlogo.com/logos/f/6/flutterwave.svg',
+                    ];
+                    $fallbackIcon = 'account_balance';
                     $selectedPayment = $_POST['payment_method'] ?? '';
                     foreach ($paymentMethods as $pm): ?>
                     <label class="flex-1 min-w-[140px] cursor-pointer">
                         <input type="radio" name="payment_method" value="<?php echo htmlspecialchars($pm['gateway']); ?>" class="peer sr-only" data-gateway="<?php echo htmlspecialchars($pm['gateway']); ?>"
                             <?php echo $selectedPayment === $pm['gateway'] ? 'checked' : ''; ?>/>
                         <div class="border-2 border-gray-200 rounded-lg p-4 flex flex-col items-center justify-center gap-2 peer-checked:border-primary peer-checked:ring-2 peer-checked:ring-primary transition-all">
-                            <span class="material-symbols-outlined text-gray-500"><?php echo $icons[$pm['gateway']] ?? 'payments'; ?></span>
+                            <?php if (!empty($logoUrls[$pm['gateway']])): ?>
+                            <img src="<?php echo htmlspecialchars($logoUrls[$pm['gateway']]); ?>" alt="<?php echo htmlspecialchars($pm['label']); ?>" class="h-8 object-contain max-w-[120px]" loading="lazy">
+                            <?php else: ?>
+                            <span class="material-symbols-outlined text-gray-500"><?php echo $fallbackIcon; ?></span>
+                            <?php endif; ?>
                             <span class="font-medium text-gray-900 text-center text-sm"><?php echo htmlspecialchars($pm['label']); ?></span>
                         </div>
                     </label>
