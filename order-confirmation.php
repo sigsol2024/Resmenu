@@ -14,7 +14,7 @@ $slug = trim($_GET['slug'] ?? '');
 $orderId = (int)($_GET['order_id'] ?? 0);
 
 if (empty($slug) || !$orderId) {
-    header('Location: /');
+    header('Location: ' . (defined('SITE_URL') ? rtrim(SITE_URL, '/') : '') . '/');
     exit;
 }
 

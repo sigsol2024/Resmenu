@@ -104,7 +104,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     header('Location: ' . $init['authorization_url']);
                     exit;
                 }
-                $errors[] = $init['error'] ?? 'Payment initiation failed. Please try again.';
+                header('Location: ' . $baseUrl . '/payment-failed.php?slug=' . urlencode($slug) . '&order_id=' . $orderId . '&reason=init_failed');
+                exit;
             } elseif ($paymentMethod === 'flutterwave') {
                 $init = initializeRestaurantFlutterwavePayment($restaurant['id'], [
                     'amount' => $total,
@@ -121,7 +122,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     header('Location: ' . $init['authorization_url']);
                     exit;
                 }
-                $errors[] = $init['error'] ?? 'Payment initiation failed. Please try again.';
+                header('Location: ' . $baseUrl . '/payment-failed.php?slug=' . urlencode($slug) . '&order_id=' . $orderId . '&reason=init_failed');
+                exit;
             } else {
                 header('Location: ' . $thankYouUrl);
                 exit;

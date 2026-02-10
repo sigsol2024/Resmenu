@@ -17,8 +17,7 @@ require_once __DIR__ . '/subscription.php';
  * @return array Single gateway settings or associative array keyed by gateway
  */
 function getRestaurantPaymentSettings($restaurantId, $gateway = null) {
-    global $pdo;
-
+    $pdo = getDBConnection();
     if (!$pdo) return $gateway ? [] : [];
 
     try {
@@ -52,8 +51,7 @@ function getRestaurantPaymentSettings($restaurantId, $gateway = null) {
  * @return bool
  */
 function updateRestaurantPaymentSettings($restaurantId, $gateway, $settings) {
-    global $pdo;
-
+    $pdo = getDBConnection();
     if (!$pdo) return false;
 
     $allowedGateways = ['paystack', 'flutterwave', 'bank_transfer'];
@@ -178,7 +176,7 @@ function initializeRestaurantPaystackPayment($restaurantId, $data) {
     $payload = [
         'email' => $data['email'],
         'amount' => (int)round((float)($data['amount'] ?? 0) * 100),
-        'reference' => 'ORD_' . ($data['order_id'] ?? time()) . '_' . bin2hex(random_bytes(4)),
+        'reference' => 'ORD_' . (int)($data['metadata']['order_id'] ?? 0) . '_' . bin2hex(random_bytes(4)),
         'callback_url' => $callbackUrl,
         'metadata' => $data['metadata'] ?? []
     ];

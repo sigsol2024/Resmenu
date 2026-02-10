@@ -6,7 +6,6 @@
  */
 
 require_once __DIR__ . '/includes/functions.php';
-require_once __DIR__ . '/includes/order-functions.php';
 require_once __DIR__ . '/config/config.php';
 
 $slug = trim($_GET['slug'] ?? '');
@@ -41,6 +40,7 @@ if (!empty($slug) && $orderId) {
 $message = match ($reason) {
     'cancelled' => 'Payment was cancelled. Your order has been cancelled.',
     'failed' => 'Payment failed. Your order has been cancelled. Please try again.',
+    'init_failed' => 'Payment could not be initiated. Your order has been cancelled. Please try again.',
     default => 'Something went wrong. Your order has been cancelled. Please try again.'
 };
 ?>
