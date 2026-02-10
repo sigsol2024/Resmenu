@@ -2,10 +2,11 @@
 /**
  * Payment Failed Page
  * Shown when Paystack/Flutterwave payment is cancelled or fails.
- * Cancels the pending order and displays a failure message.
+ * Offers option to switch to Bank Transfer (no duplicate order) or cancel.
  */
 
 require_once __DIR__ . '/includes/functions.php';
+require_once __DIR__ . '/includes/restaurant-payment-functions.php';
 require_once __DIR__ . '/config/config.php';
 
 $slug = trim($_GET['slug'] ?? '');
@@ -14,6 +15,8 @@ $reason = trim($_GET['reason'] ?? 'failed');
 
 $baseUrl = defined('SITE_URL') ? rtrim(SITE_URL, '/') : '';
 $menuUrl = $baseUrl . '/';
+$canSwitchToBankTransfer = false;
+$switchUrl = '';
 
 if (!empty($slug) && $orderId) {
     $restaurant = getRestaurantBySlug($slug);
@@ -22,11 +25,10 @@ if (!empty($slug) && $orderId) {
         $restaurantName = htmlspecialchars($restaurant['name']);
         $customization = getCustomizationSettings($restaurant['id']);
         $primaryColor = $customization['primary_color'] ?? '#f20d0d';
-        // Cancel the order
-        $pdo = getDBConnection();
-        if ($pdo) {
-            $stmt = $pdo->prepare("UPDATE orders SET status = 'cancelled', updated_at = NOW() WHERE id = ? AND restaurant_id = ? AND status = 'pending'");
-            $stmt->execute([$orderId, $restaurant['id']]);
+        $bankTransferSettings = getRestaurantPaymentSettings($restaurant['id'], 'bank_transfer');
+        if (!empty($bankTransferSettings['is_active']) && !empty($bankTransferSettings['account_number'])) {
+            $canSwitchToBankTransfer = true;
+            $switchUrl = $baseUrl . '/switch-payment-to-bank-transfer.php?slug=' . urlencode($slug) . '&order_id=' . $orderId;
         }
     } else {
         $restaurantName = 'Restaurant';
@@ -38,10 +40,10 @@ if (!empty($slug) && $orderId) {
 }
 
 $message = match ($reason) {
-    'cancelled' => 'Payment was cancelled. Your order has been cancelled.',
-    'failed' => 'Payment failed. Your order has been cancelled. Please try again.',
-    'init_failed' => 'Payment could not be initiated. Your order has been cancelled. Please try again.',
-    default => 'Something went wrong. Your order has been cancelled. Please try again.'
+    'cancelled' => 'Payment was cancelled. You can switch to Bank Transfer or cancel your order.',
+    'failed' => 'Payment failed. You can switch to Bank Transfer or cancel your order.',
+    'init_failed' => 'Payment could not be initiated. You can switch to Bank Transfer or cancel your order.',
+    default => 'Something went wrong. You can switch to Bank Transfer or cancel your order.'
 };
 ?>
 <!DOCTYPE html>
@@ -81,9 +83,14 @@ $message = match ($reason) {
         <p class="text-gray-600"><?php echo htmlspecialchars($message); ?></p>
     </div>
 
-    <div class="text-center">
-        <a href="<?php echo htmlspecialchars($menuUrl); ?>" class="inline-flex items-center justify-center gap-2 w-full sm:w-auto h-14 px-8 rounded-lg text-white font-bold text-base shadow-lg transition-all hover:opacity-90" style="background-color:<?php echo htmlspecialchars($primaryColor); ?>">
-            <span class="material-symbols-outlined">arrow_back</span> Back to Menu
+    <div class="flex flex-col sm:flex-row gap-3 justify-center items-center">
+        <?php if ($canSwitchToBankTransfer): ?>
+        <a href="<?php echo htmlspecialchars($switchUrl); ?>" class="inline-flex items-center justify-center gap-2 w-full sm:w-auto h-14 px-8 rounded-lg text-white font-bold text-base shadow-lg transition-all hover:opacity-90" style="background-color:<?php echo htmlspecialchars($primaryColor); ?>">
+            <span class="material-symbols-outlined">account_balance</span> Pay via Bank Transfer
+        </a>
+        <?php endif; ?>
+        <a href="<?php echo htmlspecialchars($baseUrl); ?>/cancel-pending-order.php?slug=<?php echo urlencode($slug); ?>&order_id=<?php echo (int)$orderId; ?>&return=menu" class="inline-flex items-center justify-center gap-2 w-full sm:w-auto h-14 px-8 rounded-lg border-2 border-gray-300 text-gray-700 font-bold text-base transition-all hover:bg-gray-50">
+            <span class="material-symbols-outlined">cancel</span> Cancel order and return to menu
         </a>
     </div>
 </main>

@@ -35,6 +35,9 @@ $stmt = $pdo->prepare("SELECT * FROM orders WHERE id = ? AND restaurant_id = ?")
 $stmt->execute([$orderId, $restaurant['id']]);
 $order = $stmt->fetch(PDO::FETCH_ASSOC);
 
+if ($order) {
+    setcookie('resmenu_pending', '', time() - 3600, '/');
+}
 if (!$order) {
     http_response_code(404);
     die('Order not found.');
