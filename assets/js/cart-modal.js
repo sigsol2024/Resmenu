@@ -48,19 +48,19 @@
             const imgStyle = imgUrl ? 'background-image:url(\'' + imgUrl.replace(/'/g, "\\'") + '\')' : 'background:#e5e5e5';
             const lineTotal = (parseFloat(item.price) || 0) * (item.quantity || 1);
             return `
-                <div class="flex gap-4 py-4 border-b border-[#e6dbdb] dark:border-[#3a2020] last:border-0" data-item-id="${item.id}">
-                    <div class="w-16 h-16 rounded-lg bg-gray-100 dark:bg-gray-800 overflow-hidden flex-shrink-0 bg-cover bg-center" style="${imgStyle}"></div>
+                <div class="flex gap-4 py-4 border-b border-gray-200 last:border-0" data-item-id="${item.id}">
+                    <div class="w-16 h-16 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0 bg-cover bg-center" style="${imgStyle}"></div>
                     <div class="flex-1 flex flex-col justify-between min-w-0">
                         <div class="flex justify-between items-start gap-2">
-                            <p class="text-sm font-bold text-[#181111] dark:text-white truncate">${(item.name || '').replace(/</g, '&lt;')}</p>
-                            <p class="text-sm font-bold text-[#181111] dark:text-white shrink-0">${CART.formatPrice(lineTotal, symbol)}</p>
+                            <p class="text-sm font-bold text-gray-900 truncate">${(item.name || '').replace(/</g, '&lt;')}</p>
+                            <p class="text-sm font-bold text-gray-900 shrink-0">${CART.formatPrice(lineTotal, symbol)}</p>
                         </div>
                         <div class="flex items-center gap-3 mt-1">
-                            <button type="button" class="cart-qty-minus text-[#8a6060] hover:text-primary transition-colors p-1" data-item-id="${item.id}" aria-label="Decrease">
+                            <button type="button" class="cart-qty-minus text-gray-500 hover:text-primary transition-colors p-1" data-item-id="${item.id}" aria-label="Decrease">
                                 <span class="material-symbols-outlined text-sm">remove</span>
                             </button>
-                            <span class="text-xs font-medium text-[#181111] dark:text-white min-w-[1.5rem] text-center">${item.quantity || 1}</span>
-                            <button type="button" class="cart-qty-plus text-[#8a6060] hover:text-primary transition-colors p-1" data-item-id="${item.id}" aria-label="Increase">
+                            <span class="text-xs font-medium text-gray-900 min-w-[1.5rem] text-center">${item.quantity || 1}</span>
+                            <button type="button" class="cart-qty-plus text-gray-500 hover:text-primary transition-colors p-1" data-item-id="${item.id}" aria-label="Increase">
                                 <span class="material-symbols-outlined text-sm">add</span>
                             </button>
                         </div>
@@ -74,40 +74,40 @@
 
         contentEl.innerHTML = `
             <div class="flex flex-col h-full max-h-[85vh]">
-                <div class="flex items-center justify-between p-6 border-b border-[#e6dbdb] dark:border-[#3a2020]">
-                    <h3 class="text-xl font-bold text-[#181111] dark:text-white">Shopping Bag</h3>
-                    <button type="button" id="resmenu-cart-modal-close" class="p-2 text-[#8a6060] hover:text-primary transition-colors" aria-label="Close">
+                <div class="flex items-center justify-between p-6 border-b border-gray-200">
+                    <h3 class="text-xl font-bold text-gray-900">Shopping Bag</h3>
+                    <button type="button" id="resmenu-cart-modal-close" class="p-2 text-gray-500 hover:text-primary transition-colors" aria-label="Close">
                         <span class="material-symbols-outlined">close</span>
                     </button>
                 </div>
                 <div class="flex-1 overflow-y-auto p-6 min-h-0">
-                    ${items.length ? itemsHtml : '<p class="text-[#8a6060] dark:text-[#bcaaaa] py-8 text-center">Your bag is empty.</p>'}
+                    ${items.length ? itemsHtml : '<p class="text-gray-600 py-8 text-center">Your bag is empty.</p>'}
                 </div>
-                <div class="p-6 border-t border-[#e6dbdb] dark:border-[#3a2020] bg-white dark:bg-[#1a0b0b]">
+                <div class="p-6 border-t border-gray-200 bg-white">
                     <div class="flex flex-col gap-2 mb-4">
                         <div class="flex justify-between text-sm">
-                            <span class="text-[#8a6060] dark:text-[#bcaaaa]">Subtotal</span>
-                            <span class="font-medium text-[#181111] dark:text-white">${CART.formatPrice(subtotal, symbol)}</span>
+                            <span class="text-gray-600">Subtotal</span>
+                            <span class="font-medium text-gray-900">${CART.formatPrice(subtotal, symbol)}</span>
                         </div>
                         ${deliveryFee > 0 ? `
                         <div class="flex justify-between text-sm">
-                            <span class="text-[#8a6060] dark:text-[#bcaaaa]">Delivery Fee</span>
-                            <span class="font-medium text-[#181111] dark:text-white">${CART.formatPrice(deliveryFee, symbol)}</span>
+                            <span class="text-gray-600">Delivery Fee</span>
+                            <span class="font-medium text-gray-900">${CART.formatPrice(deliveryFee, symbol)}</span>
                         </div>
                         ` : ''}
                         ${tax > 0 ? `
                         <div class="flex justify-between text-sm">
-                            <span class="text-[#8a6060] dark:text-[#bcaaaa]">Tax</span>
-                            <span class="font-medium text-[#181111] dark:text-white">${CART.formatPrice(tax, symbol)}</span>
+                            <span class="text-gray-600">Tax</span>
+                            <span class="font-medium text-gray-900">${CART.formatPrice(tax, symbol)}</span>
                         </div>
                         ` : ''}
                     </div>
-                    <div class="flex justify-between items-end pt-4 border-t border-dashed border-[#e6dbdb] dark:border-[#3a2020] mb-4">
-                        <span class="text-base font-bold text-[#181111] dark:text-white">Total</span>
+                    <div class="flex justify-between items-end pt-4 border-t border-dashed border-gray-200 mb-4">
+                        <span class="text-base font-bold text-gray-900">Total</span>
                         <span class="text-2xl font-bold" style="color:${primaryColor}">${CART.formatPrice(total, symbol)}</span>
                     </div>
                     <div class="flex gap-3 items-stretch">
-                        <button type="button" id="resmenu-cart-continue" class="flex-1 flex items-center justify-center px-4 py-3 rounded-lg border border-[#e6dbdb] dark:border-[#3a2020] text-[#181111] dark:text-white font-bold hover:bg-[#f5f0f0] dark:hover:bg-[#3a2020] transition-colors text-center">
+                        <button type="button" id="resmenu-cart-continue" class="flex-1 flex items-center justify-center px-4 py-3 rounded-lg border border-gray-200 text-gray-700 font-bold hover:bg-gray-100 transition-colors text-center">
                             Continue Shopping
                         </button>
                         <a href="${checkoutUrl}" id="resmenu-cart-checkout" class="flex-1 flex items-center justify-center px-4 py-3 rounded-lg text-white font-bold text-center transition-colors" style="background-color:${primaryColor}" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
@@ -160,7 +160,7 @@
         if (!modalEl) {
             modalEl = document.createElement('div');
             modalEl.id = 'resmenu-cart-modal';
-            modalEl.className = 'fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-lg md:max-h-[90vh] bg-white dark:bg-[#1a0b0b] rounded-xl shadow-xl z-[101] overflow-hidden hidden';
+            modalEl.className = 'fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-lg md:max-h-[90vh] bg-white rounded-xl shadow-xl z-[101] overflow-hidden hidden';
             modalEl.innerHTML = '<div id="resmenu-cart-modal-content" class="h-full"></div>';
             document.body.appendChild(modalEl);
         }

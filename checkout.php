@@ -96,8 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 extend: {
                     colors: {
                         "primary": "<?php echo htmlspecialchars($primaryColor); ?>",
-                        "background-light": "#f8f5f5",
-                        "background-dark": "#221010",
+                        "background-light": "#f2f4f7",
                     },
                     fontFamily: { "display": ["Work Sans", "sans-serif"] },
                     borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
@@ -106,23 +105,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     </script>
 </head>
-<body class="bg-background-light dark:bg-background-dark font-display min-h-screen flex flex-col">
-<header class="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-[#e5e5e5] dark:border-[#3a2020] px-6 lg:px-10 py-3 bg-white dark:bg-[#1a0b0b]">
-    <a href="<?php echo htmlspecialchars($menuUrl); ?>" class="flex items-center gap-4 text-[#181111] dark:text-white">
+<body class="bg-[#f2f4f7] font-display min-h-screen flex flex-col">
+<header class="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-gray-200 px-6 lg:px-10 py-3 bg-white">
+    <a href="<?php echo htmlspecialchars($menuUrl); ?>" class="flex items-center gap-4 text-gray-900">
         <span class="material-symbols-outlined text-2xl" style="color:<?php echo htmlspecialchars($primaryColor); ?>">restaurant_menu</span>
         <h2 class="text-xl font-bold"><?php echo $restaurantName; ?></h2>
     </a>
-    <a href="<?php echo htmlspecialchars($menuUrl); ?>" class="text-sm font-medium text-[#181111] dark:text-[#e0dada] hover:opacity-80">Menu</a>
+    <a href="<?php echo htmlspecialchars($menuUrl); ?>" class="text-sm font-medium text-gray-700 hover:opacity-80">Menu</a>
 </header>
 
 <main class="flex-grow w-full max-w-[1280px] mx-auto px-4 lg:px-10 py-8 lg:py-12">
     <div class="mb-10 text-center lg:text-left">
-        <h1 class="text-3xl lg:text-4xl font-bold text-[#181111] dark:text-white mb-2">Secure Checkout</h1>
-        <p class="text-[#8a6060] dark:text-[#bcaaaa]">Complete your details below to finalize your order.</p>
+        <h1 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">Secure Checkout</h1>
+        <p class="text-gray-600">Complete your details below to finalize your order.</p>
     </div>
 
     <?php if (!empty($errors)): ?>
-    <div class="mb-6 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300">
+    <div class="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700">
         <ul class="list-disc list-inside space-y-1 text-sm">
             <?php foreach ($errors as $e): ?><li><?php echo htmlspecialchars($e); ?></li><?php endforeach; ?>
         </ul>
@@ -136,85 +135,85 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="flex-1 min-w-0">
             <div class="mb-10">
                 <div class="flex items-center justify-between w-full relative">
-                    <div class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-0.5 bg-[#e6dbdb] dark:bg-[#3a2020] -z-10"></div>
-                    <div class="flex flex-col items-center gap-2 bg-background-light dark:bg-background-dark px-2">
-                        <div class="flex items-center justify-center w-10 h-10 rounded-full text-white font-bold shadow-lg ring-4 ring-background-light dark:ring-background-dark" style="background-color:<?php echo htmlspecialchars($primaryColor); ?>">1</div>
+                    <div class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-0.5 bg-gray-200 -z-10"></div>
+                    <div class="flex flex-col items-center gap-2 bg-[#f2f4f7] px-2">
+                        <div class="flex items-center justify-center w-10 h-10 rounded-full text-white font-bold shadow-lg ring-4 ring-[#f2f4f7]" style="background-color:<?php echo htmlspecialchars($primaryColor); ?>">1</div>
                         <span class="text-sm font-bold whitespace-nowrap" style="color:<?php echo htmlspecialchars($primaryColor); ?>">Delivery</span>
                     </div>
-                    <div class="flex flex-col items-center gap-2 bg-background-light dark:bg-background-dark px-2">
-                        <div class="flex items-center justify-center w-10 h-10 rounded-full bg-white dark:bg-[#3a2020] border-2 border-[#e6dbdb] dark:border-[#4a2a2a] text-[#8a6060] dark:text-[#bcaaaa] font-medium ring-4 ring-background-light dark:ring-background-dark">2</div>
-                        <span class="text-sm font-medium text-[#8a6060] dark:text-[#bcaaaa] whitespace-nowrap hidden sm:block">Payment</span>
+                    <div class="flex flex-col items-center gap-2 bg-[#f2f4f7] px-2">
+                        <div class="flex items-center justify-center w-10 h-10 rounded-full bg-white border-2 border-gray-200 text-gray-500 font-medium ring-4 ring-[#f2f4f7]">2</div>
+                        <span class="text-sm font-medium text-gray-500 whitespace-nowrap hidden sm:block">Payment</span>
                     </div>
-                    <div class="flex flex-col items-center gap-2 bg-background-light dark:bg-background-dark px-2">
-                        <div class="flex items-center justify-center w-10 h-10 rounded-full bg-white dark:bg-[#3a2020] border-2 border-[#e6dbdb] dark:border-[#4a2a2a] text-[#8a6060] dark:text-[#bcaaaa] font-medium ring-4 ring-background-light dark:ring-background-dark">3</div>
-                        <span class="text-sm font-medium text-[#8a6060] dark:text-[#bcaaaa] whitespace-nowrap hidden sm:block">Review</span>
+                    <div class="flex flex-col items-center gap-2 bg-[#f2f4f7] px-2">
+                        <div class="flex items-center justify-center w-10 h-10 rounded-full bg-white border-2 border-gray-200 text-gray-500 font-medium ring-4 ring-[#f2f4f7]">3</div>
+                        <span class="text-sm font-medium text-gray-500 whitespace-nowrap hidden sm:block">Review</span>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-[#1a0b0b] rounded-xl border border-[#e6dbdb] dark:border-[#3a2020] shadow-sm p-6 lg:p-8">
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 lg:p-8">
                 <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-xl font-bold text-[#181111] dark:text-white">Contact Information</h3>
+                    <h3 class="text-xl font-bold text-gray-900">Contact Information</h3>
                     <span class="text-xs font-medium px-2 py-1 rounded" style="color:<?php echo htmlspecialchars($primaryColor); ?>;background-color:rgba(242,13,13,0.1)">Step 1 of 3</span>
                 </div>
                 <div class="grid grid-cols-1 gap-6 mb-8">
                     <div class="flex flex-col gap-2">
-                        <label class="text-sm font-medium text-[#181111] dark:text-[#e0dada]">Full Name</label>
+                        <label class="text-sm font-medium text-gray-700">Full Name</label>
                         <input name="customer_name" type="text" placeholder="e.g. Jonathan Doe" required
-                            class="w-full h-12 px-4 rounded-lg border border-[#e6dbdb] dark:border-[#3a2020] bg-white dark:bg-[#1a0b0b] text-[#181111] dark:text-white focus:border-primary focus:ring-1 focus:ring-primary placeholder-[#8a6060] dark:placeholder-[#664444]"
+                            class="w-full h-12 px-4 rounded-lg border border-gray-200 bg-white text-gray-900 focus:border-primary focus:ring-1 focus:ring-primary placeholder-gray-400"
                             value="<?php echo htmlspecialchars($_POST['customer_name'] ?? ''); ?>"/>
                     </div>
                     <div class="flex flex-col gap-2">
-                        <label class="text-sm font-medium text-[#181111] dark:text-[#e0dada]">Phone Number</label>
+                        <label class="text-sm font-medium text-gray-700">Phone Number</label>
                         <div class="relative">
-                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#8a6060] dark:text-[#664444]">call</span>
+                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">call</span>
                             <input name="customer_phone" type="tel" placeholder="(555) 000-0000" required
-                                class="w-full h-12 pl-12 pr-4 rounded-lg border border-[#e6dbdb] dark:border-[#3a2020] bg-white dark:bg-[#1a0b0b] text-[#181111] dark:text-white focus:border-primary focus:ring-1 focus:ring-primary placeholder-[#8a6060] dark:placeholder-[#664444]"
+                                class="w-full h-12 pl-12 pr-4 rounded-lg border border-gray-200 bg-white text-gray-900 focus:border-primary focus:ring-1 focus:ring-primary placeholder-gray-400"
                                 value="<?php echo htmlspecialchars($_POST['customer_phone'] ?? ''); ?>"/>
                         </div>
                     </div>
                     <div class="flex flex-col gap-2">
-                        <label class="text-sm font-medium text-[#181111] dark:text-[#e0dada]">Email Address</label>
+                        <label class="text-sm font-medium text-gray-700">Email Address</label>
                         <div class="relative">
-                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#8a6060] dark:text-[#664444]">email</span>
+                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">email</span>
                             <input name="customer_email" type="email" placeholder="you@example.com" required
-                                class="w-full h-12 pl-12 pr-4 rounded-lg border border-[#e6dbdb] dark:border-[#3a2020] bg-white dark:bg-[#1a0b0b] text-[#181111] dark:text-white focus:border-primary focus:ring-1 focus:ring-primary placeholder-[#8a6060] dark:placeholder-[#664444]"
+                                class="w-full h-12 pl-12 pr-4 rounded-lg border border-gray-200 bg-white text-gray-900 focus:border-primary focus:ring-1 focus:ring-primary placeholder-gray-400"
                                 value="<?php echo htmlspecialchars($_POST['customer_email'] ?? ''); ?>"/>
                         </div>
                     </div>
                 </div>
-                <div class="flex items-center justify-between mb-6 pt-6 border-t border-[#f5f0f0] dark:border-[#3a2020]">
-                    <h3 class="text-xl font-bold text-[#181111] dark:text-white">Delivery Address</h3>
+                <div class="flex items-center justify-between mb-6 pt-6 border-t border-gray-200">
+                    <h3 class="text-xl font-bold text-gray-900">Delivery Address</h3>
                 </div>
                 <div class="gap-6 mb-8">
                     <div class="flex flex-col gap-2">
-                        <label class="text-sm font-medium text-[#181111] dark:text-[#e0dada]">House Address</label>
+                        <label class="text-sm font-medium text-gray-700">House Address</label>
                         <div class="relative">
-                            <span class="material-symbols-outlined absolute left-4 top-4 text-[#8a6060] dark:text-[#664444]">location_on</span>
+                            <span class="material-symbols-outlined absolute left-4 top-4 text-gray-500">location_on</span>
                             <textarea name="delivery_address" rows="3" placeholder="Street address, apartment/suite, city, state, zip" required
-                                class="w-full min-h-[100px] pl-12 pr-4 py-3 rounded-lg border border-[#e6dbdb] dark:border-[#3a2020] bg-white dark:bg-[#1a0b0b] text-[#181111] dark:text-white focus:border-primary focus:ring-1 focus:ring-primary placeholder-[#8a6060] dark:placeholder-[#664444] resize-y"><?php echo htmlspecialchars($_POST['delivery_address'] ?? ''); ?></textarea>
+                                class="w-full min-h-[100px] pl-12 pr-4 py-3 rounded-lg border border-gray-200 bg-white text-gray-900 focus:border-primary focus:ring-1 focus:ring-primary placeholder-gray-400 resize-y"><?php echo htmlspecialchars($_POST['delivery_address'] ?? ''); ?></textarea>
                         </div>
                     </div>
                 </div>
-                <div class="flex items-center justify-between mb-6 pt-6 border-t border-[#f5f0f0] dark:border-[#3a2020]">
-                    <h3 class="text-xl font-bold text-[#181111] dark:text-white">Payment Method</h3>
+                <div class="flex items-center justify-between mb-6 pt-6 border-t border-gray-200">
+                    <h3 class="text-xl font-bold text-gray-900">Payment Method</h3>
                 </div>
                 <?php if (empty($paymentMethods)): ?>
-                <div class="mb-8 p-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-sm">
+                <div class="mb-8 p-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm">
                     No payment methods configured. Please contact the restaurant.
                 </div>
                 <?php else: ?>
                 <div class="flex flex-wrap gap-4 mb-8">
                     <?php
                     $icons = ['paystack' => 'credit_card', 'flutterwave' => 'account_balance_wallet', 'bank_transfer' => 'account_balance'];
-                    $selectedPayment = $_POST['payment_method'] ?? ($paymentMethods[0]['gateway'] ?? '');
+                    $selectedPayment = $_POST['payment_method'] ?? '';
                     foreach ($paymentMethods as $pm): ?>
                     <label class="flex-1 min-w-[140px] cursor-pointer">
                         <input type="radio" name="payment_method" value="<?php echo htmlspecialchars($pm['gateway']); ?>" class="peer sr-only" data-gateway="<?php echo htmlspecialchars($pm['gateway']); ?>"
                             <?php echo $selectedPayment === $pm['gateway'] ? 'checked' : ''; ?>/>
-                        <div class="border-2 border-[#e6dbdb] dark:border-[#3a2020] rounded-lg p-4 flex flex-col items-center justify-center gap-2 peer-checked:border-primary peer-checked:ring-2 peer-checked:ring-primary transition-all">
-                            <span class="material-symbols-outlined text-[#8a6060] dark:text-[#bcaaaa]"><?php echo $icons[$pm['gateway']] ?? 'payments'; ?></span>
-                            <span class="font-medium text-[#181111] dark:text-white text-center text-sm"><?php echo htmlspecialchars($pm['label']); ?></span>
+                        <div class="border-2 border-gray-200 rounded-lg p-4 flex flex-col items-center justify-center gap-2 peer-checked:border-primary peer-checked:ring-2 peer-checked:ring-primary transition-all">
+                            <span class="material-symbols-outlined text-gray-500"><?php echo $icons[$pm['gateway']] ?? 'payments'; ?></span>
+                            <span class="font-medium text-gray-900 text-center text-sm"><?php echo htmlspecialchars($pm['label']); ?></span>
                         </div>
                     </label>
                     <?php endforeach; ?>
@@ -223,11 +222,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $bankTransferMethod = null;
                 foreach ($paymentMethods as $pm) { if ($pm['gateway'] === 'bank_transfer' && ($pm['bank_name'] ?? $pm['account_number'] ?? $pm['account_name'])) { $bankTransferMethod = $pm; break; } }
                 if ($bankTransferMethod): ?>
-                <div id="bank-details-box" class="mb-8 p-4 rounded-lg bg-[#f9fafb] dark:bg-[#2a1a1a] border border-[#e6dbdb] dark:border-[#3a2020]" style="display:<?php echo $selectedPayment === 'bank_transfer' ? 'block' : 'none'; ?>">
-                    <p class="text-sm font-medium text-[#181111] dark:text-white mb-2">Bank Transfer Details</p>
-                    <p class="text-sm text-[#8a6060] dark:text-[#bcaaaa]"><strong>Bank:</strong> <?php echo htmlspecialchars($bankTransferMethod['bank_name'] ?? '-'); ?></p>
-                    <p class="text-sm text-[#8a6060] dark:text-[#bcaaaa]"><strong>Account Number:</strong> <?php echo htmlspecialchars($bankTransferMethod['account_number'] ?? '-'); ?></p>
-                    <p class="text-sm text-[#8a6060] dark:text-[#bcaaaa]"><strong>Account Name:</strong> <?php echo htmlspecialchars($bankTransferMethod['account_name'] ?? '-'); ?></p>
+                <div id="bank-details-box" class="mb-8 p-4 rounded-lg bg-gray-50 border border-gray-200" style="display:none">
+                    <p class="text-sm font-medium text-gray-900 mb-2">Bank Transfer Details</p>
+                    <p class="text-sm text-gray-600"><strong>Bank:</strong> <?php echo htmlspecialchars($bankTransferMethod['bank_name'] ?? '-'); ?></p>
+                    <p class="text-sm text-gray-600"><strong>Account Number:</strong> <?php echo htmlspecialchars($bankTransferMethod['account_number'] ?? '-'); ?></p>
+                    <p class="text-sm text-gray-600"><strong>Account Name:</strong> <?php echo htmlspecialchars($bankTransferMethod['account_name'] ?? '-'); ?></p>
                 </div>
                 <script>
                 document.querySelectorAll('input[name="payment_method"]').forEach(function(r) {
@@ -239,8 +238,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </script>
                 <?php endif; ?>
                 <?php endif; ?>
-                <div class="flex items-center gap-4 mt-8 pt-8 border-t border-[#f5f0f0] dark:border-[#3a2020]">
-                    <a href="<?php echo htmlspecialchars($menuUrl); ?>" class="h-12 px-6 rounded-lg text-[#181111] dark:text-white font-bold hover:bg-[#f5f0f0] dark:hover:bg-[#3a2020] transition-colors flex items-center justify-center gap-2">
+                <div class="flex items-center gap-4 mt-8 pt-8 border-t border-gray-200">
+                    <a href="<?php echo htmlspecialchars($menuUrl); ?>" class="h-12 px-6 rounded-lg text-gray-700 font-bold hover:bg-gray-100 transition-colors flex items-center justify-center gap-2">
                         <span class="material-symbols-outlined">arrow_back</span> Back to Menu
                     </a>
                 </div>
@@ -248,40 +247,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
 
         <div class="w-full lg:w-[380px] flex-shrink-0">
-            <div class="sticky top-24 bg-white dark:bg-[#1a0b0b] rounded-xl border border-[#e6dbdb] dark:border-[#3a2020] shadow-sm overflow-hidden">
-                <div class="p-6 border-b border-[#f5f0f0] dark:border-[#3a2020] bg-background-light dark:bg-[#2a1a1a]">
-                    <h3 class="text-lg font-bold text-[#181111] dark:text-white flex items-center gap-2">
+            <div class="sticky top-24 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                <div class="p-6 border-b border-gray-200 bg-gray-50">
+                    <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
                         <span class="material-symbols-outlined" style="color:<?php echo htmlspecialchars($primaryColor); ?>">receipt_long</span>
                         Order Summary
                     </h3>
                 </div>
                 <div class="p-6 flex flex-col gap-6">
                     <div id="checkout-order-items" class="flex flex-col gap-4 max-h-[300px] overflow-y-auto pr-2"></div>
-                    <div class="h-px bg-[#f5f0f0] dark:bg-[#3a2020] w-full"></div>
+                    <div class="h-px bg-gray-200 w-full"></div>
                     <div class="flex flex-col gap-2 pt-2">
                         <div class="flex justify-between text-sm">
-                            <span class="text-[#8a6060] dark:text-[#bcaaaa]">Subtotal</span>
-                            <span id="checkout-subtotal" class="font-medium text-[#181111] dark:text-white">₦0.00</span>
+                            <span class="text-gray-600">Subtotal</span>
+                            <span id="checkout-subtotal" class="font-medium text-gray-900">₦0.00</span>
                         </div>
                         <div class="flex justify-between text-sm">
-                            <span class="text-[#8a6060] dark:text-[#bcaaaa]">Delivery Fee</span>
-                            <span id="checkout-delivery" class="font-medium text-[#181111] dark:text-white">₦0.00</span>
+                            <span class="text-gray-600">Delivery Fee</span>
+                            <span id="checkout-delivery" class="font-medium text-gray-900">₦0.00</span>
                         </div>
                         <div class="flex justify-between text-sm">
-                            <span class="text-[#8a6060] dark:text-[#bcaaaa]">Tax</span>
-                            <span id="checkout-tax" class="font-medium text-[#181111] dark:text-white">₦0.00</span>
+                            <span class="text-gray-600">Tax</span>
+                            <span id="checkout-tax" class="font-medium text-gray-900">₦0.00</span>
                         </div>
                     </div>
-                    <div class="flex justify-between items-end pt-4 border-t border-dashed border-[#e6dbdb] dark:border-[#3a2020]">
-                        <span class="text-base font-bold text-[#181111] dark:text-white">Total</span>
+                    <div class="flex justify-between items-end pt-4 border-t border-dashed border-gray-200">
+                        <span class="text-base font-bold text-gray-900">Total</span>
                         <span id="checkout-total" class="text-2xl font-bold" style="color:<?php echo htmlspecialchars($primaryColor); ?>">₦0.00</span>
                     </div>
                     <button type="submit" class="w-full mt-4 h-14 px-6 rounded-lg text-white font-bold text-base shadow-lg transition-all flex items-center justify-center gap-2 group" style="background-color:<?php echo htmlspecialchars($primaryColor); ?>">
                         Proceed to Payment <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
                     </button>
                 </div>
-                <div class="bg-background-light dark:bg-[#2a1a1a] p-4 text-center">
-                    <p class="text-xs text-[#8a6060] dark:text-[#bcaaaa] flex items-center justify-center gap-1">
+                <div class="bg-gray-50 p-4 text-center">
+                    <p class="text-xs text-gray-600 flex items-center justify-center gap-1">
                         <span class="material-symbols-outlined text-sm">lock</span> Secure 256-bit SSL Encrypted Payment
                     </p>
                 </div>
@@ -290,10 +289,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </form>
 </main>
 
-<footer class="mt-auto border-t border-[#e5e5e5] dark:border-[#3a2020] bg-white dark:bg-[#1a0b0b] py-10 px-6 lg:px-10">
+<footer class="mt-auto border-t border-gray-200 bg-white py-10 px-6 lg:px-10">
     <div class="flex flex-col md:flex-row justify-between items-center gap-6 max-w-[1280px] mx-auto">
-        <span class="text-sm font-bold text-[#181111] dark:text-white"><?php echo $restaurantName; ?></span>
-        <p class="text-xs text-[#8a6060] dark:text-[#bcaaaa]">© <?php echo date('Y'); ?> <?php echo $restaurantName; ?>. All rights reserved.</p>
+        <span class="text-sm font-bold text-gray-900"><?php echo $restaurantName; ?></span>
+        <p class="text-xs text-gray-600">© <?php echo date('Y'); ?> <?php echo $restaurantName; ?>. All rights reserved.</p>
     </div>
 </footer>
 
@@ -319,9 +318,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         const imgUrl = item.image ? (uploadBaseUrl + '/menu-items/' + item.image) : '';
         const imgStyle = imgUrl ? 'background-image:url(\'' + imgUrl.replace(/'/g, "\\'") + '\')' : 'background:#e5e5e5';
         const lineTotal = (parseFloat(item.price) || 0) * (item.quantity || 1);
-        return '<div class="flex gap-4"><div class="w-16 h-16 rounded-lg bg-gray-100 dark:bg-gray-800 overflow-hidden flex-shrink-0 bg-cover bg-center" style="' + imgStyle + '"></div><div class="flex-1 flex flex-col justify-between"><div class="flex justify-between items-start"><p class="text-sm font-bold text-[#181111] dark:text-white">' + (item.name || '').replace(/</g, '&lt;') + '</p><p class="text-sm font-bold text-[#181111] dark:text-white">' + CART.formatPrice(lineTotal, symbol) + '</p></div><p class="text-xs text-[#8a6060] dark:text-[#bcaaaa]">Qty: ' + (item.quantity || 1) + '</p></div></div>';
+        return '<div class="flex gap-4"><div class="w-16 h-16 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0 bg-cover bg-center" style="' + imgStyle + '"></div><div class="flex-1 flex flex-col justify-between"><div class="flex justify-between items-start"><p class="text-sm font-bold text-gray-900">' + (item.name || '').replace(/</g, '&lt;') + '</p><p class="text-sm font-bold text-gray-900">' + CART.formatPrice(lineTotal, symbol) + '</p></div><p class="text-xs text-gray-600">Qty: ' + (item.quantity || 1) + '</p></div></div>';
     }).join('');
-    itemsEl.innerHTML = itemsHtml || '<p class="text-[#8a6060] dark:text-[#bcaaaa] py-4">No items in cart.</p>';
+    itemsEl.innerHTML = itemsHtml || '<p class="text-gray-600 py-4">No items in cart.</p>';
 
     document.getElementById('checkout-subtotal').textContent = CART.formatPrice(subtotal, symbol);
     document.getElementById('checkout-delivery').textContent = CART.formatPrice(deliveryFee, symbol);
