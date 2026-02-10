@@ -189,6 +189,12 @@ function t4_formatPrice($price, $symbol = '₦') {
 #menuPanel.open {
     right: 0;
 }
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
 </style>
 </head>
 <body class="font-display bg-background-light dark:bg-background-dark text-charcoal dark:text-white">
@@ -277,7 +283,7 @@ function t4_formatPrice($price, $symbol = '₦') {
                         <h3 class="text-base md:text-lg font-serif font-black text-white tracking-tight bg-charcoal rounded-xl px-4 py-3 shrink-0"><?php echo htmlspecialchars($category['name']); ?></h3>
                         <div class="h-px flex-1 bg-charcoal/20"></div>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-4">
                         <?php foreach (($category['menu_items'] ?? []) as $item): ?>
                             <?php
                             $itemImage = '';
@@ -288,22 +294,22 @@ function t4_formatPrice($price, $symbol = '₦') {
                             ?>
                             <div class="menu-card-animate bg-white border border-charcoal/5 rounded-2xl overflow-hidden flex flex-col <?php echo $hasImage ? '' : 'menu-card-no-image'; ?> hover:shadow-xl hover:border-primary/10 transition-shadow duration-300 group relative">
                                 <?php if ($hasImage): ?>
-                                <div class="w-full h-48 shrink-0 bg-cover bg-center rounded-t-2xl" style="background-image: url('<?php echo htmlspecialchars($itemImage); ?>');"></div>
+                                <div class="w-full h-44 md:h-36 lg:h-32 shrink-0 bg-cover bg-center rounded-t-2xl" style="background-image: url('<?php echo htmlspecialchars($itemImage); ?>');"></div>
                                 <?php endif; ?>
-                                <div class="flex-1 flex flex-col justify-center p-6 relative z-10">
-                                    <h4 class="text-xl font-bold group-hover:text-primary transition-colors mb-1" style="color: <?php echo htmlspecialchars($menuTitleColor); ?>"><?php echo htmlspecialchars($item['name']); ?></h4>
-                                    <span class="font-black text-2xl mb-3" style="color: #f20d0d"><?php echo t4_formatPrice($item['price'], $currencySymbol); ?></span>
+                                <div class="flex-1 flex flex-col justify-center p-5 md:p-3 lg:p-3 relative z-10 min-w-0">
+                                    <h4 class="text-lg md:text-base lg:text-sm font-bold group-hover:text-primary transition-colors mb-0.5 md:mb-0 line-clamp-2" style="color: <?php echo htmlspecialchars($menuTitleColor); ?>"><?php echo htmlspecialchars($item['name']); ?></h4>
+                                    <span class="font-black text-xl md:text-lg lg:text-base mb-2 md:mb-1" style="color: #f20d0d"><?php echo t4_formatPrice($item['price'], $currencySymbol); ?></span>
                                     <?php if (!empty($item['description'])): ?>
-                                        <p class="text-charcoal/60 text-sm leading-relaxed mb-4"><?php echo nl2br(htmlspecialchars($item['description'])); ?></p>
+                                        <p class="text-charcoal/60 text-sm md:text-xs leading-relaxed mb-3 md:mb-2 line-clamp-2"><?php echo nl2br(htmlspecialchars($item['description'])); ?></p>
                                     <?php endif; ?>
                                     <?php if (!empty($supportsOrdering)): ?>
-                                    <div class="flex justify-start">
-                                        <button type="button" class="add-to-bag-btn inline-flex items-center gap-2 bg-primary text-white hover:bg-charcoal px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all transform active:scale-95 shadow-lg shadow-primary/20 cursor-pointer border-0"
+                                    <div class="flex justify-start mt-auto">
+                                        <button type="button" class="add-to-bag-btn inline-flex items-center gap-1.5 md:gap-1 bg-primary text-white hover:bg-charcoal px-4 py-2 md:px-3 md:py-1.5 lg:px-3 lg:py-1.5 rounded-full text-xs md:text-[10px] lg:text-[10px] font-bold uppercase tracking-wider transition-all transform active:scale-95 shadow-lg shadow-primary/20 cursor-pointer border-0"
                                             data-item-id="<?php echo (int)$item['id']; ?>"
                                             data-item-name="<?php echo htmlspecialchars($item['name']); ?>"
                                             data-item-price="<?php echo htmlspecialchars($item['price']); ?>"
                                             data-item-image="<?php echo !empty($item['image']) ? htmlspecialchars($item['image']) : ''; ?>">
-                                            <span class="material-symbols-outlined text-sm">shopping_bag</span>
+                                            <span class="material-symbols-outlined text-sm md:text-xs">shopping_bag</span>
                                             Add to bag
                                         </button>
                                     </div>
@@ -319,9 +325,9 @@ function t4_formatPrice($price, $symbol = '₦') {
                                         $orderHref = 'mailto:' . $restaurant['email'] . '?subject=' . urlencode('Order: ' . $item['name']);
                                     }
                                     ?>
-                                    <div class="flex justify-start">
-                                        <a href="<?php echo htmlspecialchars($orderHref); ?>" target="<?php echo htmlspecialchars($orderTarget); ?>" class="inline-flex items-center gap-2 bg-primary text-white hover:bg-charcoal px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all transform active:scale-95 shadow-lg shadow-primary/20">
-                                            <span class="material-symbols-outlined text-sm">shopping_bag</span>
+                                    <div class="flex justify-start mt-auto">
+                                        <a href="<?php echo htmlspecialchars($orderHref); ?>" target="<?php echo htmlspecialchars($orderTarget); ?>" class="inline-flex items-center gap-1.5 md:gap-1 bg-primary text-white hover:bg-charcoal px-4 py-2 md:px-3 md:py-1.5 lg:px-3 lg:py-1.5 rounded-full text-xs md:text-[10px] lg:text-[10px] font-bold uppercase tracking-wider transition-all transform active:scale-95 shadow-lg shadow-primary/20">
+                                            <span class="material-symbols-outlined text-sm md:text-xs">shopping_bag</span>
                                             Add to bag
                                         </a>
                                     </div>
