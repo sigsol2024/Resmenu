@@ -20,6 +20,7 @@ if (!$restaurant) {
     die('Restaurant not found.');
 }
 
+$pdo = getDBConnection();
 $customization = getCustomizationSettings($restaurant['id']);
 $primaryColor = $customization['primary_color'] ?? '#f20d0d';
 $paymentMethods = getRestaurantActivePaymentMethods($restaurant['id']);
