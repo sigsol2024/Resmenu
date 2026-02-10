@@ -219,30 +219,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <?php endforeach; ?>
                 </div>
                 <?php
-                $bankTransferMethod = null;
-                foreach ($paymentMethods as $pm) { if ($pm['gateway'] === 'bank_transfer' && ($pm['bank_name'] ?? $pm['account_number'] ?? $pm['account_name'])) { $bankTransferMethod = $pm; break; } }
-                if ($bankTransferMethod): ?>
-                <div id="bank-details-box" class="mb-8 p-4 rounded-lg bg-gray-50 border border-gray-200" style="display:none">
-                    <p class="text-sm font-medium text-gray-900 mb-2">Bank Transfer Details</p>
-                    <p class="text-sm text-gray-600"><strong>Bank:</strong> <?php echo htmlspecialchars($bankTransferMethod['bank_name'] ?? '-'); ?></p>
-                    <p class="text-sm text-gray-600"><strong>Account Number:</strong> <?php echo htmlspecialchars($bankTransferMethod['account_number'] ?? '-'); ?></p>
-                    <p class="text-sm text-gray-600"><strong>Account Name:</strong> <?php echo htmlspecialchars($bankTransferMethod['account_name'] ?? '-'); ?></p>
+                $hasBankTransfer = false;
+                foreach ($paymentMethods as $pm) { if ($pm['gateway'] === 'bank_transfer') { $hasBankTransfer = true; break; } }
+                if ($hasBankTransfer): ?>
+                <div id="bank-transfer-note" class="mb-8 p-4 rounded-lg bg-blue-50 border border-blue-200" style="display:none">
+                    <p class="text-sm text-gray-700">After placing your order, you'll be redirected to the Order Details page where you will find our bank account information. Please complete the transfer within 15 minutes to confirm your order.</p>
                 </div>
                 <script>
                 document.querySelectorAll('input[name="payment_method"]').forEach(function(r) {
                     r.addEventListener('change', function() {
-                        var box = document.getElementById('bank-details-box');
-                        if (box) box.style.display = this.value === 'bank_transfer' ? 'block' : 'none';
+                        var note = document.getElementById('bank-transfer-note');
+                        if (note) note.style.display = this.value === 'bank_transfer' ? 'block' : 'none';
                     });
                 });
                 </script>
                 <?php endif; ?>
                 <?php endif; ?>
-                <div class="flex items-center gap-4 mt-8 pt-8 border-t border-gray-200">
-                    <a href="<?php echo htmlspecialchars($menuUrl); ?>" class="h-12 px-6 rounded-lg text-gray-700 font-bold hover:bg-gray-100 transition-colors flex items-center justify-center gap-2">
-                        <span class="material-symbols-outlined">arrow_back</span> Back to Menu
-                    </a>
-                </div>
             </div>
         </div>
 
@@ -278,6 +270,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <button type="submit" class="w-full mt-4 h-14 px-6 rounded-lg text-white font-bold text-base shadow-lg transition-all flex items-center justify-center gap-2 group" style="background-color:<?php echo htmlspecialchars($primaryColor); ?>">
                         Proceed to Payment <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
                     </button>
+                    <a href="<?php echo htmlspecialchars($menuUrl); ?>" class="inline-flex items-center justify-center gap-1.5 py-2 text-sm text-gray-500 hover:text-gray-700 transition-colors">
+                        <span class="material-symbols-outlined text-base">arrow_back</span> Back to Menu
+                    </a>
                 </div>
                 <div class="bg-gray-50 p-4 text-center">
                     <p class="text-xs text-gray-600 flex items-center justify-center gap-1">
