@@ -7,6 +7,33 @@ require_once __DIR__ . '/functions.php';
 require_once __DIR__ . '/restaurant-payment-functions.php';
 
 /**
+ * Generate a unique 8-character alphanumeric order number
+ * @return string
+ */
+function generateOrderNumber() {
+    $chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    $len = strlen($chars);
+    $result = '';
+    for ($i = 0; $i < 8; $i++) {
+        $result .= $chars[random_int(0, $len - 1)];
+    }
+    return $result;
+}
+
+/**
+ * Get display order number (8-char alphanumeric). Uses order_number if set, else generates from id for legacy orders.
+ * @param array $order Order row with id and optionally order_number
+ * @return string
+ */
+function getOrderDisplayNumber($order) {
+    if (!empty($order['order_number'])) {
+        return $order['order_number'];
+    }
+    $id = (int)($order['id'] ?? 0);
+    return strtoupper(str_pad(base_convert((string)$id, 10, 36), 8, '0', STR_PAD_LEFT));
+}
+
+/**
  * Create an order from cart data
  * @param int $restaurantId
  * @param array $cart Items with id, name, price, quantity
@@ -58,8 +85,18 @@ function createOrder($restaurantId, $cart, $customer, $deliveryFee = 0, $taxRate
     try {
         $pdo->beginTransaction();
 
-        $stmt = $pdo->prepare("INSERT INTO orders (restaurant_id, customer_name, customer_phone, customer_email, delivery_address, payment_method, status, subtotal, delivery_fee, tax, total) VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?)");
-        $stmt->execute([$restaurantId, $customerName, $customerPhone, $customerEmail, $deliveryAddress, $paymentMethod ?: null, $subtotal, $deliveryFee, $tax, $total]);
+        $orderNumber = generateOrderNumber();
+        try {
+            $stmt = $pdo->prepare("INSERT INTO orders (restaurant_id, order_number, customer_name, customer_phone, customer_email, delivery_address, payment_method, status, subtotal, delivery_fee, tax, total) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?)");
+            $stmt->execute([$restaurantId, $orderNumber, $customerName, $customerPhone, $customerEmail, $deliveryAddress, $paymentMethod ?: null, $subtotal, $deliveryFee, $tax, $total]);
+        } catch (PDOException $e) {
+            if (strpos($e->getMessage(), 'order_number') !== false || strpos($e->getMessage(), 'Unknown column') !== false) {
+                $stmt = $pdo->prepare("INSERT INTO orders (restaurant_id, customer_name, customer_phone, customer_email, delivery_address, payment_method, status, subtotal, delivery_fee, tax, total) VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?)");
+                $stmt->execute([$restaurantId, $customerName, $customerPhone, $customerEmail, $deliveryAddress, $paymentMethod ?: null, $subtotal, $deliveryFee, $tax, $total]);
+            } else {
+                throw $e;
+            }
+        }
         $orderId = (int) $pdo->lastInsertId();
 
         $itemStmt = $pdo->prepare("INSERT INTO order_items (order_id, menu_item_id, name, price, quantity) VALUES (?, ?, ?, ?, ?)");

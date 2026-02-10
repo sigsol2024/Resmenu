@@ -23,6 +23,7 @@ if (!$restaurantId) {
 }
 
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/order-functions.php';
 $pdo = getDBConnection();
 if (!$pdo) {
     echo json_encode(['success' => false, 'message' => 'Database error']);
@@ -41,5 +42,6 @@ if (!$order) {
 $stmt = $pdo->prepare("SELECT name, price, quantity FROM order_items WHERE order_id = ?");
 $stmt->execute([$orderId]);
 $order['items'] = $stmt->fetchAll();
+$order['order_display_number'] = getOrderDisplayNumber($order);
 
 echo json_encode(['success' => true, 'order' => $order]);

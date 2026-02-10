@@ -6,6 +6,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 requireManager();
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/order-functions.php';
 
 $restaurantId = getCurrentUserRestaurantId();
 if (!$restaurantId) {
@@ -96,7 +97,7 @@ include __DIR__ . '/../includes/manager-layout.php';
             <tbody>
                 <?php foreach ($orders as $o): ?>
                 <tr style="border-bottom:1px solid #f3f4f6;">
-                    <td style="padding:12px 16px;font-size:0.875rem;">#<?php echo (int)$o['id']; ?></td>
+                    <td style="padding:12px 16px;font-size:0.875rem;">#<?php echo htmlspecialchars(getOrderDisplayNumber($o)); ?></td>
                     <td style="padding:12px 16px;font-size:0.875rem;"><?php echo htmlspecialchars($o['customer_name']); ?></td>
                     <td style="padding:12px 16px;font-size:0.875rem;"><?php echo date('M j, Y H:i', strtotime($o['created_at'])); ?></td>
                     <td style="padding:12px 16px;font-size:0.875rem;font-weight:600;"><?php echo $currencySymbol . number_format((float)$o['total'], 2); ?></td>
@@ -160,7 +161,7 @@ include __DIR__ . '/../includes/manager-layout.php';
                     if (data.success) {
                         const o = data.order;
                         let itemsHtml = (o.items || []).map(i => '<tr><td>' + (i.name||'') + '</td><td>' + (i.quantity||1) + '</td><td>' + symbol + parseFloat(i.price||0).toFixed(2) + '</td><td>' + symbol + (parseFloat(i.price||0)*(i.quantity||1)).toFixed(2) + '</td></tr>').join('');
-                        modalTitle.textContent = 'Order #' + orderId;
+                        modalTitle.textContent = 'Order #' + (o.order_display_number || orderId);
                         modalBody.innerHTML = '<table style="width:100%;margin-bottom:16px;"><tr><th style="text-align:left;">Customer</th><td>' + (o.customer_name||'') + '</td></tr><tr><th style="text-align:left;">Phone</th><td>' + (o.customer_phone||'') + '</td></tr><tr><th style="text-align:left;">Email</th><td>' + (o.customer_email||'') + '</td></tr><tr><th style="text-align:left;">Address</th><td>' + (o.delivery_address||'') + '</td></tr><tr><th style="text-align:left;">Status</th><td>' + (o.status||'') + '</td></tr></table><h4 style="margin:16px 0 8px;">Items</h4><table style="width:100%;border-collapse:collapse;"><thead><tr style="border-bottom:1px solid #e5e7eb;"><th style="text-align:left;padding:8px;">Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead><tbody>' + itemsHtml + '</tbody></table><p style="margin-top:12px;font-weight:600;">Total: ' + symbol + parseFloat(o.total||0).toFixed(2) + '</p>';
                         modal.style.display = 'flex';
                     }

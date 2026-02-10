@@ -6,6 +6,7 @@
  */
 
 require_once __DIR__ . '/includes/functions.php';
+require_once __DIR__ . '/includes/order-functions.php';
 require_once __DIR__ . '/includes/restaurant-payment-functions.php';
 require_once __DIR__ . '/config/config.php';
 
@@ -58,14 +59,15 @@ if ($isBankTransfer) {
     $bankTransferMethod = getRestaurantPaymentSettings($restaurant['id'], 'bank_transfer');
 }
 
-$orderCreatedAt = $order['created_at'] ?? date('Y-m-d H:i:s');
+// Unix timestamp for countdown (avoids timezone/parsing issues in JS)
+$orderCreatedAtUnix = strtotime($order['created_at'] ?? 'now');
 ?>
 <!DOCTYPE html>
 <html class="light" lang="en">
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title><?php echo $isBankTransfer ? 'Order Details' : 'Thank You'; ?> - Order #<?php echo (int)$order['id']; ?> - <?php echo $restaurantName; ?></title>
+    <title><?php echo $isBankTransfer ? 'Order Details' : 'Thank You'; ?> - Order #<?php echo htmlspecialchars(getOrderDisplayNumber($order)); ?> - <?php echo $restaurantName; ?></title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
@@ -104,7 +106,7 @@ $orderCreatedAt = $order['created_at'] ?? date('Y-m-d H:i:s');
             <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
                 <div class="flex justify-between items-center">
                     <span class="text-sm font-medium text-gray-600">Order Number</span>
-                    <span class="text-lg font-bold" style="color:<?php echo htmlspecialchars($primaryColor); ?>">#<?php echo (int)$order['id']; ?></span>
+                    <span class="text-lg font-bold" style="color:<?php echo htmlspecialchars($primaryColor); ?>">#<?php echo htmlspecialchars(getOrderDisplayNumber($order)); ?></span>
                 </div>
             </div>
             <div class="p-6">
@@ -113,7 +115,7 @@ $orderCreatedAt = $order['created_at'] ?? date('Y-m-d H:i:s');
                     <p class="text-base font-bold text-gray-900 mb-1">Bank: <?php echo htmlspecialchars($bankTransferMethod['bank_name'] ?? '-'); ?></p>
                     <p class="text-base font-bold text-gray-900 mb-1">Account Number: <?php echo htmlspecialchars($bankTransferMethod['account_number'] ?? '-'); ?></p>
                     <p class="text-base font-bold text-gray-900">Account Name: <?php echo htmlspecialchars($bankTransferMethod['account_name'] ?? '-'); ?></p>
-                    <p class="text-sm text-amber-800 mt-3">Transfer exactly <strong><?php echo $currencySymbol . number_format((float)$order['total'], 2); ?></strong> and use your order number <strong>#<?php echo (int)$order['id']; ?></strong> as the reference.</p>
+                    <p class="text-sm text-amber-800 mt-3">Transfer exactly <strong><?php echo $currencySymbol . number_format((float)$order['total'], 2); ?></strong> and use your order number <strong>#<?php echo htmlspecialchars(getOrderDisplayNumber($order)); ?></strong> as the reference.</p>
                 </div>
                 <div id="countdown-box" class="mb-6 flex items-center justify-center gap-2 py-3 px-4 rounded-lg bg-gray-100 text-gray-800">
                     <span class="material-symbols-outlined">schedule</span>
@@ -166,8 +168,8 @@ $orderCreatedAt = $order['created_at'] ?? date('Y-m-d H:i:s');
 
     <script>
     (function() {
-        var orderCreatedAt = <?php echo json_encode($orderCreatedAt); ?>;
-        var endTime = new Date(new Date(orderCreatedAt).getTime() + 15 * 60 * 1000);
+        var orderCreatedAtUnix = <?php echo (int)$orderCreatedAtUnix; ?>;
+        var endTime = new Date(orderCreatedAtUnix * 1000 + 15 * 60 * 1000);
 
         function updateCountdown() {
             var now = new Date();
@@ -201,7 +203,7 @@ $orderCreatedAt = $order['created_at'] ?? date('Y-m-d H:i:s');
         <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
             <div class="flex justify-between items-center">
                 <span class="text-sm font-medium text-gray-600">Order Number</span>
-                <span class="text-lg font-bold" style="color:<?php echo htmlspecialchars($primaryColor); ?>">#<?php echo (int)$order['id']; ?></span>
+                <span class="text-lg font-bold" style="color:<?php echo htmlspecialchars($primaryColor); ?>">#<?php echo htmlspecialchars(getOrderDisplayNumber($order)); ?></span>
             </div>
         </div>
         <div class="p-6">

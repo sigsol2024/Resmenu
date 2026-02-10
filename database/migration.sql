@@ -85,3 +85,6 @@ CREATE TABLE IF NOT EXISTS `restaurant_payment_settings` (
 
 -- 6. Add payment_method column to orders (IF NOT EXISTS skips if column already present - MariaDB 10.0.2+)
 ALTER TABLE `orders` ADD COLUMN IF NOT EXISTS `payment_method` varchar(50) DEFAULT NULL AFTER `delivery_address`;
+
+-- 7. Add order_number column (8-char alphanumeric unique display number)
+ALTER TABLE `orders` ADD COLUMN IF NOT EXISTS `order_number` varchar(10) DEFAULT NULL AFTER `id`;
