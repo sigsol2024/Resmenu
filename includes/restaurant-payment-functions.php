@@ -159,6 +159,180 @@ function getRestaurantActivePaymentMethods($restaurantId) {
 }
 
 /**
+ * Initialize Paystack payment for restaurant order
+ *
+ * @param int $restaurantId
+ * @param array $data amount (in main currency), email, metadata (restaurant_id, order_id, slug)
+ * @return array ['success' => bool, 'authorization_url' => string, 'reference' => string, 'error' => string]
+ */
+function initializeRestaurantPaystackPayment($restaurantId, $data) {
+    $keys = getRestaurantGatewayKeys($restaurantId, 'paystack');
+    if (empty($keys['secret_key'])) {
+        return ['success' => false, 'error' => 'Paystack is not configured'];
+    }
+
+    $baseUrl = defined('SITE_URL') ? rtrim(SITE_URL, '/') : '';
+    $meta = $data['metadata'] ?? [];
+    $callbackUrl = $baseUrl . '/order-payment-callback.php?gateway=paystack&slug=' . urlencode($meta['slug'] ?? '') . '&order_id=' . (int)($meta['order_id'] ?? 0);
+
+    $payload = [
+        'email' => $data['email'],
+        'amount' => (int)round((float)($data['amount'] ?? 0) * 100),
+        'reference' => 'ORD_' . ($data['order_id'] ?? time()) . '_' . bin2hex(random_bytes(4)),
+        'callback_url' => $callbackUrl,
+        'metadata' => $data['metadata'] ?? []
+    ];
+
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL => 'https://api.paystack.co/transaction/initialize',
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => json_encode($payload),
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER => [
+            'Authorization: Bearer ' . $keys['secret_key'],
+            'Content-Type: application/json'
+        ]
+    ]);
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($httpCode !== 200) {
+        error_log("Restaurant Paystack init failed: " . $response);
+        return ['success' => false, 'error' => 'Failed to initialize payment'];
+    }
+
+    $result = json_decode($response, true);
+    if (!empty($result['status']) && !empty($result['data']['authorization_url'])) {
+        return [
+            'success' => true,
+            'authorization_url' => $result['data']['authorization_url'],
+            'reference' => $result['data']['reference']
+        ];
+    }
+    return ['success' => false, 'error' => $result['message'] ?? 'Unknown error'];
+}
+
+/**
+ * Initialize Flutterwave payment for restaurant order
+ *
+ * @param int $restaurantId
+ * @param array $data amount, email, name, phone, metadata
+ * @return array ['success' => bool, 'authorization_url' => string, 'reference' => string, 'error' => string]
+ */
+function initializeRestaurantFlutterwavePayment($restaurantId, $data) {
+    $keys = getRestaurantGatewayKeys($restaurantId, 'flutterwave');
+    if (empty($keys['secret_key'])) {
+        return ['success' => false, 'error' => 'Flutterwave is not configured'];
+    }
+
+    $baseUrl = defined('SITE_URL') ? rtrim(SITE_URL, '/') : '';
+    $meta = $data['metadata'] ?? [];
+    $redirectUrl = $baseUrl . '/order-payment-callback.php?gateway=flutterwave&slug=' . urlencode($meta['slug'] ?? '') . '&order_id=' . (int)($meta['order_id'] ?? 0);
+
+    $reference = 'ORD_' . ($data['metadata']['order_id'] ?? time()) . '_' . bin2hex(random_bytes(4));
+    $payload = [
+        'tx_ref' => $reference,
+        'amount' => (float)($data['amount'] ?? 0),
+        'currency' => $data['currency'] ?? 'NGN',
+        'redirect_url' => $redirectUrl,
+        'customer' => [
+            'email' => $data['email'] ?? '',
+            'name' => $data['name'] ?? '',
+            'phonenumber' => $data['phone'] ?? ''
+        ],
+        'customizations' => [
+            'title' => 'Order Payment',
+            'description' => 'Restaurant order'
+        ],
+        'meta' => $data['metadata'] ?? []
+    ];
+
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL => 'https://api.flutterwave.com/v3/payments',
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => json_encode($payload),
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER => [
+            'Authorization: Bearer ' . $keys['secret_key'],
+            'Content-Type: application/json'
+        ]
+    ]);
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($httpCode !== 200) {
+        error_log("Restaurant Flutterwave init failed: " . $response);
+        return ['success' => false, 'error' => 'Failed to initialize payment'];
+    }
+
+    $result = json_decode($response, true);
+    if (!empty($result['status']) && $result['status'] === 'success' && !empty($result['data']['link'])) {
+        return [
+            'success' => true,
+            'authorization_url' => $result['data']['link'],
+            'reference' => $reference
+        ];
+    }
+    return ['success' => false, 'error' => $result['message'] ?? 'Unknown error'];
+}
+
+/**
+ * Verify Paystack transaction (restaurant order)
+ */
+function verifyRestaurantPaystackPayment($restaurantId, $reference) {
+    $keys = getRestaurantGatewayKeys($restaurantId, 'paystack');
+    if (empty($keys['secret_key'])) return ['success' => false];
+
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL => 'https://api.paystack.co/transaction/verify/' . urlencode($reference),
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . $keys['secret_key']]
+    ]);
+    $response = curl_exec($ch);
+    curl_close($ch);
+    $result = json_decode($response, true);
+
+    if (!empty($result['status']) && !empty($result['data']['status']) && $result['data']['status'] === 'success') {
+        return [
+            'success' => true,
+            'metadata' => $result['data']['metadata'] ?? []
+        ];
+    }
+    return ['success' => false];
+}
+
+/**
+ * Verify Flutterwave transaction (restaurant order)
+ */
+function verifyRestaurantFlutterwavePayment($restaurantId, $transactionId) {
+    $keys = getRestaurantGatewayKeys($restaurantId, 'flutterwave');
+    if (empty($keys['secret_key'])) return ['success' => false];
+
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL => 'https://api.flutterwave.com/v3/transactions/' . urlencode($transactionId) . '/verify',
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . $keys['secret_key']]
+    ]);
+    $response = curl_exec($ch);
+    curl_close($ch);
+    $result = json_decode($response, true);
+
+    if (!empty($result['status']) && $result['status'] === 'success' && !empty($result['data']['status']) && $result['data']['status'] === 'successful') {
+        return [
+            'success' => true,
+            'metadata' => $result['data']['meta'] ?? []
+        ];
+    }
+    return ['success' => false];
+}
+
+/**
  * Get restaurant gateway API keys (decrypted, for webhook validation)
  *
  * @param int $restaurantId

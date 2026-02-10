@@ -62,6 +62,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($errors)) {
         require_once __DIR__ . '/includes/order-functions.php';
+
+        $subtotal = 0;
+        foreach ($cart as $item) {
+            $price = (float)($item['price'] ?? 0);
+            $qty = max(1, (int)($item['quantity'] ?? 1));
+            $subtotal += $price * $qty;
+        }
+        $tax = $subtotal * (float)$taxRate;
+        $total = $subtotal + (float)$deliveryFee + $tax;
+
         $result = createOrder($restaurant['id'], $cart, [
             'customer_name' => $customerName,
             'customer_phone' => $customerPhone,
@@ -71,11 +81,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ], $deliveryFee, $taxRate);
 
         if ($result['success']) {
-            $thankYouUrl = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : '') . '/order-confirmation.php?slug=' . urlencode($slug) . '&order_id=' . (int)$result['order_id'];
-            header('Location: ' . $thankYouUrl);
-            exit;
+            $orderId = (int)$result['order_id'];
+            $baseUrl = defined('SITE_URL') ? rtrim(SITE_URL, '/') : '';
+            $thankYouUrl = $baseUrl . '/order-confirmation.php?slug=' . urlencode($slug) . '&order_id=' . $orderId;
+
+            if ($paymentMethod === 'bank_transfer') {
+                header('Location: ' . $thankYouUrl);
+                exit;
+            }
+
+            if ($paymentMethod === 'paystack') {
+                $init = initializeRestaurantPaystackPayment($restaurant['id'], [
+                    'amount' => $total,
+                    'email' => $customerEmail,
+                    'metadata' => [
+                        'restaurant_id' => $restaurant['id'],
+                        'order_id' => $orderId,
+                        'slug' => $slug
+                    ]
+                ]);
+                if (!empty($init['authorization_url'])) {
+                    header('Location: ' . $init['authorization_url']);
+                    exit;
+                }
+                $errors[] = $init['error'] ?? 'Payment initiation failed. Please try again.';
+            } elseif ($paymentMethod === 'flutterwave') {
+                $init = initializeRestaurantFlutterwavePayment($restaurant['id'], [
+                    'amount' => $total,
+                    'email' => $customerEmail,
+                    'name' => $customerName,
+                    'phone' => $customerPhone,
+                    'metadata' => [
+                        'restaurant_id' => $restaurant['id'],
+                        'order_id' => $orderId,
+                        'slug' => $slug
+                    ]
+                ]);
+                if (!empty($init['authorization_url'])) {
+                    header('Location: ' . $init['authorization_url']);
+                    exit;
+                }
+                $errors[] = $init['error'] ?? 'Payment initiation failed. Please try again.';
+            } else {
+                header('Location: ' . $thankYouUrl);
+                exit;
+            }
+        } else {
+            $errors = array_merge($errors, $result['errors'] ?? ['Failed to create order.']);
         }
-        $errors = array_merge($errors, $result['errors'] ?? ['Failed to create order.']);
     }
 }
 

@@ -57,8 +57,12 @@ switch ($event['event']) {
         }
         break;
     case 'charge.failed':
-        if ($orderId && $restaurantId) {
-            error_log("Restaurant Paystack webhook: Payment failed for order $orderId");
+        if ($orderId && $restaurantId && $pdo) {
+            $stmt = $pdo->prepare("UPDATE orders SET status = 'cancelled', updated_at = NOW() WHERE id = ? AND restaurant_id = ? AND status = 'pending'");
+            $stmt->execute([$orderId, $restaurantId]);
+            if ($stmt->rowCount() > 0) {
+                error_log("Restaurant Paystack webhook: Order $orderId cancelled (payment failed)");
+            }
         }
         break;
     default:

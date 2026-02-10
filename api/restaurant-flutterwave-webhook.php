@@ -58,6 +58,12 @@ switch ($event['event']) {
                 if ($stmt->rowCount() > 0) {
                     error_log("Restaurant Flutterwave webhook: Order $orderId confirmed (ref: $txRef)");
                 }
+            } else {
+                $stmt = $pdo->prepare("UPDATE orders SET status = 'cancelled', updated_at = NOW() WHERE id = ? AND restaurant_id = ? AND status = 'pending'");
+                $stmt->execute([$orderId, $restaurantId]);
+                if ($stmt->rowCount() > 0) {
+                    error_log("Restaurant Flutterwave webhook: Order $orderId cancelled (payment failed, status: $status)");
+                }
             }
         }
         break;
