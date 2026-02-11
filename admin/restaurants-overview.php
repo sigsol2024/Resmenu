@@ -89,7 +89,12 @@ include __DIR__ . '/../includes/admin-layout.php';
         tbody.innerHTML = '<tr><td colspan="5" style="padding:24px;text-align:center;color:#6b7280;">Loading...</td></tr>';
 
         fetch(url).then(r => r.json()).then(function(data) {
-            const rows = data.success && data.restaurants ? data.restaurants : [];
+            if (!data.success) {
+                const msg = data.message || 'Failed to load data.';
+                tbody.innerHTML = '<tr><td colspan="5" style="padding:24px;text-align:center;color:#ef4444;">' + esc(msg) + '</td></tr>';
+                return;
+            }
+            const rows = data.restaurants || [];
             if (rows.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="5" style="padding:24px;text-align:center;color:#6b7280;">No data found.</td></tr>';
                 return;

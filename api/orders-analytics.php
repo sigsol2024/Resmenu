@@ -7,6 +7,7 @@
 
 header('Content-Type: application/json');
 
+try {
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/order-functions.php';
@@ -66,15 +67,15 @@ if ($action && !in_array($action, $allowedActions)) {
 }
 
 // Validate date format (YYYY-MM-DD)
-$dateValid = static function ($d) {
+function _ordersAnalyticsDateValid($d) {
     return preg_match('/^\d{4}-\d{2}-\d{2}$/', $d) && strtotime($d) !== false;
-};
+}
 
 // Build date range for SQL
 $dateFrom = null;
 $dateTo = null;
 
-if (!empty($startDate) && !empty($endDate) && $dateValid($startDate) && $dateValid($endDate)) {
+if (!empty($startDate) && !empty($endDate) && _ordersAnalyticsDateValid($startDate) && _ordersAnalyticsDateValid($endDate)) {
     $dateFrom = $startDate . ' 00:00:00';
     $dateTo = $endDate . ' 23:59:59';
 } else {
@@ -200,26 +201,39 @@ if ($action === 'orders' || $action === '') {
 
 // Restaurants overview (Super Admin): aggregated totals per restaurant
 if ($action === 'restaurants_overview' && $isSuperAdmin()) {
-    $joinCond = "o.restaurant_id = r.id";
-    if ($dateFrom) $joinCond .= " AND o.created_at >= ?";
-    if ($dateTo) $joinCond .= " AND o.created_at <= ?";
-    $overviewSql = "SELECT r.id, r.name, r.slug,
-        COUNT(o.id) AS total_orders,
-        COALESCE(SUM(CASE WHEN o.status IN ('pending','confirmed','on_hold','completed') THEN o.total ELSE 0 END), 0) AS total_revenue
-        FROM restaurants r
-        LEFT JOIN orders o ON " . $joinCond;
-    $oparams = [];
-    if ($dateFrom) $oparams[] = $dateFrom;
-    if ($dateTo) $oparams[] = $dateTo;
-    if ($restaurantId) {
-        $overviewSql .= " WHERE r.id = ?";
-        $oparams[] = $restaurantId;
-    }
-    $overviewSql .= " GROUP BY r.id, r.name, r.slug ORDER BY r.name ASC";
+    try {
+        $joinCond = "o.restaurant_id = r.id";
+        if ($dateFrom) $joinCond .= " AND o.created_at >= ?";
+        if ($dateTo) $joinCond .= " AND o.created_at <= ?";
+        $overviewSql = "SELECT r.id, r.name, r.slug,
+            COUNT(o.id) AS total_orders,
+            COALESCE(SUM(CASE WHEN o.status IN ('pending','confirmed','on_hold','completed') THEN o.total ELSE 0 END), 0) AS total_revenue
+            FROM restaurants r
+            LEFT JOIN orders o ON " . $joinCond;
+        $oparams = [];
+        if ($dateFrom) $oparams[] = $dateFrom;
+        if ($dateTo) $oparams[] = $dateTo;
+        if ($restaurantId) {
+            $overviewSql .= " WHERE r.id = ?";
+            $oparams[] = $restaurantId;
+        }
+        $overviewSql .= " GROUP BY r.id, r.name, r.slug ORDER BY r.name ASC";
 
-    $stmt = $pdo->prepare($overviewSql);
-    $stmt->execute($oparams);
-    $response['restaurants'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt = $pdo->prepare($overviewSql);
+        $stmt->execute($oparams);
+        $response['restaurants'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("orders-analytics restaurants_overview: " . $e->getMessage());
+        $response['success'] = false;
+        $response['message'] = 'Failed to load restaurants overview';
+        $response['restaurants'] = [];
+    }
 }
 
 echo json_encode($response);
+
+} catch (Throwable $e) {
+    error_log("orders-analytics error: " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine());
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'An error occurred. Please try again.', 'restaurants' => [], 'orders' => [], 'revenue_by_date' => [], 'counts_by_status' => []]);
+}

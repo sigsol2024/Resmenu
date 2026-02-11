@@ -135,7 +135,7 @@ include __DIR__ . '/../includes/manager-layout.php';
                     '<td style="padding:12px 16px;"><form method="post" action="../api/update-order-status.php" style="display:inline;margin-right:8px;"><input type="hidden" name="order_id" value="' + orderId + '"><input type="hidden" name="slug" value="' + esc(slug) + '"><input type="hidden" name="return_to" value="restaurant-orders"><select name="status" class="order-status-select" style="padding:6px 10px;border:1px solid #e5e7eb;border-radius:6px;font-size:0.8rem;cursor:pointer;">' +
                     ['pending','confirmed','on_hold','cancelled','completed'].map(function(s){ return '<option value="' + s + '"' + (st === s ? ' selected' : '') + '>' + (s.charAt(0).toUpperCase() + s.slice(1)).replace('_',' ') + '</option>'; }).join('') +
                     '</select><button type="submit" style="display:none;">Update</button></form>' +
-                    '<button type="button" class="view-order-btn" data-order-id="' + orderId + '" style="padding:6px 12px;background:#4f46e5;color:#fff;border:0;border-radius:6px;font-size:0.8rem;cursor:pointer;font-weight:500;">View</button></td></tr>';
+                    '<button type="button" class="view-order-btn btn btn-primary" data-order-id="' + orderId + '" style="padding:6px 12px;font-size:0.8rem;">View</button></td></tr>';
             }).join('');
             initOrderHandlers();
         }).catch(function() {

@@ -54,20 +54,28 @@ include __DIR__ . '/../includes/manager-layout.php';
 
 <section class="orders-overview" style="margin-bottom:24px;">
     <h2 class="section-title" style="font-size:1.125rem;font-weight:600;margin-bottom:16px;color:#111827;">Orders Overview</h2>
-    <!-- Revenue Chart -->
-    <div class="chart-card" style="background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);padding:24px;margin-bottom:24px;">
-        <h3 class="chart-title" style="font-size:1rem;font-weight:600;margin-bottom:12px;color:#111827;">Revenue by Period</h3>
-        <div class="revenue-chart-filters" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
-            <button type="button" class="revenue-range-btn btn-active" data-range="today">Today</button>
-            <button type="button" class="revenue-range-btn" data-range="3days">Last 3 days</button>
-            <button type="button" class="revenue-range-btn" data-range="7days">Last 7 days</button>
-            <button type="button" class="revenue-range-btn" data-range="1month">One month</button>
-            <button type="button" class="revenue-range-btn" data-range="all">All time</button>
+    <!-- Revenue Line Chart -->
+    <div class="chart-card revenue-chart-card" style="background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);padding:24px;margin-bottom:24px;">
+        <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px;margin-bottom:16px;">
+            <div>
+                <h3 class="chart-title" style="font-size:1rem;font-weight:600;margin:0;color:#111827;">Revenue Growth Over Time</h3>
+                <p id="revenue-trend" style="font-size:0.75rem;margin:4px 0 0;color:#6b7280;display:flex;align-items:center;gap:4px;"></p>
+            </div>
+            <div class="revenue-chart-filters" style="display:flex;flex-wrap:wrap;gap:6px;">
+                <button type="button" class="revenue-range-btn btn-active" data-range="today">Today</button>
+                <button type="button" class="revenue-range-btn" data-range="3days">3 Days</button>
+                <button type="button" class="revenue-range-btn" data-range="7days">7 Days</button>
+                <button type="button" class="revenue-range-btn" data-range="1month">1 Month</button>
+                <button type="button" class="revenue-range-btn" data-range="all">All Time</button>
+            </div>
         </div>
-        <div id="revenue-chart" class="simple-bar-chart" style="height:10rem;display:grid;grid-auto-flow:column;gap:2%;align-items:end;padding-inline:2%;position:relative;">
-            <!-- Filled by JS -->
+        <div id="revenue-chart-wrapper" style="position:relative;height:280px;min-width:0;">
+            <div id="revenue-chart-empty" style="display:none;color:#6b7280;padding:60px 24px;text-align:center;font-size:0.875rem;">No revenue data for this period.</div>
+            <div id="revenue-line-chart" style="display:none;height:100%;width:100%;position:relative;">
+                <svg id="revenue-svg" style="width:100%;height:100%;" preserveAspectRatio="none" viewBox="0 0 800 280"></svg>
+                <div id="revenue-tooltip" class="revenue-tooltip" style="display:none;position:absolute;background:#111827;color:#fff;padding:8px 12px;border-radius:8px;font-size:0.75rem;font-weight:500;pointer-events:none;z-index:10;box-shadow:0 4px 12px rgba(0,0,0,0.15);white-space:nowrap;min-width:100px;line-height:1.4;"></div>
+            </div>
         </div>
-        <p id="revenue-chart-empty" style="display:none;color:#6b7280;padding:16px 0;">No revenue data for this period.</p>
     </div>
     <!-- Order Status Chart -->
     <?php
@@ -146,7 +154,7 @@ include __DIR__ . '/../includes/manager-layout.php';
                         </form>
                     </td>
                     <td style="padding:12px 16px;">
-                        <button type="button" class="view-order-btn" data-order-id="<?php echo (int)$o['id']; ?>" style="padding:6px 12px;background:#4f46e5;color:#fff;border:0;border-radius:6px;font-size:0.8rem;cursor:pointer;font-weight:500;">View</button>
+                        <button type="button" class="view-order-btn btn btn-primary" data-order-id="<?php echo (int)$o['id']; ?>" style="padding:6px 12px;font-size:0.8rem;">View</button>
                     </td>
                 </tr>
                 <?php endforeach; ?>
@@ -167,9 +175,11 @@ include __DIR__ . '/../includes/manager-layout.php';
 </div>
 
 <style>
-.revenue-range-btn { padding: 6px 12px; border-radius: 6px; border: 1px solid #e5e7eb; background: #fff; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
+.revenue-range-btn { padding: 6px 12px; border-radius: 6px; border: 1px solid #e5e7eb; background: #fff; font-size: 0.75rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
 .revenue-range-btn:hover { background: #f3f4f6; }
-.revenue-range-btn.btn-active { background: #4f46e5; color: #fff; border-color: #4f46e5; }
+.revenue-range-btn.btn-active { background: var(--primary, #D97706); color: #fff; border-color: var(--primary, #D97706); }
+.revenue-chart-card .revenue-point { cursor: pointer; }
+.revenue-chart-card .revenue-point:hover { opacity: 1; }
 .simple-bar-chart > .item { --line-count: 10; --line-color: currentcolor; --line-opacity: 0.25; --item-gap: 2%; --padding-block: 1.5rem; position: relative; isolation: isolate; height: calc(1% * var(--val)); animation: item-height 1s ease forwards; border-radius: 4px 4px 0 0; }
 .simple-bar-chart > .item > .label { position: absolute; inset: 100% 0 auto 0; font-size: 0.7rem; color: #6b7280; text-align: center; margin-top: 4px; }
 .simple-bar-chart > .item > .value { position: absolute; inset: auto 0 100% 0; font-size: 0.75rem; font-weight: 600; color: #111827; text-align: center; margin-bottom: 4px; }
@@ -180,34 +190,100 @@ include __DIR__ . '/../includes/manager-layout.php';
     const slug = <?php echo json_encode($restaurantSlug); ?>;
     const symbol = <?php echo json_encode($currencySymbol); ?>;
 
-    // Revenue chart - fetch and render
+    // Revenue line chart - fetch and render with hover tooltips
     function loadRevenueChart(range) {
-        const chartEl = document.getElementById('revenue-chart');
+        const wrapper = document.getElementById('revenue-chart-wrapper');
+        const chartEl = document.getElementById('revenue-line-chart');
         const emptyEl = document.getElementById('revenue-chart-empty');
+        const svgEl = document.getElementById('revenue-svg');
+        const tooltipEl = document.getElementById('revenue-tooltip');
+        const trendEl = document.getElementById('revenue-trend');
         const url = '../api/orders-analytics.php?range=' + encodeURIComponent(range || 'today');
         fetch(url).then(r => r.json()).then(function(data) {
             if (!data.success || !data.revenue_by_date) return;
             const rows = data.revenue_by_date || [];
-            chartEl.innerHTML = '';
             if (rows.length === 0) {
                 chartEl.style.display = 'none';
                 emptyEl.style.display = 'block';
+                trendEl.innerHTML = '';
                 return;
             }
             emptyEl.style.display = 'none';
-            chartEl.style.display = 'grid';
-            const maxRev = Math.max.apply(null, rows.map(r => parseFloat(r.revenue))) || 1;
-            rows.forEach(function(r) {
-                const pct = (parseFloat(r.revenue) / maxRev) * 100;
-                const d = r.date ? new Date(r.date + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : r.date;
-                const div = document.createElement('div');
-                div.className = 'item';
-                div.style.setProperty('--clr', '#10b981');
-                div.style.setProperty('--val', pct);
-                div.innerHTML = '<div class="label">' + (d || '') + '</div><div class="value">' + symbol + parseFloat(r.revenue).toFixed(0) + '</div>';
-                chartEl.appendChild(div);
+            chartEl.style.display = 'block';
+            const revenues = rows.map(function(r) { return parseFloat(r.revenue) || 0; });
+            const maxRev = Math.max.apply(null, revenues) || 1;
+            const minRev = Math.min.apply(null, revenues);
+            const rangeRev = maxRev - minRev || 1;
+            const pad = 0.1;
+            const chartW = 800; const chartH = 280;
+            const padL = 48; const padR = 24; const padT = 24; const padB = 40;
+            const plotW = chartW - padL - padR;
+            const plotH = chartH - padT - padB;
+            const firstVal = revenues[0] || 0;
+            const lastVal = revenues[revenues.length - 1] || 0;
+            const isGrowth = lastVal >= firstVal;
+            const lineColor = isGrowth ? '#059669' : '#DC2626';
+            const gradientId = 'revGrad-' + (isGrowth ? 'up' : 'down');
+            const pts = rows.map(function(r, i) {
+                const val = parseFloat(r.revenue) || 0;
+                const y = padT + plotH - ((val - minRev) / rangeRev) * plotH;
+                const x = padL + (rows.length > 1 ? (i / (rows.length - 1)) * plotW : plotW / 2);
+                return { x: x, y: y, val: val, date: r.date };
             });
-        }).catch(function() { chartEl.innerHTML = ''; emptyEl.style.display = 'block'; chartEl.style.display = 'none'; });
+            const pathD = pts.map(function(p, i) { return (i === 0 ? 'M' : 'L') + p.x + ' ' + p.y; }).join(' ');
+            const areaD = pathD + ' L' + (padL + plotW) + ' ' + (padT + plotH) + ' L' + padL + ' ' + (padT + plotH) + ' Z';
+            const yTicks = 5;
+            let html = '<defs><linearGradient id="' + gradientId + '" x1="0%" y1="0%" x2="0%" y2="100%">' +
+                '<stop offset="0%" style="stop-color:' + lineColor + ';stop-opacity:0.25"/>' +
+                '<stop offset="100%" style="stop-color:' + lineColor + ';stop-opacity:0"/></linearGradient></defs>';
+            for (var g = 0; g <= yTicks; g++) {
+                var gy = padT + (g / yTicks) * plotH;
+                var gval = (maxRev - (g / yTicks) * (maxRev - minRev)).toFixed(0);
+                html += '<line x1="' + padL + '" y1="' + gy + '" x2="' + (padL + plotW) + '" y2="' + gy + '" stroke="#e5e7eb" stroke-width="1"/>';
+                html += '<text x="' + (padL - 8) + '" y="' + (gy + 4) + '" text-anchor="end" font-size="10" fill="#6b7280">' + symbol + gval + '</text>';
+            }
+            html += '<path d="' + areaD + '" fill="url(#' + gradientId + ')"/>';
+            html += '<path d="' + pathD + '" fill="none" stroke="' + lineColor + '" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>';
+            for (var i = 0; i < pts.length; i++) {
+                var p = pts[i];
+                var d = p.date ? new Date(p.date + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: pts.length > 14 ? '2-digit' : undefined }) : p.date;
+                html += '<circle class="revenue-point" cx="' + p.x + '" cy="' + p.y + '" r="6" fill="' + lineColor + '" stroke="#fff" stroke-width="2" opacity="0.9" data-date="' + (d || '') + '" data-rev="' + symbol + p.val.toFixed(2) + '"/>';
+            }
+            var step = Math.max(1, Math.floor(pts.length / 6));
+            for (var xi = 0; xi < pts.length; xi += step) {
+                var px = pts[xi];
+                var dx = px.date ? new Date(px.date + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
+                html += '<text x="' + px.x + '" y="' + (chartH - 8) + '" text-anchor="middle" font-size="10" fill="#6b7280">' + dx + '</text>';
+            }
+            svgEl.innerHTML = html;
+            var trendText = '';
+            if (rows.length >= 2 && firstVal > 0) {
+                var pct = ((lastVal - firstVal) / firstVal * 100).toFixed(1);
+                trendText = (parseFloat(pct) >= 0 ? '+' : '') + pct + '% vs first day';
+            } else if (rows.length >= 1) {
+                trendText = symbol + lastVal.toFixed(2) + ' total';
+            }
+            trendEl.innerHTML = isGrowth ? '<span style="color:#059669">&#9650;</span> ' + trendText : '<span style="color:#DC2626">&#9660;</span> ' + trendText;
+            function showTooltip(el, e) {
+                var rect = wrapper.getBoundingClientRect();
+                var x = e.clientX - rect.left;
+                var y = e.clientY - rect.top;
+                tooltipEl.innerHTML = '<strong>' + (el.getAttribute('data-date') || '') + '</strong><br/>Revenue: ' + (el.getAttribute('data-rev') || '');
+                tooltipEl.style.display = 'block';
+                tooltipEl.style.left = Math.min(x + 12, rect.width - 140) + 'px';
+                tooltipEl.style.top = Math.max(y - 50, 8) + 'px';
+            }
+            function hideTooltip() { tooltipEl.style.display = 'none'; }
+            wrapper.querySelectorAll('.revenue-point').forEach(function(el) {
+                el.addEventListener('mouseenter', function(e) { showTooltip(el, e); });
+                el.addEventListener('mouseleave', hideTooltip);
+                el.addEventListener('mousemove', function(e) { showTooltip(el, e); });
+            });
+        }).catch(function() {
+            document.getElementById('revenue-line-chart').style.display = 'none';
+            emptyEl.style.display = 'block';
+            trendEl.innerHTML = '';
+        });
     }
 
     document.querySelectorAll('.revenue-range-btn').forEach(function(btn) {

@@ -20,7 +20,8 @@ $showHeader = $showHeader ?? true;
 :root{
   --bg:#f2f4f7;
   --sidebar:#0f172a;
-  --primary:#4f46e5;
+  --primary:#D97706;
+  --primary-dark:#B91C1C;
   --danger:#ef4444;
   --text:#111827;
   --muted:#6b7280;
@@ -144,7 +145,7 @@ body{
 .logo-icon-modern{
   width:36px;
   height:36px;
-  background:#2563eb;
+  background:var(--primary);
   border-radius:8px;
   display:flex;
   align-items:center;
@@ -158,7 +159,7 @@ body{
 .logo-icon-modern-centered{
   width:36px;
   height:36px;
-  background:#2563eb;
+  background:var(--primary);
   border-radius:8px;
   display:flex;
   align-items:center;
@@ -251,8 +252,8 @@ body{
 
 .search-input:focus{
   outline:none;
-  border-color:#2563eb;
-  box-shadow:0 0 0 2px rgba(37,99,235,0.1);
+  border-color:var(--primary);
+  box-shadow:0 0 0 2px rgba(217,119,6,0.15);
 }
 
 /* ===== NAVIGATION ===== */
@@ -288,8 +289,8 @@ body{
 }
 
 .nav-item.active{
-  background:#eff6ff;
-  color:#1e40af;
+  background:rgba(217,119,6,0.1);
+  color:#92400E;
 }
 
 .nav-icon-wrapper{
@@ -306,7 +307,7 @@ body{
 }
 
 .nav-item.active .nav-icon{
-  color:#2563eb;
+  color:var(--primary);
 }
 
 .nav-item:not(.active) .nav-icon{
@@ -620,7 +621,7 @@ main{
 }
 
 .btn-primary:hover{
-  background:#4338ca;
+  background:var(--primary-dark);
   transform:translateY(-1px);
 }
 
@@ -695,10 +696,10 @@ main{
 /* ===== MOBILE ===== */
 @media(max-width:768px){
   .mobile-hamburger{
-    display:flex;
+    display:flex !important;
     position:fixed;
-    top:auto;
-    left:auto;
+    top:12px;
+    left:12px;
     z-index:25;
   }
   
@@ -733,17 +734,21 @@ main{
     left:0;
     right:0;
     padding:12px 16px;
-    padding-left:56px; /* Space for hamburger */
+    padding-left:52px; /* Space for hamburger */
     z-index:20;
+    flex-wrap:wrap;
+    gap:8px;
   }
+  
+  .header > div:last-child{ margin-left:auto; }
   
   .header-title{
     font-size:1rem;
   }
   
-  /* Add padding to main content to account for fixed header */
+  /* Add padding to main so content isn't hidden under fixed header */
   main{
-    padding-top:60px;
+    padding-top:64px;
   }
   
   /* Card responsive */
