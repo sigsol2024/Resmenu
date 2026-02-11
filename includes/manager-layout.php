@@ -488,12 +488,14 @@ body{
   width:100%;
   display:flex;
   align-items:center;
-  gap:12px;
+  gap:10px;
   padding:10px 12px;
   border-radius:6px;
   text-decoration:none;
   transition:all 0.2s;
   color:#dc2626;
+  font-size:14px;
+  font-weight:400;
 }
 
 .logout-btn .nav-icon-wrapper{
@@ -501,19 +503,20 @@ body{
   align-items:center;
   justify-content:center;
   flex-shrink:0;
+  min-width:24px;
   width:24px;
   height:24px;
 }
 
-.logout-btn .nav-icon-wrapper .nav-icon{
+.logout-btn .nav-icon{
   width:18px;
   height:18px;
 }
 
 .logout-btn .nav-text{
-  line-height:1.25;
-  font-size:0.875rem;
-  font-weight:500;
+  flex:1;
+  text-align:left;
+  line-height:1.5;
 }
 
 .logout-btn:hover{
@@ -521,12 +524,12 @@ body{
   color:#b91c1c;
 }
 
-.logout-icon{
-  color:#ef4444;
+.logout-btn .logout-icon{
+  color:#dc2626;
 }
 
 .logout-btn:hover .logout-icon{
-  color:#dc2626;
+  color:#b91c1c;
 }
 
 .sidebar-modern.collapsed .logout-btn{
