@@ -497,10 +497,14 @@ include __DIR__ . '/../includes/manager-layout.php';
 
 .stat-card {
     background: #fff;
-    padding: 24px;
+    padding: 16px;
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     transition: box-shadow 0.2s;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
 }
 
 .stat-card:hover {
@@ -508,18 +512,30 @@ include __DIR__ . '/../includes/manager-layout.php';
 }
 
 .stat-label {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     color: #6b7280;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     font-weight: 600;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .stat-value {
-    font-size: 2rem;
+    font-size: 1.35rem;
     font-weight: 700;
     color: #111827;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: 1.5em;
+}
+
+.stats .stat-card:nth-child(6) .stat-value {
+    font-size: 1.1rem;
 }
 
 /* ===== BAR CHART ===== */
@@ -721,7 +737,7 @@ include __DIR__ . '/../includes/manager-layout.php';
 /* Mobile Responsive */
 @media (max-width: 1200px) {
     .stats {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }
 @media (max-width: 900px) {
@@ -730,12 +746,27 @@ include __DIR__ . '/../includes/manager-layout.php';
     }
     
     .stats {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 12px;
     }
     
     .stat-card {
-        padding: 20px;
+        padding: 14px;
+        min-height: 72px;
+    }
+    
+    .stat-value {
+        font-size: 1.2rem;
+    }
+    
+    .stats .stat-card:nth-child(6) .stat-value {
+        font-size: 1rem;
+    }
+}
+@media (max-width: 480px) {
+    .stats {
+        grid-template-columns: 1fr;
+        gap: 10px;
     }
 }
 </style>

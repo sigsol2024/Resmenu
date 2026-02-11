@@ -69,7 +69,7 @@ include __DIR__ . '/../includes/manager-layout.php';
 
 <section class="orders-overview" style="margin-bottom:24px;">
     <!-- Order Stats Cards (first) -->
-    <div class="stats" style="display:grid;grid-template-columns:repeat(6, minmax(0, 1fr));gap:16px;margin-bottom:24px;">
+    <div class="stats orders-stats">
         <?php foreach ($statuses as $s):
             $label = ucfirst(str_replace('_', ' ', $s));
             $curr = $statsByStatus[$s];
@@ -198,7 +198,7 @@ include __DIR__ . '/../includes/manager-layout.php';
                         <span class="badge" style="background:#f3f4f6;color:#374151;padding:4px 10px;border-radius:6px;font-size:0.75rem;font-weight:600;"><?php echo ucfirst(str_replace('_',' ', $o['status'] ?? 'pending')); ?></span>
                     </td>
                     <td class="actions-cell" style="padding:12px 16px;">
-                        <button type="button" class="actions-btn" onclick="event.stopPropagation();toggleDropdown(this)" title="Actions">
+                        <button type="button" class="actions-btn orders-actions-btn" title="Actions">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                             </svg>
@@ -252,6 +252,34 @@ include __DIR__ . '/../includes/manager-layout.php';
 .orders-list .table-wrapper { overflow-x: auto; }
 .orders-list .actions-cell { position: relative; }
 .orders-list .actions-dropdown { z-index: 50; }
+
+/* Orders stats grid */
+.orders-stats {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+.orders-stats .stat-card {
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Orders page mobile responsive */
+@media (max-width: 1200px) {
+    .orders-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 768px) {
+    .orders-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .orders-stats .stat-card { padding: 12px; min-height: 72px; }
+    .orders-stats .stat-value { font-size: 1.25rem !important; }
+    .orders-stats .stat-trend { font-size: 0.65rem; }
+}
+@media (max-width: 480px) {
+    .orders-stats { grid-template-columns: 1fr; gap: 10px; }
+}
+.orders-list .orders-table { min-width: 500px; }
 </style>
 <script>
 (function() {
@@ -382,8 +410,8 @@ include __DIR__ . '/../includes/manager-layout.php';
         return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
     }
 
-    function toggleDropdown(btn) {
-        document.querySelectorAll('.actions-dropdown.show').forEach(d => d.classList.remove('show'));
+    function toggleOrdersDropdown(btn) {
+        document.querySelectorAll('.orders-list .actions-dropdown.show').forEach(d => d.classList.remove('show'));
         const dropdown = btn.nextElementSibling;
         dropdown.classList.toggle('show');
         document.addEventListener('click', function closeDropdown(e) {
@@ -393,6 +421,13 @@ include __DIR__ . '/../includes/manager-layout.php';
             }
         });
     }
+
+    document.querySelectorAll('.orders-actions-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleOrdersDropdown(this);
+        });
+    });
 
     document.querySelectorAll('.view-order-btn').forEach(function(btn) {
         btn.addEventListener('click', function() {
