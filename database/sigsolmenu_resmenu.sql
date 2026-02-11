@@ -518,7 +518,7 @@ CREATE TABLE `orders` (
   `customer_email` varchar(255) NOT NULL,
   `delivery_address` text NOT NULL,
   `payment_method` varchar(50) DEFAULT NULL,
-  `status` varchar(50) NOT NULL DEFAULT 'pending' COMMENT 'pending, confirmed, completed, cancelled',
+  `status` varchar(50) NOT NULL DEFAULT 'pending' COMMENT 'pending, confirmed, on_hold, cancelled, completed',
   `subtotal` decimal(10,2) NOT NULL DEFAULT 0.00,
   `delivery_fee` decimal(10,2) NOT NULL DEFAULT 0.00,
   `tax` decimal(10,2) NOT NULL DEFAULT 0.00,

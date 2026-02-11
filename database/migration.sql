@@ -4,12 +4,18 @@
 -- Use for: Updating EXISTING database (run in phpMyAdmin or MySQL client)
 -- Fresh installs: Use sigsolmenu_resmenu.sql (full schema)
 --
--- Run this file against your database to add:
--- - orders & order_items tables (food ordering)
--- - Template 4 (The Gourmet Grill) if missing
--- - restaurant_payment_settings table (per-restaurant checkout payment options)
--- - payment_method, order_number columns on orders table
--- - pending_bank_transfers, pending_online_payments tables (order flow: record only when payment confirmed)
+-- Run this file against your database to add/update:
+-- 1. orders table (food ordering: id, order_number, restaurant_id, customer_*, delivery_address, payment_method, status, totals, timestamps)
+--    Status values: pending, confirmed, on_hold, cancelled, completed
+-- 2. order_items table (order_id, menu_item_id, name, price, quantity)
+-- 3. Template 4 (The Gourmet Grill) + template_customizations defaults
+-- 4. restaurant_payment_settings (per-restaurant checkout options)
+-- 5. payment_method, order_number columns on orders (if missing)
+-- 6. pending_bank_transfers (draft orders before "I have made this payment")
+-- 7. orders.status comment updated to include on_hold
+-- 8. pending_online_payments (draft before Paystack/Flutterwave confirms)
+--
+-- Requires: MariaDB 10.0.2+ or MySQL 8.0.12+ for ADD COLUMN IF NOT EXISTS
 -- ============================================================
 
 -- 1. Orders table (food ordering system)
@@ -112,7 +118,10 @@ CREATE TABLE IF NOT EXISTS `pending_bank_transfers` (
   CONSTRAINT `pending_bank_transfers_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 9. Pending online payments (draft before Paystack/Flutterwave confirms)
+-- 9. Ensure orders.status comment includes on_hold (app uses: pending, confirmed, on_hold, cancelled, completed)
+ALTER TABLE `orders` MODIFY COLUMN `status` varchar(50) NOT NULL DEFAULT 'pending' COMMENT 'pending, confirmed, on_hold, cancelled, completed';
+
+-- 10. Pending online payments (draft before Paystack/Flutterwave confirms)
 CREATE TABLE IF NOT EXISTS `pending_online_payments` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `reference` varchar(80) NOT NULL,

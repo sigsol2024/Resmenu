@@ -1002,12 +1002,12 @@ include __DIR__ . '/../includes/admin-layout.php';
                     
                     <div class="form-group">
                         <label class="form-label" for="manager_password">Manager Password *</label>
-                        <input type="password" id="manager_password" name="manager_password" class="form-input" required minlength="6" placeholder="Enter password">
+                        <input type="password" id="manager_password" name="manager_password" class="form-input" required minlength="6" placeholder="Enter password" autocomplete="new-password">
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label" for="manager_password_confirm">Confirm Manager Password *</label>
-                        <input type="password" id="manager_password_confirm" name="manager_password_confirm" class="form-input" required minlength="6" placeholder="Confirm password">
+                        <input type="password" id="manager_password_confirm" name="manager_password_confirm" class="form-input" required minlength="6" placeholder="Confirm password" autocomplete="new-password">
                     </div>
                 <?php else: ?>
                     <?php
@@ -1031,13 +1031,13 @@ include __DIR__ . '/../includes/admin-layout.php';
                         
                         <div class="form-group">
                             <label class="form-label" for="manager_password">Update Manager Password</label>
-                            <input type="password" id="manager_password" name="manager_password" class="form-input" minlength="6" placeholder="Leave blank to keep current password">
+                            <input type="password" id="manager_password" name="manager_password" class="form-input" minlength="6" placeholder="Leave blank to keep current password" autocomplete="new-password">
                             <small style="color: var(--muted); display: block; margin-top: 5px;">Only fill this if you want to change the manager's password</small>
                         </div>
                         
                         <div class="form-group">
                             <label class="form-label" for="manager_password_confirm">Confirm New Password</label>
-                            <input type="password" id="manager_password_confirm" name="manager_password_confirm" class="form-input" minlength="6" placeholder="Confirm new password">
+                            <input type="password" id="manager_password_confirm" name="manager_password_confirm" class="form-input" minlength="6" placeholder="Confirm new password" autocomplete="new-password">
                         </div>
                     <?php endif; ?>
                 <?php endif; ?>

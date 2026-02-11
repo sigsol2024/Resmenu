@@ -202,24 +202,34 @@ if ($action === 'orders' || $action === '') {
 // Restaurants overview (Super Admin): aggregated totals per restaurant + menu_items, categories
 if ($action === 'restaurants_overview' && $isSuperAdmin()) {
     try {
-        $joinCond = "o.restaurant_id = r.id";
-        if ($dateFrom) $joinCond .= " AND o.created_at >= ?";
-        if ($dateTo) $joinCond .= " AND o.created_at <= ?";
+        // Use subqueries (no GROUP BY) for MySQL compatibility
+        $ordersWhereCnt = "o.restaurant_id = r.id";
+        $ordersWhereRev = "o.restaurant_id = r.id AND o.status IN ('pending','confirmed','on_hold','completed')";
+        $oparams = [];
+        if ($dateFrom) {
+            $ordersWhereCnt .= " AND o.created_at >= ?";
+            $ordersWhereRev .= " AND o.created_at >= ?";
+        }
+        if ($dateTo) {
+            $ordersWhereCnt .= " AND o.created_at <= ?";
+            $ordersWhereRev .= " AND o.created_at <= ?";
+        }
+        // Params for both subqueries (each needs dateFrom, dateTo in order)
+        if ($dateFrom) { $oparams[] = $dateFrom; }
+        if ($dateTo) { $oparams[] = $dateTo; }
+        if ($dateFrom) { $oparams[] = $dateFrom; }
+        if ($dateTo) { $oparams[] = $dateTo; }
         $overviewSql = "SELECT r.id, r.name, r.slug, r.is_active,
-            COUNT(o.id) AS total_orders,
-            COALESCE(SUM(CASE WHEN o.status IN ('pending','confirmed','on_hold','completed') THEN o.total ELSE 0 END), 0) AS total_revenue,
+            (SELECT COUNT(*) FROM orders o WHERE " . $ordersWhereCnt . ") AS total_orders,
+            (SELECT COALESCE(SUM(o.total), 0) FROM orders o WHERE " . $ordersWhereRev . ") AS total_revenue,
             (SELECT COUNT(*) FROM menu_items m WHERE m.restaurant_id = r.id) AS menu_items,
             (SELECT COUNT(*) FROM categories c WHERE c.restaurant_id = r.id) AS categories
-            FROM restaurants r
-            LEFT JOIN orders o ON " . $joinCond;
-        $oparams = [];
-        if ($dateFrom) $oparams[] = $dateFrom;
-        if ($dateTo) $oparams[] = $dateTo;
+            FROM restaurants r";
         if ($restaurantId) {
             $overviewSql .= " WHERE r.id = ?";
             $oparams[] = $restaurantId;
         }
-        $overviewSql .= " GROUP BY r.id, r.name, r.slug, r.is_active ORDER BY r.name ASC";
+        $overviewSql .= " ORDER BY r.name ASC";
 
         $stmt = $pdo->prepare($overviewSql);
         $stmt->execute($oparams);
@@ -240,12 +250,37 @@ if ($action === 'restaurants_overview' && $isSuperAdmin()) {
             $summary['total_categories'] += (int)($r['categories'] ?? 0);
         }
         $response['summary'] = $summary;
-    } catch (PDOException $e) {
-        error_log("orders-analytics restaurants_overview: " . $e->getMessage());
-        $response['success'] = false;
-        $response['message'] = 'Failed to load restaurants overview';
-        $response['restaurants'] = [];
-        $response['summary'] = ['total_revenue' => 0, 'total_orders' => 0, 'total_menu_items' => 0, 'total_categories' => 0];
+    } catch (Throwable $e) {
+        error_log("orders-analytics restaurants_overview: " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine());
+        $errMsg = $e->getMessage();
+        if (stripos($errMsg, 'orders') !== false && (stripos($errMsg, "doesn't exist") !== false || stripos($errMsg, 'exist') !== false)) {
+            try {
+                $fallbackSql = "SELECT r.id, r.name, r.slug, r.is_active, 0 AS total_orders, 0 AS total_revenue,
+                    (SELECT COUNT(*) FROM menu_items m WHERE m.restaurant_id = r.id) AS menu_items,
+                    (SELECT COUNT(*) FROM categories c WHERE c.restaurant_id = r.id) AS categories
+                    FROM restaurants r" . ($restaurantId ? " WHERE r.id = ?" : "") . " ORDER BY r.name ASC";
+                $stmt = $pdo->prepare($fallbackSql);
+                $stmt->execute($restaurantId ? [$restaurantId] : []);
+                $restaurants = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $response['restaurants'] = $restaurants;
+                $summary = ['total_revenue' => 0, 'total_orders' => 0, 'total_menu_items' => 0, 'total_categories' => 0];
+                foreach ($restaurants as $r) {
+                    $summary['total_menu_items'] += (int)($r['menu_items'] ?? 0);
+                    $summary['total_categories'] += (int)($r['categories'] ?? 0);
+                }
+                $response['summary'] = $summary;
+            } catch (Throwable $e2) {
+                $response['success'] = false;
+                $response['message'] = 'Failed to load restaurants overview';
+                $response['restaurants'] = [];
+                $response['summary'] = ['total_revenue' => 0, 'total_orders' => 0, 'total_menu_items' => 0, 'total_categories' => 0];
+            }
+        } else {
+            $response['success'] = false;
+            $response['message'] = 'Failed to load restaurants overview';
+            $response['restaurants'] = [];
+            $response['summary'] = ['total_revenue' => 0, 'total_orders' => 0, 'total_menu_items' => 0, 'total_categories' => 0];
+        }
     }
 }
 
