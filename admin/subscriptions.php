@@ -245,7 +245,7 @@ include __DIR__ . '/../includes/admin-layout.php';
 .status-stat-icon.active-status { background: #d1fae5; color: #059669; }
 .status-stat-icon.expired { background: #fee2e2; color: #dc2626; }
 .status-stat-icon.cancelled { background: #f3f4f6; color: #6b7280; }
-.status-stat-icon.pending { background: #fef3c7; color: #d97706; }
+.status-stat-icon.pending { background: #f3f4f6; color: #6b7280; }
 .status-stat-icon.all { background: #e0e7ff; color: #4f46e5; }
 
 .status-stat-info {
@@ -401,7 +401,7 @@ include __DIR__ . '/../includes/admin-layout.php';
 .status-active { background: #d1fae5; color: #065f46; }
 .status-expired { background: #fee2e2; color: #991b1b; }
 .status-cancelled { background: #f3f4f6; color: #6b7280; }
-.status-pending { background: #fef3c7; color: #92400e; }
+.status-pending { background: #f3f4f6; color: #4b5563; }
 
 .billing-info {
     font-size: 0.875rem;
@@ -590,6 +590,7 @@ include __DIR__ . '/../includes/admin-layout.php';
 <!-- Page Header -->
 <div class="page-header">
     <h1 class="page-title">Subscriptions Management</h1>
+    <p class="page-subtitle">View and manage restaurant subscription status</p>
 </div>
 
 <!-- Status Stats -->
@@ -731,11 +732,10 @@ include __DIR__ . '/../includes/admin-layout.php';
                             </div>
                         </td>
                         <td class="actions-cell">
-                            <button class="actions-btn" onclick="toggleDropdown(this)">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+                            <button class="actions-btn" onclick="toggleDropdown(this)" title="Actions">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                                 </svg>
-                                Actions
                             </button>
                             <div class="actions-dropdown">
                                 <div class="actions-dropdown-title">Change Status</div>

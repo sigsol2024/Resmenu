@@ -931,20 +931,16 @@ include __DIR__ . '/../includes/admin-layout.php';
                             <td><?php echo htmlspecialchars($item['name']); ?></td>
                             <td><?php echo htmlspecialchars($item['category_name'] ?? 'Uncategorized'); ?></td>
                             <td><?php echo formatPrice($item['price']); ?></td>
-                            <td>
-                                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                    <button onclick="openMenuItemModal(<?php echo $item['id']; ?>)" class="btn btn-primary btn-small">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                        </svg>
-                                        Edit
-                                    </button>
-                                    <button onclick="openDeleteMenuItemModal(<?php echo $item['id']; ?>, '<?php echo htmlspecialchars(addslashes($item['name'])); ?>')" class="btn btn-danger btn-small">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                        Delete
-                                    </button>
+                            <td class="actions-cell">
+                                <button class="actions-btn" onclick="toggleDropdown(this)" title="Actions">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                    </svg>
+                                </button>
+                                <div class="actions-dropdown">
+                                    <button type="button" onclick="openMenuItemModal(<?php echo $item['id']; ?>)" class="actions-dropdown-item">Edit</button>
+                                    <div class="actions-dropdown-divider"></div>
+                                    <button type="button" onclick="openDeleteMenuItemModal(<?php echo $item['id']; ?>, '<?php echo htmlspecialchars(addslashes($item['name'])); ?>')" class="actions-dropdown-item danger">Delete</button>
                                 </div>
                             </td>
                         </tr>
@@ -985,20 +981,16 @@ include __DIR__ . '/../includes/admin-layout.php';
                             <td><?php echo htmlspecialchars($cat['name']); ?></td>
                             <td><?php echo $cat['display_order']; ?></td>
                             <td><?php echo $cat['is_active'] ? 'Active' : 'Inactive'; ?></td>
-                            <td>
-                                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                    <button onclick="openCategoryModal(<?php echo $cat['id']; ?>)" class="btn btn-primary btn-small">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                        </svg>
-                                        Edit
-                                    </button>
-                                    <button onclick="openDeleteCategoryModal(<?php echo $cat['id']; ?>, '<?php echo htmlspecialchars(addslashes($cat['name'])); ?>')" class="btn btn-danger btn-small">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                        Delete
-                                    </button>
+                            <td class="actions-cell">
+                                <button class="actions-btn" onclick="toggleDropdown(this)" title="Actions">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                    </svg>
+                                </button>
+                                <div class="actions-dropdown">
+                                    <button type="button" onclick="openCategoryModal(<?php echo $cat['id']; ?>)" class="actions-dropdown-item">Edit</button>
+                                    <div class="actions-dropdown-divider"></div>
+                                    <button type="button" onclick="openDeleteCategoryModal(<?php echo $cat['id']; ?>, '<?php echo htmlspecialchars(addslashes($cat['name'])); ?>')" class="actions-dropdown-item danger">Delete</button>
                                 </div>
                             </td>
                         </tr>
@@ -1472,6 +1464,18 @@ include __DIR__ . '/../includes/admin-layout.php';
         </div>
     
     <script>
+        function toggleDropdown(btn) {
+            document.querySelectorAll('.actions-dropdown.show').forEach(d => d.classList.remove('show'));
+            const dropdown = btn.nextElementSibling;
+            dropdown.classList.toggle('show');
+            document.addEventListener('click', function closeDropdown(e) {
+                if (!btn.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.classList.remove('show');
+                    document.removeEventListener('click', closeDropdown);
+                }
+            });
+        }
+        
         function showTab(tabName) {
             // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(tab => {

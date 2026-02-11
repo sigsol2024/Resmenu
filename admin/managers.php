@@ -338,6 +338,7 @@ include __DIR__ . '/../includes/admin-layout.php';
 <!-- Page Header -->
 <div class="page-header">
     <h1 class="page-title">Managers Management</h1>
+    <p class="page-subtitle">Manage restaurant manager accounts</p>
 </div>
 
 <?php if ($message): ?>
@@ -390,24 +391,16 @@ include __DIR__ . '/../includes/admin-layout.php';
                                     <?php endif; ?>
                                 </td>
                                 <td><?php echo $manager['created_at'] ? date('M j, Y', strtotime($manager['created_at'])) : 'N/A'; ?></td>
-                                <td>
-                                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                        <button 
-                                            onclick="openPasswordModal(<?php echo $manager['id']; ?>, '<?php echo htmlspecialchars($manager['username']); ?>')" 
-                                            class="btn btn-secondary btn-small"
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                                            </svg>
-                                            Reset Password
-                                        </button>
+                                <td class="actions-cell">
+                                    <button class="actions-btn" onclick="toggleDropdown(this)" title="Actions">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                        </svg>
+                                    </button>
+                                    <div class="actions-dropdown">
+                                        <button type="button" onclick="openPasswordModal(<?php echo $manager['id']; ?>, '<?php echo htmlspecialchars($manager['username']); ?>')" class="actions-dropdown-item">Reset Password</button>
                                         <?php if ($manager['restaurant_id']): ?>
-                                            <a href="restaurant-view.php?slug=<?php echo htmlspecialchars($manager['restaurant_slug']); ?>" class="btn btn-primary btn-small">
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                                </svg>
-                                                View Restaurant
-                                            </a>
+                                        <a href="restaurant-view.php?slug=<?php echo htmlspecialchars($manager['restaurant_slug']); ?>" class="actions-dropdown-item">View Restaurant</a>
                                         <?php endif; ?>
                                     </div>
                                 </td>
@@ -470,6 +463,18 @@ function closePasswordModal() {
     document.body.style.overflow = '';
     document.getElementById('new_password').value = '';
     document.getElementById('confirm_password').value = '';
+}
+
+function toggleDropdown(btn) {
+    document.querySelectorAll('.actions-dropdown.show').forEach(d => d.classList.remove('show'));
+    const dropdown = btn.nextElementSibling;
+    dropdown.classList.toggle('show');
+    document.addEventListener('click', function closeDropdown(e) {
+        if (!btn.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.classList.remove('show');
+            document.removeEventListener('click', closeDropdown);
+        }
+    });
 }
 </script>
 

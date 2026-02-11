@@ -20,9 +20,9 @@ $showHeader = $showHeader ?? true;
 :root{
   --bg:#f2f4f7;
   --sidebar:#0f172a;
-  --primary:#D97706;
-  --primary-dark:#B91C1C;
-  --danger:#ef4444;
+  --primary:#1e3a5f;
+  --primary-dark:#0f172a;
+  --danger:#dc2626;
   --text:#111827;
   --muted:#6b7280;
   --card:#ffffff;
@@ -289,8 +289,8 @@ body{
 }
 
 .nav-item.active{
-  background:rgba(217,119,6,0.1);
-  color:#92400E;
+  background:rgba(30,58,95,0.1);
+  color:var(--primary);
 }
 
 .nav-icon-wrapper{

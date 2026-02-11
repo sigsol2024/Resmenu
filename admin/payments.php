@@ -238,7 +238,7 @@ include __DIR__ . '/../includes/admin-layout.php';
 }
 
 .stat-value.success { color: #059669; }
-.stat-value.pending { color: #d97706; }
+.stat-value.pending { color: #6b7280; }
 
 /* Filters */
 .filters-bar {
@@ -404,10 +404,10 @@ include __DIR__ . '/../includes/admin-layout.php';
 }
 
 .gateway-paystack { background: #dbeafe; color: #1e40af; }
-.gateway-flutterwave { background: #fef3c7; color: #92400e; }
+.gateway-flutterwave { background: #f3f4f6; color: #4b5563; }
 .gateway-manual { background: #f3f4f6; color: #6b7280; }
 
-.status-pending { background: #fef3c7; color: #92400e; }
+.status-pending { background: #f3f4f6; color: #4b5563; }
 .status-success { background: #d1fae5; color: #065f46; }
 .status-failed { background: #fee2e2; color: #991b1b; }
 .status-refunded { background: #e0e7ff; color: #4338ca; }
@@ -681,6 +681,7 @@ include __DIR__ . '/../includes/admin-layout.php';
 <!-- Page Header -->
 <div class="page-header">
     <h1 class="page-title">Payments</h1>
+    <p class="page-subtitle">View subscription payment history and transactions</p>
 </div>
 
 <!-- Stats -->
@@ -806,8 +807,8 @@ include __DIR__ . '/../includes/admin-layout.php';
                             </div>
                         </td>
                         <td class="actions-cell">
-                            <button class="actions-btn" onclick="toggleDropdown(this)">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+                            <button class="actions-btn" onclick="toggleDropdown(this)" title="Actions">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                                 </svg>
                             </button>

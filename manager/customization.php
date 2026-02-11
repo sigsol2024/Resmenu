@@ -89,6 +89,11 @@ require_once __DIR__ . '/../includes/template-loader.php';
 $availableTemplates = getAvailableTemplates();
 ?>
 
+        <div class="page-header">
+            <h1 class="page-title">Template Selection</h1>
+            <p class="page-subtitle">Choose a design template for your restaurant's menu page</p>
+        </div>
+
         <?php if ($message): ?>
             <div class="alert alert-success">
                 <?php echo htmlspecialchars($message); ?>
@@ -102,11 +107,11 @@ $availableTemplates = getAvailableTemplates();
         <?php endif; ?>
 
         <!-- Template Selection -->
-        <div class="card">
-            <div class="card-header">
-                <h2 class="card-title">Template Selection</h2>
+        <div class="settings-card">
+            <div class="section-header">
+                <h2 class="section-title">Select Template</h2>
             </div>
-            <p style="margin-bottom: 20px; color: var(--muted);">Choose a design template for your restaurant's menu page.</p>
+            <p style="margin-bottom: 20px; color: var(--muted); font-size: 0.875rem;">Choose a design template for your restaurant's menu page.</p>
             <form method="POST" action="/manager/customization.php<?php echo !empty($restaurant['slug']) ? '?slug=' . htmlspecialchars(urlencode($restaurant['slug'])) : ''; ?>">
                 <input type="hidden" name="action" value="save_template">
                 <div class="form-group">

@@ -116,6 +116,11 @@ $pageTitle = 'QR Code';
 include __DIR__ . '/../includes/manager-layout.php';
 ?>
 
+<div class="page-header">
+    <h1 class="page-title">QR Code</h1>
+    <p class="page-subtitle">Select a template and download your restaurant's QR code</p>
+</div>
+
 <?php if ($message): ?>
     <div class="alert alert-success">
         <?php echo htmlspecialchars($message); ?>
@@ -129,9 +134,9 @@ include __DIR__ . '/../includes/manager-layout.php';
 
 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
     <!-- QR Code Preview & Download -->
-    <div class="card">
-        <div class="card-header">
-            <h2 class="card-title">Your QR Code</h2>
+    <div class="settings-card">
+        <div class="section-header">
+            <h2 class="section-title">Your QR Code</h2>
         </div>
         <div style="text-align: center; padding: 20px;">
             <?php if (empty($templates)): ?>
@@ -198,9 +203,9 @@ include __DIR__ . '/../includes/manager-layout.php';
     </div>
     
     <!-- Template Selection -->
-    <div class="card">
-        <div class="card-header">
-            <h2 class="card-title">Select Template</h2>
+    <div class="settings-card">
+        <div class="section-header">
+            <h2 class="section-title">Select Template</h2>
         </div>
         
         <?php if (empty($templates)): ?>

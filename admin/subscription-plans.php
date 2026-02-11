@@ -494,8 +494,8 @@ include __DIR__ . '/../includes/admin-layout.php';
 
 .btn-toggle {
     background: #fff;
-    color: #92400e;
-    border: 1px solid #fde68a;
+    color: #4b5563;
+    border: 1px solid #e5e7eb;
 }
 
 .btn-toggle:hover {
@@ -556,7 +556,10 @@ include __DIR__ . '/../includes/admin-layout.php';
 
 <!-- Page Header -->
 <div class="page-header">
-    <h1 class="page-title">Subscription Plans</h1>
+    <div>
+        <h1 class="page-title">Subscription Plans</h1>
+        <p class="page-subtitle">Create and manage subscription plans for restaurants</p>
+    </div>
     <?php if (!$editPlan): ?>
         <a href="?new=1" class="btn-primary">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -774,30 +777,26 @@ include __DIR__ . '/../includes/admin-layout.php';
                 </span>
             </div>
             
-            <div class="plan-actions">
-                <a href="?edit=<?php echo $plan['id']; ?>" class="btn-sm btn-edit">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            <div class="plan-actions actions-cell" style="position:relative;">
+                <button class="actions-btn" onclick="toggleDropdown(this)" title="Actions">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                     </svg>
-                    Edit
-                </a>
-                <form method="POST" style="display: inline;">
-                    <input type="hidden" name="action" value="toggle_status">
-                    <input type="hidden" name="plan_id" value="<?php echo $plan['id']; ?>">
-                    <button type="submit" class="btn-sm btn-toggle">
-                        <?php echo $plan['is_active'] ? 'Deactivate' : 'Activate'; ?>
-                    </button>
-                </form>
-                <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this plan?');">
-                    <input type="hidden" name="action" value="delete">
-                    <input type="hidden" name="plan_id" value="<?php echo $plan['id']; ?>">
-                    <button type="submit" class="btn-sm btn-delete">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                        Delete
-                    </button>
-                </form>
+                </button>
+                <div class="actions-dropdown">
+                    <a href="?edit=<?php echo $plan['id']; ?>" class="actions-dropdown-item">Edit</a>
+                    <form method="POST" style="display:contents;">
+                        <input type="hidden" name="action" value="toggle_status">
+                        <input type="hidden" name="plan_id" value="<?php echo $plan['id']; ?>">
+                        <button type="submit" class="actions-dropdown-item"><?php echo $plan['is_active'] ? 'Deactivate' : 'Activate'; ?></button>
+                    </form>
+                    <div class="actions-dropdown-divider"></div>
+                    <form method="POST" style="display:contents;" onsubmit="return confirm('Are you sure you want to delete this plan?');">
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="plan_id" value="<?php echo $plan['id']; ?>">
+                        <button type="submit" class="actions-dropdown-item danger">Delete</button>
+                    </form>
+                </div>
             </div>
         </div>
     <?php endforeach; ?>
@@ -809,5 +808,19 @@ include __DIR__ . '/../includes/admin-layout.php';
     <a href="?new=1" class="btn-primary">Create Your First Plan</a>
 </div>
 <?php endif; ?>
+
+<script>
+function toggleDropdown(btn) {
+    document.querySelectorAll('.actions-dropdown.show').forEach(d => d.classList.remove('show'));
+    const dropdown = btn.nextElementSibling;
+    dropdown.classList.toggle('show');
+    document.addEventListener('click', function closeDropdown(e) {
+        if (!btn.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.classList.remove('show');
+            document.removeEventListener('click', closeDropdown);
+        }
+    });
+}
+</script>
 
 <?php include __DIR__ . '/../includes/admin-footer.php'; ?>

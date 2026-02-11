@@ -329,8 +329,8 @@ input:checked + .toggle-slider:before {
 }
 
 .badge-test {
-    background: #fef3c7;
-    color: #92400e;
+    background: #f3f4f6;
+    color: #4b5563;
 }
 
 .badge-live {

@@ -31,13 +31,16 @@ $pageTitle = 'All Orders - ' . htmlspecialchars($restaurant['name']);
 include __DIR__ . '/../includes/manager-layout.php';
 ?>
 
-<section class="restaurant-orders">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:16px;">
-        <h2 class="section-title" style="font-size:1.25rem;font-weight:600;color:#111827;">All Orders</h2>
-        <a href="orders.php<?php echo $slugParam; ?>" class="btn btn-secondary" style="padding:8px 16px;font-size:0.875rem;">Back to Orders Overview</a>
+<div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;">
+    <div>
+        <h1 class="page-title">All Orders</h1>
+        <p class="page-subtitle">Full order list with filters for <?php echo htmlspecialchars($restaurant['name']); ?></p>
     </div>
+    <a href="orders.php<?php echo $slugParam; ?>" class="btn btn-secondary" style="padding:8px 16px;font-size:0.875rem;">Back to Orders Overview</a>
+</div>
 
-    <div class="filters card" style="margin-bottom:24px;">
+<section class="restaurant-orders">
+    <div class="settings-card" style="margin-bottom:24px;">
         <h3 style="font-size:0.875rem;font-weight:600;margin-bottom:12px;color:#111827;">Filters</h3>
         <form id="orders-filter-form" style="display:flex;flex-wrap:wrap;gap:16px;align-items:end;">
             <div>
@@ -61,7 +64,7 @@ include __DIR__ . '/../includes/manager-layout.php';
         </form>
     </div>
 
-    <div class="table-wrapper" style="background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);overflow-x:auto;">
+    <div class="table-wrapper">
         <table class="orders-table" style="width:100%;border-collapse:collapse;">
             <thead>
                 <tr style="border-bottom:1px solid #e5e7eb;">
@@ -126,16 +129,20 @@ include __DIR__ . '/../includes/manager-layout.php';
                 const label = (st.charAt(0).toUpperCase() + st.slice(1)).replace('_', ' ');
                 const orderId = parseInt(o.id, 10) || 0;
                 const dispNum = esc(o.order_display_number || orderId);
+                const statusOpts = ['pending','confirmed','on_hold','cancelled','completed'];
+                const statusForms = statusOpts.filter(function(s){ return s !== st; }).map(function(s){
+                    return '<form method="post" action="../api/update-order-status.php" style="display:contents;"><input type="hidden" name="order_id" value="' + orderId + '"><input type="hidden" name="slug" value="' + esc(slug) + '"><input type="hidden" name="return_to" value="restaurant-orders"><input type="hidden" name="status" value="' + s + '"><button type="submit" class="actions-dropdown-item">Set to ' + (s.charAt(0).toUpperCase() + s.slice(1)).replace('_',' ') + '</button></form>';
+                }).join('');
                 return '<tr style="border-bottom:1px solid #f3f4f6;">' +
                     '<td style="padding:12px 16px;font-size:0.875rem;">#' + dispNum + '</td>' +
                     '<td style="padding:12px 16px;font-size:0.875rem;">' + esc(o.customer_name) + '</td>' +
                     '<td style="padding:12px 16px;font-size:0.875rem;">' + (o.created_at ? new Date(o.created_at).toLocaleString() : '') + '</td>' +
                     '<td style="padding:12px 16px;font-size:0.875rem;font-weight:600;">' + symbol + parseFloat(o.total || 0).toFixed(2) + '</td>' +
                     '<td style="padding:12px 16px;"><span class="badge" style="background:' + esc(clr) + '22;color:' + esc(clr) + ';padding:4px 10px;border-radius:6px;font-size:0.75rem;font-weight:600;">' + esc(label) + '</span></td>' +
-                    '<td style="padding:12px 16px;"><form method="post" action="../api/update-order-status.php" style="display:inline;margin-right:8px;"><input type="hidden" name="order_id" value="' + orderId + '"><input type="hidden" name="slug" value="' + esc(slug) + '"><input type="hidden" name="return_to" value="restaurant-orders"><select name="status" class="order-status-select" style="padding:6px 10px;border:1px solid #e5e7eb;border-radius:6px;font-size:0.8rem;cursor:pointer;">' +
-                    ['pending','confirmed','on_hold','cancelled','completed'].map(function(s){ return '<option value="' + s + '"' + (st === s ? ' selected' : '') + '>' + (s.charAt(0).toUpperCase() + s.slice(1)).replace('_',' ') + '</option>'; }).join('') +
-                    '</select><button type="submit" style="display:none;">Update</button></form>' +
-                    '<button type="button" class="view-order-btn btn btn-primary" data-order-id="' + orderId + '" style="padding:6px 12px;font-size:0.8rem;">View</button></td></tr>';
+                    '<td class="actions-cell" style="padding:12px 16px;">' +
+                    '<button type="button" class="actions-btn" onclick="toggleOrdersDropdown(this)" title="Actions"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/></svg></button>' +
+                    '<div class="actions-dropdown"><button type="button" class="view-order-btn actions-dropdown-item" data-order-id="' + orderId + '">View</button><div class="actions-dropdown-divider"></div><div class="actions-dropdown-title">Change Status</div>' + statusForms + '</div>' +
+                    '</td></tr>';
             }).join('');
             initOrderHandlers();
         }).catch(function() {
@@ -144,16 +151,22 @@ include __DIR__ . '/../includes/manager-layout.php';
     }
 
     function initOrderHandlers() {
-        document.querySelectorAll('.order-status-select').forEach(function(sel) {
-            sel.removeEventListener('change', handleStatusChange);
-            sel.addEventListener('change', handleStatusChange);
-        });
         document.querySelectorAll('.view-order-btn').forEach(function(btn) {
             btn.removeEventListener('click', handleViewOrder);
             btn.addEventListener('click', handleViewOrder);
         });
     }
-    function handleStatusChange() { this.closest('form').submit(); }
+    window.toggleOrdersDropdown = function(btn) {
+        document.querySelectorAll('.actions-dropdown.show').forEach(function(d){ d.classList.remove('show'); });
+        var dropdown = btn.nextElementSibling;
+        dropdown.classList.toggle('show');
+        document.addEventListener('click', function closeDropdown(e) {
+            if (!btn.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.remove('show');
+                document.removeEventListener('click', closeDropdown);
+            }
+        });
+    };
     function handleViewOrder() {
         const orderId = this.getAttribute('data-order-id');
         fetch('../api/get-order-details.php?order_id=' + encodeURIComponent(orderId) + '&slug=' + encodeURIComponent(slug))

@@ -232,6 +232,11 @@ $pageTitle = 'Category Management';
 include __DIR__ . '/../includes/manager-layout.php';
 ?>
 
+        <div class="page-header">
+            <h1 class="page-title">Category Management</h1>
+            <p class="page-subtitle">Create and manage menu categories for your restaurant</p>
+        </div>
+
         <?php if ($message): ?>
             <div class="alert alert-success">
                 <?php echo htmlspecialchars($message); ?>
@@ -344,9 +349,9 @@ include __DIR__ . '/../includes/manager-layout.php';
             </div>
         </div>
         
-        <div class="card">
-            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-                <h2 class="card-title">All Categories</h2>
+        <div class="settings-card">
+            <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                <h2 class="section-title">All Categories</h2>
                 <?php if (!$editCategory): ?>
                     <button class="btn btn-primary" onclick="openCategoryModal()">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -356,6 +361,7 @@ include __DIR__ . '/../includes/manager-layout.php';
                     </button>
                 <?php endif; ?>
             </div>
+            <div class="table-wrapper">
             <table class="table">
                 <thead>
                     <tr>
@@ -384,27 +390,17 @@ include __DIR__ . '/../includes/manager-layout.php';
                                 <td><?php echo htmlspecialchars($category['name']); ?></td>
                                 <td><?php echo $category['display_order']; ?></td>
                                 <td><span style="padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; background: <?php echo $category['is_active'] ? '#d1fae5' : '#fee2e2'; ?>; color: <?php echo $category['is_active'] ? '#065f46' : '#991b1b'; ?>"><?php echo $category['is_active'] ? 'Active' : 'Inactive'; ?></span></td>
-                                <td>
-                                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                        <a href="?action=edit&id=<?php echo $category['id']; ?><?php echo isSuperAdmin() && isset($restaurantId) && $restaurantId ? '&restaurant_id=' . urlencode($restaurantId) : ''; ?>" class="btn btn-primary btn-small">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                            </svg>
-                                            Edit
-                                        </a>
-                                        <a href="menu-items.php?category_id=<?php echo $category['id']; ?><?php echo isSuperAdmin() && isset($restaurantId) && $restaurantId ? '&restaurant_id=' . urlencode($restaurantId) : ''; ?>" class="btn btn-secondary btn-small">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                            </svg>
-                                            View Items
-                                        </a>
-                                        <button onclick="openDeleteModal(<?php echo $category['id']; ?>, '<?php echo htmlspecialchars(addslashes($category['name'])); ?>')" class="btn btn-danger btn-small">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
-                                            Delete
-                                        </button>
+                                <td class="actions-cell">
+                                    <button class="actions-btn" onclick="toggleDropdown(this)" title="Actions">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                        </svg>
+                                    </button>
+                                    <div class="actions-dropdown">
+                                        <a href="?action=edit&id=<?php echo $category['id']; ?><?php echo isSuperAdmin() && isset($restaurantId) && $restaurantId ? '&restaurant_id=' . urlencode($restaurantId) : ''; ?>" class="actions-dropdown-item">Edit</a>
+                                        <a href="menu-items.php?category_id=<?php echo $category['id']; ?><?php echo isSuperAdmin() && isset($restaurantId) && $restaurantId ? '&restaurant_id=' . urlencode($restaurantId) : ''; ?>" class="actions-dropdown-item">View Items</a>
+                                        <div class="actions-dropdown-divider"></div>
+                                        <button type="button" onclick="openDeleteModal(<?php echo $category['id']; ?>, '<?php echo htmlspecialchars(addslashes($category['name'])); ?>')" class="actions-dropdown-item danger">Delete</button>
                                     </div>
                                 </td>
                             </tr>
@@ -412,6 +408,7 @@ include __DIR__ . '/../includes/manager-layout.php';
                     <?php endif; ?>
                 </tbody>
             </table>
+            </div>
         </div>
     
 <style>
@@ -700,6 +697,18 @@ include __DIR__ . '/../includes/manager-layout.php';
 </style>
     
     <script>
+        function toggleDropdown(btn) {
+            document.querySelectorAll('.actions-dropdown.show').forEach(d => d.classList.remove('show'));
+            const dropdown = btn.nextElementSibling;
+            dropdown.classList.toggle('show');
+            document.addEventListener('click', function closeDropdown(e) {
+                if (!btn.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.classList.remove('show');
+                    document.removeEventListener('click', closeDropdown);
+                }
+            });
+        }
+        
         // Auto-generate slug from name
         document.getElementById('name')?.addEventListener('input', function() {
             const slugInput = document.getElementById('slug');

@@ -110,6 +110,11 @@ $pageTitle = 'Dashboard - ' . htmlspecialchars($restaurant['name']);
 include __DIR__ . '/../includes/manager-layout.php';
 ?>
 
+      <div class="page-header">
+        <h1 class="page-title"><?php echo htmlspecialchars($restaurant['name']); ?></h1>
+        <p class="page-subtitle">Overview of your restaurant menu and orders</p>
+      </div>
+
       <?php if (isset($subscription) && $subscription): ?>
           <?php if ($subscription['status'] === 'trial' && $trialDaysRemaining > 0): ?>
               <!-- Trial Banner -->
@@ -208,7 +213,7 @@ include __DIR__ . '/../includes/manager-layout.php';
     height: 20px;
 }
 
-.trial-banner .banner-icon { color: #d97706; }
+.trial-banner .banner-icon { color: #1e3a5f; }
 .expired-banner .banner-icon { color: #dc2626; }
 
 .subscription-banner .banner-content {

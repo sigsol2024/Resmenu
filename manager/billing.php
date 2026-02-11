@@ -486,7 +486,7 @@ include __DIR__ . '/../includes/manager-layout.php';
 }
 
 .payment-status.success { background: #d1fae5; color: #065f46; }
-.payment-status.pending { background: #fef3c7; color: #92400e; }
+.payment-status.pending { background: #f3f4f6; color: #4b5563; }
 .payment-status.failed { background: #fee2e2; color: #991b1b; }
 
 .empty-payments {

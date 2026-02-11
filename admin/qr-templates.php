@@ -364,6 +364,7 @@ include __DIR__ . '/../includes/admin-layout.php';
 <!-- Page Header -->
 <div class="page-header">
     <h1 class="page-title">QR Code Templates</h1>
+    <p class="page-subtitle">Create and manage QR code designs for restaurants</p>
 </div>
 
 <?php if ($message): ?>
@@ -419,24 +420,20 @@ include __DIR__ . '/../includes/admin-layout.php';
                                 </span>
                             </td>
                             <td><?php echo $template['usage_count']; ?> restaurant(s)</td>
-                            <td>
-                                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                    <a href="?edit=<?php echo $template['id']; ?>" class="btn btn-primary btn-small">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                        </svg>
-                                        Edit
-                                    </a>
-                                    <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this template?<?php echo $template['usage_count'] > 0 ? ' This will clear the template selection for ' . $template['usage_count'] . ' restaurant(s).' : ''; ?>');">
+                            <td class="actions-cell">
+                                <button class="actions-btn" onclick="toggleDropdown(this)" title="Actions">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                    </svg>
+                                </button>
+                                <div class="actions-dropdown">
+                                    <a href="?edit=<?php echo $template['id']; ?>" class="actions-dropdown-item">Edit</a>
+                                    <div class="actions-dropdown-divider"></div>
+                                    <form method="POST" onsubmit="return confirm('Are you sure you want to delete this template?<?php echo $template['usage_count'] > 0 ? ' This will clear the template selection for ' . $template['usage_count'] . ' restaurant(s).' : ''; ?>');">
                                         <input type="hidden" name="action" value="delete_template">
                                         <input type="hidden" name="csrf_token" value="<?php echo getCSRFToken(); ?>">
                                         <input type="hidden" name="template_id" value="<?php echo $template['id']; ?>">
-                                        <button type="submit" class="btn btn-danger btn-small">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
-                                            Delete
-                                        </button>
+                                        <button type="submit" class="actions-dropdown-item danger">Delete</button>
                                     </form>
                                 </div>
                             </td>
@@ -451,6 +448,18 @@ include __DIR__ . '/../includes/admin-layout.php';
 <!-- Load QRCode library for preview functionality -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
+function toggleDropdown(btn) {
+    document.querySelectorAll('.actions-dropdown.show').forEach(d => d.classList.remove('show'));
+    const dropdown = btn.nextElementSibling;
+    dropdown.classList.toggle('show');
+    document.addEventListener('click', function closeDropdown(e) {
+        if (!btn.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.classList.remove('show');
+            document.removeEventListener('click', closeDropdown);
+        }
+    });
+}
+
 // Adapt qrcodejs library to our API (simple preview - advanced styling done in PHP)
 (function() {
     // Wait for QRCode to load, then create adapter

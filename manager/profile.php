@@ -121,29 +121,29 @@ $pageTitle = 'My Profile';
 include __DIR__ . '/../includes/manager-layout.php';
 ?>
 
-        <div class="card">
-            <div class="card-header">
-                <h2 class="card-title">My Profile</h2>
+        <div class="page-header">
+            <h1 class="page-title">My Profile</h1>
+            <p class="page-subtitle">Manage your account information and password</p>
+        </div>
+
+        <?php if ($message): ?>
+            <div class="alert alert-success">
+                <?php echo htmlspecialchars($message); ?>
             </div>
+        <?php endif; ?>
             
-            <?php if ($message): ?>
-                <div class="alert alert-success">
-                    <?php echo htmlspecialchars($message); ?>
-                </div>
-            <?php endif; ?>
-            
-            <?php if ($error): ?>
-                <div class="alert alert-error">
-                    <?php echo htmlspecialchars($error); ?>
-                </div>
-            <?php endif; ?>
-            
-            <!-- Profile Information -->
-            <div class="card" style="margin-bottom: 24px;">
-                <div class="card-header">
-                    <h2 class="card-title">Account Information</h2>
-                </div>
-                <div style="display: grid; gap: 20px;">
+        <?php if ($error): ?>
+            <div class="alert alert-error">
+                <?php echo htmlspecialchars($error); ?>
+            </div>
+        <?php endif; ?>
+
+        <!-- Profile Information -->
+        <div class="settings-card">
+            <div class="section-header">
+                <h2 class="section-title">Account Information</h2>
+            </div>
+            <div style="display: grid; gap: 20px;">
                     <div>
                         <label class="form-label">Username</label>
                         <div style="padding: 12px; background: #f9fafb; border-radius: 8px; font-weight: 500;">
@@ -172,12 +172,13 @@ include __DIR__ . '/../includes/manager-layout.php';
                     </div>
                 </div>
             </div>
-            
-            <!-- Update Profile Form -->
-            <div class="card" style="margin-bottom: 24px;">
-                <div class="card-header">
-                    <h2 class="card-title">Update Profile</h2>
-                </div>
+        </div>
+
+        <!-- Update Profile Form -->
+        <div class="settings-card">
+            <div class="section-header">
+                <h2 class="section-title">Update Profile</h2>
+            </div>
                 <form method="POST" action="">
                     <input type="hidden" name="action" value="update_profile">
                     
@@ -198,13 +199,13 @@ include __DIR__ . '/../includes/manager-layout.php';
                         Update Profile
                     </button>
                 </form>
+        </div>
+
+        <!-- Update Password Form -->
+        <div class="settings-card">
+            <div class="section-header">
+                <h2 class="section-title">Change Password</h2>
             </div>
-            
-            <!-- Update Password Form -->
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">Change Password</h2>
-                </div>
                 <form method="POST" action="">
                     <input type="hidden" name="action" value="update_password">
                     
@@ -231,7 +232,6 @@ include __DIR__ . '/../includes/manager-layout.php';
                         Change Password
                     </button>
                 </form>
-            </div>
         </div>
 
 <style>

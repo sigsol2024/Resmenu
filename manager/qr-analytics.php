@@ -618,10 +618,15 @@ if (!empty($devicePercentages)) {
 }
 </style>
 
+<div class="page-header">
+    <h1 class="page-title">QR Code Analytics</h1>
+    <p class="page-subtitle">View scan statistics, device types, and trends for your QR code</p>
+</div>
+
 <!-- Date Range Filter -->
-<div class="card" style="margin-bottom: 24px;">
-    <div class="card-header">
-        <h2 class="card-title">Date Range Filter</h2>
+<div class="settings-card">
+    <div class="section-header">
+        <h2 class="section-title">Date Range Filter</h2>
     </div>
     <form method="GET">
         <input type="hidden" name="slug" value="<?php echo htmlspecialchars($restaurant['slug']); ?>">
@@ -653,7 +658,7 @@ if (!empty($devicePercentages)) {
 </div>
 
 <!-- Total Scans Stat -->
-<div class="card" style="margin-bottom: 24px;">
+<div class="settings-card">
     <div style="text-align: center; padding: 30px 20px;">
         <div style="font-size: 3.5rem; font-weight: 800; background: linear-gradient(135deg, #6366f1, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 8px;">
             <?php echo number_format($analytics['total_scans']); ?>
@@ -665,9 +670,9 @@ if (!empty($devicePercentages)) {
 <!-- Charts Grid -->
 <div class="charts-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
     <!-- Scans by Device Type - Pie Chart -->
-    <div class="card">
-        <div class="card-header">
-            <h2 class="card-title">Scans by Device Type</h2>
+    <div class="settings-card">
+        <div class="section-header">
+            <h2 class="section-title">Scans by Device Type</h2>
         </div>
         <?php if (empty($devicePercentages)): ?>
             <div class="no-data">No device data available</div>
@@ -711,9 +716,9 @@ if (!empty($devicePercentages)) {
     </div>
     
     <!-- Scans by Browser - Bar Chart -->
-    <div class="card">
-        <div class="card-header">
-            <h2 class="card-title">Scans by Browser</h2>
+    <div class="settings-card">
+        <div class="section-header">
+            <h2 class="section-title">Scans by Browser</h2>
         </div>
         <?php if (empty($analytics['scans_by_browser'])): ?>
             <div class="no-data">No browser data available</div>
@@ -734,9 +739,9 @@ if (!empty($devicePercentages)) {
 </div>
 
 <!-- Scans Over Time -->
-<div class="card" style="margin-bottom: 24px;">
-    <div class="card-header">
-        <h2 class="card-title">Scans Over Time</h2>
+<div class="settings-card">
+    <div class="section-header">
+        <h2 class="section-title">Scans Over Time</h2>
     </div>
     <?php if (empty($timeData)): ?>
         <div class="no-data">No scan history available</div>
@@ -827,9 +832,9 @@ if (!empty($devicePercentages)) {
 </div>
 
 <!-- Scans by Location -->
-<div class="card" style="margin-bottom: 24px;">
-    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-        <h2 class="card-title">Scans by Location</h2>
+<div class="settings-card">
+    <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 class="section-title">Scans by Location</h2>
         <a href="<?php echo SITE_URL; ?>/api/qr-export.php?restaurant_id=<?php echo $restaurantId; ?>&format=csv" class="btn btn-secondary btn-small">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -866,9 +871,9 @@ if (!empty($devicePercentages)) {
 </div>
 
 <!-- Recent Scans -->
-<div class="card">
-    <div class="card-header">
-        <h2 class="card-title">Recent Scans</h2>
+<div class="settings-card">
+    <div class="section-header">
+        <h2 class="section-title">Recent Scans</h2>
     </div>
     <div style="overflow-x: auto;">
         <table class="table">

@@ -115,7 +115,7 @@ input:checked + .toggle-slider:before { transform: translateX(20px); }
 .form-section { margin-bottom: 24px; }
 .section-subtitle { font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
 .badge { padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; }
-.badge-test { background: #fef3c7; color: #92400e; }
+.badge-test { background: #f3f4f6; color: #4b5563; }
 .badge-live { background: #d1fae5; color: #065f46; }
 .form-group { margin-bottom: 16px; }
 .form-group label { display: block; font-weight: 500; color: #374151; margin-bottom: 6px; font-size: 0.875rem; }

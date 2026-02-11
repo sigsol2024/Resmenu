@@ -316,6 +316,7 @@ include __DIR__ . '/../includes/admin-layout.php';
 <!-- Page Header -->
 <div class="page-header">
     <h1 class="page-title">Template Management</h1>
+    <p class="page-subtitle">Manage menu page design templates</p>
 </div>
 
 <?php if ($message): ?>

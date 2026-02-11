@@ -468,26 +468,26 @@ function renderUpgradePrompt($feature, $usage) {
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #d97706;
+        color: #1e3a5f;
         flex-shrink: 0;
     }
     
     .upgrade-content h4 {
         font-size: 1rem;
         font-weight: 600;
-        color: #92400e;
+        color: #1f2937;
         margin-bottom: 4px;
     }
     
     .upgrade-content p {
         font-size: 0.875rem;
-        color: #a16207;
+        color: #6b7280;
         margin-bottom: 12px;
     }
     
     .btn-upgrade {
         display: inline-block;
-        background: #d97706;
+        background: #1e3a5f;
         color: #fff;
         padding: 8px 16px;
         border-radius: 6px;
@@ -497,7 +497,7 @@ function renderUpgradePrompt($feature, $usage) {
     }
     
     .btn-upgrade:hover {
-        background: #b45309;
+        background: #2d4a6f;
     }
     </style>
     <?php

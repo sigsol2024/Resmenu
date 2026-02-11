@@ -235,6 +235,7 @@ include __DIR__ . '/../includes/admin-layout.php';
 <!-- Page Header -->
 <div class="page-header">
     <h1 class="page-title">My Profile</h1>
+    <p class="page-subtitle">Manage your account information</p>
 </div>
 
 <?php if ($message): ?>

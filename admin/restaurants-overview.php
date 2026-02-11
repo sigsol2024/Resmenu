@@ -22,9 +22,12 @@ include __DIR__ . '/../includes/admin-layout.php';
 ?>
 
 <section class="restaurants-overview" style="margin-bottom:24px;">
-    <h1 class="page-title" style="font-size:1.5rem;font-weight:600;margin-bottom:24px;color:#111827;">Restaurants Overview</h1>
+    <div class="page-header">
+    <h1 class="page-title">Restaurants Overview</h1>
+    <p class="page-subtitle">View total orders and revenue per restaurant</p>
+</div>
 
-    <div class="filters card" style="margin-bottom:24px;">
+    <div class="filters settings-card" style="margin-bottom:24px;">
         <h3 style="font-size:0.875rem;font-weight:600;margin-bottom:12px;color:#111827;">Filters</h3>
         <form id="overview-filter-form" style="display:flex;flex-wrap:wrap;gap:16px;align-items:end;">
             <div>
@@ -48,7 +51,7 @@ include __DIR__ . '/../includes/admin-layout.php';
         </form>
     </div>
 
-    <div class="table-wrapper" style="background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);overflow-x:auto;">
+    <div class="table-wrapper">
         <table class="restaurants-table" style="width:100%;border-collapse:collapse;">
             <thead>
                 <tr style="border-bottom:2px solid #e5e7eb;">
@@ -100,12 +103,16 @@ include __DIR__ . '/../includes/admin-layout.php';
                 return;
             }
             tbody.innerHTML = rows.map(function(r) {
+                const slug = encodeURIComponent(r.slug || '');
                 return '<tr style="border-bottom:1px solid #f3f4f6;">' +
                     '<td style="padding:12px 16px;font-size:0.875rem;font-weight:500;">' + esc(r.name) + '</td>' +
                     '<td style="padding:12px 16px;font-size:0.75rem;font-family:monospace;color:#6b7280;">' + esc(r.slug) + '</td>' +
                     '<td style="padding:12px 16px;font-size:0.875rem;">' + parseInt(r.total_orders || 0, 10) + '</td>' +
                     '<td style="padding:12px 16px;font-size:0.875rem;font-weight:600;">₦' + parseFloat(r.total_revenue || 0).toFixed(2) + '</td>' +
-                    '<td style="padding:12px 16px;"><a href="restaurant-view.php?slug=' + encodeURIComponent(r.slug || '') + '" class="btn btn-primary" style="padding:6px 12px;font-size:0.8rem;">View / Manage</a></td></tr>';
+                    '<td class="actions-cell" style="padding:12px 16px;">' +
+                    '<button type="button" class="actions-btn" onclick="toggleOverviewDropdown(this)" title="Actions"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/></svg></button>' +
+                    '<div class="actions-dropdown"><a href="restaurant-view.php?slug=' + slug + '" class="actions-dropdown-item">View / Manage</a></div>' +
+                    '</td></tr>';
             }).join('');
         }).catch(function() {
             tbody.innerHTML = '<tr><td colspan="5" style="padding:24px;text-align:center;color:#ef4444;">Failed to load data.</td></tr>';
@@ -116,6 +123,18 @@ include __DIR__ . '/../includes/admin-layout.php';
         e.preventDefault();
         loadOverview();
     });
+
+    window.toggleOverviewDropdown = function(btn) {
+        document.querySelectorAll('.actions-dropdown.show').forEach(function(d) { d.classList.remove('show'); });
+        var dropdown = btn.nextElementSibling;
+        dropdown.classList.toggle('show');
+        document.addEventListener('click', function closeDropdown(e) {
+            if (!btn.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.remove('show');
+                document.removeEventListener('click', closeDropdown);
+            }
+        });
+    };
 
     loadOverview();
 })();

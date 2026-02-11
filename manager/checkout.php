@@ -394,7 +394,7 @@ include __DIR__ . '/../includes/manager-layout.php';
     border-radius: 12px;
     padding: 20px;
     text-align: center;
-    color: #92400e;
+    color: #4b5563;
 }
 
 /* Order Summary */
@@ -534,7 +534,10 @@ include __DIR__ . '/../includes/manager-layout.php';
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
             </svg>
         </a>
-        <h1 class="page-title">Checkout</h1>
+        <div>
+            <h1 class="page-title">Checkout</h1>
+            <p class="page-subtitle">Select a plan and complete your subscription payment</p>
+        </div>
     </div>
     
     <form id="checkoutForm" method="POST" action="process-payment.php">

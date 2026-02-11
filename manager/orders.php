@@ -52,10 +52,14 @@ $pageTitle = 'Orders - ' . htmlspecialchars($restaurant['name']);
 include __DIR__ . '/../includes/manager-layout.php';
 ?>
 
+<div class="page-header">
+    <h1 class="page-title">Orders</h1>
+    <p class="page-subtitle">View revenue and manage orders for <?php echo htmlspecialchars($restaurant['name']); ?></p>
+</div>
+
 <section class="orders-overview" style="margin-bottom:24px;">
-    <h2 class="section-title" style="font-size:1.125rem;font-weight:600;margin-bottom:16px;color:#111827;">Orders Overview</h2>
     <!-- Revenue Line Chart -->
-    <div class="chart-card revenue-chart-card" style="background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);padding:24px;margin-bottom:24px;">
+    <div class="settings-card revenue-chart-card" style="padding:24px;margin-bottom:24px;">
         <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px;margin-bottom:16px;">
             <div>
                 <h3 class="chart-title" style="font-size:1rem;font-weight:600;margin:0;color:#111827;">Revenue Growth Over Time</h3>
@@ -86,8 +90,8 @@ include __DIR__ . '/../includes/manager-layout.php';
         $statusChartData[] = ['label' => ucfirst(str_replace('_',' ',$s)), 'value' => $statsByStatus[$s], 'color' => $statusColors[$s], 'pct' => ($statsByStatus[$s] / $statusMax) * 100];
     }
     ?>
-    <div class="chart-card" style="background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);padding:24px;margin-bottom:24px;">
-        <h3 class="chart-title" style="font-size:1rem;font-weight:600;margin-bottom:16px;color:#111827;">Orders by Status</h3>
+    <div class="settings-card" style="padding:24px;margin-bottom:24px;">
+        <h3 class="section-title" style="font-size:1rem;font-weight:600;margin-bottom:16px;color:#111827;">Orders by Status</h3>
         <div class="simple-bar-chart">
             <?php foreach ($statusChartData as $item): ?>
             <div class="item" style="--clr: <?php echo htmlspecialchars($item['color']); ?>; --val: <?php echo round($item['pct'], 1); ?>">
@@ -122,7 +126,7 @@ include __DIR__ . '/../includes/manager-layout.php';
     <?php if (empty($orders)): ?>
     <p style="color:#6b7280;padding:24px;text-align:center;">No orders yet.</p>
     <?php else: ?>
-    <div class="table-wrapper" style="background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);overflow-x:auto;">
+    <div class="table-wrapper">
         <table class="orders-table" style="width:100%;border-collapse:collapse;">
             <thead>
                 <tr style="border-bottom:1px solid #e5e7eb;">
@@ -142,19 +146,29 @@ include __DIR__ . '/../includes/manager-layout.php';
                     <td style="padding:12px 16px;font-size:0.875rem;"><?php echo date('M j, Y H:i', strtotime($o['created_at'])); ?></td>
                     <td style="padding:12px 16px;font-size:0.875rem;font-weight:600;"><?php echo $currencySymbol . number_format((float)$o['total'], 2); ?></td>
                     <td style="padding:12px 16px;">
-                        <form class="order-status-form" method="post" action="../api/update-order-status.php" style="display:inline;">
-                            <input type="hidden" name="order_id" value="<?php echo (int)$o['id']; ?>"/>
-                            <input type="hidden" name="slug" value="<?php echo htmlspecialchars($restaurantSlug); ?>"/>
-                            <select name="status" class="order-status-select" style="padding:6px 10px;border:1px solid #e5e7eb;border-radius:6px;font-size:0.8rem;cursor:pointer;">
-                                <?php foreach ($statuses as $s): ?>
-                                <option value="<?php echo htmlspecialchars($s); ?>" <?php echo ($o['status'] ?? 'pending') === $s ? 'selected' : ''; ?>><?php echo ucfirst(str_replace('_',' ',$s)); ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                            <button type="submit" style="display:none;">Update</button>
-                        </form>
+                        <span class="badge" style="background:#f3f4f6;color:#374151;padding:4px 10px;border-radius:6px;font-size:0.75rem;font-weight:600;"><?php echo ucfirst(str_replace('_',' ', $o['status'] ?? 'pending')); ?></span>
                     </td>
-                    <td style="padding:12px 16px;">
-                        <button type="button" class="view-order-btn btn btn-primary" data-order-id="<?php echo (int)$o['id']; ?>" style="padding:6px 12px;font-size:0.8rem;">View</button>
+                    <td class="actions-cell" style="padding:12px 16px;">
+                        <button type="button" class="actions-btn" onclick="toggleDropdown(this)" title="Actions">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                            </svg>
+                        </button>
+                        <div class="actions-dropdown">
+                            <button type="button" class="view-order-btn actions-dropdown-item" data-order-id="<?php echo (int)$o['id']; ?>">View</button>
+                            <div class="actions-dropdown-divider"></div>
+                            <div class="actions-dropdown-title">Change Status</div>
+                            <?php foreach ($statuses as $s): ?>
+                            <?php if (($o['status'] ?? 'pending') !== $s): ?>
+                            <form method="post" action="../api/update-order-status.php" style="display:contents;">
+                                <input type="hidden" name="order_id" value="<?php echo (int)$o['id']; ?>"/>
+                                <input type="hidden" name="slug" value="<?php echo htmlspecialchars($restaurantSlug); ?>"/>
+                                <input type="hidden" name="status" value="<?php echo htmlspecialchars($s); ?>"/>
+                                <button type="submit" class="actions-dropdown-item">Set to <?php echo ucfirst(str_replace('_',' ',$s)); ?></button>
+                            </form>
+                            <?php endif; ?>
+                            <?php endforeach; ?>
+                        </div>
                     </td>
                 </tr>
                 <?php endforeach; ?>
@@ -177,7 +191,7 @@ include __DIR__ . '/../includes/manager-layout.php';
 <style>
 .revenue-range-btn { padding: 6px 12px; border-radius: 6px; border: 1px solid #e5e7eb; background: #fff; font-size: 0.75rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
 .revenue-range-btn:hover { background: #f3f4f6; }
-.revenue-range-btn.btn-active { background: var(--primary, #D97706); color: #fff; border-color: var(--primary, #D97706); }
+.revenue-range-btn.btn-active { background: var(--primary); color: #fff; border-color: var(--primary); }
 .revenue-chart-card .revenue-point { cursor: pointer; }
 .revenue-chart-card .revenue-point:hover { opacity: 1; }
 .simple-bar-chart > .item { --line-count: 10; --line-color: currentcolor; --line-opacity: 0.25; --item-gap: 2%; --padding-block: 1.5rem; position: relative; isolation: isolate; height: calc(1% * var(--val)); animation: item-height 1s ease forwards; border-radius: 4px 4px 0 0; }
@@ -312,6 +326,18 @@ include __DIR__ . '/../includes/manager-layout.php';
         if (s == null || s === '') return '';
         const t = String(s);
         return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+
+    function toggleDropdown(btn) {
+        document.querySelectorAll('.actions-dropdown.show').forEach(d => d.classList.remove('show'));
+        const dropdown = btn.nextElementSibling;
+        dropdown.classList.toggle('show');
+        document.addEventListener('click', function closeDropdown(e) {
+            if (!btn.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.remove('show');
+                document.removeEventListener('click', closeDropdown);
+            }
+        });
     }
 
     document.querySelectorAll('.view-order-btn').forEach(function(btn) {

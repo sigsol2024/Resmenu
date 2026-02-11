@@ -219,10 +219,10 @@ include __DIR__ . '/../includes/manager-layout.php';
 }
 
 .gateway-paystack { background: #dbeafe; color: #1e40af; }
-.gateway-flutterwave { background: #fef3c7; color: #92400e; }
+.gateway-flutterwave { background: #f3f4f6; color: #4b5563; }
 .gateway-manual { background: #f3f4f6; color: #6b7280; }
 
-.status-pending { background: #fef3c7; color: #92400e; }
+.status-pending { background: #f3f4f6; color: #4b5563; }
 .status-success { background: #d1fae5; color: #065f46; }
 .status-failed { background: #fee2e2; color: #991b1b; }
 .status-refunded { background: #e0e7ff; color: #4338ca; }
@@ -285,8 +285,11 @@ include __DIR__ . '/../includes/manager-layout.php';
 </style>
 
 <!-- Page Header -->
-<div class="page-header">
-    <h1 class="page-title">Transaction History</h1>
+<div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
+    <div>
+        <h1 class="page-title">Transaction History</h1>
+        <p class="page-subtitle">View your subscription payment history and export records</p>
+    </div>
     <div class="export-buttons">
         <a href="?export=csv" class="btn-export secondary">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -304,7 +307,7 @@ include __DIR__ . '/../includes/manager-layout.php';
 </div>
 
 <!-- Transactions Table -->
-<div class="table-card">
+<div class="table-wrapper">
     <?php if (empty($payments)): ?>
         <div class="empty-state">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -83,8 +83,8 @@ foreach ($navItems as $item) {
 if ($currentPage === 'qr-code.php' || $currentPage === 'qr-analytics.php') {
     $activeId = 'qr-code';
 }
-// Handle Orders page
-if ($currentPage === 'orders.php') {
+// Handle Orders page (including restaurant-orders subpage)
+if ($currentPage === 'orders.php' || $currentPage === 'restaurant-orders.php') {
     $activeId = 'orders';
 }
 // Handle Payment Settings page
