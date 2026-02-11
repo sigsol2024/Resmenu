@@ -28,15 +28,25 @@ $slugParam = $restaurantSlug ? '?slug=' . urlencode($restaurantSlug) : '';
 // Order stats by status
 $statuses = ['pending', 'confirmed', 'on_hold', 'cancelled', 'completed'];
 $statsByStatus = [];
+$statsByStatusLastMonth = [];
 $totalOrdersAmount = 0;
+$totalOrdersAmountLastMonth = 0;
+$lastMonthStart = date('Y-m-d 00:00:00', strtotime('first day of last month'));
+$lastMonthEnd = date('Y-m-d 23:59:59', strtotime('last day of last month'));
 foreach ($statuses as $s) {
     $stmt = $pdo->prepare("SELECT COUNT(*) FROM orders WHERE restaurant_id = ? AND status = ?");
     $stmt->execute([$restaurantId, $s]);
     $statsByStatus[$s] = (int) $stmt->fetchColumn();
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM orders WHERE restaurant_id = ? AND status = ? AND created_at BETWEEN ? AND ?");
+    $stmt->execute([$restaurantId, $s, $lastMonthStart, $lastMonthEnd]);
+    $statsByStatusLastMonth[$s] = (int) $stmt->fetchColumn();
 }
 $stmt = $pdo->prepare("SELECT COALESCE(SUM(total), 0) FROM orders WHERE restaurant_id = ? AND status IN ('pending','confirmed','on_hold','completed')");
 $stmt->execute([$restaurantId]);
 $totalOrdersAmount = (float) $stmt->fetchColumn();
+$stmt = $pdo->prepare("SELECT COALESCE(SUM(total), 0) FROM orders WHERE restaurant_id = ? AND status IN ('pending','confirmed','on_hold','completed') AND created_at BETWEEN ? AND ?");
+$stmt->execute([$restaurantId, $lastMonthStart, $lastMonthEnd]);
+$totalOrdersAmountLastMonth = (float) $stmt->fetchColumn();
 
 $totalOrdersCount = array_sum($statsByStatus);
 
@@ -58,6 +68,57 @@ include __DIR__ . '/../includes/manager-layout.php';
 </div>
 
 <section class="orders-overview" style="margin-bottom:24px;">
+    <!-- Order Stats Cards (first) -->
+    <div class="stats" style="display:grid;grid-template-columns:repeat(6, minmax(0, 1fr));gap:16px;margin-bottom:24px;">
+        <?php foreach ($statuses as $s):
+            $label = ucfirst(str_replace('_', ' ', $s));
+            $curr = $statsByStatus[$s];
+            $prev = $statsByStatusLastMonth[$s];
+            $diff = $prev > 0 ? round((($curr - $prev) / $prev) * 100) : ($curr > 0 ? 100 : 0);
+            $isUp = $curr >= $prev;
+            $showTrend = $prev > 0 || $curr > 0;
+        ?>
+        <div class="stat-card" style="background:#fff;padding:16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+            <div class="stat-label" style="font-size:0.7rem;color:#6b7280;text-transform:uppercase;margin-bottom:4px;"><?php echo htmlspecialchars($label); ?></div>
+            <div class="stat-value" style="font-size:1.5rem;font-weight:700;color:#111827;"><?php echo $curr; ?></div>
+            <?php if ($showTrend && $diff != 0): ?>
+            <div class="stat-trend" style="font-size:0.7rem;margin-top:4px;display:flex;align-items:center;gap:4px;">
+                <span style="color:<?php echo $isUp ? '#059669' : '#dc2626'; ?>;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:12px;height:12px;display:inline;vertical-align:middle;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="<?php echo $isUp ? 'M5 10l7-7m0 0l7 7m-7-7v18' : 'M19 14l-7 7m0 0l-7-7m7 7V3'; ?>" />
+                    </svg>
+                    <?php echo abs($diff); ?>%
+                </span>
+                <span style="color:#9ca3af;font-size:0.65rem;">vs last month</span>
+            </div>
+            <?php elseif ($showTrend): ?>
+            <div class="stat-trend" style="font-size:0.65rem;color:#9ca3af;margin-top:4px;">vs last month</div>
+            <?php endif; ?>
+        </div>
+        <?php endforeach; ?>
+        <div class="stat-card" style="background:#fff;padding:16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+            <div class="stat-label" style="font-size:0.7rem;color:#6b7280;text-transform:uppercase;margin-bottom:4px;">Total Amount</div>
+            <div class="stat-value" style="font-size:1rem;font-weight:700;color:#111827;"><?php echo $currencySymbol . number_format($totalOrdersAmount, 2); ?></div>
+            <?php
+            $revDiff = $totalOrdersAmountLastMonth > 0 ? round((($totalOrdersAmount - $totalOrdersAmountLastMonth) / $totalOrdersAmountLastMonth) * 100) : ($totalOrdersAmount > 0 ? 100 : 0);
+            $revUp = $totalOrdersAmount >= $totalOrdersAmountLastMonth;
+            ?>
+            <?php if (($totalOrdersAmountLastMonth > 0 || $totalOrdersAmount > 0) && $revDiff != 0): ?>
+            <div class="stat-trend" style="font-size:0.7rem;margin-top:4px;display:flex;align-items:center;gap:4px;">
+                <span style="color:<?php echo $revUp ? '#059669' : '#dc2626'; ?>;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:12px;height:12px;display:inline;vertical-align:middle;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="<?php echo $revUp ? 'M5 10l7-7m0 0l7 7m-7-7v18' : 'M19 14l-7 7m0 0l-7-7m7 7V3'; ?>" />
+                    </svg>
+                    <?php echo abs($revDiff); ?>%
+                </span>
+                <span style="color:#9ca3af;font-size:0.65rem;">vs last month</span>
+            </div>
+            <?php else: ?>
+            <div class="stat-trend" style="font-size:0.65rem;color:#9ca3af;margin-top:4px;">vs last month</div>
+            <?php endif; ?>
+        </div>
+    </div>
+
     <!-- Revenue Line Chart -->
     <div class="settings-card revenue-chart-card" style="padding:24px;margin-bottom:24px;">
         <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px;margin-bottom:16px;">
@@ -92,25 +153,13 @@ include __DIR__ . '/../includes/manager-layout.php';
     ?>
     <div class="settings-card" style="padding:24px;margin-bottom:24px;">
         <h3 class="section-title" style="font-size:1rem;font-weight:600;margin-bottom:16px;color:#111827;">Orders by Status</h3>
-        <div class="simple-bar-chart">
+        <div class="simple-bar-chart orders-bar-chart">
             <?php foreach ($statusChartData as $item): ?>
             <div class="item" style="--clr: <?php echo htmlspecialchars($item['color']); ?>; --val: <?php echo round($item['pct'], 1); ?>">
                 <div class="label"><?php echo htmlspecialchars($item['label']); ?></div>
                 <div class="value"><?php echo $item['value']; ?></div>
             </div>
             <?php endforeach; ?>
-        </div>
-    </div>
-    <div class="stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px;margin-bottom:24px;">
-        <?php foreach ($statuses as $s): $label = ucfirst(str_replace('_', ' ', $s)); ?>
-        <div class="stat-card" style="background:#fff;padding:16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
-            <div class="stat-label" style="font-size:0.7rem;color:#6b7280;text-transform:uppercase;margin-bottom:4px;"><?php echo htmlspecialchars($label); ?></div>
-            <div class="stat-value" style="font-size:1.5rem;font-weight:700;color:#111827;"><?php echo $statsByStatus[$s]; ?></div>
-        </div>
-        <?php endforeach; ?>
-        <div class="stat-card" style="background:#fff;padding:16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
-            <div class="stat-label" style="font-size:0.7rem;color:#6b7280;text-transform:uppercase;margin-bottom:4px;">Total Amount</div>
-            <div class="stat-value" style="font-size:1rem;font-weight:700;color:#111827;"><?php echo $currencySymbol . number_format($totalOrdersAmount, 2); ?></div>
         </div>
     </div>
 </section>
@@ -149,7 +198,7 @@ include __DIR__ . '/../includes/manager-layout.php';
                         <span class="badge" style="background:#f3f4f6;color:#374151;padding:4px 10px;border-radius:6px;font-size:0.75rem;font-weight:600;"><?php echo ucfirst(str_replace('_',' ', $o['status'] ?? 'pending')); ?></span>
                     </td>
                     <td class="actions-cell" style="padding:12px 16px;">
-                        <button type="button" class="actions-btn" onclick="toggleDropdown(this)" title="Actions">
+                        <button type="button" class="actions-btn" onclick="event.stopPropagation();toggleDropdown(this)" title="Actions">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                             </svg>
@@ -194,10 +243,15 @@ include __DIR__ . '/../includes/manager-layout.php';
 .revenue-range-btn.btn-active { background: var(--primary); color: #fff; border-color: var(--primary); }
 .revenue-chart-card .revenue-point { cursor: pointer; }
 .revenue-chart-card .revenue-point:hover { opacity: 1; }
+.simple-bar-chart.orders-bar-chart { height: 10rem; display: grid; grid-auto-flow: column; gap: 2%; align-items: end; padding-inline: 2%; padding-block: 1.5rem; position: relative; }
+.simple-bar-chart.orders-bar-chart > .item { flex: 1; min-width: 50px; background: linear-gradient(to top, var(--clr), color-mix(in srgb, var(--clr) 70%, white)); position: relative; height: calc(1% * var(--val)); animation: item-height 1s ease forwards; border-radius: 4px 4px 0 0; }
 .simple-bar-chart > .item { --line-count: 10; --line-color: currentcolor; --line-opacity: 0.25; --item-gap: 2%; --padding-block: 1.5rem; position: relative; isolation: isolate; height: calc(1% * var(--val)); animation: item-height 1s ease forwards; border-radius: 4px 4px 0 0; }
 .simple-bar-chart > .item > .label { position: absolute; inset: 100% 0 auto 0; font-size: 0.7rem; color: #6b7280; text-align: center; margin-top: 4px; }
 .simple-bar-chart > .item > .value { position: absolute; inset: auto 0 100% 0; font-size: 0.75rem; font-weight: 600; color: #111827; text-align: center; margin-bottom: 4px; }
 @keyframes item-height { from { height: 0 } }
+.orders-list .table-wrapper { overflow-x: auto; }
+.orders-list .actions-cell { position: relative; }
+.orders-list .actions-dropdown { z-index: 50; }
 </style>
 <script>
 (function() {

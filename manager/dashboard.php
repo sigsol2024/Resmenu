@@ -490,7 +490,7 @@ include __DIR__ . '/../includes/manager-layout.php';
 /* ===== STATS ===== */
 .stats {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 20px;
     margin-bottom: 30px;
 }
@@ -635,6 +635,15 @@ include __DIR__ . '/../includes/manager-layout.php';
     gap: 16px;
 }
 
+.action-card .action-icon { color: #6b7280; }
+.action-card:nth-child(1) .action-icon { color: #3b82f6; }
+.action-card:nth-child(2) .action-icon { color: #10b981; }
+.action-card:nth-child(3) .action-icon { color: #f59e0b; }
+.action-card:nth-child(4) .action-icon { color: #8b5cf6; }
+.action-card:nth-child(5) .action-icon { color: #06b6d4; }
+.action-card:nth-child(6) .action-icon { color: #ec4899; }
+.action-card:nth-child(7) .action-icon { color: #6366f1; }
+.action-card:nth-child(8) .action-icon { color: #14b8a6; }
 .action-card {
     padding: 20px;
     border: 1px solid #e5e7eb;
@@ -710,14 +719,19 @@ include __DIR__ . '/../includes/manager-layout.php';
 }
 
 /* Mobile Responsive */
+@media (max-width: 1200px) {
+    .stats {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
 @media (max-width: 900px) {
     .actions-grid {
         grid-template-columns: 1fr;
     }
     
     .stats {
-        grid-template-columns: 1fr;
-        gap: 16px;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
     }
     
     .stat-card {

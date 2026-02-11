@@ -488,7 +488,7 @@ body{
   width:100%;
   display:flex;
   align-items:center;
-  gap:10px;
+  gap:12px;
   padding:10px 12px;
   border-radius:6px;
   text-decoration:none;
@@ -500,14 +500,20 @@ body{
   display:flex;
   align-items:center;
   justify-content:center;
-  min-width:24px;
+  flex-shrink:0;
+  width:24px;
   height:24px;
 }
 
+.logout-btn .nav-icon-wrapper .nav-icon{
+  width:18px;
+  height:18px;
+}
+
 .logout-btn .nav-text{
-  line-height:24px;
-  display:flex;
-  align-items:center;
+  line-height:1.25;
+  font-size:0.875rem;
+  font-weight:500;
 }
 
 .logout-btn:hover{

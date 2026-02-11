@@ -121,6 +121,7 @@ $pageTitle = 'My Profile';
 include __DIR__ . '/../includes/manager-layout.php';
 ?>
 
+        <div class="profile-page-content" style="display:block;max-width:600px;">
         <div class="page-header">
             <h1 class="page-title">My Profile</h1>
             <p class="page-subtitle">Manage your account information and password</p>
@@ -171,7 +172,6 @@ include __DIR__ . '/../includes/manager-layout.php';
                         </div>
                     </div>
                 </div>
-            </div>
         </div>
 
         <!-- Update Profile Form -->
@@ -232,6 +232,7 @@ include __DIR__ . '/../includes/manager-layout.php';
                         Change Password
                     </button>
                 </form>
+        </div>
         </div>
 
 <style>
