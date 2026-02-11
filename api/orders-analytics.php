@@ -199,15 +199,17 @@ if ($action === 'orders' || $action === '') {
     $response['orders'] = $orders;
 }
 
-// Restaurants overview (Super Admin): aggregated totals per restaurant
+// Restaurants overview (Super Admin): aggregated totals per restaurant + menu_items, categories
 if ($action === 'restaurants_overview' && $isSuperAdmin()) {
     try {
         $joinCond = "o.restaurant_id = r.id";
         if ($dateFrom) $joinCond .= " AND o.created_at >= ?";
         if ($dateTo) $joinCond .= " AND o.created_at <= ?";
-        $overviewSql = "SELECT r.id, r.name, r.slug,
+        $overviewSql = "SELECT r.id, r.name, r.slug, r.is_active,
             COUNT(o.id) AS total_orders,
-            COALESCE(SUM(CASE WHEN o.status IN ('pending','confirmed','on_hold','completed') THEN o.total ELSE 0 END), 0) AS total_revenue
+            COALESCE(SUM(CASE WHEN o.status IN ('pending','confirmed','on_hold','completed') THEN o.total ELSE 0 END), 0) AS total_revenue,
+            (SELECT COUNT(*) FROM menu_items m WHERE m.restaurant_id = r.id) AS menu_items,
+            (SELECT COUNT(*) FROM categories c WHERE c.restaurant_id = r.id) AS categories
             FROM restaurants r
             LEFT JOIN orders o ON " . $joinCond;
         $oparams = [];
@@ -217,16 +219,33 @@ if ($action === 'restaurants_overview' && $isSuperAdmin()) {
             $overviewSql .= " WHERE r.id = ?";
             $oparams[] = $restaurantId;
         }
-        $overviewSql .= " GROUP BY r.id, r.name, r.slug ORDER BY r.name ASC";
+        $overviewSql .= " GROUP BY r.id, r.name, r.slug, r.is_active ORDER BY r.name ASC";
 
         $stmt = $pdo->prepare($overviewSql);
         $stmt->execute($oparams);
-        $response['restaurants'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $restaurants = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $response['restaurants'] = $restaurants;
+
+        // Summary totals across filtered restaurants
+        $summary = [
+            'total_revenue' => 0,
+            'total_orders' => 0,
+            'total_menu_items' => 0,
+            'total_categories' => 0
+        ];
+        foreach ($restaurants as $r) {
+            $summary['total_revenue'] += (float)($r['total_revenue'] ?? 0);
+            $summary['total_orders'] += (int)($r['total_orders'] ?? 0);
+            $summary['total_menu_items'] += (int)($r['menu_items'] ?? 0);
+            $summary['total_categories'] += (int)($r['categories'] ?? 0);
+        }
+        $response['summary'] = $summary;
     } catch (PDOException $e) {
         error_log("orders-analytics restaurants_overview: " . $e->getMessage());
         $response['success'] = false;
         $response['message'] = 'Failed to load restaurants overview';
         $response['restaurants'] = [];
+        $response['summary'] = ['total_revenue' => 0, 'total_orders' => 0, 'total_menu_items' => 0, 'total_categories' => 0];
     }
 }
 
@@ -235,5 +254,5 @@ echo json_encode($response);
 } catch (Throwable $e) {
     error_log("orders-analytics error: " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine());
     http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'An error occurred. Please try again.', 'restaurants' => [], 'orders' => [], 'revenue_by_date' => [], 'counts_by_status' => []]);
+    echo json_encode(['success' => false, 'message' => 'An error occurred. Please try again.', 'restaurants' => [], 'summary' => ['total_revenue' => 0, 'total_orders' => 0, 'total_menu_items' => 0, 'total_categories' => 0], 'orders' => [], 'revenue_by_date' => [], 'counts_by_status' => []]);
 }

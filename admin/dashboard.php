@@ -98,17 +98,21 @@ include __DIR__ . '/../includes/admin-layout.php';
 /* ===== STATS ===== */
 .stats {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 20px;
     margin-bottom: 30px;
 }
 
 .stat-card {
     background: #fff;
-    padding: 24px;
+    padding: 16px;
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     transition: box-shadow 0.2s;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
 }
 
 .stat-card:hover {
@@ -116,22 +120,26 @@ include __DIR__ . '/../includes/admin-layout.php';
 }
 
 .stat-label {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     color: #6b7280;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     font-weight: 600;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .stat-value {
-    font-size: 2rem;
+    font-size: 1.35rem;
     font-weight: 700;
     color: #111827;
-}
-
-.stat-card .gradient-progress-bar {
-    margin-top: 12px;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: 1.5em;
 }
 
 /* ===== RESTAURANT LIST (ACCORDION) ===== */
@@ -444,45 +452,26 @@ include __DIR__ . '/../includes/admin-layout.php';
 </div>
 
 <!-- STATS -->
-<?php
-$progressStats = [
-    ['label' => 'Restaurants', 'value' => $stats['restaurants'], 'max' => max(1, $stats['restaurants'])],
-    ['label' => 'Categories', 'value' => $stats['categories'], 'max' => max(1, $stats['categories'])],
-    ['label' => 'Menu Items', 'value' => $stats['menu_items'], 'max' => max(1, $stats['menu_items'])],
-    ['label' => 'Managers', 'value' => $stats['managers'], 'max' => max(1, $stats['managers'])],
-    ['label' => 'Total Revenue (₦)', 'value' => (int) $stats['total_revenue'], 'max' => max(1, (int) $stats['total_revenue'])]
-];
-$progressMax = max(array_column($progressStats, 'value')) ?: 1;
-foreach ($progressStats as &$ps) {
-    $ps['pct'] = ($ps['value'] / $progressMax) * 100;
-}
-unset($ps);
-?>
 <section class="stats">
   <div class="stat-card">
     <div class="stat-label">Restaurants</div>
     <div class="stat-value"><?php echo $stats['restaurants']; ?></div>
-    <div class="gradient-progress-bar primary"><div class="fill" style="width:<?php echo round($progressStats[0]['pct']); ?>%;"></div></div>
   </div>
   <div class="stat-card">
     <div class="stat-label">Categories</div>
     <div class="stat-value"><?php echo $stats['categories']; ?></div>
-    <div class="gradient-progress-bar primary"><div class="fill" style="width:<?php echo round($progressStats[1]['pct']); ?>%;"></div></div>
   </div>
   <div class="stat-card">
     <div class="stat-label">Menu Items</div>
     <div class="stat-value"><?php echo $stats['menu_items']; ?></div>
-    <div class="gradient-progress-bar primary"><div class="fill" style="width:<?php echo round($progressStats[2]['pct']); ?>%;"></div></div>
   </div>
   <div class="stat-card">
     <div class="stat-label">Managers</div>
     <div class="stat-value"><?php echo $stats['managers']; ?></div>
-    <div class="gradient-progress-bar primary"><div class="fill" style="width:<?php echo round($progressStats[3]['pct']); ?>%;"></div></div>
   </div>
   <div class="stat-card">
     <div class="stat-label">Total Revenue (All Restaurants)</div>
     <div class="stat-value">₦<?php echo number_format($stats['total_revenue'], 0); ?></div>
-    <div class="gradient-progress-bar primary"><div class="fill" style="width:<?php echo round($progressStats[4]['pct']); ?>%;"></div></div>
   </div>
 </section>
 
