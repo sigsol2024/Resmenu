@@ -158,7 +158,12 @@ function createOrderFromPendingOnlinePayment($reference, $gateway) {
     }
 
     $orderId = (int)$result['order_id'];
-    $restaurant = getRestaurant($draft['restaurant_id']);
+    $restaurantId = (int)$draft['restaurant_id'];
+
+    // Payment already succeeded - confirm the order
+    $pdo->prepare("UPDATE orders SET status = 'confirmed', updated_at = NOW() WHERE id = ? AND restaurant_id = ?")->execute([$orderId, $restaurantId]);
+
+    $restaurant = getRestaurant($restaurantId);
     $slug = $restaurant['slug'] ?? '';
 
     $pdo->prepare("DELETE FROM pending_online_payments WHERE reference = ?")->execute([$reference]);
