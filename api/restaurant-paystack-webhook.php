@@ -1,11 +1,12 @@
 <?php
 /**
  * Restaurant Order Paystack Webhook Handler
- * Receives payment notifications for customer food orders (per-restaurant)
+ * Order is created ONLY when payment succeeds (charge.success). No order exists before that.
  */
 
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/restaurant-payment-functions.php';
+require_once __DIR__ . '/../includes/order-functions.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -21,12 +22,10 @@ if (!$event || !isset($event['event'])) {
     exit('Invalid payload');
 }
 
-// Get restaurant_id from metadata (set when initiating order payment)
 $metadata = $event['data']['metadata'] ?? [];
-$restaurantId = (int)($metadata['restaurant_id'] ?? $metadata['restaurant_id'] ?? 0);
-$orderId = (int)($metadata['order_id'] ?? $metadata['order_id'] ?? 0);
+$restaurantId = (int)($metadata['restaurant_id'] ?? 0);
+$reference = $metadata['reference'] ?? '';
 
-// Validate signature using restaurant's keys
 $valid = false;
 if ($restaurantId) {
     $keys = getRestaurantGatewayKeys($restaurantId, 'paystack');
@@ -47,22 +46,20 @@ error_log('Restaurant Paystack webhook received: ' . $event['event']);
 
 switch ($event['event']) {
     case 'charge.success':
-        if ($orderId && $restaurantId && $pdo) {
-            $reference = $event['data']['reference'] ?? '';
-            $stmt = $pdo->prepare("UPDATE orders SET status = 'confirmed' WHERE id = ? AND restaurant_id = ? AND status = 'pending'");
-            $stmt->execute([$orderId, $restaurantId]);
-            if ($stmt->rowCount() > 0) {
-                error_log("Restaurant Paystack webhook: Order $orderId confirmed (ref: $reference)");
+        if ($reference && $restaurantId && $pdo) {
+            $result = createOrderFromPendingOnlinePayment($reference, 'paystack');
+            if ($result['success']) {
+                error_log("Restaurant Paystack webhook: Order created from pending ref $reference (order_id: {$result['order_id']})");
+            } else {
+                error_log("Restaurant Paystack webhook: Failed to create order from ref $reference - " . implode(', ', $result['errors'] ?? []));
             }
         }
         break;
     case 'charge.failed':
-        if ($orderId && $restaurantId && $pdo) {
-            $stmt = $pdo->prepare("UPDATE orders SET status = 'cancelled', updated_at = NOW() WHERE id = ? AND restaurant_id = ? AND status = 'pending'");
-            $stmt->execute([$orderId, $restaurantId]);
-            if ($stmt->rowCount() > 0) {
-                error_log("Restaurant Paystack webhook: Order $orderId cancelled (payment failed)");
-            }
+        if ($reference && $pdo) {
+            $stmt = $pdo->prepare("DELETE FROM pending_online_payments WHERE reference = ? AND gateway = 'paystack'");
+            $stmt->execute([$reference]);
+            error_log("Restaurant Paystack webhook: Pending payment $reference removed (payment failed)");
         }
         break;
     default:

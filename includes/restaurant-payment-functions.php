@@ -171,12 +171,13 @@ function initializeRestaurantPaystackPayment($restaurantId, $data) {
 
     $baseUrl = defined('SITE_URL') ? rtrim(SITE_URL, '/') : '';
     $meta = $data['metadata'] ?? [];
-    $callbackUrl = $baseUrl . '/order-payment-callback.php?gateway=paystack&slug=' . urlencode($meta['slug'] ?? '') . '&order_id=' . (int)($meta['order_id'] ?? 0);
+    $ref = $meta['reference'] ?? ('POP_' . time() . '_' . bin2hex(random_bytes(8)));
+    $callbackUrl = $baseUrl . '/order-payment-callback.php?gateway=paystack&slug=' . urlencode($meta['slug'] ?? '');
 
     $payload = [
         'email' => $data['email'],
         'amount' => (int)round((float)($data['amount'] ?? 0) * 100),
-        'reference' => 'ORD_' . (int)($data['metadata']['order_id'] ?? 0) . '_' . bin2hex(random_bytes(4)),
+        'reference' => $ref,
         'callback_url' => $callbackUrl,
         'metadata' => $data['metadata'] ?? []
     ];
@@ -227,9 +228,8 @@ function initializeRestaurantFlutterwavePayment($restaurantId, $data) {
 
     $baseUrl = defined('SITE_URL') ? rtrim(SITE_URL, '/') : '';
     $meta = $data['metadata'] ?? [];
-    $redirectUrl = $baseUrl . '/order-payment-callback.php?gateway=flutterwave&slug=' . urlencode($meta['slug'] ?? '') . '&order_id=' . (int)($meta['order_id'] ?? 0);
-
-    $reference = 'ORD_' . ($data['metadata']['order_id'] ?? time()) . '_' . bin2hex(random_bytes(4));
+    $reference = $meta['reference'] ?? ('POP_' . time() . '_' . bin2hex(random_bytes(8)));
+    $redirectUrl = $baseUrl . '/order-payment-callback.php?gateway=flutterwave&slug=' . urlencode($meta['slug'] ?? '');
     $payload = [
         'tx_ref' => $reference,
         'amount' => (float)($data['amount'] ?? 0),

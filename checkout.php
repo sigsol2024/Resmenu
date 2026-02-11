@@ -32,28 +32,6 @@ $currencySymbol = '₦';
 $deliveryFee = 0;
 $taxRate = 0;
 
-$pendingOrderRecovery = null;
-$pendingCookie = $_COOKIE['resmenu_pending'] ?? '';
-if ($pendingCookie && strpos($pendingCookie, '|') !== false) {
-    [$pendingSlug, $pendingOrderId] = explode('|', $pendingCookie, 2);
-    $pendingOrderId = (int)$pendingOrderId;
-    if ($pendingSlug === $slug && $pendingOrderId > 0 && $pdo) {
-        $stmt = $pdo->prepare("SELECT id, payment_method, status FROM orders WHERE id = ? AND restaurant_id = ?");
-        $stmt->execute([$pendingOrderId, $restaurant['id']]);
-        $po = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($po && ($po['status'] ?? '') === 'pending' && in_array($po['payment_method'] ?? '', ['paystack', 'flutterwave'])) {
-            $hasBankTransfer = false;
-            foreach ($paymentMethods as $pm) { if ($pm['gateway'] === 'bank_transfer') { $hasBankTransfer = true; break; } }
-            $pendingOrderRecovery = [
-                'order_id' => (int)$po['id'],
-                'switch_url' => (defined('SITE_URL') ? rtrim(SITE_URL, '/') : '') . '/switch-payment-to-bank-transfer.php?slug=' . urlencode($slug) . '&order_id=' . $pendingOrderId,
-                'cancel_url' => (defined('SITE_URL') ? rtrim(SITE_URL, '/') : '') . '/cancel-pending-order.php?slug=' . urlencode($slug) . '&order_id=' . $pendingOrderId . '&return=checkout',
-                'can_switch' => $hasBankTransfer,
-            ];
-        }
-    }
-}
-
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cartJson = $_POST['cart_json'] ?? '';
@@ -83,8 +61,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($paymentMethods) && $paymentMethod && !in_array($paymentMethod, $activeGateways)) $errors[] = 'Invalid payment method selected.';
 
     if (empty($errors)) {
-        require_once __DIR__ . '/includes/order-functions.php';
-
         $subtotal = 0;
         foreach ($cart as $item) {
             $price = (float)($item['price'] ?? 0);
@@ -93,24 +69,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $tax = $subtotal * (float)$taxRate;
         $total = $subtotal + (float)$deliveryFee + $tax;
+        $baseUrl = defined('SITE_URL') ? rtrim(SITE_URL, '/') : '';
 
-        $result = createOrder($restaurant['id'], $cart, [
-            'customer_name' => $customerName,
-            'customer_phone' => $customerPhone,
-            'customer_email' => $customerEmail,
-            'delivery_address' => $deliveryAddress,
-            'payment_method' => $paymentMethod,
-        ], $deliveryFee, $taxRate);
+        if ($paymentMethod === 'bank_transfer') {
+            // Bank transfer: don't create order yet - save draft, show bank details. Order created only when user clicks "I have made this payment"
+            $token = bin2hex(random_bytes(24));
+            $stmt = $pdo->prepare("INSERT INTO pending_bank_transfers (token, restaurant_id, cart_json, customer_name, customer_phone, customer_email, delivery_address, subtotal, delivery_fee, tax, total) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([
+                $token,
+                $restaurant['id'],
+                json_encode($cart),
+                $customerName,
+                $customerPhone,
+                $customerEmail,
+                $deliveryAddress,
+                $subtotal,
+                $deliveryFee,
+                $tax,
+                $total
+            ]);
+            header('Location: ' . $baseUrl . '/bank-transfer-pending.php?token=' . urlencode($token));
+            exit;
+        }
 
-        if ($result['success']) {
-            $orderId = (int)$result['order_id'];
-            $baseUrl = defined('SITE_URL') ? rtrim(SITE_URL, '/') : '';
-            $thankYouUrl = $baseUrl . '/order-confirmation.php?slug=' . urlencode($slug) . '&order_id=' . $orderId;
-
-            if ($paymentMethod === 'bank_transfer') {
-                header('Location: ' . $thankYouUrl);
-                exit;
-            }
+        if ($paymentMethod === 'paystack' || $paymentMethod === 'flutterwave') {
+            // Paystack/Flutterwave: don't create order yet - save draft, init payment. Order created only when payment succeeds
+            require_once __DIR__ . '/includes/order-functions.php';
+            $reference = 'POP_' . time() . '_' . bin2hex(random_bytes(8));
+            $stmt = $pdo->prepare("INSERT INTO pending_online_payments (reference, restaurant_id, gateway, cart_json, customer_name, customer_phone, customer_email, delivery_address, subtotal, delivery_fee, tax, total) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([
+                $reference,
+                $restaurant['id'],
+                $paymentMethod,
+                json_encode($cart),
+                $customerName,
+                $customerPhone,
+                $customerEmail,
+                $deliveryAddress,
+                $subtotal,
+                $deliveryFee,
+                $tax,
+                $total
+            ]);
 
             if ($paymentMethod === 'paystack') {
                 $init = initializeRestaurantPaystackPayment($restaurant['id'], [
@@ -118,16 +118,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'email' => $customerEmail,
                     'metadata' => [
                         'restaurant_id' => $restaurant['id'],
-                        'order_id' => $orderId,
+                        'reference' => $reference,
                         'slug' => $slug
                     ]
                 ]);
                 if (!empty($init['authorization_url'])) {
-                    setcookie('resmenu_pending', $slug . '|' . $orderId, time() + 3600, '/');
                     header('Location: ' . $init['authorization_url']);
                     exit;
                 }
-                header('Location: ' . $baseUrl . '/payment-failed.php?slug=' . urlencode($slug) . '&order_id=' . $orderId . '&reason=init_failed');
+                $pdo->prepare("DELETE FROM pending_online_payments WHERE reference = ?")->execute([$reference]);
+                header('Location: ' . $baseUrl . '/payment-failed.php?slug=' . urlencode($slug) . '&reason=init_failed');
                 exit;
             } elseif ($paymentMethod === 'flutterwave') {
                 $init = initializeRestaurantFlutterwavePayment($restaurant['id'], [
@@ -137,23 +137,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'phone' => $customerPhone,
                     'metadata' => [
                         'restaurant_id' => $restaurant['id'],
-                        'order_id' => $orderId,
+                        'reference' => $reference,
                         'slug' => $slug
                     ]
                 ]);
                 if (!empty($init['authorization_url'])) {
-                    setcookie('resmenu_pending', $slug . '|' . $orderId, time() + 3600, '/');
                     header('Location: ' . $init['authorization_url']);
                     exit;
                 }
-                header('Location: ' . $baseUrl . '/payment-failed.php?slug=' . urlencode($slug) . '&order_id=' . $orderId . '&reason=init_failed');
-                exit;
-            } else {
-                header('Location: ' . $thankYouUrl);
+                $pdo->prepare("DELETE FROM pending_online_payments WHERE reference = ?")->execute([$reference]);
+                header('Location: ' . $baseUrl . '/payment-failed.php?slug=' . urlencode($slug) . '&reason=init_failed');
                 exit;
             }
-        } else {
-            $errors = array_merge($errors, $result['errors'] ?? ['Failed to create order.']);
         }
     }
 }
@@ -231,19 +226,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
 
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 lg:p-8">
-                <?php if ($pendingOrderRecovery): ?>
-                <div class="mb-6 p-4 rounded-lg bg-amber-50 border border-amber-200">
-                    <p class="text-sm font-medium text-amber-900 mb-3">You have Order #<?php echo (int)$pendingOrderRecovery['order_id']; ?> pending (online payment was not completed). Complete it below or cancel to start over.</p>
-                    <div class="flex flex-wrap gap-2">
-                        <?php if ($pendingOrderRecovery['can_switch']): ?>
-                        <a href="<?php echo htmlspecialchars($pendingOrderRecovery['switch_url']); ?>" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-90" style="background-color:<?php echo htmlspecialchars($primaryColor); ?>">
-                            <span class="material-symbols-outlined text-lg">account_balance</span> Pay via Bank Transfer
-                        </a>
-                        <?php endif; ?>
-                        <a href="<?php echo htmlspecialchars($pendingOrderRecovery['cancel_url']); ?>" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50">Cancel order and start over</a>
-                    </div>
-                </div>
-                <?php endif; ?>
                 <div class="flex items-center justify-between mb-6">
                     <h3 class="text-xl font-bold text-gray-900">Contact Information</h3>
                     <span class="text-xs font-medium px-2 py-1 rounded" style="color:<?php echo htmlspecialchars($primaryColor); ?>;background-color:rgba(242,13,13,0.1)">Step 1 of 3</span>

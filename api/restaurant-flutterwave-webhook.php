@@ -1,11 +1,12 @@
 <?php
 /**
  * Restaurant Order Flutterwave Webhook Handler
- * Receives payment notifications for customer food orders (per-restaurant)
+ * Order is created ONLY when payment succeeds (charge.completed, status=successful). No order exists before that.
  */
 
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/restaurant-payment-functions.php';
+require_once __DIR__ . '/../includes/order-functions.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -21,20 +22,18 @@ if (!$event || !isset($event['event'])) {
     exit('Invalid payload');
 }
 
-// Get restaurant_id and order_id from meta (set when initiating order payment)
 $data = $event['data'] ?? [];
 $meta = $data['meta'] ?? $data;
 $restaurantId = (int)($meta['restaurant_id'] ?? 0);
-$orderId = (int)($meta['order_id'] ?? 0);
+$reference = $meta['reference'] ?? $data['tx_ref'] ?? '';
 
-// Validate signature using restaurant's webhook secret
 $valid = false;
 if ($restaurantId) {
     $keys = getRestaurantGatewayKeys($restaurantId, 'flutterwave');
     if (!empty($keys['webhook_secret'])) {
         $valid = hash_equals($keys['webhook_secret'], $signature);
     } else {
-        $valid = true; // No secret configured, accept
+        $valid = true;
     }
 }
 
@@ -49,22 +48,18 @@ error_log('Restaurant Flutterwave webhook received: ' . $event['event']);
 
 switch ($event['event']) {
     case 'charge.completed':
-        if ($orderId && $restaurantId && $pdo) {
-            $txRef = $event['data']['tx_ref'] ?? '';
-            $status = $event['data']['status'] ?? '';
-            if ($status === 'successful') {
-                $stmt = $pdo->prepare("UPDATE orders SET status = 'confirmed' WHERE id = ? AND restaurant_id = ? AND status = 'pending'");
-                $stmt->execute([$orderId, $restaurantId]);
-                if ($stmt->rowCount() > 0) {
-                    error_log("Restaurant Flutterwave webhook: Order $orderId confirmed (ref: $txRef)");
-                }
+        $status = $data['status'] ?? '';
+        if ($status === 'successful' && $reference && $restaurantId && $pdo) {
+            $result = createOrderFromPendingOnlinePayment($reference, 'flutterwave');
+            if ($result['success']) {
+                error_log("Restaurant Flutterwave webhook: Order created from pending ref $reference (order_id: {$result['order_id']})");
             } else {
-                $stmt = $pdo->prepare("UPDATE orders SET status = 'cancelled', updated_at = NOW() WHERE id = ? AND restaurant_id = ? AND status = 'pending'");
-                $stmt->execute([$orderId, $restaurantId]);
-                if ($stmt->rowCount() > 0) {
-                    error_log("Restaurant Flutterwave webhook: Order $orderId cancelled (payment failed, status: $status)");
-                }
+                error_log("Restaurant Flutterwave webhook: Failed to create order from ref $reference - " . implode(', ', $result['errors'] ?? []));
             }
+        } elseif ($reference && $pdo) {
+            $stmt = $pdo->prepare("DELETE FROM pending_online_payments WHERE reference = ? AND gateway = 'flutterwave'");
+            $stmt->execute([$reference]);
+            error_log("Restaurant Flutterwave webhook: Pending payment $reference removed (payment not successful, status: $status)");
         }
         break;
     default:

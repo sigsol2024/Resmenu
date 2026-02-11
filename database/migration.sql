@@ -8,7 +8,8 @@
 -- - orders & order_items tables (food ordering)
 -- - Template 4 (The Gourmet Grill) if missing
 -- - restaurant_payment_settings table (per-restaurant checkout payment options)
--- - payment_method column on orders table
+-- - payment_method, order_number columns on orders table
+-- - pending_bank_transfers, pending_online_payments tables (order flow: record only when payment confirmed)
 -- ============================================================
 
 -- 1. Orders table (food ordering system)
@@ -88,3 +89,48 @@ ALTER TABLE `orders` ADD COLUMN IF NOT EXISTS `payment_method` varchar(50) DEFAU
 
 -- 7. Add order_number column (8-char alphanumeric unique display number)
 ALTER TABLE `orders` ADD COLUMN IF NOT EXISTS `order_number` varchar(10) DEFAULT NULL AFTER `id`;
+
+-- 8. Pending bank transfers (draft before user clicks "I have made this payment")
+CREATE TABLE IF NOT EXISTS `pending_bank_transfers` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `token` varchar(64) NOT NULL,
+  `restaurant_id` int(11) NOT NULL,
+  `cart_json` text NOT NULL,
+  `customer_name` varchar(255) NOT NULL,
+  `customer_phone` varchar(50) NOT NULL,
+  `customer_email` varchar(255) NOT NULL,
+  `delivery_address` text NOT NULL,
+  `subtotal` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `delivery_fee` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `tax` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `total` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `token` (`token`),
+  KEY `restaurant_id` (`restaurant_id`),
+  KEY `created_at` (`created_at`),
+  CONSTRAINT `pending_bank_transfers_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 9. Pending online payments (draft before Paystack/Flutterwave confirms)
+CREATE TABLE IF NOT EXISTS `pending_online_payments` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `reference` varchar(80) NOT NULL,
+  `restaurant_id` int(11) NOT NULL,
+  `gateway` varchar(50) NOT NULL,
+  `cart_json` text NOT NULL,
+  `customer_name` varchar(255) NOT NULL,
+  `customer_phone` varchar(50) NOT NULL,
+  `customer_email` varchar(255) NOT NULL,
+  `delivery_address` text NOT NULL,
+  `subtotal` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `delivery_fee` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `tax` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `total` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `reference` (`reference`),
+  KEY `restaurant_id` (`restaurant_id`),
+  KEY `created_at` (`created_at`),
+  CONSTRAINT `pending_online_payments_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -118,3 +118,50 @@ function createOrder($restaurantId, $cart, $customer, $deliveryFee = 0, $taxRate
         return ['success' => false, 'order_id' => null, 'errors' => ['Unable to create order. Please try again.']];
     }
 }
+
+/**
+ * Create order from pending online payment (Paystack/Flutterwave success)
+ * @param string $reference Pending record reference
+ * @param string $gateway paystack or flutterwave
+ * @return array ['success' => bool, 'order_id' => int|null, 'slug' => string, 'errors' => array]
+ */
+function createOrderFromPendingOnlinePayment($reference, $gateway) {
+    $pdo = getDBConnection();
+    if (!$pdo) {
+        return ['success' => false, 'order_id' => null, 'slug' => '', 'errors' => ['Database connection failed.']];
+    }
+
+    $stmt = $pdo->prepare("SELECT * FROM pending_online_payments WHERE reference = ? AND gateway = ?");
+    $stmt->execute([$reference, $gateway]);
+    $draft = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$draft) {
+        return ['success' => false, 'order_id' => null, 'slug' => '', 'errors' => ['Pending payment not found.']];
+    }
+
+    $cart = json_decode($draft['cart_json'], true);
+    if (!is_array($cart)) $cart = [];
+
+    $subtotal = (float)$draft['subtotal'];
+    $taxRate = $subtotal > 0 ? (float)$draft['tax'] / $subtotal : 0;
+
+    $result = createOrder($draft['restaurant_id'], $cart, [
+        'customer_name' => $draft['customer_name'],
+        'customer_phone' => $draft['customer_phone'],
+        'customer_email' => $draft['customer_email'],
+        'delivery_address' => $draft['delivery_address'],
+        'payment_method' => $gateway,
+    ], (float)$draft['delivery_fee'], $taxRate);
+
+    if (!$result['success']) {
+        return ['success' => false, 'order_id' => null, 'slug' => '', 'errors' => $result['errors'] ?? []];
+    }
+
+    $orderId = (int)$result['order_id'];
+    $restaurant = getRestaurant($draft['restaurant_id']);
+    $slug = $restaurant['slug'] ?? '';
+
+    $pdo->prepare("DELETE FROM pending_online_payments WHERE reference = ?")->execute([$reference]);
+
+    return ['success' => true, 'order_id' => $orderId, 'slug' => $slug, 'errors' => []];
+}

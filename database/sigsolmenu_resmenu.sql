@@ -511,6 +511,7 @@ INSERT INTO `restaurant_qr_codes` (`id`, `restaurant_id`, `qr_template_id`, `ove
 
 CREATE TABLE `orders` (
   `id` int(11) NOT NULL,
+  `order_number` varchar(10) DEFAULT NULL,
   `restaurant_id` int(11) NOT NULL,
   `customer_name` varchar(255) NOT NULL,
   `customer_phone` varchar(50) NOT NULL,
@@ -540,6 +541,59 @@ CREATE TABLE `order_items` (
   `price` decimal(10,2) NOT NULL,
   `quantity` int(11) NOT NULL DEFAULT 1,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `pending_bank_transfers`
+--
+
+CREATE TABLE `pending_bank_transfers` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `token` varchar(64) NOT NULL,
+  `restaurant_id` int(11) NOT NULL,
+  `cart_json` text NOT NULL,
+  `customer_name` varchar(255) NOT NULL,
+  `customer_phone` varchar(50) NOT NULL,
+  `customer_email` varchar(255) NOT NULL,
+  `delivery_address` text NOT NULL,
+  `subtotal` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `delivery_fee` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `tax` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `total` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `token` (`token`),
+  KEY `restaurant_id` (`restaurant_id`),
+  KEY `created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `pending_online_payments`
+--
+
+CREATE TABLE `pending_online_payments` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `reference` varchar(80) NOT NULL,
+  `restaurant_id` int(11) NOT NULL,
+  `gateway` varchar(50) NOT NULL,
+  `cart_json` text NOT NULL,
+  `customer_name` varchar(255) NOT NULL,
+  `customer_phone` varchar(50) NOT NULL,
+  `customer_email` varchar(255) NOT NULL,
+  `delivery_address` text NOT NULL,
+  `subtotal` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `delivery_fee` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `tax` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `total` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `reference` (`reference`),
+  KEY `restaurant_id` (`restaurant_id`),
+  KEY `created_at` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -794,6 +848,24 @@ ALTER TABLE `order_items`
   ADD KEY `menu_item_id` (`menu_item_id`);
 
 --
+-- Indexes for table `pending_bank_transfers`
+--
+ALTER TABLE `pending_bank_transfers`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `token` (`token`),
+  ADD KEY `restaurant_id` (`restaurant_id`),
+  ADD KEY `created_at` (`created_at`);
+
+--
+-- Indexes for table `pending_online_payments`
+--
+ALTER TABLE `pending_online_payments`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `reference` (`reference`),
+  ADD KEY `restaurant_id` (`restaurant_id`),
+  ADD KEY `created_at` (`created_at`);
+
+--
 -- Indexes for table `subscriptions`
 --
 ALTER TABLE `subscriptions`
@@ -921,6 +993,18 @@ ALTER TABLE `order_items`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `pending_bank_transfers`
+--
+ALTER TABLE `pending_bank_transfers`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `pending_online_payments`
+--
+ALTER TABLE `pending_online_payments`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `subscriptions`
 --
 ALTER TABLE `subscriptions`
@@ -1017,6 +1101,18 @@ ALTER TABLE `orders`
 ALTER TABLE `order_items`
   ADD CONSTRAINT `order_items_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `order_items_ibfk_2` FOREIGN KEY (`menu_item_id`) REFERENCES `menu_items` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `pending_bank_transfers`
+--
+ALTER TABLE `pending_bank_transfers`
+  ADD CONSTRAINT `pending_bank_transfers_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `pending_online_payments`
+--
+ALTER TABLE `pending_online_payments`
+  ADD CONSTRAINT `pending_online_payments_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `subscriptions`

@@ -2,70 +2,57 @@
 /**
  * Order Payment Callback
  * Handles redirect from Paystack/Flutterwave after customer completes or cancels payment.
- * Verifies payment and redirects to order-confirmation (success) or payment-failed (failure).
+ * Order is created ONLY when payment succeeds. On failure/cancel, no order is recorded.
  */
 
 require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/includes/restaurant-payment-functions.php';
+require_once __DIR__ . '/includes/order-functions.php';
 require_once __DIR__ . '/config/config.php';
 
 $gateway = trim($_GET['gateway'] ?? '');
 $baseUrl = defined('SITE_URL') ? rtrim(SITE_URL, '/') : '';
-$menuUrl = $baseUrl . '/';
+$slug = trim($_GET['slug'] ?? '');
 
 if (!in_array($gateway, ['paystack', 'flutterwave'])) {
-    header('Location: ' . $baseUrl . '/payment-failed.php?reason=invalid');
+    header('Location: ' . $baseUrl . '/payment-failed.php?slug=' . urlencode($slug) . '&reason=invalid');
     exit;
 }
 
-$slug = '';
-$orderId = 0;
-$restaurantId = 0;
-
 if ($gateway === 'paystack') {
     $reference = trim($_GET['reference'] ?? '');
-    $slug = trim($_GET['slug'] ?? '');
-    $orderId = (int)($_GET['order_id'] ?? 0);
 
     if (empty($reference)) {
-        header('Location: ' . $baseUrl . '/payment-failed.php?slug=' . urlencode($slug) . '&order_id=' . $orderId . '&reason=cancelled');
+        header('Location: ' . $baseUrl . '/payment-failed.php?slug=' . urlencode($slug) . '&reason=cancelled');
         exit;
-    }
-    // Verify with Paystack - we need restaurant_id from somewhere; Paystack callback doesn't return it in URL
-    // We must have passed it in metadata; verification returns metadata
-    $pdo = getDBConnection();
-    if (!$pdo) {
-        header('Location: ' . $baseUrl . '/payment-failed.php?reason=error');
-        exit;
-    }
-    if (!$orderId && preg_match('/^ORD_(\d+)_/', $reference, $m)) {
-        $orderId = (int)$m[1];
-    }
-    if (!$orderId) {
-        header('Location: ' . $baseUrl . '/payment-failed.php?reason=error');
-        exit;
-    }
-    $stmt = $pdo->prepare("SELECT restaurant_id FROM orders WHERE id = ? AND payment_method = 'paystack'");
-    $stmt->execute([$orderId]);
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!$row) {
-        header('Location: ' . $baseUrl . '/payment-failed.php?reason=error');
-        exit;
-    }
-    $restaurantId = (int)$row['restaurant_id'];
-    if (empty($slug)) {
-        $restaurant = getRestaurant($restaurantId);
-        $slug = $restaurant['slug'] ?? '';
     }
 
-    $verify = verifyRestaurantPaystackPayment($restaurantId, $reference);
-    if ($verify['success']) {
-        $meta = $verify['metadata'] ?? [];
-        $slug = $meta['slug'] ?? $slug;
-        header('Location: ' . $baseUrl . '/order-confirmation.php?slug=' . urlencode($slug) . '&order_id=' . $orderId);
+    $pdo = getDBConnection();
+    if (!$pdo) {
+        header('Location: ' . $baseUrl . '/payment-failed.php?slug=' . urlencode($slug) . '&reason=error');
         exit;
     }
-    header('Location: ' . $baseUrl . '/payment-failed.php?slug=' . urlencode($slug) . '&order_id=' . $orderId . '&reason=failed');
+
+    $stmt = $pdo->prepare("SELECT restaurant_id FROM pending_online_payments WHERE reference = ? AND gateway = 'paystack'");
+    $stmt->execute([$reference]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$row) {
+        header('Location: ' . $baseUrl . '/payment-failed.php?slug=' . urlencode($slug) . '&reason=error');
+        exit;
+    }
+
+    $restaurantId = (int)$row['restaurant_id'];
+    $verify = verifyRestaurantPaystackPayment($restaurantId, $reference);
+
+    if ($verify && $verify['success']) {
+        $result = createOrderFromPendingOnlinePayment($reference, 'paystack');
+        if ($result['success']) {
+            header('Location: ' . $baseUrl . '/order-confirmation.php?slug=' . urlencode($result['slug']) . '&order_id=' . (int)$result['order_id']);
+            exit;
+        }
+    }
+
+    header('Location: ' . $baseUrl . '/payment-failed.php?slug=' . urlencode($slug) . '&reason=failed');
     exit;
 }
 
@@ -73,62 +60,40 @@ if ($gateway === 'flutterwave') {
     $status = trim($_GET['status'] ?? '');
     $txRef = trim($_GET['tx_ref'] ?? '');
     $transactionId = trim($_GET['transaction_id'] ?? '');
-    $slug = trim($_GET['slug'] ?? '');
-    $orderId = (int)($_GET['order_id'] ?? 0);
 
     if (empty($txRef) || $status !== 'successful') {
-        if (!$orderId && preg_match('/^ORD_(\d+)_/', $txRef, $m)) {
-            $orderId = (int)$m[1];
-        }
-        if ($orderId && empty($slug)) {
-            $pdo = getDBConnection();
-            if ($pdo) {
-                $stmt = $pdo->prepare("SELECT r.slug FROM orders o JOIN restaurants r ON r.id = o.restaurant_id WHERE o.id = ?");
-                $stmt->execute([$orderId]);
-                $row = $stmt->fetch(PDO::FETCH_ASSOC);
-                if ($row) $slug = $row['slug'];
-            }
-        }
-        header('Location: ' . $baseUrl . '/payment-failed.php?slug=' . urlencode($slug) . '&order_id=' . $orderId . '&reason=' . (empty($status) ? 'cancelled' : 'failed'));
-        exit;
-    }
-
-    if (!$orderId && preg_match('/^ORD_(\d+)_/', $txRef, $m)) {
-        $orderId = (int)$m[1];
-    }
-    if (!$orderId) {
-        header('Location: ' . $baseUrl . '/payment-failed.php?reason=error');
+        header('Location: ' . $baseUrl . '/payment-failed.php?slug=' . urlencode($slug) . '&reason=' . (empty($status) ? 'cancelled' : 'failed'));
         exit;
     }
 
     $pdo = getDBConnection();
     if (!$pdo) {
-        header('Location: ' . $baseUrl . '/payment-failed.php?reason=error');
+        header('Location: ' . $baseUrl . '/payment-failed.php?slug=' . urlencode($slug) . '&reason=error');
         exit;
-    }
-    $stmt = $pdo->prepare("SELECT restaurant_id FROM orders WHERE id = ? AND payment_method = 'flutterwave'");
-    $stmt->execute([$orderId]);
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!$row) {
-        header('Location: ' . $baseUrl . '/payment-failed.php?reason=error');
-        exit;
-    }
-    $restaurantId = (int)$row['restaurant_id'];
-    if (empty($slug)) {
-        $restaurant = getRestaurant($restaurantId);
-        $slug = $restaurant['slug'] ?? '';
     }
 
-    $verify = verifyRestaurantFlutterwavePayment($restaurantId, $transactionId);
-    if ($verify['success']) {
-        $meta = $verify['metadata'] ?? [];
-        $slug = $meta['slug'] ?? $slug;
-        header('Location: ' . $baseUrl . '/order-confirmation.php?slug=' . urlencode($slug) . '&order_id=' . $orderId);
+    $stmt = $pdo->prepare("SELECT restaurant_id FROM pending_online_payments WHERE reference = ? AND gateway = 'flutterwave'");
+    $stmt->execute([$txRef]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$row) {
+        header('Location: ' . $baseUrl . '/payment-failed.php?slug=' . urlencode($slug) . '&reason=error');
         exit;
     }
-    header('Location: ' . $baseUrl . '/payment-failed.php?slug=' . urlencode($slug) . '&order_id=' . $orderId . '&reason=failed');
+
+    $restaurantId = (int)$row['restaurant_id'];
+    $verify = verifyRestaurantFlutterwavePayment($restaurantId, $transactionId);
+
+    if ($verify && $verify['success']) {
+        $result = createOrderFromPendingOnlinePayment($txRef, 'flutterwave');
+        if ($result['success']) {
+            header('Location: ' . $baseUrl . '/order-confirmation.php?slug=' . urlencode($result['slug']) . '&order_id=' . (int)$result['order_id']);
+            exit;
+        }
+    }
+
+    header('Location: ' . $baseUrl . '/payment-failed.php?slug=' . urlencode($slug) . '&reason=failed');
     exit;
 }
 
-header('Location: ' . $baseUrl . '/payment-failed.php?reason=error');
+header('Location: ' . $baseUrl . '/payment-failed.php?slug=' . urlencode($slug) . '&reason=error');
 exit;
