@@ -67,19 +67,22 @@ include __DIR__ . '/../includes/manager-layout.php';
     <p class="page-subtitle">View revenue and manage orders for <?php echo htmlspecialchars($restaurant['name']); ?></p>
 </div>
 
+<?php
+$statusLabels = ['pending' => 'Pending', 'confirmed' => 'Confirmed', 'on_hold' => 'On hold', 'cancelled' => 'Cancelled', 'completed' => 'Completed'];
+?>
 <section class="orders-overview" style="margin-bottom:24px;">
     <!-- Order Stats Cards (first) -->
     <div class="stats orders-stats">
         <?php foreach ($statuses as $s):
-            $label = ucfirst(str_replace('_', ' ', $s));
             $curr = $statsByStatus[$s];
             $prev = $statsByStatusLastMonth[$s];
             $diff = $prev > 0 ? round((($curr - $prev) / $prev) * 100) : ($curr > 0 ? 100 : 0);
             $isUp = $curr >= $prev;
             $showTrend = $prev > 0 || $curr > 0;
         ?>
-        <div class="stat-card" style="background:#fff;padding:16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
-            <div class="stat-label" style="font-size:0.7rem;color:#6b7280;text-transform:uppercase;margin-bottom:4px;"><?php echo htmlspecialchars($label); ?></div>
+        <?php $statColors = ['pending' => '#f59e0b', 'confirmed' => '#3b82f6', 'on_hold' => '#6b7280', 'cancelled' => '#ef4444', 'completed' => '#10b981']; ?>
+        <div class="stat-card" style="background:#fff;padding:16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);border-left:3px solid <?php echo $statColors[$s] ?? '#e5e7eb'; ?>;">
+            <div class="stat-label" style="font-size:0.7rem;color:<?php echo $statColors[$s] ?? '#6b7280'; ?>;text-transform:uppercase;margin-bottom:4px;font-weight:600;"><?php echo htmlspecialchars($statusLabels[$s] ?? ucfirst(str_replace('_',' ',$s))); ?></div>
             <div class="stat-value" style="font-size:1.5rem;font-weight:700;color:#111827;"><?php echo $curr; ?></div>
             <?php if ($showTrend && $diff != 0): ?>
             <div class="stat-trend" style="font-size:0.7rem;margin-top:4px;display:flex;align-items:center;gap:4px;">
@@ -96,8 +99,8 @@ include __DIR__ . '/../includes/manager-layout.php';
             <?php endif; ?>
         </div>
         <?php endforeach; ?>
-        <div class="stat-card" style="background:#fff;padding:16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
-            <div class="stat-label" style="font-size:0.7rem;color:#6b7280;text-transform:uppercase;margin-bottom:4px;">Total Amount</div>
+        <div class="stat-card" style="background:#fff;padding:16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);border-left:3px solid #111827;">
+            <div class="stat-label" style="font-size:0.7rem;color:#6b7280;text-transform:uppercase;margin-bottom:4px;font-weight:600;">Total Amount</div>
             <div class="stat-value" style="font-size:1rem;font-weight:700;color:#111827;"><?php echo $currencySymbol . number_format($totalOrdersAmount, 2); ?></div>
             <?php
             $revDiff = $totalOrdersAmountLastMonth > 0 ? round((($totalOrdersAmount - $totalOrdersAmountLastMonth) / $totalOrdersAmountLastMonth) * 100) : ($totalOrdersAmount > 0 ? 100 : 0);
@@ -116,6 +119,27 @@ include __DIR__ . '/../includes/manager-layout.php';
             <?php else: ?>
             <div class="stat-trend" style="font-size:0.65rem;color:#9ca3af;margin-top:4px;">vs last month</div>
             <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- Order Status Chart (before Revenue) -->
+    <?php
+    $statusColors = ['pending' => '#f59e0b', 'confirmed' => '#3b82f6', 'on_hold' => '#6b7280', 'cancelled' => '#ef4444', 'completed' => '#10b981'];
+    $statusChartData = [];
+    $statusMax = max(array_values($statsByStatus)) ?: 1;
+    foreach ($statuses as $s) {
+        $statusChartData[] = ['label' => $statusLabels[$s], 'value' => $statsByStatus[$s], 'color' => $statusColors[$s], 'pct' => ($statsByStatus[$s] / $statusMax) * 100];
+    }
+    ?>
+    <div class="settings-card" style="padding:24px;margin-bottom:24px;">
+        <h3 class="section-title" style="font-size:1rem;font-weight:600;margin-bottom:16px;color:#111827;">Orders by Status</h3>
+        <div class="simple-bar-chart orders-bar-chart">
+            <?php foreach ($statusChartData as $item): ?>
+            <div class="item" style="--clr: <?php echo htmlspecialchars($item['color']); ?>; --val: <?php echo round($item['pct'], 1); ?>">
+                <div class="label"><?php echo htmlspecialchars($item['label']); ?></div>
+                <div class="value"><?php echo $item['value']; ?></div>
+            </div>
+            <?php endforeach; ?>
         </div>
     </div>
 
@@ -140,26 +164,6 @@ include __DIR__ . '/../includes/manager-layout.php';
                 <svg id="revenue-svg" style="width:100%;height:100%;" preserveAspectRatio="none" viewBox="0 0 800 280"></svg>
                 <div id="revenue-tooltip" class="revenue-tooltip" style="display:none;position:absolute;background:#111827;color:#fff;padding:8px 12px;border-radius:8px;font-size:0.75rem;font-weight:500;pointer-events:none;z-index:10;box-shadow:0 4px 12px rgba(0,0,0,0.15);white-space:nowrap;min-width:100px;line-height:1.4;"></div>
             </div>
-        </div>
-    </div>
-    <!-- Order Status Chart -->
-    <?php
-    $statusColors = ['pending' => '#f59e0b', 'confirmed' => '#3b82f6', 'on_hold' => '#6b7280', 'cancelled' => '#ef4444', 'completed' => '#10b981'];
-    $statusChartData = [];
-    $statusMax = max(array_values($statsByStatus)) ?: 1;
-    foreach ($statuses as $s) {
-        $statusChartData[] = ['label' => ucfirst(str_replace('_',' ',$s)), 'value' => $statsByStatus[$s], 'color' => $statusColors[$s], 'pct' => ($statsByStatus[$s] / $statusMax) * 100];
-    }
-    ?>
-    <div class="settings-card" style="padding:24px;margin-bottom:24px;">
-        <h3 class="section-title" style="font-size:1rem;font-weight:600;margin-bottom:16px;color:#111827;">Orders by Status</h3>
-        <div class="simple-bar-chart orders-bar-chart">
-            <?php foreach ($statusChartData as $item): ?>
-            <div class="item" style="--clr: <?php echo htmlspecialchars($item['color']); ?>; --val: <?php echo round($item['pct'], 1); ?>">
-                <div class="label"><?php echo htmlspecialchars($item['label']); ?></div>
-                <div class="value"><?php echo $item['value']; ?></div>
-            </div>
-            <?php endforeach; ?>
         </div>
     </div>
 </section>
@@ -195,7 +199,13 @@ include __DIR__ . '/../includes/manager-layout.php';
                     <td style="padding:12px 16px;font-size:0.875rem;"><?php echo date('M j, Y H:i', strtotime($o['created_at'])); ?></td>
                     <td style="padding:12px 16px;font-size:0.875rem;font-weight:600;"><?php echo $currencySymbol . number_format((float)$o['total'], 2); ?></td>
                     <td style="padding:12px 16px;">
-                        <span class="badge" style="background:#f3f4f6;color:#374151;padding:4px 10px;border-radius:6px;font-size:0.75rem;font-weight:600;"><?php echo ucfirst(str_replace('_',' ', $o['status'] ?? 'pending')); ?></span>
+                        <?php
+                        $ostatus = $o['status'] ?? 'pending';
+                        $badgeStyles = ['pending' => 'background:#fef3c7;color:#92400e', 'confirmed' => 'background:#dbeafe;color:#1e40af', 'on_hold' => 'background:#f3f4f6;color:#4b5563', 'cancelled' => 'background:#fee2e2;color:#991b1b', 'completed' => 'background:#d1fae5;color:#065f46'];
+                        $ostyle = $badgeStyles[$ostatus] ?? 'background:#f3f4f6;color:#374151';
+                        $olabel = ['pending' => 'Pending', 'confirmed' => 'Confirmed', 'on_hold' => 'On hold', 'cancelled' => 'Cancelled', 'completed' => 'Completed'][$ostatus] ?? ucfirst(str_replace('_',' ', $ostatus));
+                        ?>
+                        <span class="badge status-badge" style="<?php echo $ostyle; ?>;padding:4px 10px;border-radius:6px;font-size:0.75rem;font-weight:600;"><?php echo htmlspecialchars($olabel); ?></span>
                     </td>
                     <td class="actions-cell" style="padding:12px 16px;">
                         <button type="button" class="actions-btn orders-actions-btn" title="Actions">
@@ -213,7 +223,7 @@ include __DIR__ . '/../includes/manager-layout.php';
                                 <input type="hidden" name="order_id" value="<?php echo (int)$o['id']; ?>"/>
                                 <input type="hidden" name="slug" value="<?php echo htmlspecialchars($restaurantSlug); ?>"/>
                                 <input type="hidden" name="status" value="<?php echo htmlspecialchars($s); ?>"/>
-                                <button type="submit" class="actions-dropdown-item">Set to <?php echo ucfirst(str_replace('_',' ',$s)); ?></button>
+                                <button type="submit" class="actions-dropdown-item">Set to <?php echo htmlspecialchars($statusLabels[$s] ?? ucfirst(str_replace('_',' ',$s))); ?></button>
                             </form>
                             <?php endif; ?>
                             <?php endforeach; ?>
@@ -251,7 +261,14 @@ include __DIR__ . '/../includes/manager-layout.php';
 @keyframes item-height { from { height: 0 } }
 .orders-list .table-wrapper { overflow-x: auto; }
 .orders-list .actions-cell { position: relative; }
-.orders-list .actions-dropdown { z-index: 50; }
+.orders-list .actions-dropdown {
+    z-index: 50;
+    right: 100%;
+    left: auto;
+    top: 0;
+    margin-right: 6px;
+    min-width: 160px;
+}
 
 /* Orders stats grid */
 .orders-stats {
