@@ -449,6 +449,32 @@ textarea::placeholder {
     }
 }
 
+/* ===== Gradient Bar Chart ===== */
+.simple-bar-chart.gradient-bars > .item,
+.chart-card .simple-bar-chart > .item {
+    background: linear-gradient(to top, var(--clr), color-mix(in srgb, var(--clr) 70%, white)) !important;
+}
+
+/* ===== Gradient Progress Bars ===== */
+.gradient-progress-bar {
+    height: 12px;
+    background: #e5e7eb;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.gradient-progress-bar .fill {
+    height: 100%;
+    min-width: 4px;
+    border-radius: 6px;
+    background: linear-gradient(90deg, #4f46e5, #818cf8);
+    transition: width 0.5s ease;
+}
+
+.gradient-progress-bar.primary .fill {
+    background: linear-gradient(90deg, var(--primary-orange), #fbbf24);
+}
+
 /* Utility Classes */
 .text-primary {
     color: var(--primary-orange);

@@ -15,7 +15,8 @@ $stats = [
     'restaurants' => 0,
     'categories' => 0,
     'menu_items' => 0,
-    'managers' => 0
+    'managers' => 0,
+    'total_revenue' => 0
 ];
 
 if ($pdo) {
@@ -33,6 +34,9 @@ if ($pdo) {
         // Count ALL managers (including old accounts)
         $stats['managers'] = (int)$pdo->query("SELECT COUNT(*) FROM managers")->fetchColumn();
         
+        // Total revenue (all restaurants)
+        $stats['total_revenue'] = (float)$pdo->query("SELECT COALESCE(SUM(total), 0) FROM orders WHERE status IN ('pending','confirmed','on_hold','completed')")->fetchColumn();
+        
         // Count active restaurants only
         $stats['active_restaurants'] = (int)$pdo->query("SELECT COUNT(*) FROM restaurants WHERE is_active = 1")->fetchColumn();
         
@@ -44,14 +48,15 @@ if ($pdo) {
         $stmt->execute();
         $restaurants = $stmt->fetchAll();
         
-        // Prepare chart data with ALL historical data
+        // Prepare chart data with ALL historical data (including Total Revenue)
         $chartData = [
             ['label' => 'Restaurants', 'value' => $stats['restaurants'], 'color' => '#5EB344'],
             ['label' => 'Categories', 'value' => $stats['categories'], 'color' => '#FCB72A'],
             ['label' => 'Menu Items', 'value' => $stats['menu_items'], 'color' => '#F8821A'],
             ['label' => 'Managers', 'value' => $stats['managers'], 'color' => '#E0393E'],
             ['label' => 'Active Restaurants', 'value' => $stats['active_restaurants'], 'color' => '#963D97'],
-            ['label' => 'Active Categories', 'value' => $stats['active_categories'], 'color' => '#069CDB']
+            ['label' => 'Active Categories', 'value' => $stats['active_categories'], 'color' => '#069CDB'],
+            ['label' => 'Total Revenue (₦)', 'value' => (int) $stats['total_revenue'], 'color' => '#10b981']
         ];
         
         // Calculate max value for percentage calculation
@@ -123,6 +128,10 @@ include __DIR__ . '/../includes/admin-layout.php';
     font-size: 2rem;
     font-weight: 700;
     color: #111827;
+}
+
+.stat-card .gradient-progress-bar {
+    margin-top: 12px;
 }
 
 /* ===== RESTAURANT LIST (ACCORDION) ===== */
@@ -434,22 +443,45 @@ include __DIR__ . '/../includes/admin-layout.php';
 </div>
 
 <!-- STATS -->
+<?php
+$progressStats = [
+    ['label' => 'Restaurants', 'value' => $stats['restaurants'], 'max' => max(1, $stats['restaurants'])],
+    ['label' => 'Categories', 'value' => $stats['categories'], 'max' => max(1, $stats['categories'])],
+    ['label' => 'Menu Items', 'value' => $stats['menu_items'], 'max' => max(1, $stats['menu_items'])],
+    ['label' => 'Managers', 'value' => $stats['managers'], 'max' => max(1, $stats['managers'])],
+    ['label' => 'Total Revenue (₦)', 'value' => (int) $stats['total_revenue'], 'max' => max(1, (int) $stats['total_revenue'])]
+];
+$progressMax = max(array_column($progressStats, 'value')) ?: 1;
+foreach ($progressStats as &$ps) {
+    $ps['pct'] = ($ps['value'] / $progressMax) * 100;
+}
+unset($ps);
+?>
 <section class="stats">
   <div class="stat-card">
     <div class="stat-label">Restaurants</div>
     <div class="stat-value"><?php echo $stats['restaurants']; ?></div>
+    <div class="gradient-progress-bar primary"><div class="fill" style="width:<?php echo round($progressStats[0]['pct']); ?>%;"></div></div>
   </div>
   <div class="stat-card">
     <div class="stat-label">Categories</div>
     <div class="stat-value"><?php echo $stats['categories']; ?></div>
+    <div class="gradient-progress-bar primary"><div class="fill" style="width:<?php echo round($progressStats[1]['pct']); ?>%;"></div></div>
   </div>
   <div class="stat-card">
     <div class="stat-label">Menu Items</div>
     <div class="stat-value"><?php echo $stats['menu_items']; ?></div>
+    <div class="gradient-progress-bar primary"><div class="fill" style="width:<?php echo round($progressStats[2]['pct']); ?>%;"></div></div>
   </div>
   <div class="stat-card">
     <div class="stat-label">Managers</div>
     <div class="stat-value"><?php echo $stats['managers']; ?></div>
+    <div class="gradient-progress-bar primary"><div class="fill" style="width:<?php echo round($progressStats[3]['pct']); ?>%;"></div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Total Revenue (All Restaurants)</div>
+    <div class="stat-value">₦<?php echo number_format($stats['total_revenue'], 0); ?></div>
+    <div class="gradient-progress-bar primary"><div class="fill" style="width:<?php echo round($progressStats[4]['pct']); ?>%;"></div></div>
   </div>
 </section>
 
@@ -462,7 +494,7 @@ include __DIR__ . '/../includes/admin-layout.php';
     </svg>
     Statistics Overview
   </h2>
-  <div class="simple-bar-chart">
+  <div class="simple-bar-chart gradient-bars">
     <?php foreach ($chartData as $item): ?>
       <div class="item" style="--clr: <?php echo htmlspecialchars($item['color']); ?>; --val: <?php echo round($item['percentage'], 1); ?>">
         <div class="label"><?php echo htmlspecialchars($item['label']); ?></div>

@@ -51,6 +51,7 @@ if (isLoggedIn() && isManager()) {
 <title><?php echo htmlspecialchars($pageTitle); ?> - Restaurant Menu Platform</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="<?php echo htmlspecialchars(defined('SITE_URL') ? SITE_URL . '/assets/css/admin.css' : '../assets/css/admin.css'); ?>">
 
 <style>
 :root{

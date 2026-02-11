@@ -326,7 +326,7 @@ include __DIR__ . '/../includes/manager-layout.php';
             </svg>
             Analytics Overview
         </h2>
-        <div class="simple-bar-chart">
+        <div class="simple-bar-chart gradient-bars">
           <?php foreach ($analyticsChartData as $item): ?>
             <div class="item" style="--clr: <?php echo htmlspecialchars($item['color']); ?>; --val: <?php echo round($item['percentage'], 1); ?>">
               <div class="label"><?php echo htmlspecialchars($item['label']); ?></div>

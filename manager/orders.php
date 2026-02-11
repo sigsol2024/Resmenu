@@ -40,9 +40,8 @@ $totalOrdersAmount = (float) $stmt->fetchColumn();
 
 $totalOrdersCount = array_sum($statsByStatus);
 
-// Pagination / show all
-$showAll = isset($_GET['all']) && $_GET['all'] === '1';
-$limit = $showAll ? 999 : 10;
+// Recent orders limit (full list is on restaurant-orders.php)
+$limit = 5;
 $stmt = $pdo->prepare("SELECT * FROM orders WHERE restaurant_id = ? ORDER BY created_at DESC LIMIT ?");
 $stmt->execute([$restaurantId, $limit]);
 $orders = $stmt->fetchAll();
@@ -55,6 +54,41 @@ include __DIR__ . '/../includes/manager-layout.php';
 
 <section class="orders-overview" style="margin-bottom:24px;">
     <h2 class="section-title" style="font-size:1.125rem;font-weight:600;margin-bottom:16px;color:#111827;">Orders Overview</h2>
+    <!-- Revenue Chart -->
+    <div class="chart-card" style="background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);padding:24px;margin-bottom:24px;">
+        <h3 class="chart-title" style="font-size:1rem;font-weight:600;margin-bottom:12px;color:#111827;">Revenue by Period</h3>
+        <div class="revenue-chart-filters" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
+            <button type="button" class="revenue-range-btn btn-active" data-range="today">Today</button>
+            <button type="button" class="revenue-range-btn" data-range="3days">Last 3 days</button>
+            <button type="button" class="revenue-range-btn" data-range="7days">Last 7 days</button>
+            <button type="button" class="revenue-range-btn" data-range="1month">One month</button>
+            <button type="button" class="revenue-range-btn" data-range="all">All time</button>
+        </div>
+        <div id="revenue-chart" class="simple-bar-chart" style="height:10rem;display:grid;grid-auto-flow:column;gap:2%;align-items:end;padding-inline:2%;position:relative;">
+            <!-- Filled by JS -->
+        </div>
+        <p id="revenue-chart-empty" style="display:none;color:#6b7280;padding:16px 0;">No revenue data for this period.</p>
+    </div>
+    <!-- Order Status Chart -->
+    <?php
+    $statusColors = ['pending' => '#f59e0b', 'confirmed' => '#3b82f6', 'on_hold' => '#6b7280', 'cancelled' => '#ef4444', 'completed' => '#10b981'];
+    $statusChartData = [];
+    $statusMax = max(array_values($statsByStatus)) ?: 1;
+    foreach ($statuses as $s) {
+        $statusChartData[] = ['label' => ucfirst(str_replace('_',' ',$s)), 'value' => $statsByStatus[$s], 'color' => $statusColors[$s], 'pct' => ($statsByStatus[$s] / $statusMax) * 100];
+    }
+    ?>
+    <div class="chart-card" style="background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);padding:24px;margin-bottom:24px;">
+        <h3 class="chart-title" style="font-size:1rem;font-weight:600;margin-bottom:16px;color:#111827;">Orders by Status</h3>
+        <div class="simple-bar-chart">
+            <?php foreach ($statusChartData as $item): ?>
+            <div class="item" style="--clr: <?php echo htmlspecialchars($item['color']); ?>; --val: <?php echo round($item['pct'], 1); ?>">
+                <div class="label"><?php echo htmlspecialchars($item['label']); ?></div>
+                <div class="value"><?php echo $item['value']; ?></div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
     <div class="stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px;margin-bottom:24px;">
         <?php foreach ($statuses as $s): $label = ucfirst(str_replace('_', ' ', $s)); ?>
         <div class="stat-card" style="background:#fff;padding:16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
@@ -71,11 +105,9 @@ include __DIR__ . '/../includes/manager-layout.php';
 
 <section class="orders-list">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-        <h2 class="section-title" style="font-size:1.125rem;font-weight:600;color:#111827;"><?php echo $showAll ? 'All Orders' : 'Recent Orders'; ?></h2>
-        <?php if (!$showAll && $totalOrdersCount > 10): ?>
-        <a href="orders.php<?php echo $slugParam ? $slugParam . '&' : '?'; ?>all=1" style="color:#4f46e5;font-weight:500;font-size:0.875rem;">View all orders</a>
-        <?php elseif ($showAll): ?>
-        <a href="orders.php<?php echo $slugParam; ?>" style="color:#4f46e5;font-weight:500;font-size:0.875rem;">Show recent only</a>
+        <h2 class="section-title" style="font-size:1.125rem;font-weight:600;color:#111827;">Recent Orders</h2>
+        <?php if ($totalOrdersCount > 0): ?>
+        <a href="restaurant-orders.php<?php echo $slugParam; ?>" class="btn btn-primary" style="padding:8px 16px;font-size:0.875rem;">View All Orders</a>
         <?php endif; ?>
     </div>
 
@@ -134,10 +166,58 @@ include __DIR__ . '/../includes/manager-layout.php';
     </div>
 </div>
 
+<style>
+.revenue-range-btn { padding: 6px 12px; border-radius: 6px; border: 1px solid #e5e7eb; background: #fff; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
+.revenue-range-btn:hover { background: #f3f4f6; }
+.revenue-range-btn.btn-active { background: #4f46e5; color: #fff; border-color: #4f46e5; }
+.simple-bar-chart > .item { --line-count: 10; --line-color: currentcolor; --line-opacity: 0.25; --item-gap: 2%; --padding-block: 1.5rem; position: relative; isolation: isolate; height: calc(1% * var(--val)); animation: item-height 1s ease forwards; border-radius: 4px 4px 0 0; }
+.simple-bar-chart > .item > .label { position: absolute; inset: 100% 0 auto 0; font-size: 0.7rem; color: #6b7280; text-align: center; margin-top: 4px; }
+.simple-bar-chart > .item > .value { position: absolute; inset: auto 0 100% 0; font-size: 0.75rem; font-weight: 600; color: #111827; text-align: center; margin-bottom: 4px; }
+@keyframes item-height { from { height: 0 } }
+</style>
 <script>
 (function() {
     const slug = <?php echo json_encode($restaurantSlug); ?>;
     const symbol = <?php echo json_encode($currencySymbol); ?>;
+
+    // Revenue chart - fetch and render
+    function loadRevenueChart(range) {
+        const chartEl = document.getElementById('revenue-chart');
+        const emptyEl = document.getElementById('revenue-chart-empty');
+        const url = '../api/orders-analytics.php?range=' + encodeURIComponent(range || 'today');
+        fetch(url).then(r => r.json()).then(function(data) {
+            if (!data.success || !data.revenue_by_date) return;
+            const rows = data.revenue_by_date || [];
+            chartEl.innerHTML = '';
+            if (rows.length === 0) {
+                chartEl.style.display = 'none';
+                emptyEl.style.display = 'block';
+                return;
+            }
+            emptyEl.style.display = 'none';
+            chartEl.style.display = 'grid';
+            const maxRev = Math.max.apply(null, rows.map(r => parseFloat(r.revenue))) || 1;
+            rows.forEach(function(r) {
+                const pct = (parseFloat(r.revenue) / maxRev) * 100;
+                const d = r.date ? new Date(r.date + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : r.date;
+                const div = document.createElement('div');
+                div.className = 'item';
+                div.style.setProperty('--clr', '#10b981');
+                div.style.setProperty('--val', pct);
+                div.innerHTML = '<div class="label">' + (d || '') + '</div><div class="value">' + symbol + parseFloat(r.revenue).toFixed(0) + '</div>';
+                chartEl.appendChild(div);
+            });
+        }).catch(function() { chartEl.innerHTML = ''; emptyEl.style.display = 'block'; chartEl.style.display = 'none'; });
+    }
+
+    document.querySelectorAll('.revenue-range-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.revenue-range-btn').forEach(function(b) { b.classList.remove('btn-active'); });
+            this.classList.add('btn-active');
+            loadRevenueChart(this.getAttribute('data-range'));
+        });
+    });
+    loadRevenueChart('today');
 
     document.querySelectorAll('.order-status-select').forEach(function(sel) {
         sel.addEventListener('change', function() { this.closest('form').submit(); });
@@ -152,17 +232,26 @@ include __DIR__ . '/../includes/manager-layout.php';
     modalClose.onclick = closeModal;
     modal.onclick = function(e) { if (e.target === modal) closeModal(); };
 
+    function esc(s) {
+        if (s == null || s === '') return '';
+        const t = String(s);
+        return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+
     document.querySelectorAll('.view-order-btn').forEach(function(btn) {
         btn.addEventListener('click', function() {
             const orderId = this.getAttribute('data-order-id');
-            fetch('../api/get-order-details.php?order_id=' + orderId + '&slug=' + encodeURIComponent(slug))
+            fetch('../api/get-order-details.php?order_id=' + encodeURIComponent(orderId) + '&slug=' + encodeURIComponent(slug))
                 .then(r => r.json())
                 .then(data => {
                     if (data.success) {
                         const o = data.order;
-                        let itemsHtml = (o.items || []).map(i => '<tr><td>' + (i.name||'') + '</td><td>' + (i.quantity||1) + '</td><td>' + symbol + parseFloat(i.price||0).toFixed(2) + '</td><td>' + symbol + (parseFloat(i.price||0)*(i.quantity||1)).toFixed(2) + '</td></tr>').join('');
+                        const items = o.items || [];
+                        const itemsHtml = items.map(function(i) {
+                            return '<tr><td>' + esc(i.name) + '</td><td>' + (parseInt(i.quantity,10)||1) + '</td><td>' + symbol + parseFloat(i.price||0).toFixed(2) + '</td><td>' + symbol + (parseFloat(i.price||0)*(parseInt(i.quantity,10)||1)).toFixed(2) + '</td></tr>';
+                        }).join('');
                         modalTitle.textContent = 'Order #' + (o.order_display_number || orderId);
-                        modalBody.innerHTML = '<table style="width:100%;margin-bottom:16px;"><tr><th style="text-align:left;">Customer</th><td>' + (o.customer_name||'') + '</td></tr><tr><th style="text-align:left;">Phone</th><td>' + (o.customer_phone||'') + '</td></tr><tr><th style="text-align:left;">Email</th><td>' + (o.customer_email||'') + '</td></tr><tr><th style="text-align:left;">Address</th><td>' + (o.delivery_address||'') + '</td></tr><tr><th style="text-align:left;">Status</th><td>' + (o.status||'') + '</td></tr></table><h4 style="margin:16px 0 8px;">Items</h4><table style="width:100%;border-collapse:collapse;"><thead><tr style="border-bottom:1px solid #e5e7eb;"><th style="text-align:left;padding:8px;">Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead><tbody>' + itemsHtml + '</tbody></table><p style="margin-top:12px;font-weight:600;">Total: ' + symbol + parseFloat(o.total||0).toFixed(2) + '</p>';
+                        modalBody.innerHTML = '<table style="width:100%;margin-bottom:16px;"><tr><th style="text-align:left;">Customer</th><td>' + esc(o.customer_name) + '</td></tr><tr><th style="text-align:left;">Phone</th><td>' + esc(o.customer_phone) + '</td></tr><tr><th style="text-align:left;">Email</th><td>' + esc(o.customer_email) + '</td></tr><tr><th style="text-align:left;">Address</th><td>' + esc(o.delivery_address) + '</td></tr><tr><th style="text-align:left;">Status</th><td>' + esc(o.status) + '</td></tr></table><h4 style="margin:16px 0 8px;">Items</h4><table style="width:100%;border-collapse:collapse;"><thead><tr style="border-bottom:1px solid #e5e7eb;"><th style="text-align:left;padding:8px;">Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead><tbody>' + itemsHtml + '</tbody></table><p style="margin-top:12px;font-weight:600;">Total: ' + esc(symbol + parseFloat(o.total||0).toFixed(2)) + '</p>';
                         modal.style.display = 'flex';
                     }
                 })
