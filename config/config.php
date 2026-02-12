@@ -44,7 +44,7 @@ define('MAIL_FROM_EMAIL', 'services@our-menu.online');
 define('MAIL_FROM_NAME', 'Resmenu');
 define('SMTP_HOST', 'server1.signaturewebhosting.space');   // e.g. smtp.gmail.com, smtp.sendgrid.net
 define('SMTP_PORT', 465);
-define('SMTP_SECURE', 'ssl');               // tls or ssl
+define('SMTP_SECURE', 'ssl');               // ssl for port 465; if Gmail shows "not encrypted" try port 587 with tls
 define('SMTP_USERNAME', '');
 define('SMTP_PASSWORD', 'Sigsol1234!//@');
 

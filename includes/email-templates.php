@@ -254,49 +254,23 @@ function getSubscriptionExpiredEmail($restaurant) {
 }
 
 /**
- * Admin Notification - New Payment
+ * Admin Notification - New Payment (uses site template with site name/logo)
  */
 function getAdminPaymentNotificationEmail($restaurant, $payment, $subscription) {
     $plan = getSubscriptionPlan($subscription['plan_id']);
-    
-    $html = getEmailHeader('New Payment Received');
-    $html .= '<div class="header" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-        <h1>New Payment Received</h1>
-    </div>
-    <div class="content">
-        <h2>Payment Notification</h2>
+
+    $body = '<h2 style="margin:0 0 16px;font-size:22px;font-weight:700;color:#111827;">Payment Notification</h2>
         <p>A new payment has been received from a restaurant.</p>
-        
-        <table class="details-table">
-            <tr>
-                <td>Restaurant</td>
-                <td>' . htmlspecialchars($restaurant['name']) . '</td>
-            </tr>
-            <tr>
-                <td>Amount</td>
-                <td>' . formatSubscriptionPrice($payment['amount'], $payment['currency']) . '</td>
-            </tr>
-            <tr>
-                <td>Plan</td>
-                <td>' . htmlspecialchars($plan['name']) . ' (' . ucfirst($subscription['billing_cycle']) . ')</td>
-            </tr>
-            <tr>
-                <td>Gateway</td>
-                <td>' . ucfirst($payment['payment_gateway']) . '</td>
-            </tr>
-            <tr>
-                <td>Reference</td>
-                <td style="font-family: monospace;">' . htmlspecialchars($payment['transaction_reference']) . '</td>
-            </tr>
-            <tr>
-                <td>Date</td>
-                <td>' . date('F j, Y g:i A') . '</td>
-            </tr>
-        </table>
-    </div>';
-    $html .= getEmailFooter();
-    
-    return $html;
+        <table style="width:100%;border-collapse:collapse;margin:20px 0;">
+            <tr><td style="padding:12px 0;border-bottom:1px solid #f3f4f6;color:#6b7280;">Restaurant</td><td style="padding:12px 0;border-bottom:1px solid #f3f4f6;text-align:right;font-weight:500;">' . htmlspecialchars($restaurant['name']) . '</td></tr>
+            <tr><td style="padding:12px 0;border-bottom:1px solid #f3f4f6;color:#6b7280;">Amount</td><td style="padding:12px 0;border-bottom:1px solid #f3f4f6;text-align:right;font-weight:500;">' . formatSubscriptionPrice($payment['amount'], $payment['currency']) . '</td></tr>
+            <tr><td style="padding:12px 0;border-bottom:1px solid #f3f4f6;color:#6b7280;">Plan</td><td style="padding:12px 0;border-bottom:1px solid #f3f4f6;text-align:right;font-weight:500;">' . htmlspecialchars($plan['name']) . ' (' . ucfirst($subscription['billing_cycle']) . ')</td></tr>
+            <tr><td style="padding:12px 0;border-bottom:1px solid #f3f4f6;color:#6b7280;">Gateway</td><td style="padding:12px 0;border-bottom:1px solid #f3f4f6;text-align:right;font-weight:500;">' . ucfirst($payment['payment_gateway']) . '</td></tr>
+            <tr><td style="padding:12px 0;border-bottom:1px solid #f3f4f6;color:#6b7280;">Reference</td><td style="padding:12px 0;border-bottom:1px solid #f3f4f6;text-align:right;font-family:monospace;font-size:13px;">' . htmlspecialchars($payment['transaction_reference']) . '</td></tr>
+            <tr><td style="padding:12px 0;color:#6b7280;">Date</td><td style="padding:12px 0;text-align:right;font-weight:500;">' . date('F j, Y g:i A') . '</td></tr>
+        </table>';
+
+    return getSiteEmailTemplate('New Payment Received', $body);
 }
 
 /**
@@ -304,8 +278,10 @@ function getAdminPaymentNotificationEmail($restaurant, $payment, $subscription) 
  */
 function sendSubscriptionEmail($to, $subject, $htmlBody) {
     require_once __DIR__ . '/mail.php';
+    $siteSettings = getSiteSettings();
+    $siteName = $siteSettings['site_name'] ?? 'Resmenu';
     return sendEmail($to, '', $subject, $htmlBody, [
-        'from_name' => 'Restaurant Menu Platform',
+        'from_name' => $siteName,
     ]);
 }
 

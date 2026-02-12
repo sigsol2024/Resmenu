@@ -63,7 +63,6 @@ function sendEmail($to, $toName, $subject, $htmlBody, $options = []) {
             $mail->Password = SMTP_PASSWORD ?? '';
             $mail->SMTPSecure = defined('SMTP_SECURE') ? SMTP_SECURE : 'tls';
             $mail->Port = defined('SMTP_PORT') ? (int)SMTP_PORT : 587;
-
             $mail->send();
             return true;
         } catch (PHPMailerException $e) {

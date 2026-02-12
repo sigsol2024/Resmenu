@@ -305,6 +305,66 @@ function updateSiteSettings($data) {
 }
 
 /**
+ * Get site-branded email template (for admin/test emails)
+ * Uses admin dashboard colors: #1e3a5f, #0f172a
+ *
+ * @param string $title Email title
+ * @param string $bodyContent HTML body content
+ * @param array $siteSettings Optional - from getSiteSettings()
+ * @return string Full HTML email
+ */
+function getSiteEmailTemplate($title, $bodyContent, $siteSettings = null) {
+    if ($siteSettings === null) {
+        $siteSettings = getSiteSettings();
+    }
+    $siteName = htmlspecialchars($siteSettings['site_name'] ?? 'Resmenu');
+    $baseUrl = defined('SITE_URL') ? rtrim(SITE_URL, '/') : '';
+    $uploadUrl = defined('UPLOAD_URL') ? rtrim(UPLOAD_URL, '/') : $baseUrl . '/uploads';
+    $logoUrl = '';
+    if (!empty($siteSettings['site_logo'])) {
+        $logoUrl = $uploadUrl . '/site/' . $siteSettings['site_logo'];
+    }
+
+    $primary = '#1e3a5f';
+    $primaryDark = '#0f172a';
+    $headerBg = $primaryDark;
+    $headerBorder = $primary;
+
+    $headerContent = $logoUrl
+        ? '<img src="' . htmlspecialchars($logoUrl) . '" alt="' . $siteName . '" style="max-height:52px;max-width:100%;display:block;margin:0 auto;">'
+        : '<div style="display:flex;align-items:center;justify-content:center;gap:12px;"><div style="width:44px;height:44px;background:' . $primary . ';border-radius:50%;display:flex;align-items:center;justify-content:center;"><span style="color:#fff;font-size:20px;">&#9776;</span></div><h1 style="color:#fff;font-size:24px;font-weight:700;margin:0;font-family:Inter,sans-serif;">' . $siteName . '</h1></div>';
+
+    return '<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>' . htmlspecialchars($title) . '</title>
+<style>
+body{margin:0;padding:0;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f8f5f5;}
+</style>
+</head>
+<body style="margin:0;padding:0;font-family:Inter,-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;background:#f8f5f5;">
+<div style="max-width:640px;margin:0 auto;padding:24px 16px;">
+<div style="background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.08);overflow:hidden;border:1px solid #e5e7eb;">
+<header style="background:' . $headerBg . ';padding:28px 24px;text-align:center;border-bottom:4px solid ' . $headerBorder . ';">
+' . $headerContent . '
+<p style="color:#9ca3af;font-size:11px;margin:8px 0 0;text-transform:uppercase;letter-spacing:0.1em;">Restaurant Menu Platform</p>
+</header>
+<section style="padding:32px 28px;color:#374151;line-height:1.6;font-size:15px;">
+' . $bodyContent . '
+</section>
+<footer style="background:' . $headerBg . ';padding:24px 28px;text-align:center;">
+<p style="color:#9ca3af;font-size:12px;margin:0 0 8px;">' . $siteName . '</p>
+<p style="color:#9ca3af;font-size:11px;margin:0;"><a href="' . htmlspecialchars($baseUrl) . '" style="color:' . $primary . ';text-decoration:none;">Visit site</a> &bull; &copy; ' . date('Y') . ' ' . $siteName . '. All rights reserved.</p>
+</footer>
+</div>
+</div>
+</body>
+</html>';
+}
+
+/**
  * JSON response helper
  * @param bool $success
  * @param string $message

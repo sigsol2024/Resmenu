@@ -44,12 +44,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             require_once __DIR__ . '/../includes/mail.php';
             $siteName = $siteSettings['site_name'] ?? 'Resmenu';
-            $html = '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="font-family:sans-serif;padding:24px;">
-                <h2>Email Test</h2>
-                <p>This is a test email from ' . htmlspecialchars($siteName) . '.</p>
-                <p>If you received this, your email configuration is working correctly.</p>
-                <p>Sent at: ' . date('Y-m-d H:i:s') . '</p>
-                </body></html>';
+            $body = '<h2 style="margin:0 0 16px;font-size:22px;font-weight:700;color:#111827;">Email Configuration Test</h2>
+                <p style="margin:0 0 12px;">Hello,</p>
+                <p style="margin:0 0 16px;">This is a test email from <strong>' . htmlspecialchars($siteName) . '</strong>.</p>
+                <p style="margin:0 0 16px;">If you received this, your SMTP configuration is working correctly and emails will be delivered in the branded template.</p>
+                <p style="margin:0;padding:16px;background:#f9fafb;border-radius:8px;font-size:13px;color:#6b7280;">Sent at: ' . date('F j, Y \a\t g:i A') . '</p>';
+            $html = getSiteEmailTemplate('Email Test', $body, $siteSettings);
             if (sendEmail($testEmail, '', 'Test Email - ' . $siteName, $html)) {
                 $message = 'Test email sent successfully to ' . htmlspecialchars($testEmail);
             } else {
