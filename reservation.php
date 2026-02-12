@@ -90,13 +90,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($errors)) {
         try {
+            require_once __DIR__ . '/includes/order-functions.php';
+            $reservationNumber = generateReservationNumber();
             $stmt = $pdo->prepare("
-                INSERT INTO table_reservations (restaurant_id, reservation_date, reservation_time, party_size, guest_name, guest_email, guest_phone, special_occasion, notes, status, deposit_amount)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)
+                INSERT INTO table_reservations (restaurant_id, reservation_number, reservation_date, reservation_time, party_size, guest_name, guest_email, guest_phone, special_occasion, notes, status, deposit_amount)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)
             ");
             $timeWithSeconds = strlen($reservationTime) === 5 ? $reservationTime . ':00' : $reservationTime;
             $stmt->execute([
                 $restaurant['id'],
+                $reservationNumber,
                 $reservationDate,
                 $timeWithSeconds,
                 $partySize,

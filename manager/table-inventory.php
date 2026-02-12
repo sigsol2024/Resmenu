@@ -46,6 +46,25 @@ include __DIR__ . '/../includes/manager-layout.php';
 </div>
 
 <div class="settings-card" style="padding:24px;margin-bottom:24px;">
+    <h3 style="font-size:0.875rem;font-weight:600;margin:0 0 12px;color:#374151;">Bulk Update</h3>
+    <p style="font-size:0.75rem;color:#6b7280;margin:0 0 16px;">Set the same table quantity for multiple days (entire month or a date range).</p>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-bottom:24px;padding:16px;background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb;">
+        <div>
+            <label style="display:block;font-size:0.75rem;color:#6b7280;margin-bottom:4px;">Start Date</label>
+            <input type="date" id="bulk-start-date" style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:6px;font-size:0.875rem;"/>
+        </div>
+        <div>
+            <label style="display:block;font-size:0.75rem;color:#6b7280;margin-bottom:4px;">End Date</label>
+            <input type="date" id="bulk-end-date" style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:6px;font-size:0.875rem;"/>
+        </div>
+        <div>
+            <label style="display:block;font-size:0.75rem;color:#6b7280;margin-bottom:4px;">Total Tables</label>
+            <input type="number" id="bulk-total-tables" min="1" max="999" value="10" style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:6px;font-size:0.875rem;width:80px;"/>
+        </div>
+        <button type="button" id="bulk-save-btn" class="btn btn-primary" style="padding:8px 16px;">Bulk Update</button>
+        <button type="button" id="bulk-fill-month-btn" class="btn btn-secondary" style="padding:8px 16px;">Fill Entire Month</button>
+        <span id="bulk-status" role="status" aria-live="polite" style="font-size:0.875rem;font-weight:500;display:none;"></span>
+    </div>
     <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px;margin-bottom:20px;">
         <h3 style="font-size:1rem;font-weight:600;margin:0;color:#111827;" id="inventory-month-title">February 2025</h3>
         <div style="display:flex;gap:8px;">
@@ -71,6 +90,7 @@ include __DIR__ . '/../includes/manager-layout.php';
             <input type="number" id="day-total-tables" min="1" max="999" value="10" style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:6px;font-size:0.875rem;width:100px;"/>
         </div>
         <button type="button" id="day-save-total" class="btn btn-primary" style="padding:8px 16px;">Save Total</button>
+        <span id="day-save-status" role="status" aria-live="polite" style="font-size:0.875rem;font-weight:500;display:none;"></span>
     </div>
     <div style="margin-bottom:16px;">
         <button type="button" id="day-add-walkin" class="btn btn-secondary" style="padding:8px 16px;">Add Walk-in</button>
@@ -138,6 +158,7 @@ include __DIR__ . '/../includes/manager-layout.php';
                 renderCalendar(data.dates);
             })
             .catch(function() { renderCalendar({}); });
+        setBulkDateRange();
     }
 
     function renderCalendar(dates) {
@@ -212,7 +233,8 @@ include __DIR__ . '/../includes/manager-layout.php';
                 const list = data.reservations || [];
                 let listHtml = list.length === 0 ? 'No reservations.' : '<ul style="list-style:none;padding:0;margin:0;">' + list.map(function(r) {
                     const time = r.reservation_time ? String(r.reservation_time).substring(0, 5) : '-';
-                    const label = (r.is_walkin == 1 ? '[Walk-in] ' : '') + (r.guest_name || '-') + ' @ ' + time + ' (' + (r.status || '-') + ')';
+                    const ref = r.reservation_number ? ('#' + r.reservation_number) : ('#' + r.id);
+                    const label = ref + ' – ' + (r.is_walkin == 1 ? '[Walk-in] ' : '') + (r.guest_name || '-') + ' @ ' + time + ' (' + (r.status || '-') + ')';
                     return '<li style="padding:6px 0;border-bottom:1px solid #f3f4f6;">' + label + '</li>';
                 }).join('') + '</ul>';
                 document.getElementById('day-reservations-list').innerHTML = listHtml;
@@ -228,6 +250,85 @@ include __DIR__ . '/../includes/manager-layout.php';
         loadMonth();
     };
 
+    function setBulkDateRange() {
+        const r = getMonthRange();
+        document.getElementById('bulk-start-date').value = r.start;
+        document.getElementById('bulk-end-date').value = r.end;
+    }
+    function showBulkStatus(msg, isError) {
+        const el = document.getElementById('bulk-status');
+        el.textContent = msg;
+        el.style.display = 'inline';
+        el.style.color = isError ? '#dc2626' : '#059669';
+        clearTimeout(window._bulkStatusTimer);
+        window._bulkStatusTimer = setTimeout(function() { el.style.display = 'none'; el.textContent = ''; }, 5000);
+    }
+    function doBulkUpdate(startDate, endDate, total) {
+        const fd = new FormData();
+        fd.append('action', 'bulk_set_total');
+        fd.append('start_date', startDate);
+        fd.append('end_date', endDate);
+        fd.append('total_tables', total);
+        const btn = document.getElementById('bulk-save-btn');
+        const fillBtn = document.getElementById('bulk-fill-month-btn');
+        btn.disabled = true;
+        fillBtn.disabled = true;
+        btn.textContent = 'Updating…';
+        fillBtn.textContent = 'Updating…';
+        document.getElementById('bulk-status').style.display = 'none';
+        fetch('../api/table-inventory.php', { method: 'POST', body: fd })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                btn.disabled = false;
+                fillBtn.disabled = false;
+                btn.textContent = 'Bulk Update';
+                fillBtn.textContent = 'Fill Entire Month';
+                if (data.success) {
+                    showBulkStatus('Updated ' + (data.updated_count || 0) + ' day(s) successfully.', false);
+                    loadMonth();
+                    if (selectedDate && selectedDate >= startDate && selectedDate <= endDate) showDayPanel(selectedDate);
+                } else {
+                    showBulkStatus(data.message || 'Failed to update', true);
+                }
+            })
+            .catch(function() {
+                btn.disabled = false;
+                fillBtn.disabled = false;
+                btn.textContent = 'Bulk Update';
+                fillBtn.textContent = 'Fill Entire Month';
+                showBulkStatus('Failed to update. Please try again.', true);
+            });
+    }
+    document.getElementById('bulk-save-btn').onclick = function() {
+        const start = document.getElementById('bulk-start-date').value;
+        const end = document.getElementById('bulk-end-date').value;
+        const total = parseInt(document.getElementById('bulk-total-tables').value, 10) || 10;
+        if (!start || !end) {
+            showBulkStatus('Please select start and end dates.', true);
+            return;
+        }
+        if (start > end) {
+            showBulkStatus('Start date must be before or equal to end date.', true);
+            return;
+        }
+        doBulkUpdate(start, end, total);
+    };
+    document.getElementById('bulk-fill-month-btn').onclick = function() {
+        const r = getMonthRange();
+        const total = parseInt(document.getElementById('bulk-total-tables').value, 10) || 10;
+        doBulkUpdate(r.start, r.end, total);
+    };
+
+    function showSaveStatus(msg, isError) {
+        const el = document.getElementById('day-save-status');
+        el.textContent = msg;
+        el.style.display = 'inline';
+        el.style.color = isError ? '#dc2626' : '#059669';
+        if (!isError) {
+            clearTimeout(window._saveStatusTimer);
+            window._saveStatusTimer = setTimeout(function() { el.style.display = 'none'; el.textContent = ''; }, 4000);
+        }
+    }
     document.getElementById('day-save-total').onclick = function() {
         if (!selectedDate) return;
         const total = parseInt(document.getElementById('day-total-tables').value, 10) || 10;
@@ -235,13 +336,27 @@ include __DIR__ . '/../includes/manager-layout.php';
         fd.append('action', 'set_total');
         fd.append('date', selectedDate);
         fd.append('total_tables', total);
+        const btn = this;
+        btn.disabled = true;
+        btn.textContent = 'Saving…';
+        document.getElementById('day-save-status').style.display = 'none';
         fetch('../api/table-inventory.php', { method: 'POST', body: fd })
             .then(function(res) { return res.json(); })
             .then(function(data) {
+                btn.disabled = false;
+                btn.textContent = 'Save Total';
                 if (data.success) {
+                    showSaveStatus('Saved successfully.', false);
                     loadMonth();
                     showDayPanel(selectedDate);
-                } else alert(data.message || 'Failed to save');
+                } else {
+                    showSaveStatus(data.message || 'Failed to save', true);
+                }
+            })
+            .catch(function() {
+                btn.disabled = false;
+                btn.textContent = 'Save Total';
+                showSaveStatus('Failed to save. Please try again.', true);
             });
     };
 

@@ -75,6 +75,7 @@ include __DIR__ . '/../includes/manager-layout.php';
         <table class="orders-table" style="width:100%;border-collapse:collapse;">
             <thead>
                 <tr style="border-bottom:1px solid #e5e7eb;">
+                    <th style="text-align:left;padding:12px 16px;font-size:0.75rem;color:#6b7280;font-weight:600;">#</th>
                     <th style="text-align:left;padding:12px 16px;font-size:0.75rem;color:#6b7280;font-weight:600;">Date & Time</th>
                     <th style="text-align:left;padding:12px 16px;font-size:0.75rem;color:#6b7280;font-weight:600;">Guest</th>
                     <th style="text-align:left;padding:12px 16px;font-size:0.75rem;color:#6b7280;font-weight:600;">Guests</th>
@@ -84,7 +85,7 @@ include __DIR__ . '/../includes/manager-layout.php';
                 </tr>
             </thead>
             <tbody id="reservations-tbody">
-                <tr><td colspan="6" style="padding:24px;text-align:center;color:#6b7280;">Loading...</td></tr>
+                <tr><td colspan="7" style="padding:24px;text-align:center;color:#6b7280;">Loading...</td></tr>
             </tbody>
         </table>
     </div>
@@ -148,20 +149,25 @@ include __DIR__ . '/../includes/manager-layout.php';
         fetch(url).then(r => r.json()).then(function(data) {
             const list = data.success && data.reservations ? data.reservations : [];
             if (list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="padding:24px;text-align:center;color:#6b7280;">No reservations found.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="padding:24px;text-align:center;color:#6b7280;">No reservations found.</td></tr>';
                 return;
+            }
+            function getResNum(r) {
+                return (r.reservation_number && r.reservation_number.trim()) ? r.reservation_number : ('00000000' + (parseInt(r.id,10)||0).toString(36).toUpperCase()).slice(-8);
             }
             tbody.innerHTML = list.map(function(r) {
                 const st = r.status || 'pending';
                 const clr = statusColors[st] || '#6b7280';
                 const label = (st.charAt(0).toUpperCase() + st.slice(1));
                 const id = parseInt(r.id, 10) || 0;
+                const resNum = getResNum(r);
                 const dateStr = r.reservation_date ? new Date(r.reservation_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '-';
                 const timeStr = formatTime(r.reservation_time);
                 const depositPaid = r.deposit_paid ? ' <span style="color:#10b981;">(Paid)</span>' : '';
                 const approveReject = st !== 'confirmed' ? '<form method="post" action="../api/update-reservation-status.php" style="display:contents;"><input type="hidden" name="reservation_id" value="' + id + '"><input type="hidden" name="slug" value="' + esc(slug) + '"><input type="hidden" name="return_to" value="restaurant-reservations"><input type="hidden" name="status" value="confirmed"><button type="submit" class="actions-dropdown-item">Approve</button></form>' : '';
                 const rejectForm = st !== 'rejected' ? '<form method="post" action="../api/update-reservation-status.php" style="display:contents;"><input type="hidden" name="reservation_id" value="' + id + '"><input type="hidden" name="slug" value="' + esc(slug) + '"><input type="hidden" name="return_to" value="restaurant-reservations"><input type="hidden" name="status" value="rejected"><button type="submit" class="actions-dropdown-item">Reject</button></form>' : '';
                 return '<tr style="border-bottom:1px solid #f3f4f6;">' +
+                    '<td style="padding:12px 16px;font-size:0.875rem;font-weight:600;">#' + esc(resNum) + '</td>' +
                     '<td style="padding:12px 16px;font-size:0.875rem;">' + dateStr + ' ' + timeStr + '</td>' +
                     '<td style="padding:12px 16px;font-size:0.875rem;">' + esc(r.guest_name) + '</td>' +
                     '<td style="padding:12px 16px;font-size:0.875rem;">' + (parseInt(r.party_size,10)||'-') + '</td>' +
@@ -174,7 +180,7 @@ include __DIR__ . '/../includes/manager-layout.php';
             }).join('');
             initViewHandlers();
         }).catch(function() {
-            tbody.innerHTML = '<tr><td colspan="6" style="padding:24px;text-align:center;color:#ef4444;">Failed to load reservations.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" style="padding:24px;text-align:center;color:#ef4444;">Failed to load reservations.</td></tr>';
         });
     }
 
@@ -201,10 +207,12 @@ include __DIR__ . '/../includes/manager-layout.php';
                         const r = data.reservation;
                         const dateStr = r.reservation_date ? new Date(r.reservation_date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : '-';
                         const statusClr = { pending: '#f59e0b', confirmed: '#10b981', rejected: '#ef4444', cancelled: '#6b7280', completed: '#3b82f6' }[r.status] || '#6b7280';
+                        const resNum = (r.reservation_number && r.reservation_number.trim()) ? r.reservation_number : ('00000000' + (parseInt(r.id,10)||0).toString(36).toUpperCase()).slice(-8);
                         const body = document.getElementById('reservation-modal-body');
                         body.innerHTML = '<div class="detail-modal">' +
                             '<div class="detail-modal-section"><h4 class="detail-modal-heading">Reservation Details</h4>' +
                             '<div class="detail-modal-grid">' +
+                            '<div class="detail-modal-item"><span class="detail-label">Reservation #</span><span class="detail-value">' + esc(resNum) + '</span></div>' +
                             '<div class="detail-modal-item"><span class="detail-label">Date</span><span class="detail-value">' + dateStr + '</span></div>' +
                             '<div class="detail-modal-item"><span class="detail-label">Time</span><span class="detail-value">' + formatTime(r.reservation_time) + '</span></div>' +
                             '<div class="detail-modal-item"><span class="detail-label">Guests</span><span class="detail-value">' + (r.party_size||'-') + '</span></div>' +

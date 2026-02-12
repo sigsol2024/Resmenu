@@ -5,6 +5,7 @@
  */
 
 require_once __DIR__ . '/includes/functions.php';
+require_once __DIR__ . '/includes/order-functions.php';
 require_once __DIR__ . '/config/config.php';
 
 $slug = trim($_GET['slug'] ?? '');
@@ -85,7 +86,7 @@ $currencySymbol = '₦';
         <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
             <div class="flex justify-between items-center">
                 <span class="text-sm font-medium text-gray-600">Reservation</span>
-                <span class="text-lg font-bold" style="color:<?php echo htmlspecialchars($primaryColor); ?>">#<?php echo (int)$reservationId; ?></span>
+                <span class="text-lg font-bold" style="color:<?php echo htmlspecialchars($primaryColor); ?>">#<?php echo htmlspecialchars(getReservationDisplayNumber($reservation)); ?></span>
             </div>
         </div>
         <div class="p-6">

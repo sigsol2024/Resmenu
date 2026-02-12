@@ -608,6 +608,7 @@ CREATE TABLE `pending_online_payments` (
 
 CREATE TABLE `table_reservations` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `reservation_number` varchar(10) DEFAULT NULL,
   `restaurant_id` int(11) NOT NULL,
   `reservation_date` date NOT NULL,
   `reservation_time` time NOT NULL,

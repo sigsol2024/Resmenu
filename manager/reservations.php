@@ -7,6 +7,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 requireManager();
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/order-functions.php';
 
 $restaurantId = getCurrentUserRestaurantId();
 if (!$restaurantId) {
@@ -146,6 +147,7 @@ $statusColors = ['pending' => '#f59e0b', 'confirmed' => '#10b981', 'rejected' =>
         <table class="orders-table" style="width:100%;border-collapse:collapse;">
             <thead>
                 <tr style="border-bottom:1px solid #e5e7eb;">
+                    <th style="text-align:left;padding:12px 16px;font-size:0.75rem;color:#6b7280;font-weight:600;">#</th>
                     <th style="text-align:left;padding:12px 16px;font-size:0.75rem;color:#6b7280;font-weight:600;">Date & Time</th>
                     <th style="text-align:left;padding:12px 16px;font-size:0.75rem;color:#6b7280;font-weight:600;">Guest</th>
                     <th style="text-align:left;padding:12px 16px;font-size:0.75rem;color:#6b7280;font-weight:600;">Guests</th>
@@ -157,6 +159,7 @@ $statusColors = ['pending' => '#f59e0b', 'confirmed' => '#10b981', 'rejected' =>
             <tbody>
                 <?php foreach ($reservations as $r): ?>
                 <tr style="border-bottom:1px solid #f3f4f6;">
+                    <td style="padding:12px 16px;font-size:0.875rem;font-weight:600;">#<?php echo htmlspecialchars(getReservationDisplayNumber($r)); ?></td>
                     <td style="padding:12px 16px;font-size:0.875rem;"><?php echo date('M j, Y', strtotime($r['reservation_date'])); ?> <?php echo date('g:i A', strtotime($r['reservation_time'])); ?></td>
                     <td style="padding:12px 16px;font-size:0.875rem;"><?php echo htmlspecialchars($r['guest_name']); ?></td>
                     <td style="padding:12px 16px;font-size:0.875rem;"><?php echo (int)$r['party_size']; ?></td>
@@ -391,10 +394,12 @@ $statusColors = ['pending' => '#f59e0b', 'confirmed' => '#10b981', 'rejected' =>
                 const timeStr = r.reservation_time ? r.reservation_time.substring(0, 5) : '-';
                 const statusClr = { pending: '#f59e0b', confirmed: '#10b981', rejected: '#ef4444', cancelled: '#6b7280', completed: '#3b82f6' }[r.status] || '#6b7280';
                 const body = document.getElementById('reservation-modal-body');
+                const resNum = (r.reservation_number && r.reservation_number.trim()) ? r.reservation_number : ('0' + (parseInt(r.id,10)||0).toString(36)).toUpperCase().slice(-8);
                 body.innerHTML = '<div class="detail-modal">' +
                     '<div class="detail-modal-section">' +
                     '<h4 class="detail-modal-heading">Reservation Details</h4>' +
                     '<div class="detail-modal-grid">' +
+                    '<div class="detail-modal-item"><span class="detail-label">Reservation #</span><span class="detail-value">' + resNum + '</span></div>' +
                     '<div class="detail-modal-item"><span class="detail-label">Date</span><span class="detail-value">' + dateStr + '</span></div>' +
                     '<div class="detail-modal-item"><span class="detail-label">Time</span><span class="detail-value">' + timeStr + '</span></div>' +
                     '<div class="detail-modal-item"><span class="detail-label">Guests</span><span class="detail-value">' + (r.party_size || '-') + '</span></div>' +

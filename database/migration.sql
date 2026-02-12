@@ -209,3 +209,6 @@ CREATE TABLE IF NOT EXISTS `table_inventory_daily` (
 
 -- 16. Add is_walkin flag to table_reservations (for walk-in tracking)
 ALTER TABLE `table_reservations` ADD COLUMN IF NOT EXISTS `is_walkin` tinyint(1) NOT NULL DEFAULT 0 AFTER `status`;
+
+-- 17. Add reservation_number (8-char alphanumeric, same pattern as orders)
+ALTER TABLE `table_reservations` ADD COLUMN IF NOT EXISTS `reservation_number` varchar(10) DEFAULT NULL AFTER `id`;

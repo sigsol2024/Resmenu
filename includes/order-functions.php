@@ -21,6 +21,27 @@ function generateOrderNumber() {
 }
 
 /**
+ * Generate a unique 8-character alphanumeric reservation number (same pattern as orders)
+ * @return string
+ */
+function generateReservationNumber() {
+    return generateOrderNumber();
+}
+
+/**
+ * Get display reservation number (8-char alphanumeric). Uses reservation_number if set, else generates from id for legacy.
+ * @param array $reservation Reservation row with id and optionally reservation_number
+ * @return string
+ */
+function getReservationDisplayNumber($reservation) {
+    if (!empty($reservation['reservation_number'])) {
+        return $reservation['reservation_number'];
+    }
+    $id = (int)($reservation['id'] ?? 0);
+    return strtoupper(str_pad(base_convert((string)$id, 10, 36), 8, '0', STR_PAD_LEFT));
+}
+
+/**
  * Get display order number (8-char alphanumeric). Uses order_number if set, else generates from id for legacy orders.
  * @param array $order Order row with id and optionally order_number
  * @return string

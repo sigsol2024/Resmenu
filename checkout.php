@@ -92,7 +92,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($reservationForPost) {
             $subtotal = (float)$reservationForPost['deposit_amount'];
             $total = $subtotal;
-            $deliveryAddress = 'Table reservation #' . $postReservationId;
+            require_once __DIR__ . '/includes/order-functions.php';
+            $deliveryAddress = 'Table reservation #' . getReservationDisplayNumber($reservationForPost);
             $cartJsonForDb = null;
             $paymentType = 'reservation';
         } else {
