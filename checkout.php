@@ -1,7 +1,7 @@
 <?php
 /**
  * Checkout Page
- * Secure checkout for restaurant orders
+ * Dynamic: handles both restaurant orders AND reservation deposits
  */
 
 require_once __DIR__ . '/includes/functions.php';
@@ -9,6 +9,8 @@ require_once __DIR__ . '/includes/restaurant-payment-functions.php';
 require_once __DIR__ . '/config/config.php';
 
 $slug = trim($_GET['slug'] ?? $_POST['slug'] ?? '');
+$reservationId = isset($_GET['reservation_id']) ? (int)$_GET['reservation_id'] : (isset($_POST['reservation_id']) ? (int)$_POST['reservation_id'] : 0);
+
 if (empty($slug)) {
     header('Location: /');
     exit;
@@ -25,12 +27,28 @@ $customization = getCustomizationSettings($restaurant['id']);
 $primaryColor = $customization['primary_color'] ?? '#f20d0d';
 $paymentMethods = getRestaurantActivePaymentMethods($restaurant['id']);
 $restaurantName = htmlspecialchars($restaurant['name']);
-$menuUrl = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : '') . '/restaurant/' . $slug;
+$baseUrl = defined('SITE_URL') ? rtrim(SITE_URL, '/') : '';
+$menuUrl = $baseUrl . '/restaurant/' . $slug;
+$reservationUrl = $baseUrl . '/restaurant/' . $slug . '/reservation';
 $uploadBaseUrl = defined('UPLOAD_URL') ? rtrim(UPLOAD_URL, '/') : '';
 
 $currencySymbol = '₦';
 $deliveryFee = 0;
 $taxRate = 0;
+
+// Reservation mode: load reservation if valid
+$reservation = null;
+$isReservationCheckout = false;
+if ($reservationId > 0) {
+    $stmt = $pdo->prepare("SELECT * FROM table_reservations WHERE id = ? AND restaurant_id = ? AND status IN ('pending','confirmed') AND deposit_amount > 0 AND deposit_paid = 0");
+    $stmt->execute([$reservationId, $restaurant['id']]);
+    $reservation = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($reservation) {
+        $isReservationCheckout = true;
+    } else {
+        $reservationId = 0;
+    }
+}
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -40,20 +58,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $customerEmail = trim($_POST['customer_email'] ?? '');
     $deliveryAddress = trim($_POST['delivery_address'] ?? '');
     $paymentMethod = trim($_POST['payment_method'] ?? '');
+    $postReservationId = isset($_POST['reservation_id']) ? (int)$_POST['reservation_id'] : 0;
 
     $errors = [];
     if (empty($customerName)) $errors[] = 'Full name is required.';
     if (empty($customerPhone)) $errors[] = 'Phone number is required.';
     if (empty($customerEmail)) $errors[] = 'Email address is required.';
     if (!isValidEmail($customerEmail)) $errors[] = 'Please enter a valid email address.';
-    if (empty($deliveryAddress)) $errors[] = 'House address is required.';
 
     $cart = [];
-    if (!empty($cartJson)) {
-        $decoded = json_decode($cartJson, true);
-        if (is_array($decoded)) $cart = $decoded;
+    $reservationForPost = null;
+    if ($postReservationId > 0) {
+        $stmt = $pdo->prepare("SELECT * FROM table_reservations WHERE id = ? AND restaurant_id = ? AND deposit_amount > 0 AND deposit_paid = 0");
+        $stmt->execute([$postReservationId, $restaurant['id']]);
+        $reservationForPost = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$reservationForPost) $errors[] = 'Invalid or already paid reservation.';
+    } else {
+        if (empty($deliveryAddress)) $errors[] = 'House address is required.';
+        if (!empty($cartJson)) {
+            $decoded = json_decode($cartJson, true);
+            if (is_array($decoded)) $cart = $decoded;
+        }
+        if (empty($cart)) $errors[] = 'Your cart is empty. Please add items before checkout.';
     }
-    if (empty($cart)) $errors[] = 'Your cart is empty. Please add items before checkout.';
+
     if (empty($paymentMethods)) $errors[] = 'No payment methods configured. Please contact the restaurant.';
 
     $activeGateways = array_column($paymentMethods, 'gateway');
@@ -61,31 +89,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($paymentMethods) && $paymentMethod && !in_array($paymentMethod, $activeGateways)) $errors[] = 'Invalid payment method selected.';
 
     if (empty($errors)) {
-        $subtotal = 0;
-        foreach ($cart as $item) {
-            $price = (float)($item['price'] ?? 0);
-            $qty = max(1, (int)($item['quantity'] ?? 1));
-            $subtotal += $price * $qty;
+        if ($reservationForPost) {
+            $subtotal = (float)$reservationForPost['deposit_amount'];
+            $total = $subtotal;
+            $deliveryAddress = 'Table reservation #' . $postReservationId;
+            $cartJsonForDb = null;
+            $paymentType = 'reservation';
+        } else {
+            $subtotal = 0;
+            foreach ($cart as $item) {
+                $price = (float)($item['price'] ?? 0);
+                $qty = max(1, (int)($item['quantity'] ?? 1));
+                $subtotal += $price * $qty;
+            }
+            $tax = $subtotal * (float)$taxRate;
+            $total = $subtotal + (float)$deliveryFee + $tax;
+            $cartJsonForDb = json_encode($cart);
+            $paymentType = 'order';
         }
-        $tax = $subtotal * (float)$taxRate;
-        $total = $subtotal + (float)$deliveryFee + $tax;
-        $baseUrl = defined('SITE_URL') ? rtrim(SITE_URL, '/') : '';
 
         if ($paymentMethod === 'bank_transfer') {
-            // Bank transfer: don't create order yet - save draft, show bank details. Order created only when user clicks "I have made this payment"
             $token = bin2hex(random_bytes(24));
-            $stmt = $pdo->prepare("INSERT INTO pending_bank_transfers (token, restaurant_id, cart_json, customer_name, customer_phone, customer_email, delivery_address, subtotal, delivery_fee, tax, total) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $cols = "token, restaurant_id, payment_type, reservation_id, cart_json, customer_name, customer_phone, customer_email, delivery_address, subtotal, delivery_fee, tax, total";
+            $placeholders = "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?";
+            $stmt = $pdo->prepare("INSERT INTO pending_bank_transfers ($cols) VALUES ($placeholders)");
             $stmt->execute([
                 $token,
                 $restaurant['id'],
-                json_encode($cart),
+                $paymentType,
+                $reservationForPost ? (int)$postReservationId : null,
+                $cartJsonForDb ?? '[]',
                 $customerName,
                 $customerPhone,
                 $customerEmail,
                 $deliveryAddress,
                 $subtotal,
                 $deliveryFee,
-                $tax,
+                $reservationForPost ? 0 : $subtotal * (float)$taxRate,
                 $total
             ]);
             header('Location: ' . $baseUrl . '/bank-transfer-pending.php?token=' . urlencode($token));
@@ -93,22 +133,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if ($paymentMethod === 'paystack' || $paymentMethod === 'flutterwave') {
-            // Paystack/Flutterwave: don't create order yet - save draft, init payment. Order created only when payment succeeds
             require_once __DIR__ . '/includes/order-functions.php';
             $reference = 'POP_' . time() . '_' . bin2hex(random_bytes(8));
-            $stmt = $pdo->prepare("INSERT INTO pending_online_payments (reference, restaurant_id, gateway, cart_json, customer_name, customer_phone, customer_email, delivery_address, subtotal, delivery_fee, tax, total) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $cols = "reference, restaurant_id, payment_type, reservation_id, gateway, cart_json, customer_name, customer_phone, customer_email, delivery_address, subtotal, delivery_fee, tax, total";
+            $placeholders = "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?";
+            $stmt = $pdo->prepare("INSERT INTO pending_online_payments ($cols) VALUES ($placeholders)");
             $stmt->execute([
                 $reference,
                 $restaurant['id'],
+                $paymentType,
+                $reservationForPost ? (int)$postReservationId : null,
                 $paymentMethod,
-                json_encode($cart),
+                $cartJsonForDb ?? '[]',
                 $customerName,
                 $customerPhone,
                 $customerEmail,
                 $deliveryAddress,
                 $subtotal,
                 $deliveryFee,
-                $tax,
+                $reservationForPost ? 0 : $subtotal * (float)$taxRate,
                 $total
             ]);
 
@@ -190,8 +233,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <main class="flex-grow w-full max-w-[1280px] mx-auto px-4 lg:px-10 py-8 lg:py-12">
     <div class="mb-10 text-center lg:text-left">
-        <h1 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">Secure Checkout</h1>
-        <p class="text-gray-600">Complete your details below to finalize your order.</p>
+        <h1 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-2"><?php echo $isReservationCheckout ? 'Reservation Deposit' : 'Secure Checkout'; ?></h1>
+        <p class="text-gray-600"><?php echo $isReservationCheckout ? 'Pay your reservation deposit to confirm your table.' : 'Complete your details below to finalize your order.'; ?></p>
     </div>
 
     <?php if (!empty($errors)): ?>
@@ -205,8 +248,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <form method="post" id="checkout-form" class="flex flex-col lg:flex-row gap-8 lg:gap-16">
         <input type="hidden" name="slug" value="<?php echo htmlspecialchars($slug); ?>"/>
         <input type="hidden" name="cart_json" id="cart-json-input" value=""/>
+        <?php if ($isReservationCheckout): ?><input type="hidden" name="reservation_id" value="<?php echo (int)$reservationId; ?>"/><?php endif; ?>
 
         <div class="flex-1 min-w-0">
+            <?php if (!$isReservationCheckout): ?>
             <div class="mb-10">
                 <div class="flex items-center justify-between w-full relative">
                     <div class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-0.5 bg-gray-200 -z-10"></div>
@@ -224,18 +269,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
             </div>
+            <?php endif; ?>
 
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 lg:p-8">
                 <div class="flex items-center justify-between mb-6">
                     <h3 class="text-xl font-bold text-gray-900">Contact Information</h3>
-                    <span class="text-xs font-medium px-2 py-1 rounded" style="color:<?php echo htmlspecialchars($primaryColor); ?>;background-color:rgba(242,13,13,0.1)">Step 1 of 3</span>
+                    <?php if (!$isReservationCheckout): ?><span class="text-xs font-medium px-2 py-1 rounded" style="color:<?php echo htmlspecialchars($primaryColor); ?>;background-color:rgba(242,13,13,0.1)">Step 1 of 3</span><?php endif; ?>
                 </div>
                 <div class="grid grid-cols-1 gap-6 mb-8">
                     <div class="flex flex-col gap-2">
                         <label class="text-sm font-medium text-gray-700">Full Name</label>
                         <input name="customer_name" type="text" placeholder="e.g. Jonathan Doe" required
                             class="w-full h-12 px-4 rounded-lg border border-gray-200 bg-white text-gray-900 focus:border-primary focus:ring-1 focus:ring-primary placeholder-gray-400"
-                            value="<?php echo htmlspecialchars($_POST['customer_name'] ?? ''); ?>"/>
+                            value="<?php echo htmlspecialchars($_POST['customer_name'] ?? ($reservation['guest_name'] ?? '')); ?>"/>
                     </div>
                     <div class="flex flex-col gap-2">
                         <label class="text-sm font-medium text-gray-700">Phone Number</label>
@@ -243,7 +289,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">call</span>
                             <input name="customer_phone" type="tel" placeholder="(555) 000-0000" required
                                 class="w-full h-12 pl-12 pr-4 rounded-lg border border-gray-200 bg-white text-gray-900 focus:border-primary focus:ring-1 focus:ring-primary placeholder-gray-400"
-                                value="<?php echo htmlspecialchars($_POST['customer_phone'] ?? ''); ?>"/>
+                                value="<?php echo htmlspecialchars($_POST['customer_phone'] ?? ($reservation['guest_phone'] ?? '')); ?>"/>
                         </div>
                     </div>
                     <div class="flex flex-col gap-2">
@@ -252,10 +298,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">email</span>
                             <input name="customer_email" type="email" placeholder="you@example.com" required
                                 class="w-full h-12 pl-12 pr-4 rounded-lg border border-gray-200 bg-white text-gray-900 focus:border-primary focus:ring-1 focus:ring-primary placeholder-gray-400"
-                                value="<?php echo htmlspecialchars($_POST['customer_email'] ?? ''); ?>"/>
+                                value="<?php echo htmlspecialchars($_POST['customer_email'] ?? ($reservation['guest_email'] ?? '')); ?>"/>
                         </div>
                     </div>
                 </div>
+                <?php if (!$isReservationCheckout): ?>
                 <div class="flex items-center justify-between mb-6 pt-6 border-t border-gray-200">
                     <h3 class="text-xl font-bold text-gray-900">Delivery Address</h3>
                 </div>
@@ -269,6 +316,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                     </div>
                 </div>
+                <?php else: ?>
+                <input type="hidden" name="delivery_address" value="Table reservation"/>
+                <?php endif; ?>
                 <div class="flex items-center justify-between mb-6 pt-6 border-t border-gray-200">
                     <h3 class="text-xl font-bold text-gray-900">Payment Method</h3>
                 </div>
@@ -324,36 +374,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="sticky top-24 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                 <div class="p-6 border-b border-gray-200 bg-gray-50">
                     <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
-                        <span class="material-symbols-outlined" style="color:<?php echo htmlspecialchars($primaryColor); ?>">receipt_long</span>
-                        Order Summary
+                        <span class="material-symbols-outlined" style="color:<?php echo htmlspecialchars($primaryColor); ?>"><?php echo $isReservationCheckout ? 'event_seat' : 'receipt_long'; ?></span>
+                        <?php echo $isReservationCheckout ? 'Reservation Summary' : 'Order Summary'; ?>
                     </h3>
                 </div>
                 <div class="p-6 flex flex-col gap-6">
+                    <?php if ($isReservationCheckout): ?>
+                    <div id="checkout-reservation-summary" class="space-y-2 text-sm text-gray-700">
+                        <p><strong>Date:</strong> <?php echo htmlspecialchars(date('M j, Y', strtotime($reservation['reservation_date']))); ?></p>
+                        <p><strong>Time:</strong> <?php echo htmlspecialchars(date('g:i A', strtotime($reservation['reservation_time']))); ?></p>
+                        <p><strong>Guests:</strong> <?php echo (int)$reservation['party_size']; ?></p>
+                        <p><strong>Deposit:</strong> <?php echo $currencySymbol . number_format((float)$reservation['deposit_amount'], 2); ?></p>
+                    </div>
+                    <?php else: ?>
                     <div id="checkout-order-items" class="flex flex-col gap-4 max-h-[300px] overflow-y-auto pr-2"></div>
+                    <?php endif; ?>
                     <div class="h-px bg-gray-200 w-full"></div>
                     <div class="flex flex-col gap-2 pt-2">
-                        <div class="flex justify-between text-sm">
-                            <span class="text-gray-600">Subtotal</span>
-                            <span id="checkout-subtotal" class="font-medium text-gray-900">₦0.00</span>
-                        </div>
-                        <div class="flex justify-between text-sm">
-                            <span class="text-gray-600">Delivery Fee</span>
-                            <span id="checkout-delivery" class="font-medium text-gray-900">₦0.00</span>
-                        </div>
-                        <div class="flex justify-between text-sm">
-                            <span class="text-gray-600">Tax</span>
-                            <span id="checkout-tax" class="font-medium text-gray-900">₦0.00</span>
-                        </div>
+                    <?php if (!$isReservationCheckout): ?>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Subtotal</span>
+                        <span id="checkout-subtotal" class="font-medium text-gray-900">₦0.00</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Delivery Fee</span>
+                        <span id="checkout-delivery" class="font-medium text-gray-900">₦0.00</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Tax</span>
+                        <span id="checkout-tax" class="font-medium text-gray-900">₦0.00</span>
+                    </div>
+                    <?php endif; ?>
                     </div>
                     <div class="flex justify-between items-end pt-4 border-t border-dashed border-gray-200">
                         <span class="text-base font-bold text-gray-900">Total</span>
-                        <span id="checkout-total" class="text-2xl font-bold" style="color:<?php echo htmlspecialchars($primaryColor); ?>">₦0.00</span>
+                        <span id="checkout-total" class="text-2xl font-bold" style="color:<?php echo htmlspecialchars($primaryColor); ?>"><?php echo $isReservationCheckout ? $currencySymbol . number_format((float)($reservation['deposit_amount'] ?? 0), 2) : '₦0.00'; ?></span>
                     </div>
                     <button type="submit" class="w-full mt-4 h-14 px-6 rounded-lg text-white font-bold text-base shadow-lg transition-all flex items-center justify-center gap-2 group" style="background-color:<?php echo htmlspecialchars($primaryColor); ?>">
-                        Proceed to Payment <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                        <?php echo $isReservationCheckout ? 'Pay Deposit' : 'Proceed to Payment'; ?> <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
                     </button>
-                    <a href="<?php echo htmlspecialchars($menuUrl); ?>" class="inline-flex items-center justify-center gap-1.5 py-2 text-sm text-gray-500 hover:text-gray-700 transition-colors">
-                        <span class="material-symbols-outlined text-base">arrow_back</span> Back to Menu
+                    <a href="<?php echo $isReservationCheckout ? htmlspecialchars($reservationUrl) : htmlspecialchars($menuUrl); ?>" class="inline-flex items-center justify-center gap-1.5 py-2 text-sm text-gray-500 hover:text-gray-700 transition-colors">
+                        <span class="material-symbols-outlined text-base">arrow_back</span> <?php echo $isReservationCheckout ? 'Back to Reservation' : 'Back to Menu'; ?>
                     </a>
                 </div>
                 <div class="bg-gray-50 p-4 text-center">
@@ -376,40 +437,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <script src="<?php echo rtrim(SITE_URL ?? '', '/'); ?>/assets/js/cart.js"></script>
 <script>
 (function() {
-    const CART = window.RESMENU_CART;
+    const isReservation = <?php echo $isReservationCheckout ? 'true' : 'false'; ?>;
     const slug = <?php echo json_encode($slug); ?>;
     const symbol = <?php echo json_encode($currencySymbol); ?>;
     const uploadBaseUrl = <?php echo json_encode($uploadBaseUrl); ?>;
     const deliveryFee = <?php echo (float)$deliveryFee; ?>;
     const taxRate = <?php echo (float)$taxRate; ?>;
 
-    const items = CART.getCart(slug);
-    const subtotal = CART.getTotalAmount(slug);
-    const tax = subtotal * taxRate;
-    const total = subtotal + deliveryFee + tax;
+    if (isReservation) {
+        document.getElementById('cart-json-input').value = '[]';
+    } else {
+        const CART = window.RESMENU_CART;
+        const items = CART ? CART.getCart(slug) : [];
+        const subtotal = CART ? CART.getTotalAmount(slug) : 0;
+        const tax = subtotal * taxRate;
+        const total = subtotal + deliveryFee + tax;
 
-    document.getElementById('cart-json-input').value = JSON.stringify(items);
+        document.getElementById('cart-json-input').value = JSON.stringify(items);
 
-    const itemsEl = document.getElementById('checkout-order-items');
-    const itemsHtml = items.map(function(item) {
-        const imgUrl = item.image ? (uploadBaseUrl + '/menu-items/' + item.image) : '';
-        const imgStyle = imgUrl ? 'background-image:url(\'' + imgUrl.replace(/'/g, "\\'") + '\')' : 'background:#e5e5e5';
-        const lineTotal = (parseFloat(item.price) || 0) * (item.quantity || 1);
-        return '<div class="flex gap-4"><div class="w-16 h-16 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0 bg-cover bg-center" style="' + imgStyle + '"></div><div class="flex-1 flex flex-col justify-between"><div class="flex justify-between items-start"><p class="text-sm font-bold text-gray-900">' + (item.name || '').replace(/</g, '&lt;') + '</p><p class="text-sm font-bold text-gray-900">' + CART.formatPrice(lineTotal, symbol) + '</p></div><p class="text-xs text-gray-600">Qty: ' + (item.quantity || 1) + '</p></div></div>';
-    }).join('');
-    itemsEl.innerHTML = itemsHtml || '<p class="text-gray-600 py-4">No items in cart.</p>';
-
-    document.getElementById('checkout-subtotal').textContent = CART.formatPrice(subtotal, symbol);
-    document.getElementById('checkout-delivery').textContent = CART.formatPrice(deliveryFee, symbol);
-    document.getElementById('checkout-tax').textContent = CART.formatPrice(tax, symbol);
-    document.getElementById('checkout-total').textContent = CART.formatPrice(total, symbol);
-
-    document.getElementById('checkout-form').addEventListener('submit', function() {
-        if (items.length === 0) {
-            alert('Your cart is empty. Please add items before checkout.');
-            return false;
+        const itemsEl = document.getElementById('checkout-order-items');
+        if (itemsEl) {
+            const itemsHtml = (items || []).map(function(item) {
+                const imgUrl = item.image ? (uploadBaseUrl + '/menu-items/' + item.image) : '';
+                const imgStyle = imgUrl ? 'background-image:url(\'' + imgUrl.replace(/'/g, "\\'") + '\')' : 'background:#e5e5e5';
+                const lineTotal = (parseFloat(item.price) || 0) * (item.quantity || 1);
+                return '<div class="flex gap-4"><div class="w-16 h-16 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0 bg-cover bg-center" style="' + imgStyle + '"></div><div class="flex-1 flex flex-col justify-between"><div class="flex justify-between items-start"><p class="text-sm font-bold text-gray-900">' + (item.name || '').replace(/</g, '&lt;') + '</p><p class="text-sm font-bold text-gray-900">' + (CART ? CART.formatPrice(lineTotal, symbol) : '') + '</p></div><p class="text-xs text-gray-600">Qty: ' + (item.quantity || 1) + '</p></div></div>';
+            }).join('');
+            itemsEl.innerHTML = itemsHtml || '<p class="text-gray-600 py-4">No items in cart.</p>';
         }
-    });
+
+        var subEl = document.getElementById('checkout-subtotal');
+        if (subEl) subEl.textContent = CART ? CART.formatPrice(subtotal, symbol) : symbol + '0.00';
+        var delEl = document.getElementById('checkout-delivery');
+        if (delEl) delEl.textContent = CART ? CART.formatPrice(deliveryFee, symbol) : symbol + '0.00';
+        var taxEl = document.getElementById('checkout-tax');
+        if (taxEl) taxEl.textContent = CART ? CART.formatPrice(tax, symbol) : symbol + '0.00';
+        var totalEl = document.getElementById('checkout-total');
+        if (totalEl) totalEl.textContent = CART ? CART.formatPrice(total, symbol) : symbol + '0.00';
+
+        document.getElementById('checkout-form').addEventListener('submit', function(e) {
+            if (!items || items.length === 0) {
+                e.preventDefault();
+                alert('Your cart is empty. Please add items before checkout.');
+                return false;
+            }
+        });
+    }
 })();
 </script>
 </body>

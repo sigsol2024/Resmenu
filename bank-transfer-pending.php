@@ -45,8 +45,16 @@ if (empty($bankTransferMethod['is_active']) || empty($bankTransferMethod['accoun
     exit;
 }
 
-$cart = json_decode($draft['cart_json'], true);
+$cart = json_decode($draft['cart_json'] ?? '[]', true);
 if (!is_array($cart)) $cart = [];
+
+$isReservation = (($draft['payment_type'] ?? 'order') === 'reservation') && !empty($draft['reservation_id']);
+$reservation = null;
+if ($isReservation) {
+    $stmtRes = $pdo->prepare("SELECT * FROM table_reservations WHERE id = ? AND restaurant_id = ?");
+    $stmtRes->execute([$draft['reservation_id'], $draft['restaurant_id']]);
+    $reservation = $stmtRes->fetch(PDO::FETCH_ASSOC);
+}
 
 $customization = getCustomizationSettings($restaurant['id']);
 $primaryColor = $customization['primary_color'] ?? '#f20d0d';
@@ -93,7 +101,7 @@ $orderCreatedAtUnix = strtotime($draft['created_at'] ?? 'now');
             <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 text-blue-600 mb-4">
                 <span class="material-symbols-outlined text-4xl">account_balance</span>
             </div>
-            <h1 class="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Complete Your Payment</h1>
+            <h1 class="text-2xl lg:text-3xl font-bold text-gray-900 mb-2"><?php echo $isReservation ? 'Complete Your Reservation Deposit' : 'Complete Your Payment'; ?></h1>
             <p class="text-gray-600">Complete your bank transfer using the details below. You have 15 minutes.</p>
         </div>
 
@@ -117,12 +125,19 @@ $orderCreatedAtUnix = strtotime($draft['created_at'] ?? 'now');
                     <span id="countdown-text" class="font-mono font-bold text-lg">15:00</span>
                 </div>
                 <div class="mb-4">
-                    <p class="text-xs font-medium text-gray-500 uppercase mb-1">Delivery to</p>
+                    <p class="text-xs font-medium text-gray-500 uppercase mb-1"><?php echo $isReservation ? 'Reservation for' : 'Delivery to'; ?></p>
                     <p class="font-medium text-gray-900"><?php echo htmlspecialchars($draft['customer_name']); ?></p>
-                    <p class="text-sm text-gray-600"><?php echo htmlspecialchars($draft['delivery_address']); ?></p>
+                    <?php if (!$isReservation): ?><p class="text-sm text-gray-600"><?php echo htmlspecialchars($draft['delivery_address']); ?></p><?php endif; ?>
                 </div>
                 <div class="border-t border-gray-200 pt-4">
-                    <p class="text-xs font-medium text-gray-500 uppercase mb-3">Order summary</p>
+                    <p class="text-xs font-medium text-gray-500 uppercase mb-3"><?php echo $isReservation ? 'Reservation deposit' : 'Order summary'; ?></p>
+                    <?php if ($isReservation && $reservation): ?>
+                    <div class="space-y-2 text-sm">
+                        <p><strong>Date:</strong> <?php echo htmlspecialchars(date('M j, Y', strtotime($reservation['reservation_date']))); ?></p>
+                        <p><strong>Time:</strong> <?php echo htmlspecialchars(date('g:i A', strtotime($reservation['reservation_time']))); ?></p>
+                        <p><strong>Guests:</strong> <?php echo (int)$reservation['party_size']; ?></p>
+                    </div>
+                    <?php else: ?>
                     <div class="space-y-3">
                         <?php foreach ($cart as $item): ?>
                         <div class="flex justify-between text-sm">
@@ -131,6 +146,7 @@ $orderCreatedAtUnix = strtotime($draft['created_at'] ?? 'now');
                         </div>
                         <?php endforeach; ?>
                     </div>
+                    <?php endif; ?>
                     <div class="flex justify-between font-bold text-base mt-4 pt-4 border-t border-gray-200">
                         <span class="text-gray-900">Total</span>
                         <span style="color:<?php echo htmlspecialchars($primaryColor); ?>"><?php echo $currencySymbol . number_format((float)$draft['total'], 2); ?></span>
@@ -152,11 +168,11 @@ $orderCreatedAtUnix = strtotime($draft['created_at'] ?? 'now');
                 <span class="material-symbols-outlined text-4xl">check_circle</span>
             </div>
             <h1 class="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Thank you!</h1>
-            <p class="text-gray-600">Your order has been recorded. It will be approved once payment is confirmed.</p>
+            <p class="text-gray-600"><?php echo $isReservation ? 'Your reservation deposit has been recorded. We look forward to seeing you!' : 'Your order has been recorded. It will be approved once payment is confirmed.'; ?></p>
         </div>
         <div class="text-center">
-            <a href="<?php echo htmlspecialchars($menuUrl); ?>" class="inline-flex items-center justify-center gap-2 w-full sm:w-auto h-14 px-8 rounded-lg text-white font-bold text-base shadow-lg transition-all hover:opacity-90" style="background-color:<?php echo htmlspecialchars($primaryColor); ?>">
-                <span class="material-symbols-outlined">done</span> Done
+            <a href="<?php echo $isReservation ? htmlspecialchars($baseUrl . '/restaurant/' . $slug . '/reservation') : htmlspecialchars($menuUrl); ?>" class="inline-flex items-center justify-center gap-2 w-full sm:w-auto h-14 px-8 rounded-lg text-white font-bold text-base shadow-lg transition-all hover:opacity-90" style="background-color:<?php echo htmlspecialchars($primaryColor); ?>">
+                <span class="material-symbols-outlined">done</span> <?php echo $isReservation ? 'Back to Reservation' : 'Done'; ?>
             </a>
         </div>
     </div>
@@ -166,12 +182,12 @@ $orderCreatedAtUnix = strtotime($draft['created_at'] ?? 'now');
             <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 text-red-600 mb-4">
                 <span class="material-symbols-outlined text-4xl">cancel</span>
             </div>
-            <h1 class="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Order invoice expired</h1>
-            <p class="text-gray-600">The payment window has expired. This order was not recorded. Please place a new order if you still wish to order.</p>
+            <h1 class="text-2xl lg:text-3xl font-bold text-gray-900 mb-2"><?php echo $isReservation ? 'Payment window expired' : 'Order invoice expired'; ?></h1>
+            <p class="text-gray-600"><?php echo $isReservation ? 'The payment window has expired. Please make a new reservation if you still wish to book.' : 'The payment window has expired. This order was not recorded. Please place a new order if you still wish to order.'; ?></p>
         </div>
         <div class="text-center">
-            <a href="<?php echo htmlspecialchars($menuUrl); ?>" class="inline-flex items-center justify-center gap-2 w-full sm:w-auto h-14 px-8 rounded-lg text-white font-bold text-base shadow-lg transition-all hover:opacity-90" style="background-color:<?php echo htmlspecialchars($primaryColor); ?>">
-                <span class="material-symbols-outlined">arrow_back</span> Back to Menu
+            <a href="<?php echo $isReservation ? htmlspecialchars($baseUrl . '/restaurant/' . $slug . '/reservation') : htmlspecialchars($menuUrl); ?>" class="inline-flex items-center justify-center gap-2 w-full sm:w-auto h-14 px-8 rounded-lg text-white font-bold text-base shadow-lg transition-all hover:opacity-90" style="background-color:<?php echo htmlspecialchars($primaryColor); ?>">
+                <span class="material-symbols-outlined">arrow_back</span> <?php echo $isReservation ? 'Back to Reservation' : 'Back to Menu'; ?>
             </a>
         </div>
     </div>

@@ -120,15 +120,47 @@ function createOrder($restaurantId, $cart, $customer, $deliveryFee = 0, $taxRate
 }
 
 /**
+ * Complete reservation deposit from pending online payment (Paystack/Flutterwave success)
+ * @param string $reference Pending record reference
+ * @param string $gateway paystack or flutterwave
+ * @return array ['success' => bool, 'reservation_id' => int|null, 'slug' => string, 'errors' => array]
+ */
+function completeReservationDepositFromPending($reference, $gateway) {
+    $pdo = getDBConnection();
+    if (!$pdo) {
+        return ['success' => false, 'reservation_id' => null, 'slug' => '', 'errors' => ['Database connection failed.']];
+    }
+
+    $stmt = $pdo->prepare("SELECT * FROM pending_online_payments WHERE reference = ? AND gateway = ? AND payment_type = 'reservation' AND reservation_id IS NOT NULL");
+    $stmt->execute([$reference, $gateway]);
+    $draft = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$draft) {
+        return ['success' => false, 'reservation_id' => null, 'slug' => '', 'errors' => ['Pending reservation payment not found.']];
+    }
+
+    $reservationId = (int)$draft['reservation_id'];
+    $restaurantId = (int)$draft['restaurant_id'];
+
+    $pdo->prepare("UPDATE table_reservations SET deposit_paid = 1, updated_at = NOW() WHERE id = ? AND restaurant_id = ?")->execute([$reservationId, $restaurantId]);
+    $pdo->prepare("DELETE FROM pending_online_payments WHERE reference = ?")->execute([$reference]);
+
+    $restaurant = getRestaurant($restaurantId);
+    $slug = $restaurant['slug'] ?? '';
+
+    return ['success' => true, 'reservation_id' => $reservationId, 'slug' => $slug, 'errors' => []];
+}
+
+/**
  * Create order from pending online payment (Paystack/Flutterwave success)
  * @param string $reference Pending record reference
  * @param string $gateway paystack or flutterwave
- * @return array ['success' => bool, 'order_id' => int|null, 'slug' => string, 'errors' => array]
+ * @return array ['success' => bool, 'order_id' => int|null, 'slug' => string, 'type' => 'order'|'reservation', 'reservation_id' => int|null, 'errors' => array]
  */
 function createOrderFromPendingOnlinePayment($reference, $gateway) {
     $pdo = getDBConnection();
     if (!$pdo) {
-        return ['success' => false, 'order_id' => null, 'slug' => '', 'errors' => ['Database connection failed.']];
+        return ['success' => false, 'order_id' => null, 'slug' => '', 'type' => 'order', 'errors' => ['Database connection failed.']];
     }
 
     $stmt = $pdo->prepare("SELECT * FROM pending_online_payments WHERE reference = ? AND gateway = ?");
@@ -136,10 +168,22 @@ function createOrderFromPendingOnlinePayment($reference, $gateway) {
     $draft = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$draft) {
-        return ['success' => false, 'order_id' => null, 'slug' => '', 'errors' => ['Pending payment not found.']];
+        return ['success' => false, 'order_id' => null, 'slug' => '', 'type' => 'order', 'errors' => ['Pending payment not found.']];
     }
 
-    $cart = json_decode($draft['cart_json'], true);
+    if (($draft['payment_type'] ?? 'order') === 'reservation' && !empty($draft['reservation_id'])) {
+        $result = completeReservationDepositFromPending($reference, $gateway);
+        return [
+            'success' => $result['success'],
+            'order_id' => null,
+            'slug' => $result['slug'],
+            'type' => 'reservation',
+            'reservation_id' => $result['reservation_id'] ?? null,
+            'errors' => $result['errors'] ?? []
+        ];
+    }
+
+    $cart = json_decode($draft['cart_json'] ?? '[]', true);
     if (!is_array($cart)) $cart = [];
 
     $subtotal = (float)$draft['subtotal'];
@@ -168,5 +212,5 @@ function createOrderFromPendingOnlinePayment($reference, $gateway) {
 
     $pdo->prepare("DELETE FROM pending_online_payments WHERE reference = ?")->execute([$reference]);
 
-    return ['success' => true, 'order_id' => $orderId, 'slug' => $slug, 'errors' => []];
+    return ['success' => true, 'order_id' => $orderId, 'slug' => $slug, 'type' => 'order', 'errors' => []];
 }

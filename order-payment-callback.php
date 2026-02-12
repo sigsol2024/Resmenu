@@ -47,7 +47,11 @@ if ($gateway === 'paystack') {
     if ($verify && $verify['success']) {
         $result = createOrderFromPendingOnlinePayment($reference, 'paystack');
         if ($result['success']) {
-            header('Location: ' . $baseUrl . '/order-confirmation.php?slug=' . urlencode($result['slug']) . '&order_id=' . (int)$result['order_id']);
+            if (($result['type'] ?? 'order') === 'reservation' && !empty($result['reservation_id'])) {
+                header('Location: ' . $baseUrl . '/reservation-confirmation.php?slug=' . urlencode($result['slug']) . '&reservation_id=' . (int)$result['reservation_id']);
+            } else {
+                header('Location: ' . $baseUrl . '/order-confirmation.php?slug=' . urlencode($result['slug']) . '&order_id=' . (int)$result['order_id']);
+            }
             exit;
         }
     }
@@ -86,7 +90,11 @@ if ($gateway === 'flutterwave') {
     if ($verify && $verify['success']) {
         $result = createOrderFromPendingOnlinePayment($txRef, 'flutterwave');
         if ($result['success']) {
-            header('Location: ' . $baseUrl . '/order-confirmation.php?slug=' . urlencode($result['slug']) . '&order_id=' . (int)$result['order_id']);
+            if (($result['type'] ?? 'order') === 'reservation' && !empty($result['reservation_id'])) {
+                header('Location: ' . $baseUrl . '/reservation-confirmation.php?slug=' . urlencode($result['slug']) . '&reservation_id=' . (int)$result['reservation_id']);
+            } else {
+                header('Location: ' . $baseUrl . '/order-confirmation.php?slug=' . urlencode($result['slug']) . '&order_id=' . (int)$result['order_id']);
+            }
             exit;
         }
     }

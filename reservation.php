@@ -107,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
             $reservationId = (int) $pdo->lastInsertId();
             if ($depositAmount > 0 && $reservationId) {
-                header('Location: ' . $baseUrl . '/restaurant/' . $slug . '/reservation-checkout?reservation_id=' . $reservationId);
+                header('Location: ' . $baseUrl . '/restaurant/' . $slug . '/checkout?reservation_id=' . $reservationId);
                 exit;
             }
             $success = true;
