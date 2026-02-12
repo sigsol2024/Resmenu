@@ -37,7 +37,10 @@ $bgColor = $customization['background_color'] ?? '#f8f5f5';
 
 $menuUrl = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : '') . '/restaurant/' . $slug;
 $reservationUrl = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : '') . '/restaurant/' . $slug . '/reservation';
+$baseUrl = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : '');
 $uploadBaseUrl = defined('UPLOAD_URL') ? rtrim(UPLOAD_URL, '/') : '';
+$reservationSettings = getReservationSettings($restaurant['id']);
+$depositAmount = (float) ($reservationSettings['deposit_amount'] ?? 0);
 
 $heroBgImage = '';
 if (!empty($restaurant['hero_image'])) {
@@ -86,8 +89,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($errors)) {
         try {
             $stmt = $pdo->prepare("
-                INSERT INTO table_reservations (restaurant_id, reservation_date, reservation_time, party_size, guest_name, guest_email, guest_phone, special_occasion, notes, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+                INSERT INTO table_reservations (restaurant_id, reservation_date, reservation_time, party_size, guest_name, guest_email, guest_phone, special_occasion, notes, status, deposit_amount)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)
             ");
             $timeWithSeconds = strlen($reservationTime) === 5 ? $reservationTime . ':00' : $reservationTime;
             $stmt->execute([
@@ -100,7 +103,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $guestPhone,
                 $specialOccasion ?: null,
                 $notes ?: null,
+                $depositAmount,
             ]);
+            $reservationId = (int) $pdo->lastInsertId();
+            if ($depositAmount > 0 && $reservationId) {
+                header('Location: ' . $baseUrl . '/restaurant/' . $slug . '/reservation-checkout?reservation_id=' . $reservationId);
+                exit;
+            }
             $success = true;
         } catch (PDOException $e) {
             error_log("Table reservation insert error: " . $e->getMessage());
@@ -174,7 +183,7 @@ $restaurantName = htmlspecialchars($restaurant['name']);
 
 <!-- Main Content -->
 <main class="relative z-10 max-w-4xl mx-auto px-4 py-12">
-    <div class="bg-white dark:bg-zinc-900 rounded-xl shadow-2xl overflow-hidden border border-black/5 dark:border-white/10">
+    <div class="bg-white rounded-xl shadow-2xl overflow-hidden border border-gray-200">
         <div class="p-8 md:p-12">
             <?php if ($success): ?>
                 <header class="text-center mb-10">
@@ -199,93 +208,133 @@ $restaurantName = htmlspecialchars($restaurant['name']);
                 </div>
                 <?php endif; ?>
 
-                <form method="post" class="space-y-8">
-                    <input type="hidden" name="slug" value="<?php echo htmlspecialchars($slug); ?>"/>
-                    <input type="hidden" name="party_size" id="party-size-input" value="<?php echo (int) ($_POST['party_size'] ?? 4); ?>"/>
-
-                    <!-- Step 1: Date & Party Size -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-semibold uppercase tracking-wider mb-3 text-slate-700 dark:text-slate-300">Select Date</label>
-                            <div class="relative">
-                                <span class="material-icons absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">calendar_today</span>
-                                <input name="reservation_date" type="date" min="<?php echo $minDate; ?>" required
-                                    value="<?php echo htmlspecialchars($_POST['reservation_date'] ?? $selectedDate); ?>"
-                                    class="w-full pl-12 pr-4 py-3 bg-background-light dark:bg-zinc-800 border-none rounded-lg focus:ring-2 focus:ring-primary text-slate-900 dark:text-white"/>
-                            </div>
+                <!-- Progress steps -->
+                <div class="mb-10">
+                    <div class="flex items-center justify-between w-full relative">
+                        <div class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-0.5 bg-gray-200 -z-10"></div>
+                        <div class="flex flex-col items-center gap-2 px-2" style="background-color:<?php echo htmlspecialchars($bgColor); ?>">
+                            <div class="res-step-indicator w-10 h-10 rounded-full font-bold shadow-lg ring-4 flex items-center justify-center" id="step-ind-1" data-step="1" style="background-color:<?php echo htmlspecialchars($primaryColor); ?>;color:white;ring-color:<?php echo htmlspecialchars($bgColor); ?>">1</div>
+                            <span class="text-xs font-semibold text-gray-600">Date & Time</span>
                         </div>
-                        <div>
-                            <label class="block text-sm font-semibold uppercase tracking-wider mb-3 text-slate-700 dark:text-slate-300">Party Size</label>
-                            <div class="flex items-center justify-between px-4 py-3 bg-background-light dark:bg-zinc-800 rounded-lg">
-                                <button type="button" id="party-minus" class="w-8 h-8 flex items-center justify-center rounded-full bg-white dark:bg-zinc-700 shadow hover:bg-primary hover:text-white transition-colors">
-                                    <span class="material-icons text-sm">remove</span>
-                                </button>
-                                <span id="party-display" class="font-bold text-lg px-4"><?php echo (int) ($_POST['party_size'] ?? 4); ?> Guests</span>
-                                <button type="button" id="party-plus" class="w-8 h-8 flex items-center justify-center rounded-full bg-white dark:bg-zinc-700 shadow hover:bg-primary hover:text-white transition-colors">
-                                    <span class="material-icons text-sm">add</span>
-                                </button>
-                            </div>
+                        <div class="flex flex-col items-center gap-2 px-2" style="background-color:<?php echo htmlspecialchars($bgColor); ?>">
+                            <div class="res-step-indicator w-10 h-10 rounded-full bg-white border-2 border-gray-200 text-gray-500 font-medium ring-4 flex items-center justify-center" id="step-ind-2" data-step="2" style="ring-color:<?php echo htmlspecialchars($bgColor); ?>">2</div>
+                            <span class="text-xs font-medium text-gray-500">Guest Info</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-2 px-2" style="background-color:<?php echo htmlspecialchars($bgColor); ?>">
+                            <div class="res-step-indicator w-10 h-10 rounded-full bg-white border-2 border-gray-200 text-gray-500 font-medium ring-4 flex items-center justify-center" id="step-ind-3" data-step="3" style="ring-color:<?php echo htmlspecialchars($bgColor); ?>">3</div>
+                            <span class="text-xs font-medium text-gray-500">Requests</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-2 px-2" style="background-color:<?php echo htmlspecialchars($bgColor); ?>">
+                            <div class="res-step-indicator w-10 h-10 rounded-full bg-white border-2 border-gray-200 text-gray-500 font-medium ring-4 flex items-center justify-center" id="step-ind-4" data-step="4" style="ring-color:<?php echo htmlspecialchars($bgColor); ?>">4</div>
+                            <span class="text-xs font-medium text-gray-500">Confirm</span>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Step 2: Time Selection -->
-                    <div>
-                        <label class="block text-sm font-semibold uppercase tracking-wider mb-4 text-slate-700 dark:text-slate-300 text-center">Available Time Slots</label>
-                        <div class="grid grid-cols-3 md:grid-cols-6 gap-3">
-                            <?php foreach ($timeSlots as $slot): ?>
+                <form method="post" id="reservation-form">
+                    <input type="hidden" name="slug" value="<?php echo htmlspecialchars($slug); ?>"/>
+                    <input type="hidden" name="party_size" id="party-size-input" value="<?php echo (int) ($_POST['party_size'] ?? 1); ?>"/>
+
+                    <!-- Step 1: Date, Number of Guests, Time -->
+                    <div class="res-step" data-step="1">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <label class="block text-sm font-semibold uppercase tracking-wider mb-3 text-gray-700">Select Date</label>
+                                <div class="relative">
+                                    <span class="material-icons absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">calendar_today</span>
+                                    <input name="reservation_date" id="reservation-date-input" type="date" min="<?php echo $minDate; ?>" required
+                                        value="<?php echo htmlspecialchars($_POST['reservation_date'] ?? $selectedDate); ?>"
+                                        class="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-gray-900"/>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold uppercase tracking-wider mb-3 text-gray-700">Number of Guests</label>
+                                <div class="flex items-center justify-between px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg">
+                                    <button type="button" id="party-minus" class="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-gray-200 shadow hover:bg-primary hover:text-white hover:border-primary transition-colors">
+                                        <span class="material-icons text-sm">remove</span>
+                                    </button>
+                                    <span id="party-display" class="font-bold text-lg px-4 text-gray-900"><?php echo (int) ($_POST['party_size'] ?? 1); ?> Guest<?php echo ($_POST['party_size'] ?? 1) != 1 ? 's' : ''; ?></span>
+                                    <button type="button" id="party-plus" class="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-gray-200 shadow hover:bg-primary hover:text-white hover:border-primary transition-colors">
+                                        <span class="material-icons text-sm">add</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold uppercase tracking-wider mb-4 text-gray-700 text-center">Available Time Slots</label>
+                            <div id="time-slots-container" class="grid grid-cols-3 md:grid-cols-6 gap-3">
+                                <?php foreach ($timeSlots as $slot): ?>
                                 <button type="button" data-time="<?php echo htmlspecialchars($slot['time']); ?>"
-                                    class="time-slot py-3 px-2 text-sm font-bold rounded-lg transition-all
-                                    <?php echo $slot['available'] ? 'border border-slate-200 dark:border-zinc-700 hover:border-primary dark:hover:border-primary' : 'opacity-50 cursor-not-allowed line-through border border-slate-200 dark:border-zinc-700'; ?>"
+                                    class="time-slot py-3 px-2 text-sm font-bold rounded-lg transition-all border
+                                    <?php echo $slot['available'] ? 'border-gray-200 hover:border-primary text-gray-700' : 'opacity-50 cursor-not-allowed line-through border-gray-200 text-gray-500'; ?>"
                                     <?php echo $slot['available'] ? '' : 'disabled'; ?>>
                                     <?php echo htmlspecialchars($slot['time']); ?>
                                 </button>
-                            <?php endforeach; ?>
+                                <?php endforeach; ?>
+                            </div>
+                            <input type="hidden" name="reservation_time" id="reservation-time-input" value="<?php echo htmlspecialchars($_POST['reservation_time'] ?? ''); ?>" required/>
                         </div>
-                        <input type="hidden" name="reservation_time" id="reservation-time-input" value="<?php echo htmlspecialchars($_POST['reservation_time'] ?? ''); ?>" required/>
+                        <div class="flex justify-end mt-8">
+                            <button type="button" class="res-next-btn px-8 py-3 font-bold rounded-lg text-white" style="background-color:<?php echo htmlspecialchars($primaryColor); ?>">Next</button>
+                        </div>
                     </div>
 
-                    <!-- Step 3: Contact Info -->
-                    <div class="space-y-4 border-t border-slate-100 dark:border-zinc-800 pt-8">
-                        <label class="block text-sm font-semibold uppercase tracking-wider mb-2 text-slate-700 dark:text-slate-300">Guest Information</label>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Step 2: Guest Info -->
+                    <div class="res-step hidden" data-step="2">
+                        <label class="block text-sm font-semibold uppercase tracking-wider mb-4 text-gray-700">Guest Information</label>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                             <input name="guest_name" type="text" placeholder="Full Name" required
                                 value="<?php echo htmlspecialchars($_POST['guest_name'] ?? ''); ?>"
-                                class="w-full px-4 py-3 bg-background-light dark:bg-zinc-800 border-none rounded-lg focus:ring-2 focus:ring-primary text-slate-900 dark:text-white"/>
+                                class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-gray-900"/>
                             <input name="guest_email" type="email" placeholder="Email Address" required
                                 value="<?php echo htmlspecialchars($_POST['guest_email'] ?? ''); ?>"
-                                class="w-full px-4 py-3 bg-background-light dark:bg-zinc-800 border-none rounded-lg focus:ring-2 focus:ring-primary text-slate-900 dark:text-white"/>
+                                class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-gray-900"/>
                         </div>
                         <input name="guest_phone" type="tel" placeholder="Phone Number" required
                             value="<?php echo htmlspecialchars($_POST['guest_phone'] ?? ''); ?>"
-                            class="w-full px-4 py-3 bg-background-light dark:bg-zinc-800 border-none rounded-lg focus:ring-2 focus:ring-primary text-slate-900 dark:text-white"/>
+                            class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-gray-900 mb-8"/>
+                        <div class="flex justify-between">
+                            <button type="button" class="res-back-btn px-8 py-3 font-bold rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">Back</button>
+                            <button type="button" class="res-next-btn px-8 py-3 font-bold rounded-lg text-white" style="background-color:<?php echo htmlspecialchars($primaryColor); ?>">Next</button>
+                        </div>
                     </div>
 
-                    <!-- Step 4: Special Occasion -->
-                    <div class="space-y-4">
-                        <label class="block text-sm font-semibold uppercase tracking-wider mb-2 text-slate-700 dark:text-slate-300">Special Requests</label>
+                    <!-- Step 3: Special Requests -->
+                    <div class="res-step hidden" data-step="3">
+                        <label class="block text-sm font-semibold uppercase tracking-wider mb-2 text-gray-700">Special Requests</label>
                         <div class="flex flex-wrap gap-2 mb-4">
                             <?php
                             $occasions = ['BIRTHDAY', 'ANNIVERSARY', 'BUSINESS', 'DATE_NIGHT'];
                             $selectedOccasion = $_POST['special_occasion'] ?? '';
                             foreach ($occasions as $occ): ?>
                                 <button type="button" data-occasion="<?php echo htmlspecialchars($occ); ?>"
-                                    class="occasion-btn px-4 py-2 text-xs font-bold rounded-full transition-colors
-                                    <?php echo $selectedOccasion === $occ ? 'bg-primary/10 text-primary border border-primary/20' : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary'; ?>">
+                                    class="occasion-btn px-4 py-2 text-xs font-bold rounded-full transition-colors border
+                                    <?php echo $selectedOccasion === $occ ? 'border-primary text-white' : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100'; ?>"
+                                    style="<?php echo $selectedOccasion === $occ ? 'background-color:' . htmlspecialchars($primaryColor) : ''; ?>">
                                     <?php echo htmlspecialchars($occ); ?>
                                 </button>
                             <?php endforeach; ?>
                         </div>
                         <input type="hidden" name="special_occasion" id="special-occasion-input" value="<?php echo htmlspecialchars($selectedOccasion); ?>"/>
                         <textarea name="notes" rows="3" placeholder="Dietary requirements or additional notes..."
-                            class="w-full px-4 py-3 bg-background-light dark:bg-zinc-800 border-none rounded-lg focus:ring-2 focus:ring-primary text-slate-900 dark:text-white resize-none"><?php echo htmlspecialchars($_POST['notes'] ?? ''); ?></textarea>
+                            class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-gray-900 resize-none mb-8"><?php echo htmlspecialchars($_POST['notes'] ?? ''); ?></textarea>
+                        <div class="flex justify-between">
+                            <button type="button" class="res-back-btn px-8 py-3 font-bold rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">Back</button>
+                            <button type="button" class="res-next-btn px-8 py-3 font-bold rounded-lg text-white" style="background-color:<?php echo htmlspecialchars($primaryColor); ?>">Next</button>
+                        </div>
                     </div>
 
-                    <!-- CTA -->
-                    <div class="pt-4">
-                        <button type="submit" class="w-full py-5 bg-primary hover:bg-red-700 text-white font-extrabold text-lg uppercase tracking-widest rounded-lg shadow-xl shadow-primary/20 transition-all transform hover:-translate-y-1">
-                            Confirm Reservation
-                        </button>
-                        <p class="text-center text-xs text-slate-400 mt-4">By booking, you agree to our terms and cancellation policy.</p>
+                    <!-- Step 4: Review & Confirm -->
+                    <div class="res-step hidden" data-step="4">
+                        <div id="res-review-summary" class="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg text-gray-700 space-y-2 text-sm"></div>
+                        <?php if ($depositAmount > 0): ?>
+                        <p class="mb-4 text-gray-600">A deposit of <strong>₦<?php echo number_format($depositAmount, 2); ?></strong> will be required at checkout.</p>
+                        <?php endif; ?>
+                        <div class="flex justify-between">
+                            <button type="button" class="res-back-btn px-8 py-3 font-bold rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">Back</button>
+                            <button type="submit" class="px-8 py-3 font-bold rounded-lg text-white" style="background-color:<?php echo htmlspecialchars($primaryColor); ?>">Confirm Reservation</button>
+                        </div>
+                        <p class="text-center text-xs text-gray-500 mt-4">By booking, you agree to our terms and cancellation policy.</p>
                     </div>
                 </form>
             <?php endif; ?>
@@ -357,11 +406,16 @@ $restaurantName = htmlspecialchars($restaurant['name']);
 <?php if (!$success): ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    var partySize = <?php echo (int) ($_POST['party_size'] ?? 4); ?>;
+    var primaryColor = '<?php echo addslashes($primaryColor); ?>';
+    var baseUrl = '<?php echo addslashes(rtrim($baseUrl ?? '', '/')); ?>';
+    var slug = '<?php echo addslashes($slug); ?>';
+    var partySize = <?php echo (int) ($_POST['party_size'] ?? 1); ?>;
     var partyInput = document.getElementById('party-size-input');
     var partyDisplay = document.getElementById('party-display');
     var timeInput = document.getElementById('reservation-time-input');
     var occasionInput = document.getElementById('special-occasion-input');
+    var dateInput = document.getElementById('reservation-date-input');
+    var currentStep = 1;
 
     function updateParty() {
         partySize = Math.max(1, Math.min(10, partySize));
@@ -369,48 +423,153 @@ document.addEventListener('DOMContentLoaded', function() {
         partyDisplay.textContent = partySize + ' Guest' + (partySize !== 1 ? 's' : '');
     }
 
+    function showStep(step) {
+        currentStep = step;
+        document.querySelectorAll('.res-step').forEach(function(el) { el.classList.add('hidden'); });
+        var s = document.querySelector('.res-step[data-step="' + step + '"]');
+        if (s) s.classList.remove('hidden');
+        document.querySelectorAll('.res-step-indicator').forEach(function(el) {
+            var n = parseInt(el.getAttribute('data-step'), 10);
+            el.classList.remove('ring-4');
+            if (n < step) {
+                el.style.backgroundColor = primaryColor;
+                el.style.color = 'white';
+                el.className = 'res-step-indicator w-10 h-10 rounded-full font-bold shadow-lg ring-4 flex items-center justify-center';
+            } else if (n === step) {
+                el.style.backgroundColor = primaryColor;
+                el.style.color = 'white';
+                el.className = 'res-step-indicator w-10 h-10 rounded-full font-bold shadow-lg ring-4 flex items-center justify-center';
+            } else {
+                el.style.backgroundColor = '';
+                el.style.color = '';
+                el.className = 'res-step-indicator w-10 h-10 rounded-full bg-white border-2 border-gray-200 text-gray-500 font-medium ring-4 flex items-center justify-center';
+            }
+        });
+        if (step === 4) updateReviewSummary();
+    }
+
+    function updateReviewSummary() {
+        var date = dateInput ? dateInput.value : '';
+        var time = timeInput ? timeInput.value : '';
+        var name = document.querySelector('input[name="guest_name"]') ? document.querySelector('input[name="guest_name"]').value : '';
+        var email = document.querySelector('input[name="guest_email"]') ? document.querySelector('input[name="guest_email"]').value : '';
+        var phone = document.querySelector('input[name="guest_phone"]') ? document.querySelector('input[name="guest_phone"]').value : '';
+        var occ = occasionInput ? occasionInput.value : '';
+        var notes = document.querySelector('textarea[name="notes"]') ? document.querySelector('textarea[name="notes"]').value : '';
+        var html = '<p><strong>Date:</strong> ' + (date || '-') + ' | <strong>Time:</strong> ' + (time || '-') + '</p>';
+        html += '<p><strong>Guests:</strong> ' + partySize + '</p>';
+        html += '<p><strong>Name:</strong> ' + (name || '-') + '</p>';
+        html += '<p><strong>Email:</strong> ' + (email || '-') + '</p>';
+        html += '<p><strong>Phone:</strong> ' + (phone || '-') + '</p>';
+        if (occ) html += '<p><strong>Occasion:</strong> ' + occ + '</p>';
+        if (notes) html += '<p><strong>Notes:</strong> ' + notes + '</p>';
+        var el = document.getElementById('res-review-summary');
+        if (el) el.innerHTML = html;
+    }
+
+    function loadTimeSlots(date) {
+        var container = document.getElementById('time-slots-container');
+        if (!container) return;
+        container.innerHTML = '<p class="col-span-full text-center text-gray-500 py-4">Loading...</p>';
+        fetch((baseUrl || '') + '/api/get-reservation-slots.php?slug=' + encodeURIComponent(slug) + '&date=' + encodeURIComponent(date))
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (!data.success || !data.slots) {
+                    container.innerHTML = '<p class="col-span-full text-center text-red-500 py-4">Failed to load slots.</p>';
+                    return;
+                }
+                var html = '';
+                data.slots.forEach(function(slot) {
+                    var cls = 'time-slot py-3 px-2 text-sm font-bold rounded-lg transition-all border ';
+                    cls += slot.available ? 'border-gray-200 hover:border-primary text-gray-700' : 'opacity-50 cursor-not-allowed line-through border-gray-200 text-gray-500';
+                    html += '<button type="button" data-time="' + slot.time + '" class="' + cls + '"' + (slot.available ? '' : ' disabled') + '>' + slot.time + '</button>';
+                });
+                container.innerHTML = html;
+                timeInput.value = '';
+                container.querySelectorAll('.time-slot').forEach(function(btn) {
+                    if (btn.disabled) return;
+                    btn.addEventListener('click', function() {
+                        container.querySelectorAll('.time-slot').forEach(function(b) {
+                            b.style.backgroundColor = '';
+                            b.style.color = '';
+                            b.style.borderColor = '';
+                        });
+                        btn.style.backgroundColor = primaryColor;
+                        btn.style.color = 'white';
+                        btn.style.borderColor = primaryColor;
+                        timeInput.value = btn.getAttribute('data-time');
+                    });
+                });
+            })
+            .catch(function() {
+                container.innerHTML = '<p class="col-span-full text-center text-red-500 py-4">Failed to load slots.</p>';
+            });
+    }
+
     document.getElementById('party-minus').addEventListener('click', function() { partySize--; updateParty(); });
     document.getElementById('party-plus').addEventListener('click', function() { partySize++; updateParty(); });
 
-    document.querySelectorAll('.time-slot').forEach(function(btn) {
-        if (btn.disabled) return;
-        btn.addEventListener('click', function() {
-            document.querySelectorAll('.time-slot').forEach(function(b) { b.classList.remove('bg-primary', 'text-white', 'ring-2', 'ring-primary', 'shadow-lg', 'shadow-primary/30'); });
-            btn.classList.add('bg-primary', 'text-white', 'ring-2', 'ring-primary', 'shadow-lg', 'shadow-primary/30');
-            timeInput.value = btn.getAttribute('data-time');
+    document.getElementById('time-slots-container').addEventListener('click', function(e) {
+        var btn = e.target.closest('.time-slot');
+        if (!btn || btn.disabled) return;
+        document.querySelectorAll('#time-slots-container .time-slot').forEach(function(b) {
+            b.style.backgroundColor = '';
+            b.style.color = '';
+            b.style.borderColor = '';
         });
+        btn.style.backgroundColor = primaryColor;
+        btn.style.color = 'white';
+        btn.style.borderColor = primaryColor;
+        timeInput.value = btn.getAttribute('data-time');
     });
+
     var preSelected = timeInput.value;
     if (preSelected) {
-        var sel = document.querySelector('.time-slot[data-time="' + preSelected + '"]');
-        if (sel && !sel.disabled) sel.classList.add('bg-primary', 'text-white', 'ring-2', 'ring-primary', 'shadow-lg', 'shadow-primary/30');
+        var sel = document.querySelector('#time-slots-container .time-slot[data-time="' + preSelected + '"]');
+        if (sel && !sel.disabled) { sel.style.backgroundColor = primaryColor; sel.style.color = 'white'; sel.style.borderColor = primaryColor; }
     }
+
+    dateInput.addEventListener('change', function() {
+        loadTimeSlots(this.value);
+        timeInput.value = '';
+    });
 
     document.querySelectorAll('.occasion-btn').forEach(function(btn) {
         btn.addEventListener('click', function() {
             var occ = btn.getAttribute('data-occasion');
             document.querySelectorAll('.occasion-btn').forEach(function(b) {
-                b.classList.remove('bg-primary/10', 'text-primary', 'border', 'border-primary/20');
-                b.classList.add('bg-slate-100', 'dark:bg-zinc-800', 'text-slate-600', 'dark:text-slate-400');
+                b.style.backgroundColor = '';
+                b.classList.remove('border-primary', 'text-white');
+                b.classList.add('border-gray-200', 'bg-gray-50', 'text-gray-600');
             });
             if (occasionInput.value === occ) {
                 occasionInput.value = '';
             } else {
                 occasionInput.value = occ;
-                btn.classList.remove('bg-slate-100', 'dark:bg-zinc-800', 'text-slate-600', 'dark:text-slate-400');
-                btn.classList.add('bg-primary/10', 'text-primary', 'border', 'border-primary/20');
+                btn.style.backgroundColor = primaryColor;
+                btn.classList.remove('border-gray-200', 'bg-gray-50', 'text-gray-600');
+                btn.classList.add('border-primary', 'text-white');
             }
         });
     });
     var preOcc = occasionInput.value;
     if (preOcc) {
         var occBtn = document.querySelector('.occasion-btn[data-occasion="' + preOcc + '"]');
-        if (occBtn) occBtn.classList.remove('bg-slate-100', 'dark:bg-zinc-800', 'text-slate-600', 'dark:text-slate-400'), occBtn.classList.add('bg-primary/10', 'text-primary', 'border', 'border-primary/20');
+        if (occBtn) { occBtn.style.backgroundColor = primaryColor; occBtn.classList.add('border-primary', 'text-white'); occBtn.classList.remove('bg-gray-50', 'text-gray-600'); }
     }
 
-    document.querySelector('input[name="reservation_date"]').addEventListener('change', function() {
-        window.location.href = '<?php echo htmlspecialchars($reservationUrl); ?>?date=' + encodeURIComponent(this.value);
+    document.querySelectorAll('.res-next-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            if (currentStep < 4) showStep(currentStep + 1);
+        });
     });
+    document.querySelectorAll('.res-back-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            if (currentStep > 1) showStep(currentStep - 1);
+        });
+    });
+
+    showStep(1);
 });
 </script>
 <?php endif; ?>

@@ -553,7 +553,9 @@ CREATE TABLE `pending_bank_transfers` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `token` varchar(64) NOT NULL,
   `restaurant_id` int(11) NOT NULL,
-  `cart_json` text NOT NULL,
+  `payment_type` varchar(20) NOT NULL DEFAULT 'order',
+  `reservation_id` int(11) DEFAULT NULL,
+  `cart_json` text DEFAULT NULL,
   `customer_name` varchar(255) NOT NULL,
   `customer_phone` varchar(50) NOT NULL,
   `customer_email` varchar(255) NOT NULL,
@@ -579,8 +581,10 @@ CREATE TABLE `pending_online_payments` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `reference` varchar(80) NOT NULL,
   `restaurant_id` int(11) NOT NULL,
+  `payment_type` varchar(20) NOT NULL DEFAULT 'order',
+  `reservation_id` int(11) DEFAULT NULL,
   `gateway` varchar(50) NOT NULL,
-  `cart_json` text NOT NULL,
+  `cart_json` text DEFAULT NULL,
   `customer_name` varchar(255) NOT NULL,
   `customer_phone` varchar(50) NOT NULL,
   `customer_email` varchar(255) NOT NULL,
@@ -613,13 +617,31 @@ CREATE TABLE `table_reservations` (
   `guest_phone` varchar(50) NOT NULL,
   `special_occasion` varchar(50) DEFAULT NULL,
   `notes` text DEFAULT NULL,
-  `status` varchar(50) NOT NULL DEFAULT 'pending' COMMENT 'pending, confirmed, cancelled, completed',
+  `status` varchar(50) NOT NULL DEFAULT 'pending' COMMENT 'pending, confirmed, rejected, cancelled, completed',
+  `deposit_amount` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `deposit_paid` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `restaurant_id` (`restaurant_id`),
   KEY `reservation_date` (`reservation_date`),
   KEY `status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `restaurant_reservation_settings`
+--
+
+CREATE TABLE `restaurant_reservation_settings` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `restaurant_id` int(11) NOT NULL,
+  `deposit_amount` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `restaurant_id` (`restaurant_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -901,6 +923,13 @@ ALTER TABLE `table_reservations`
   ADD KEY `status` (`status`);
 
 --
+-- Indexes for table `restaurant_reservation_settings`
+--
+ALTER TABLE `restaurant_reservation_settings`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `restaurant_id` (`restaurant_id`);
+
+--
 -- Indexes for table `subscriptions`
 --
 ALTER TABLE `subscriptions`
@@ -1046,6 +1075,12 @@ ALTER TABLE `table_reservations`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `restaurant_reservation_settings`
+--
+ALTER TABLE `restaurant_reservation_settings`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `subscriptions`
 --
 ALTER TABLE `subscriptions`
@@ -1160,6 +1195,12 @@ ALTER TABLE `pending_online_payments`
 --
 ALTER TABLE `table_reservations`
   ADD CONSTRAINT `table_reservations_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `restaurant_reservation_settings`
+--
+ALTER TABLE `restaurant_reservation_settings`
+  ADD CONSTRAINT `restaurant_reservation_settings_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `subscriptions`

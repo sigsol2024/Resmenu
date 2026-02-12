@@ -338,6 +338,26 @@ function getAvailableTimeSlots($restaurantId, $date, $maxPerSlot = 5) {
 }
 
 /**
+ * Get reservation settings for restaurant (deposit amount)
+ * @param int $restaurantId
+ * @return array
+ */
+function getReservationSettings($restaurantId) {
+    $pdo = getDBConnection();
+    if (!$pdo) return ['deposit_amount' => 0];
+
+    try {
+        $stmt = $pdo->prepare("SELECT * FROM restaurant_reservation_settings WHERE restaurant_id = ?");
+        $stmt->execute([$restaurantId]);
+        $row = $stmt->fetch();
+        return $row ?: ['deposit_amount' => 0];
+    } catch (PDOException $e) {
+        error_log("getReservationSettings: " . $e->getMessage());
+        return ['deposit_amount' => 0];
+    }
+}
+
+/**
  * Update restaurant menu item statistics
  * @param int $restaurantId
  * @return bool

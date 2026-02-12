@@ -157,7 +157,9 @@ CREATE TABLE IF NOT EXISTS `table_reservations` (
   `guest_phone` varchar(50) NOT NULL,
   `special_occasion` varchar(50) DEFAULT NULL,
   `notes` text DEFAULT NULL,
-  `status` varchar(50) NOT NULL DEFAULT 'pending' COMMENT 'pending, confirmed, cancelled, completed',
+  `status` varchar(50) NOT NULL DEFAULT 'pending' COMMENT 'pending, confirmed, rejected, cancelled, completed',
+  `deposit_amount` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `deposit_paid` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`),
@@ -166,3 +168,25 @@ CREATE TABLE IF NOT EXISTS `table_reservations` (
   KEY `status` (`status`),
   CONSTRAINT `table_reservations_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 12. Restaurant reservation settings (deposit amount per restaurant)
+CREATE TABLE IF NOT EXISTS `restaurant_reservation_settings` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `restaurant_id` int(11) NOT NULL,
+  `deposit_amount` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `restaurant_id` (`restaurant_id`),
+  CONSTRAINT `restaurant_reservation_settings_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 13. Add reservation payment support to pending tables
+ALTER TABLE `pending_bank_transfers` ADD COLUMN IF NOT EXISTS `payment_type` varchar(20) NOT NULL DEFAULT 'order' AFTER `restaurant_id`;
+ALTER TABLE `pending_bank_transfers` ADD COLUMN IF NOT EXISTS `reservation_id` int(11) DEFAULT NULL AFTER `payment_type`;
+ALTER TABLE `pending_online_payments` ADD COLUMN IF NOT EXISTS `payment_type` varchar(20) NOT NULL DEFAULT 'order' AFTER `restaurant_id`;
+ALTER TABLE `pending_online_payments` ADD COLUMN IF NOT EXISTS `reservation_id` int(11) DEFAULT NULL AFTER `payment_type`;
+
+-- 14. Add deposit columns to existing table_reservations (if table already exists)
+ALTER TABLE `table_reservations` ADD COLUMN IF NOT EXISTS `deposit_amount` decimal(10,2) NOT NULL DEFAULT 0.00 AFTER `notes`;
+ALTER TABLE `table_reservations` ADD COLUMN IF NOT EXISTS `deposit_paid` tinyint(1) NOT NULL DEFAULT 0 AFTER `deposit_amount`;
