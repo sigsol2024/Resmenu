@@ -95,7 +95,10 @@ $statusColors = ['pending' => '#f59e0b', 'confirmed' => '#10b981', 'rejected' =>
                 <label for="deposit_amount" style="display:block;font-size:0.75rem;color:#6b7280;margin-bottom:4px;">Deposit Amount (₦)</label>
                 <input type="number" id="deposit_amount" name="deposit_amount" min="0" step="0.01" value="<?php echo number_format($depositAmount, 2, '.', ''); ?>" style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:6px;font-size:0.875rem;min-width:120px;"/>
             </div>
-            <button type="submit" class="btn btn-primary" style="padding:8px 16px;">Save Deposit</button>
+            <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;">
+                <button type="submit" id="deposit-save-btn" class="btn btn-primary" style="padding:8px 16px;">Save Deposit</button>
+                <span id="deposit-status" role="status" aria-live="polite" style="font-size:0.875rem;font-weight:500;display:none;"></span>
+            </div>
         </form>
         <p style="font-size:0.75rem;color:#6b7280;margin-top:8px;">Amount charged at checkout when customers make a reservation. Set to 0 for no deposit.</p>
     </div>
@@ -321,19 +324,46 @@ $statusColors = ['pending' => '#f59e0b', 'confirmed' => '#10b981', 'rejected' =>
     });
     loadResRevenueChart('all');
 
-    document.getElementById('deposit-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const amt = parseFloat(document.getElementById('deposit_amount').value) || 0;
-        const fd = new FormData();
-        fd.append('deposit_amount', amt);
-        fetch('../api/update-reservation-deposit.php', { method: 'POST', body: fd })
-            .then(r => r.json())
-            .then(function(data) {
-                if (data.success) alert('Deposit setting saved.');
-                else alert(data.message || 'Failed to save.');
-            })
-            .catch(function() { alert('Failed to save.'); });
-    });
+    (function() {
+        const form = document.getElementById('deposit-form');
+        const btn = document.getElementById('deposit-save-btn');
+        const statusEl = document.getElementById('deposit-status');
+        function showStatus(msg, isError) {
+            statusEl.textContent = msg;
+            statusEl.style.display = 'inline';
+            statusEl.style.color = isError ? '#dc2626' : '#059669';
+            if (!isError) {
+                clearTimeout(form._statusTimer);
+                form._statusTimer = setTimeout(function() { statusEl.style.display = 'none'; statusEl.textContent = ''; }, 4000);
+            }
+        }
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const amt = parseFloat(document.getElementById('deposit_amount').value) || 0;
+            const fd = new FormData();
+            fd.append('deposit_amount', amt);
+            btn.disabled = true;
+            btn.textContent = 'Saving…';
+            statusEl.style.display = 'none';
+            statusEl.textContent = '';
+            fetch('../api/update-reservation-deposit.php', { method: 'POST', body: fd })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    btn.disabled = false;
+                    btn.textContent = 'Save Deposit';
+                    if (data.success) {
+                        showStatus('Deposit setting saved.', false);
+                    } else {
+                        showStatus(data.message || 'Failed to save.', true);
+                    }
+                })
+                .catch(function() {
+                    btn.disabled = false;
+                    btn.textContent = 'Save Deposit';
+                    showStatus('Failed to save. Please try again.', true);
+                });
+        });
+    })();
 
     document.querySelectorAll('.actions-btn').forEach(function(btn) {
         btn.addEventListener('click', function(e) {
