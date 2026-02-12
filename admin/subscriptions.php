@@ -451,8 +451,9 @@ include __DIR__ . '/../includes/admin-layout.php';
 
 .actions-dropdown {
     position: absolute;
-    right: 0;
-    top: 100%;
+    right: 100%;
+    top: 0;
+    left: auto;
     background: #fff;
     border-radius: 6px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -461,7 +462,7 @@ include __DIR__ . '/../includes/admin-layout.php';
     display: none;
     overflow: hidden;
     border: 1px solid #e5e7eb;
-    margin-top: 4px;
+    margin-right: 4px;
 }
 
 .actions-dropdown.show {
