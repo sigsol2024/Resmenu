@@ -46,5 +46,12 @@ if (($order['status'] ?? '') !== 'pending') {
 $stmt = $pdo->prepare("UPDATE orders SET status = 'cancelled', updated_at = NOW() WHERE id = ? AND restaurant_id = ?");
 $stmt->execute([$orderId, $restaurant['id']]);
 
+try {
+    require_once __DIR__ . '/../includes/order-functions.php';
+    sendOrderStatusChangeEmail($orderId, $restaurant['id'], 'cancelled');
+} catch (Exception $e) {
+    error_log("Order cancel email failed: " . $e->getMessage());
+}
+
 echo json_encode(['success' => true, 'message' => 'Order cancelled']);
 exit;

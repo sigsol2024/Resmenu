@@ -38,6 +38,16 @@ define('ALLOWED_IMAGE_TYPES', ['image/jpeg', 'image/png', 'image/gif', 'image/we
 // Timezone
 date_default_timezone_set('UTC');
 
+// Email (SMTP) - set MAIL_ENABLED to false to use PHP mail() fallback
+define('MAIL_ENABLED', true);
+define('MAIL_FROM_EMAIL', 'services@our-menu.online');
+define('MAIL_FROM_NAME', 'Resmenu');
+define('SMTP_HOST', 'server1.signaturewebhosting.space');   // e.g. smtp.gmail.com, smtp.sendgrid.net
+define('SMTP_PORT', 465);
+define('SMTP_SECURE', 'ssl');               // tls or ssl
+define('SMTP_USERNAME', '');
+define('SMTP_PASSWORD', 'Sigsol1234!//@');
+
 // Error reporting (set to 0 in production)
 // IMPORTANT: Set these to 0 in production!
 error_reporting(E_ALL);

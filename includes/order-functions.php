@@ -55,6 +55,181 @@ function getOrderDisplayNumber($order) {
 }
 
 /**
+ * Send order status change email to customer
+ * @param int $orderId
+ * @param int $restaurantId
+ * @param string $newStatus
+ */
+function sendOrderStatusChangeEmail($orderId, $restaurantId, $newStatus) {
+    $pdo = getDBConnection();
+    if (!$pdo) return;
+
+    $stmt = $pdo->prepare("SELECT * FROM orders WHERE id = ? AND restaurant_id = ?");
+    $stmt->execute([$orderId, $restaurantId]);
+    $order = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$order) return;
+
+    $stmt = $pdo->prepare("SELECT name, price, quantity FROM order_items WHERE order_id = ?");
+    $stmt->execute([$orderId]);
+    $orderItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $restaurant = getRestaurant($restaurantId);
+    if (!$restaurant) return;
+
+    $customerEmail = trim($order['customer_email'] ?? '');
+    if (!$customerEmail || !filter_var($customerEmail, FILTER_VALIDATE_EMAIL)) return;
+
+    require_once __DIR__ . '/mail.php';
+    require_once __DIR__ . '/email-templates-restaurant.php';
+
+    $html = getOrderStatusEmail($order, $orderItems, $restaurant, $newStatus);
+    $subject = 'Order Update - ' . ($restaurant['name'] ?? 'Restaurant');
+    sendEmail($customerEmail, $order['customer_name'] ?? '', $subject, $html, [
+        'from_name' => $restaurant['name'] ?? 'Restaurant',
+    ]);
+}
+
+/**
+ * Send order confirmation and manager alert emails
+ * @param int $orderId
+ * @param int $restaurantId
+ */
+function sendOrderCreatedEmails($orderId, $restaurantId) {
+    $pdo = getDBConnection();
+    if (!$pdo) return;
+
+    $stmt = $pdo->prepare("SELECT * FROM orders WHERE id = ? AND restaurant_id = ?");
+    $stmt->execute([$orderId, $restaurantId]);
+    $order = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$order) return;
+
+    $stmt = $pdo->prepare("SELECT name, price, quantity FROM order_items WHERE order_id = ?");
+    $stmt->execute([$orderId]);
+    $orderItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $restaurant = getRestaurant($restaurantId);
+    if (!$restaurant) return;
+
+    require_once __DIR__ . '/mail.php';
+    require_once __DIR__ . '/email-templates-restaurant.php';
+
+    $customerEmail = trim($order['customer_email'] ?? '');
+    if ($customerEmail && filter_var($customerEmail, FILTER_VALIDATE_EMAIL)) {
+        $html = getOrderConfirmationEmail($order, $orderItems, $restaurant);
+        $fromName = $restaurant['name'] ?? 'Restaurant';
+        sendEmail($customerEmail, $order['customer_name'] ?? '', 'Order Confirmation - ' . ($restaurant['name'] ?? 'Restaurant'), $html, [
+            'from_name' => $fromName,
+        ]);
+    }
+
+    $managerEmail = getManagerEmailForRestaurant($restaurantId);
+    if ($managerEmail) {
+        $html = getManagerNewOrderEmail($order, $orderItems, $restaurant);
+        sendEmail($managerEmail, '', 'New Order #' . getOrderDisplayNumber($order) . ' - ' . ($restaurant['name'] ?? 'Restaurant'), $html, [
+            'from_name' => $restaurant['name'] ?? 'Restaurant',
+        ]);
+    }
+}
+
+/**
+ * Send reservation created emails (guest confirmation + manager alert)
+ * @param int $reservationId
+ * @param int $restaurantId
+ */
+function sendReservationCreatedEmails($reservationId, $restaurantId) {
+    $pdo = getDBConnection();
+    if (!$pdo) return;
+
+    $stmt = $pdo->prepare("SELECT * FROM table_reservations WHERE id = ? AND restaurant_id = ?");
+    $stmt->execute([$reservationId, $restaurantId]);
+    $reservation = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$reservation) return;
+
+    $restaurant = getRestaurant($restaurantId);
+    if (!$restaurant) return;
+
+    require_once __DIR__ . '/mail.php';
+    require_once __DIR__ . '/email-templates-restaurant.php';
+
+    $guestEmail = trim($reservation['guest_email'] ?? '');
+    if ($guestEmail && filter_var($guestEmail, FILTER_VALIDATE_EMAIL)) {
+        $html = getReservationConfirmationEmail($reservation, $restaurant);
+        sendEmail($guestEmail, $reservation['guest_name'] ?? '', 'Reservation Received - ' . ($restaurant['name'] ?? 'Restaurant'), $html, [
+            'from_name' => $restaurant['name'] ?? 'Restaurant',
+        ]);
+    }
+
+    $managerEmail = getManagerEmailForRestaurant($restaurantId);
+    if ($managerEmail) {
+        $html = getManagerNewReservationEmail($reservation, $restaurant);
+        sendEmail($managerEmail, '', 'New Reservation #' . getReservationDisplayNumber($reservation) . ' - ' . ($restaurant['name'] ?? 'Restaurant'), $html, [
+            'from_name' => $restaurant['name'] ?? 'Restaurant',
+        ]);
+    }
+}
+
+/**
+ * Send reservation status change email to guest
+ * @param int $reservationId
+ * @param int $restaurantId
+ * @param string $newStatus
+ */
+function sendReservationStatusChangeEmail($reservationId, $restaurantId, $newStatus) {
+    $pdo = getDBConnection();
+    if (!$pdo) return;
+
+    $stmt = $pdo->prepare("SELECT * FROM table_reservations WHERE id = ? AND restaurant_id = ?");
+    $stmt->execute([$reservationId, $restaurantId]);
+    $reservation = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$reservation) return;
+
+    $restaurant = getRestaurant($restaurantId);
+    if (!$restaurant) return;
+
+    $guestEmail = trim($reservation['guest_email'] ?? '');
+    if (!$guestEmail || !filter_var($guestEmail, FILTER_VALIDATE_EMAIL)) return;
+
+    require_once __DIR__ . '/mail.php';
+    require_once __DIR__ . '/email-templates-restaurant.php';
+
+    $html = getReservationStatusEmail($reservation, $restaurant, $newStatus);
+    $subject = 'Reservation Update - ' . ($restaurant['name'] ?? 'Restaurant');
+    sendEmail($guestEmail, $reservation['guest_name'] ?? '', $subject, $html, [
+        'from_name' => $restaurant['name'] ?? 'Restaurant',
+    ]);
+}
+
+/**
+ * Send reservation deposit paid email to guest
+ * @param int $reservationId
+ * @param int $restaurantId
+ */
+function sendReservationDepositPaidEmail($reservationId, $restaurantId) {
+    $pdo = getDBConnection();
+    if (!$pdo) return;
+
+    $stmt = $pdo->prepare("SELECT * FROM table_reservations WHERE id = ? AND restaurant_id = ?");
+    $stmt->execute([$reservationId, $restaurantId]);
+    $reservation = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$reservation) return;
+
+    $restaurant = getRestaurant($restaurantId);
+    if (!$restaurant) return;
+
+    $guestEmail = trim($reservation['guest_email'] ?? '');
+    if (!$guestEmail || !filter_var($guestEmail, FILTER_VALIDATE_EMAIL)) return;
+
+    require_once __DIR__ . '/mail.php';
+    require_once __DIR__ . '/email-templates-restaurant.php';
+
+    $html = getReservationDepositPaidEmail($reservation, $restaurant);
+    $subject = 'Reservation Confirmed - ' . ($restaurant['name'] ?? 'Restaurant');
+    sendEmail($guestEmail, $reservation['guest_name'] ?? '', $subject, $html, [
+        'from_name' => $restaurant['name'] ?? 'Restaurant',
+    ]);
+}
+
+/**
  * Create an order from cart data
  * @param int $restaurantId
  * @param array $cart Items with id, name, price, quantity
@@ -132,6 +307,14 @@ function createOrder($restaurantId, $cart, $customer, $deliveryFee = 0, $taxRate
         }
 
         $pdo->commit();
+
+        // Send order confirmation emails (non-blocking)
+        try {
+            sendOrderCreatedEmails($orderId, $restaurantId);
+        } catch (Exception $e) {
+            error_log("Order email send failed: " . $e->getMessage());
+        }
+
         return ['success' => true, 'order_id' => $orderId, 'errors' => []];
     } catch (PDOException $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();
@@ -165,6 +348,12 @@ function completeReservationDepositFromPending($reference, $gateway) {
 
     $pdo->prepare("UPDATE table_reservations SET deposit_paid = 1, status = 'confirmed', updated_at = NOW() WHERE id = ? AND restaurant_id = ?")->execute([$reservationId, $restaurantId]);
     $pdo->prepare("DELETE FROM pending_online_payments WHERE reference = ?")->execute([$reference]);
+
+    try {
+        sendReservationDepositPaidEmail($reservationId, $restaurantId);
+    } catch (Exception $e) {
+        error_log("Reservation deposit email failed: " . $e->getMessage());
+    }
 
     $restaurant = getRestaurant($restaurantId);
     $slug = $restaurant['slug'] ?? '';

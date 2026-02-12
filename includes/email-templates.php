@@ -300,26 +300,13 @@ function getAdminPaymentNotificationEmail($restaurant, $payment, $subscription) 
 }
 
 /**
- * Send email using PHP mail() or configured mail service
+ * Send email using central mail service (PHPMailer SMTP or PHP mail() fallback)
  */
 function sendSubscriptionEmail($to, $subject, $htmlBody) {
-    // Set headers
-    $headers = [
-        'MIME-Version: 1.0',
-        'Content-type: text/html; charset=UTF-8',
-        'From: Restaurant Menu Platform <noreply@' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . '>',
-        'Reply-To: support@' . ($_SERVER['HTTP_HOST'] ?? 'localhost'),
-        'X-Mailer: PHP/' . phpversion()
-    ];
-    
-    // Send email
-    $sent = @mail($to, $subject, $htmlBody, implode("\r\n", $headers));
-    
-    if (!$sent) {
-        error_log("Failed to send email to {$to}: {$subject}");
-    }
-    
-    return $sent;
+    require_once __DIR__ . '/mail.php';
+    return sendEmail($to, '', $subject, $htmlBody, [
+        'from_name' => 'Restaurant Menu Platform',
+    ]);
 }
 
 // Note: wasEmailSent, recordEmailSent, and formatSubscriptionPrice are defined in includes/subscription.php

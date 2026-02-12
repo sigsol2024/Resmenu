@@ -31,6 +31,7 @@ if (!$reservationId || !in_array($status, $allowedStatuses)) {
     exit;
 }
 
+require_once __DIR__ . '/../includes/order-functions.php';
 $pdo = getDBConnection();
 if (!$pdo) {
     header('Location: ' . ($returnTo === 'restaurant-reservations' ? '/manager/restaurant-reservations.php' : '/manager/reservations.php') . $slugPart);
@@ -39,6 +40,12 @@ if (!$pdo) {
 
 $stmt = $pdo->prepare("UPDATE table_reservations SET status = ?, updated_at = NOW() WHERE id = ? AND restaurant_id = ?");
 $stmt->execute([$status, $reservationId, $restaurantId]);
+
+try {
+    sendReservationStatusChangeEmail($reservationId, $restaurantId, $status);
+} catch (Exception $e) {
+    error_log("Reservation status email failed: " . $e->getMessage());
+}
 
 if ($returnTo === 'restaurant-reservations') {
     header('Location: /manager/restaurant-reservations.php' . $slugPart);

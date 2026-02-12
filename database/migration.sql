@@ -15,7 +15,12 @@
 -- 7. orders.status comment updated to include on_hold
 -- 8. pending_online_payments (draft before Paystack/Flutterwave confirms)
 -- 9. table_reservations (Template 4 table reservation system)
+-- 10. restaurant_reservation_settings
+-- 11-14. reservation payment support, deposit columns, payment_type/reservation_id on pending tables
 -- 15. table_inventory_daily (daily table capacity) + is_walkin on table_reservations
+-- 16. is_walkin on table_reservations
+-- 17. reservation_number on table_reservations
+-- 18. site_settings (site name, logo, favicon for super admin)
 --
 -- Requires: MariaDB 10.0.2+ or MySQL 8.0.12+ for ADD COLUMN IF NOT EXISTS
 -- ============================================================
@@ -212,3 +217,15 @@ ALTER TABLE `table_reservations` ADD COLUMN IF NOT EXISTS `is_walkin` tinyint(1)
 
 -- 17. Add reservation_number (8-char alphanumeric, same pattern as orders)
 ALTER TABLE `table_reservations` ADD COLUMN IF NOT EXISTS `reservation_number` varchar(10) DEFAULT NULL AFTER `id`;
+
+-- 18. Site settings (site name, logo, favicon for super admin)
+CREATE TABLE IF NOT EXISTS `site_settings` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `site_name` varchar(255) NOT NULL DEFAULT 'Resmenu',
+  `site_logo` varchar(255) DEFAULT NULL,
+  `favicon` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+INSERT IGNORE INTO `site_settings` (`id`, `site_name`) VALUES (1, 'Resmenu');

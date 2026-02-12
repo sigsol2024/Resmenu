@@ -31,6 +31,7 @@ if (!$restaurantId) {
 }
 
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/order-functions.php';
 $pdo = getDBConnection();
 if (!$pdo) {
     header('Location: ' . ($returnTo === 'restaurant-orders' ? '/manager/restaurant-orders.php' . $slugPart : $defaultRedirect) . '&error=db');
@@ -39,6 +40,12 @@ if (!$pdo) {
 
 $stmt = $pdo->prepare("UPDATE orders SET status = ?, updated_at = NOW() WHERE id = ? AND restaurant_id = ?");
 $stmt->execute([$status, $orderId, $restaurantId]);
+
+try {
+    sendOrderStatusChangeEmail($orderId, $restaurantId, $status);
+} catch (Exception $e) {
+    error_log("Order status email failed: " . $e->getMessage());
+}
 
 if ($returnTo === 'restaurant-orders') {
     header('Location: /manager/restaurant-orders.php' . $slugPart);

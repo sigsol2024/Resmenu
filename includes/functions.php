@@ -50,7 +50,7 @@ function isValidEmail($email) {
  * @param array $allowedTypes Allowed MIME types
  * @return array ['success' => bool, 'message' => string, 'filename' => string|null]
  */
-function uploadFile($file, $destination, $allowedTypes = null) {
+function uploadFile($file, $destination, $allowedTypes = null, $extraExtensions = []) {
     if ($allowedTypes === null) {
         $allowedTypes = ALLOWED_IMAGE_TYPES;
     }
@@ -74,8 +74,8 @@ function uploadFile($file, $destination, $allowedTypes = null) {
         return ['success' => false, 'message' => 'Invalid file type', 'filename' => null];
     }
     
-    // Whitelist allowed extensions
-    $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    // Whitelist allowed extensions (merge with extra for favicon .ico etc)
+    $allowedExtensions = array_merge(['jpg', 'jpeg', 'png', 'gif', 'webp'], (array)$extraExtensions);
     $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
     
     // Validate extension against whitelist
@@ -214,6 +214,31 @@ function getMenuItems($categoryId) {
 }
 
 /**
+ * Get manager email for restaurant (for order/reservation alerts)
+ * @param int $restaurantId
+ * @return string|null
+ */
+function getManagerEmailForRestaurant($restaurantId) {
+    $pdo = getDBConnection();
+    if (!$pdo) return null;
+    try {
+        $stmt = $pdo->prepare("SELECT manager_email FROM restaurants WHERE id = ?");
+        $stmt->execute([$restaurantId]);
+        $row = $stmt->fetch();
+        if (!empty($row['manager_email'])) {
+            return filter_var($row['manager_email'], FILTER_VALIDATE_EMAIL) ? $row['manager_email'] : null;
+        }
+        $stmt = $pdo->prepare("SELECT email FROM managers WHERE restaurant_id = ? LIMIT 1");
+        $stmt->execute([$restaurantId]);
+        $m = $stmt->fetch();
+        return ($m && filter_var($m['email'], FILTER_VALIDATE_EMAIL)) ? $m['email'] : null;
+    } catch (PDOException $e) {
+        error_log("getManagerEmailForRestaurant: " . $e->getMessage());
+        return null;
+    }
+}
+
+/**
  * Get customization settings for restaurant
  * @param int $restaurantId
  * @return array
@@ -238,6 +263,44 @@ function getCustomizationSettings($restaurantId) {
     } catch (PDOException $e) {
         error_log("Error getting customization settings: " . $e->getMessage());
         return [];
+    }
+}
+
+/**
+ * Get site settings (site name, logo, favicon)
+ * @return array
+ */
+function getSiteSettings() {
+    $pdo = getDBConnection();
+    if (!$pdo) return ['site_name' => 'Resmenu', 'site_logo' => null, 'favicon' => null];
+    try {
+        $stmt = $pdo->query("SELECT * FROM site_settings WHERE id = 1");
+        $row = $stmt->fetch();
+        return $row ?: ['site_name' => 'Resmenu', 'site_logo' => null, 'favicon' => null];
+    } catch (PDOException $e) {
+        error_log("getSiteSettings: " . $e->getMessage());
+        return ['site_name' => 'Resmenu', 'site_logo' => null, 'favicon' => null];
+    }
+}
+
+/**
+ * Update site settings
+ * @param array $data site_name, site_logo, favicon
+ * @return bool
+ */
+function updateSiteSettings($data) {
+    $pdo = getDBConnection();
+    if (!$pdo) return false;
+    try {
+        $siteName = trim($data['site_name'] ?? 'Resmenu');
+        $siteLogo = !empty($data['site_logo']) ? $data['site_logo'] : null;
+        $favicon = !empty($data['favicon']) ? $data['favicon'] : null;
+        $stmt = $pdo->prepare("INSERT INTO site_settings (id, site_name, site_logo, favicon) VALUES (1, ?, ?, ?) ON DUPLICATE KEY UPDATE site_name = VALUES(site_name), site_logo = VALUES(site_logo), favicon = VALUES(favicon)");
+        $stmt->execute([$siteName, $siteLogo, $favicon]);
+        return true;
+    } catch (PDOException $e) {
+        error_log("updateSiteSettings: " . $e->getMessage());
+        return false;
     }
 }
 

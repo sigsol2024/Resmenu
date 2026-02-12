@@ -48,6 +48,11 @@ $reservationId = isset($draft['reservation_id']) ? (int)$draft['reservation_id']
 if ($paymentType === 'reservation' && $reservationId > 0) {
     $pdo->prepare("UPDATE table_reservations SET deposit_paid = 1, status = 'confirmed', updated_at = NOW() WHERE id = ? AND restaurant_id = ?")->execute([$reservationId, $draft['restaurant_id']]);
     $pdo->prepare("DELETE FROM pending_bank_transfers WHERE token = ?")->execute([$token]);
+    try {
+        sendReservationDepositPaidEmail($reservationId, $draft['restaurant_id']);
+    } catch (Exception $e) {
+        error_log("Reservation deposit email failed: " . $e->getMessage());
+    }
     $restaurant = getRestaurant($draft['restaurant_id']);
     $slug = $restaurant['slug'] ?? '';
     echo json_encode([

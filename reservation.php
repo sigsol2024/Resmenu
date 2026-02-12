@@ -111,6 +111,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $depositAmount,
             ]);
             $reservationId = (int) $pdo->lastInsertId();
+            try {
+                sendReservationCreatedEmails($reservationId, $restaurant['id']);
+            } catch (Exception $e) {
+                error_log("Reservation email failed: " . $e->getMessage());
+            }
             if ($depositAmount > 0 && $reservationId) {
                 header('Location: ' . $baseUrl . '/restaurant/' . $slug . '/checkout?reservation_id=' . $reservationId);
                 exit;
