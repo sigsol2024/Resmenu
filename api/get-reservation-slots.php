@@ -35,4 +35,10 @@ if ($templateId !== 4) {
 }
 
 $slots = getAvailableTimeSlots($restaurant['id'], $date);
-echo json_encode(['success' => true, 'slots' => $slots]);
+$availability = getTableAvailabilityForDate($restaurant['id'], $date);
+echo json_encode([
+    'success' => true,
+    'slots' => $slots,
+    'tables_left' => $availability['available'],
+    'day_available' => $availability['available'] > 0,
+]);

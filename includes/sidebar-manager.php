@@ -88,8 +88,8 @@ if ($currentPage === 'qr-code.php' || $currentPage === 'qr-analytics.php') {
 if ($currentPage === 'orders.php' || $currentPage === 'restaurant-orders.php') {
     $activeId = 'orders';
 }
-// Handle Reservations page (including restaurant-reservations subpage)
-if ($currentPage === 'reservations.php' || $currentPage === 'restaurant-reservations.php') {
+// Handle Reservations page (including restaurant-reservations, table-inventory subpages)
+if ($currentPage === 'reservations.php' || $currentPage === 'restaurant-reservations.php' || $currentPage === 'table-inventory.php') {
     $activeId = 'reservations';
 }
 // Handle Payment Settings page

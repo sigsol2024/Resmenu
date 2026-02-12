@@ -240,11 +240,15 @@ $restaurantName = htmlspecialchars($restaurant['name']);
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                             <div>
                                 <label class="block text-sm font-semibold uppercase tracking-wider mb-3 text-gray-700">Select Date</label>
-                                <div class="relative">
-                                    <span class="material-icons absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">calendar_today</span>
-                                    <input name="reservation_date" id="reservation-date-input" type="date" min="<?php echo $minDate; ?>" required
-                                        value="<?php echo htmlspecialchars($_POST['reservation_date'] ?? $selectedDate); ?>"
-                                        class="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-gray-900"/>
+                                <input type="hidden" name="reservation_date" id="reservation-date-input" value="<?php echo htmlspecialchars($_POST['reservation_date'] ?? $selectedDate); ?>" required/>
+                                <div id="reservation-calendar-wrap" class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                                    <div class="flex justify-between items-center mb-4">
+                                        <button type="button" id="res-cal-prev" class="p-2 rounded hover:bg-gray-200 text-gray-600"><span class="material-icons text-lg">chevron_left</span></button>
+                                        <span id="res-cal-month" class="font-bold text-gray-800 text-sm"></span>
+                                        <button type="button" id="res-cal-next" class="p-2 rounded hover:bg-gray-200 text-gray-600"><span class="material-icons text-lg">chevron_right</span></button>
+                                    </div>
+                                    <div id="reservation-calendar" class="grid grid-cols-7 gap-1 text-center text-xs"></div>
+                                    <p id="res-cal-legend" class="mt-3 text-xs text-gray-500 flex flex-wrap gap-4"><span><span class="inline-block w-3 h-3 rounded bg-green-500 mr-1"></span>Available</span><span><span class="inline-block w-3 h-3 rounded bg-amber-400 mr-1"></span>Limited</span><span><span class="inline-block w-3 h-3 rounded bg-gray-300 mr-1"></span>Full</span></p>
                                 </div>
                             </div>
                             <div>
@@ -528,6 +532,111 @@ document.addEventListener('DOMContentLoaded', function() {
         var sel = document.querySelector('#time-slots-container .time-slot[data-time="' + preSelected + '"]');
         if (sel && !sel.disabled) { sel.style.backgroundColor = primaryColor; sel.style.color = 'white'; sel.style.borderColor = primaryColor; }
     }
+
+    var calYear = new Date().getFullYear();
+    var calMonth = new Date().getMonth();
+    var minDateStr = '<?php echo $minDate; ?>';
+
+    function getCalMonthRange() {
+        var start = new Date(calYear, calMonth, 1);
+        var end = new Date(calYear, calMonth + 1, 0);
+        return {
+            start: start.getFullYear() + '-' + String(start.getMonth() + 1).padStart(2, '0') + '-' + String(start.getDate()).padStart(2, '0'),
+            end: end.getFullYear() + '-' + String(end.getMonth() + 1).padStart(2, '0') + '-' + String(end.getDate()).padStart(2, '0')
+        };
+    }
+
+    function loadReservationCalendar() {
+        var r = getCalMonthRange();
+        var monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        document.getElementById('res-cal-month').textContent = monthNames[calMonth] + ' ' + calYear;
+        fetch((baseUrl || '') + '/api/reservation-date-availability.php?slug=' + encodeURIComponent(slug) + '&start=' + encodeURIComponent(r.start) + '&end=' + encodeURIComponent(r.end))
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                var dates = (data.success && data.dates) ? data.dates : {};
+                renderResCalendar(dates);
+            })
+            .catch(function() { renderResCalendar({}); });
+    }
+
+    function renderResCalendar(dates) {
+        var first = new Date(calYear, calMonth, 1);
+        var last = new Date(calYear, calMonth + 1, 0);
+        var startPad = first.getDay();
+        var daysInMonth = last.getDate();
+        var prevMonth = calMonth === 0 ? 11 : calMonth - 1;
+        var prevYear = calMonth === 0 ? calYear - 1 : calYear;
+        var prevLast = new Date(prevYear, prevMonth + 1, 0).getDate();
+        var today = new Date().toISOString().slice(0, 10);
+        var selectedVal = dateInput.value || '';
+
+        var html = '';
+        ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(function(d) { html += '<div class="font-semibold text-gray-500 py-1">' + d + '</div>'; });
+        for (var i = 0; i < startPad; i++) {
+            var d = prevLast - startPad + i + 1;
+            html += '<div class="py-2 text-gray-300">' + d + '</div>';
+        }
+        for (var d = 1; d <= daysInMonth; d++) {
+            var dateStr = calYear + '-' + String(calMonth + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+            var info = dates[dateStr] || { available: 0, total: 10, status: 'full' };
+            var status = info.status;
+            if (dateStr < today) status = 'past';
+            var cls = 'py-2 rounded cursor-pointer transition-colors ';
+            var clickable = false;
+            if (status === 'past') {
+                cls += 'text-gray-300 cursor-default';
+            } else if (status === 'full') {
+                cls += 'text-gray-400 bg-gray-100 cursor-not-allowed';
+            } else if (status === 'limited') {
+                cls += 'bg-amber-100 text-amber-900 hover:bg-amber-200';
+                clickable = true;
+            } else {
+                cls += 'bg-green-100 text-green-800 hover:bg-green-200';
+                clickable = true;
+            }
+            if (dateStr === selectedVal) cls += ' ring-2 ring-offset-1 font-bold';
+            var label = status === 'past' ? '' : (status === 'limited' ? info.available + ' left' : '');
+            var style = (dateStr === selectedVal) ? ' box-shadow: 0 0 0 2px ' + primaryColor + ';' : '';
+            html += '<div class="' + cls + '" data-date="' + dateStr + '" data-clickable="' + (clickable ? '1' : '0') + '" style="' + style + '">' + d + (label ? '<br><span class="text-[10px]">' + label + '</span>' : '') + '</div>';
+        }
+        var totalCells = startPad + daysInMonth;
+        var remainder = totalCells % 7;
+        var nextDays = remainder === 0 ? 0 : 7 - remainder;
+        for (var i = 1; i <= nextDays; i++) {
+            html += '<div class="py-2 text-gray-300">' + i + '</div>';
+        }
+        document.getElementById('reservation-calendar').innerHTML = html;
+
+        document.querySelectorAll('#reservation-calendar [data-clickable="1"]').forEach(function(el) {
+            el.addEventListener('click', function() {
+                var dt = this.getAttribute('data-date');
+                dateInput.value = dt;
+                loadTimeSlots(dt);
+                timeInput.value = '';
+                document.querySelectorAll('#reservation-calendar [data-date]').forEach(function(c) { c.classList.remove('ring-2','ring-offset-1','font-bold'); c.style.boxShadow = ''; });
+                this.classList.add('ring-2','ring-offset-1','font-bold');
+                this.style.boxShadow = '0 0 0 2px ' + primaryColor;
+            });
+        });
+    }
+
+    var initDate = dateInput.value || minDateStr;
+    if (initDate) {
+        var p = initDate.split('-');
+        if (p.length === 3) {
+            calYear = parseInt(p[0], 10);
+            calMonth = parseInt(p[1], 10) - 1;
+        }
+    }
+    loadReservationCalendar();
+    document.getElementById('res-cal-prev').onclick = function() {
+        if (calMonth === 0) { calMonth = 11; calYear--; } else calMonth--;
+        loadReservationCalendar();
+    };
+    document.getElementById('res-cal-next').onclick = function() {
+        if (calMonth === 11) { calMonth = 0; calYear++; } else calMonth++;
+        loadReservationCalendar();
+    };
 
     dateInput.addEventListener('change', function() {
         loadTimeSlots(this.value);

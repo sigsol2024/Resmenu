@@ -285,18 +285,115 @@ function getCategoriesWithMenuItems($restaurantId) {
 }
 
 /**
- * Get available time slots for table reservations
- * Default: 17:00-23:00, 30-min intervals. Slots marked unavailable when existing
- * reservations for that date+time reach the limit (default 5 per slot).
+ * Get total tables configured for a date (from table_inventory_daily)
+ * @param int $restaurantId
+ * @param string $date Y-m-d format
+ * @return int
+ */
+function getTotalTablesForDate($restaurantId, $date) {
+    $pdo = getDBConnection();
+    if (!$pdo) return 10;
+    try {
+        $stmt = $pdo->prepare("SELECT total_tables FROM table_inventory_daily WHERE restaurant_id = ? AND inventory_date = ?");
+        $stmt->execute([$restaurantId, $date]);
+        $row = $stmt->fetch();
+        return $row ? max(1, (int)$row['total_tables']) : 10;
+    } catch (PDOException $e) {
+        return 10;
+    }
+}
+
+/**
+ * Get table availability breakdown for a date
+ * Available = Total - (Confirmed + Pending + Walk-ins). Cancelled/rejected do NOT reduce availability.
  *
  * @param int $restaurantId
  * @param string $date Y-m-d format
- * @param int $maxPerSlot Max reservations per slot before marking unavailable
- * @return array [['time' => '17:30', 'available' => true], ...]
+ * @return array ['total','confirmed','pending','walkins','cancelled','available']
+ */
+function getTableAvailabilityForDate($restaurantId, $date) {
+    $pdo = getDBConnection();
+    if (!$pdo) {
+        return ['total' => 10, 'confirmed' => 0, 'pending' => 0, 'walkins' => 0, 'cancelled' => 0, 'available' => 10];
+    }
+    $total = getTotalTablesForDate($restaurantId, $date);
+
+    try {
+        $stmt = $pdo->prepare("
+            SELECT
+                SUM(CASE WHEN status = 'confirmed' AND COALESCE(is_walkin, 0) = 0 THEN 1 ELSE 0 END) AS confirmed,
+                SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS pending,
+                SUM(CASE WHEN COALESCE(is_walkin, 0) = 1 THEN 1 ELSE 0 END) AS walkins,
+                SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) AS cancelled
+            FROM table_reservations
+            WHERE restaurant_id = ? AND reservation_date = ?
+        ");
+        $stmt->execute([$restaurantId, $date]);
+    } catch (PDOException $e) {
+        error_log("getTableAvailabilityForDate: " . $e->getMessage());
+        $stmt = $pdo->prepare("
+            SELECT
+                SUM(CASE WHEN status = 'confirmed' THEN 1 ELSE 0 END) AS confirmed,
+                SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS pending,
+                0 AS walkins,
+                SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) AS cancelled
+            FROM table_reservations
+            WHERE restaurant_id = ? AND reservation_date = ?
+        ");
+        $stmt->execute([$restaurantId, $date]);
+    }
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    $confirmed = (int)($row['confirmed'] ?? 0);
+    $pending = (int)($row['pending'] ?? 0);
+    $walkins = (int)($row['walkins'] ?? 0);
+    $cancelled = (int)($row['cancelled'] ?? 0);
+    $booked = $confirmed + $pending + $walkins;
+    $available = max(0, $total - $booked);
+
+    return [
+        'total' => $total,
+        'confirmed' => $confirmed,
+        'pending' => $pending,
+        'walkins' => $walkins,
+        'cancelled' => $cancelled,
+        'available' => $available,
+    ];
+}
+
+/**
+ * Get availability for each date in a range (for calendar APIs)
+ * @param int $restaurantId
+ * @param string $startDate Y-m-d
+ * @param string $endDate Y-m-d
+ * @return array ['YYYY-MM-DD' => ['total',...,'available'], ...]
+ */
+function getDateAvailabilityRange($restaurantId, $startDate, $endDate) {
+    $result = [];
+    $start = strtotime($startDate);
+    $end = strtotime($endDate);
+    if ($start === false || $end === false || $start > $end) return $result;
+    for ($t = $start; $t <= $end; $t += 86400) {
+        $d = date('Y-m-d', $t);
+        $result[$d] = getTableAvailabilityForDate($restaurantId, $d);
+    }
+    return $result;
+}
+
+/**
+ * Get available time slots for table reservations
+ * Uses day-level inventory: slot available if (a) not past and (b) tables left for day > 0.
+ *
+ * @param int $restaurantId
+ * @param string $date Y-m-d format
+ * @param int $maxPerSlot Max reservations per slot (legacy, used only when inventory not in use)
+ * @return array [['time' => '17:30', 'available' => true, 'count' => N], ...] plus day-level 'tables_left'
  */
 function getAvailableTimeSlots($restaurantId, $date, $maxPerSlot = 5) {
     $pdo = getDBConnection();
     if (!$pdo) return [];
+
+    $availability = getTableAvailabilityForDate($restaurantId, $date);
+    $tablesLeft = $availability['available'];
 
     $open = '17:00';
     $close = '23:00';
@@ -311,26 +408,12 @@ function getAvailableTimeSlots($restaurantId, $date, $maxPerSlot = 5) {
         $timeStr = date('H:i', $t);
         $slotDateTime = strtotime($date . ' ' . $timeStr);
         $isPast = ($slotDateTime < $now);
-
-        $count = 0;
-        if (!$isPast) {
-            try {
-                $stmt = $pdo->prepare("
-                    SELECT COUNT(*) FROM table_reservations
-                    WHERE restaurant_id = ? AND reservation_date = ? AND reservation_time = ?
-                    AND status IN ('pending', 'confirmed')
-                ");
-                $stmt->execute([$restaurantId, $date, $timeStr . ':00']);
-                $count = (int) $stmt->fetchColumn();
-            } catch (PDOException $e) {
-                error_log("getAvailableTimeSlots: " . $e->getMessage());
-            }
-        }
+        $available = !$isPast && $tablesLeft > 0;
 
         $slots[] = [
             'time' => $timeStr,
-            'available' => !$isPast && $count < $maxPerSlot,
-            'count' => $count,
+            'available' => $available,
+            'count' => 0,
         ];
     }
 

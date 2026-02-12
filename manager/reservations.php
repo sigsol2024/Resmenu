@@ -69,9 +69,12 @@ $pageTitle = 'Reservations - ' . htmlspecialchars($restaurant['name']);
 include __DIR__ . '/../includes/manager-layout.php';
 ?>
 
-<div class="page-header">
-    <h1 class="page-title">Reservations</h1>
-    <p class="page-subtitle">Manage table reservations for <?php echo htmlspecialchars($restaurant['name']); ?></p>
+<div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;">
+    <div>
+        <h1 class="page-title">Reservations</h1>
+        <p class="page-subtitle">Manage table reservations for <?php echo htmlspecialchars($restaurant['name']); ?></p>
+    </div>
+    <a href="table-inventory.php<?php echo $slugParam; ?>" class="btn btn-primary" style="padding:8px 16px;font-size:0.875rem;">Manage Table Inventory</a>
 </div>
 
 <?php
