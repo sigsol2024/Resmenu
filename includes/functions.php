@@ -285,6 +285,59 @@ function getCategoriesWithMenuItems($restaurantId) {
 }
 
 /**
+ * Get available time slots for table reservations
+ * Default: 17:00-23:00, 30-min intervals. Slots marked unavailable when existing
+ * reservations for that date+time reach the limit (default 5 per slot).
+ *
+ * @param int $restaurantId
+ * @param string $date Y-m-d format
+ * @param int $maxPerSlot Max reservations per slot before marking unavailable
+ * @return array [['time' => '17:30', 'available' => true], ...]
+ */
+function getAvailableTimeSlots($restaurantId, $date, $maxPerSlot = 5) {
+    $pdo = getDBConnection();
+    if (!$pdo) return [];
+
+    $open = '17:00';
+    $close = '23:00';
+    $interval = 30; // minutes
+
+    $slots = [];
+    $start = strtotime($date . ' ' . $open);
+    $end = strtotime($date . ' ' . $close);
+    $now = time();
+
+    for ($t = $start; $t < $end; $t += $interval * 60) {
+        $timeStr = date('H:i', $t);
+        $slotDateTime = strtotime($date . ' ' . $timeStr);
+        $isPast = ($slotDateTime < $now);
+
+        $count = 0;
+        if (!$isPast) {
+            try {
+                $stmt = $pdo->prepare("
+                    SELECT COUNT(*) FROM table_reservations
+                    WHERE restaurant_id = ? AND reservation_date = ? AND reservation_time = ?
+                    AND status IN ('pending', 'confirmed')
+                ");
+                $stmt->execute([$restaurantId, $date, $timeStr . ':00']);
+                $count = (int) $stmt->fetchColumn();
+            } catch (PDOException $e) {
+                error_log("getAvailableTimeSlots: " . $e->getMessage());
+            }
+        }
+
+        $slots[] = [
+            'time' => $timeStr,
+            'available' => !$isPast && $count < $maxPerSlot,
+            'count' => $count,
+        ];
+    }
+
+    return $slots;
+}
+
+/**
  * Update restaurant menu item statistics
  * @param int $restaurantId
  * @return bool

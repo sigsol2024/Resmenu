@@ -14,6 +14,7 @@
 -- 6. pending_bank_transfers (draft orders before "I have made this payment")
 -- 7. orders.status comment updated to include on_hold
 -- 8. pending_online_payments (draft before Paystack/Flutterwave confirms)
+-- 9. table_reservations (Template 4 table reservation system)
 --
 -- Requires: MariaDB 10.0.2+ or MySQL 8.0.12+ for ADD COLUMN IF NOT EXISTS
 -- ============================================================
@@ -142,4 +143,26 @@ CREATE TABLE IF NOT EXISTS `pending_online_payments` (
   KEY `restaurant_id` (`restaurant_id`),
   KEY `created_at` (`created_at`),
   CONSTRAINT `pending_online_payments_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 11. Table reservations (Template 4 only)
+CREATE TABLE IF NOT EXISTS `table_reservations` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `restaurant_id` int(11) NOT NULL,
+  `reservation_date` date NOT NULL,
+  `reservation_time` time NOT NULL,
+  `party_size` int(11) NOT NULL DEFAULT 1,
+  `guest_name` varchar(255) NOT NULL,
+  `guest_email` varchar(255) NOT NULL,
+  `guest_phone` varchar(50) NOT NULL,
+  `special_occasion` varchar(50) DEFAULT NULL,
+  `notes` text DEFAULT NULL,
+  `status` varchar(50) NOT NULL DEFAULT 'pending' COMMENT 'pending, confirmed, cancelled, completed',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `restaurant_id` (`restaurant_id`),
+  KEY `reservation_date` (`reservation_date`),
+  KEY `status` (`status`),
+  CONSTRAINT `table_reservations_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

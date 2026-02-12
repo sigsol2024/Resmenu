@@ -41,6 +41,7 @@ if (defined('UPLOAD_URL')) {
 }
 
 $template4BaseUrl = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https://' : 'http://') . ($_SERVER['HTTP_HOST'] ?? 'localhost'))) . '/templates/template4';
+$reservationUrl = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : '') . '/restaurant/' . ($restaurant['slug'] ?? '') . '/reservation';
 
 // Hero image
 $heroBgImage = '';
@@ -229,6 +230,7 @@ function t4_formatPrice($price, $symbol = '₦') {
         </button>
         <nav class="flex flex-col gap-4">
             <a class="text-white/80 hover:text-white font-medium py-2" href="#menu" onclick="toggleMenu()">Menu</a>
+            <a class="text-white/80 hover:text-white font-medium py-2" href="<?php echo htmlspecialchars($reservationUrl); ?>" onclick="toggleMenu()">Reserve Table</a>
             <?php foreach ($activeCategories as $cat): ?>
                 <a class="text-white/80 hover:text-white font-medium py-2" href="#<?php echo htmlspecialchars($cat['slug']); ?>-section" onclick="toggleMenu()"><?php echo htmlspecialchars($cat['name']); ?></a>
             <?php endforeach; ?>
@@ -256,6 +258,9 @@ function t4_formatPrice($price, $symbol = '₦') {
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a href="#menu" class="w-full sm:w-auto bg-primary hover:bg-charcoal text-white text-lg font-bold px-10 py-4 rounded-xl transition-all transform hover:scale-105">
                 VIEW MENU
+            </a>
+            <a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="w-full sm:w-auto bg-transparent border-2 border-white/20 hover:border-white text-white text-lg font-bold px-10 py-4 rounded-xl transition-all">
+                RESERVE TABLE
             </a>
             <?php if (!empty($restaurant['whatsapp_link'])): ?>
                 <a href="<?php echo htmlspecialchars($restaurant['whatsapp_link']); ?>" target="_blank" class="w-full sm:w-auto bg-transparent border-2 border-white/20 hover:border-white text-white text-lg font-bold px-10 py-4 rounded-xl transition-all">

@@ -599,6 +599,32 @@ CREATE TABLE `pending_online_payments` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `table_reservations`
+--
+
+CREATE TABLE `table_reservations` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `restaurant_id` int(11) NOT NULL,
+  `reservation_date` date NOT NULL,
+  `reservation_time` time NOT NULL,
+  `party_size` int(11) NOT NULL DEFAULT 1,
+  `guest_name` varchar(255) NOT NULL,
+  `guest_email` varchar(255) NOT NULL,
+  `guest_phone` varchar(50) NOT NULL,
+  `special_occasion` varchar(50) DEFAULT NULL,
+  `notes` text DEFAULT NULL,
+  `status` varchar(50) NOT NULL DEFAULT 'pending' COMMENT 'pending, confirmed, cancelled, completed',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `restaurant_id` (`restaurant_id`),
+  KEY `reservation_date` (`reservation_date`),
+  KEY `status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `subscriptions`
 --
 
@@ -866,6 +892,15 @@ ALTER TABLE `pending_online_payments`
   ADD KEY `created_at` (`created_at`);
 
 --
+-- Indexes for table `table_reservations`
+--
+ALTER TABLE `table_reservations`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `restaurant_id` (`restaurant_id`),
+  ADD KEY `reservation_date` (`reservation_date`),
+  ADD KEY `status` (`status`);
+
+--
 -- Indexes for table `subscriptions`
 --
 ALTER TABLE `subscriptions`
@@ -1005,6 +1040,12 @@ ALTER TABLE `pending_online_payments`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `table_reservations`
+--
+ALTER TABLE `table_reservations`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `subscriptions`
 --
 ALTER TABLE `subscriptions`
@@ -1113,6 +1154,12 @@ ALTER TABLE `pending_bank_transfers`
 --
 ALTER TABLE `pending_online_payments`
   ADD CONSTRAINT `pending_online_payments_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `table_reservations`
+--
+ALTER TABLE `table_reservations`
+  ADD CONSTRAINT `table_reservations_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `subscriptions`
