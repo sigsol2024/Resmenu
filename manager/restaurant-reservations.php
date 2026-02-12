@@ -103,6 +103,18 @@ include __DIR__ . '/../includes/manager-layout.php';
 <style>
 .restaurant-reservations .actions-cell { position: relative; }
 .restaurant-reservations .actions-dropdown { z-index: 50; right: 100%; left: auto; top: 0; margin-right: 6px; min-width: 160px; }
+.detail-modal { display: flex; flex-direction: column; gap: 20px; }
+.detail-modal-section { padding: 16px; background: #f9fafb; border-radius: 8px; border: 1px solid #e5e7eb; }
+.detail-modal-heading { margin: 0 0 12px 0; font-size: 0.8rem; font-weight: 600; color: #374151; text-transform: uppercase; letter-spacing: 0.05em; }
+.detail-modal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px 20px; }
+.detail-modal-item { display: flex; flex-direction: column; gap: 4px; }
+.detail-label { font-size: 0.7rem; color: #6b7280; font-weight: 500; text-transform: uppercase; }
+.detail-value { font-size: 0.9rem; color: #111827; font-weight: 500; }
+.detail-badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; width: fit-content; }
+.detail-link { color: var(--primary); text-decoration: none; }
+.detail-link:hover { text-decoration: underline; }
+.detail-modal-footer { background: #f3f4f6; }
+.detail-total { font-size: 1.1rem; font-weight: 700; }
 </style>
 
 <script>
@@ -187,17 +199,27 @@ include __DIR__ . '/../includes/manager-layout.php';
                     .then(function(data) {
                         if (!data.success || !data.reservation) return;
                         const r = data.reservation;
+                        const dateStr = r.reservation_date ? new Date(r.reservation_date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : '-';
+                        const statusClr = { pending: '#f59e0b', confirmed: '#10b981', rejected: '#ef4444', cancelled: '#6b7280', completed: '#3b82f6' }[r.status] || '#6b7280';
                         const body = document.getElementById('reservation-modal-body');
-                        body.innerHTML = '<p><strong>Date:</strong> ' + esc(r.reservation_date) + '</p>' +
-                            '<p><strong>Time:</strong> ' + formatTime(r.reservation_time) + '</p>' +
-                            '<p><strong>Guests:</strong> ' + (r.party_size||'-') + '</p>' +
-                            '<p><strong>Name:</strong> ' + esc(r.guest_name) + '</p>' +
-                            '<p><strong>Email:</strong> ' + esc(r.guest_email) + '</p>' +
-                            '<p><strong>Phone:</strong> ' + esc(r.guest_phone) + '</p>' +
-                            (r.special_occasion ? '<p><strong>Occasion:</strong> ' + esc(r.special_occasion) + '</p>' : '') +
-                            (r.notes ? '<p><strong>Notes:</strong> ' + esc(r.notes) + '</p>' : '') +
-                            '<p><strong>Deposit:</strong> ' + symbol + parseFloat(r.deposit_amount||0).toFixed(2) + (r.deposit_paid ? ' (Paid)' : '') + '</p>' +
-                            '<p><strong>Status:</strong> ' + esc(r.status) + '</p>';
+                        body.innerHTML = '<div class="detail-modal">' +
+                            '<div class="detail-modal-section"><h4 class="detail-modal-heading">Reservation Details</h4>' +
+                            '<div class="detail-modal-grid">' +
+                            '<div class="detail-modal-item"><span class="detail-label">Date</span><span class="detail-value">' + dateStr + '</span></div>' +
+                            '<div class="detail-modal-item"><span class="detail-label">Time</span><span class="detail-value">' + formatTime(r.reservation_time) + '</span></div>' +
+                            '<div class="detail-modal-item"><span class="detail-label">Guests</span><span class="detail-value">' + (r.party_size||'-') + '</span></div>' +
+                            '<div class="detail-modal-item"><span class="detail-label">Status</span><span class="detail-badge" style="background:' + statusClr + '22;color:' + statusClr + '">' + esc(r.status) + '</span></div>' +
+                            '</div></div>' +
+                            '<div class="detail-modal-section"><h4 class="detail-modal-heading">Guest Information</h4>' +
+                            '<div class="detail-modal-grid">' +
+                            '<div class="detail-modal-item"><span class="detail-label">Name</span><span class="detail-value">' + (esc(r.guest_name) || '-') + '</span></div>' +
+                            '<div class="detail-modal-item"><span class="detail-label">Email</span><span class="detail-value">' + ((r.guest_email && r.guest_email.trim()) ? '<a href="mailto:' + esc(r.guest_email) + '" class="detail-link">' + esc(r.guest_email) + '</a>' : '-') + '</span></div>' +
+                            '<div class="detail-modal-item"><span class="detail-label">Phone</span><span class="detail-value">' + ((r.guest_phone && r.guest_phone.trim()) ? '<a href="tel:' + esc((r.guest_phone||'').replace(/\s/g,'')) + '" class="detail-link">' + esc(r.guest_phone) + '</a>' : '-') + '</span></div>' +
+                            '</div></div>' +
+                            (r.special_occasion || r.notes ? '<div class="detail-modal-section"><h4 class="detail-modal-heading">Additional Information</h4>' +
+                            (r.special_occasion ? '<div class="detail-modal-item"><span class="detail-label">Occasion</span><span class="detail-value">' + esc(r.special_occasion) + '</span></div>' : '') +
+                            (r.notes ? '<div class="detail-modal-item"><span class="detail-label">Notes</span><span class="detail-value">' + esc(r.notes) + '</span></div>' : '') + '</div>' : '') +
+                            '<div class="detail-modal-section detail-modal-footer"><div class="detail-modal-item"><span class="detail-label">Deposit</span><span class="detail-value detail-total">' + symbol + parseFloat(r.deposit_amount||0).toFixed(2) + (r.deposit_paid ? ' <span style="color:#10b981;font-size:0.8em;">(Paid)</span>' : '') + '</span></div></div></div>';
                         document.getElementById('reservation-modal').style.display = 'flex';
                     })
                     .catch(function() { alert('Failed to load details.'); });

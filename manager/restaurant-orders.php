@@ -93,6 +93,22 @@ include __DIR__ . '/../includes/manager-layout.php';
     </div>
 </div>
 
+<style>
+.detail-modal { display: flex; flex-direction: column; gap: 20px; }
+.detail-modal-section { padding: 16px; background: #f9fafb; border-radius: 8px; border: 1px solid #e5e7eb; }
+.detail-modal-heading { margin: 0 0 12px 0; font-size: 0.8rem; font-weight: 600; color: #374151; text-transform: uppercase; letter-spacing: 0.05em; }
+.detail-modal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px 20px; }
+.detail-modal-item { display: flex; flex-direction: column; gap: 4px; }
+.detail-label { font-size: 0.7rem; color: #6b7280; font-weight: 500; text-transform: uppercase; }
+.detail-value { font-size: 0.9rem; color: #111827; font-weight: 500; }
+.detail-badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; width: fit-content; }
+.detail-link { color: var(--primary); text-decoration: none; }
+.detail-link:hover { text-decoration: underline; }
+.detail-modal-footer { background: #f3f4f6; }
+.detail-total { font-size: 1.1rem; font-weight: 700; }
+.detail-items-table td { padding: 10px 12px; font-size: 0.875rem; border-bottom: 1px solid #e5e7eb; }
+</style>
+
 <script>
 (function() {
     const slug = <?php echo json_encode($restaurantSlug); ?>;
@@ -175,9 +191,32 @@ include __DIR__ . '/../includes/manager-layout.php';
                 if (data.success) {
                     const o = data.order;
                     const items = o.items || [];
-                    const itemsHtml = items.map(function(i){ return '<tr><td>' + esc(i.name) + '</td><td>' + (parseInt(i.quantity,10)||1) + '</td><td>' + symbol + parseFloat(i.price||0).toFixed(2) + '</td><td>' + symbol + (parseFloat(i.price||0)*(parseInt(i.quantity,10)||1)).toFixed(2) + '</td></tr>'; }).join('');
+                    const st = (o.status || 'pending');
+                    const statusClr = statusColors[st] || '#6b7280';
+                    const statusLabel = (st.charAt(0).toUpperCase() + st.slice(1)).replace('_', ' ');
+                    const itemsHtml = items.map(function(i) {
+                        const qty = parseInt(i.quantity,10)||1;
+                        const price = parseFloat(i.price||0);
+                        const lineTotal = price * qty;
+                        return '<tr><td>' + esc(i.name) + '</td><td style="text-align:center;">' + qty + '</td><td style="text-align:right;">' + symbol + price.toFixed(2) + '</td><td style="text-align:right;">' + symbol + lineTotal.toFixed(2) + '</td></tr>';
+                    }).join('');
+                    const phoneVal = (o.customer_phone||'').replace(/\s/g,'');
+                    const phoneDisplay = esc(o.customer_phone) || '-';
+                    const phoneLink = phoneVal ? '<a href="tel:' + esc(phoneVal) + '" class="detail-link">' + phoneDisplay + '</a>' : phoneDisplay;
+                    const emailDisplay = (o.customer_email && o.customer_email.trim()) ? '<a href="mailto:' + esc(o.customer_email) + '" class="detail-link">' + esc(o.customer_email) + '</a>' : '-';
                     document.getElementById('order-modal-title').textContent = 'Order #' + (o.order_display_number || orderId);
-                    document.getElementById('order-modal-body').innerHTML = '<table style="width:100%;margin-bottom:16px;"><tr><th style="text-align:left;">Customer</th><td>' + esc(o.customer_name) + '</td></tr><tr><th style="text-align:left;">Phone</th><td>' + esc(o.customer_phone) + '</td></tr><tr><th style="text-align:left;">Email</th><td>' + esc(o.customer_email) + '</td></tr><tr><th style="text-align:left;">Address</th><td>' + esc(o.delivery_address) + '</td></tr><tr><th style="text-align:left;">Status</th><td>' + esc(o.status) + '</td></tr></table><h4 style="margin:16px 0 8px;">Items</h4><table style="width:100%;border-collapse:collapse;"><thead><tr style="border-bottom:1px solid #e5e7eb;"><th style="text-align:left;padding:8px;">Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead><tbody>' + itemsHtml + '</tbody></table><p style="margin-top:12px;font-weight:600;">Total: ' + esc(symbol + parseFloat(o.total||0).toFixed(2)) + '</p>';
+                    document.getElementById('order-modal-body').innerHTML = '<div class="detail-modal">' +
+                        '<div class="detail-modal-section"><h4 class="detail-modal-heading">Customer Information</h4>' +
+                        '<div class="detail-modal-grid">' +
+                        '<div class="detail-modal-item"><span class="detail-label">Name</span><span class="detail-value">' + (esc(o.customer_name) || '-') + '</span></div>' +
+                        '<div class="detail-modal-item"><span class="detail-label">Phone</span><span class="detail-value">' + phoneLink + '</span></div>' +
+                        '<div class="detail-modal-item"><span class="detail-label">Email</span><span class="detail-value">' + emailDisplay + '</span></div>' +
+                        '<div class="detail-modal-item"><span class="detail-label">Address</span><span class="detail-value">' + (esc(o.delivery_address) || '-') + '</span></div>' +
+                        '<div class="detail-modal-item"><span class="detail-label">Status</span><span class="detail-badge" style="background:' + statusClr + '22;color:' + statusClr + '">' + esc(statusLabel) + '</span></div>' +
+                        '</div></div>' +
+                        '<div class="detail-modal-section"><h4 class="detail-modal-heading">Order Items</h4>' +
+                        '<table class="detail-items-table" style="width:100%;border-collapse:collapse;"><thead><tr style="border-bottom:1px solid #e5e7eb;"><th style="text-align:left;padding:8px 12px;font-size:0.7rem;color:#6b7280;font-weight:600;">Item</th><th style="text-align:center;padding:8px 12px;font-size:0.7rem;color:#6b7280;">Qty</th><th style="text-align:right;padding:8px 12px;font-size:0.7rem;color:#6b7280;">Price</th><th style="text-align:right;padding:8px 12px;font-size:0.7rem;color:#6b7280;">Total</th></tr></thead><tbody>' + itemsHtml + '</tbody></table></div>' +
+                        '<div class="detail-modal-section detail-modal-footer"><div class="detail-modal-item"><span class="detail-label">Total</span><span class="detail-value detail-total">' + symbol + parseFloat(o.total||0).toFixed(2) + '</span></div></div></div>';
                     document.getElementById('order-modal').style.display = 'flex';
                 }
             })

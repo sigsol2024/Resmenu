@@ -38,7 +38,7 @@ try {
         $statusFilter = '';
     }
 
-    $allowedRanges = ['today', '2days', '7days', '1month', 'all'];
+    $allowedRanges = ['today', '3days', '7days', '1month', 'all'];
     if ($range && !in_array($range, $allowedRanges)) {
         $range = 'all';
     }
@@ -54,8 +54,8 @@ try {
                 $dateFrom = $todayEnd;
                 $dateTo = $todayEnd;
                 break;
-            case '2days':
-                $from = (clone $now)->modify('-2 days');
+            case '3days':
+                $from = (clone $now)->modify('-3 days');
                 $dateFrom = $from->format('Y-m-d');
                 $dateTo = $todayEnd;
                 break;

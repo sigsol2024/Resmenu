@@ -79,7 +79,7 @@ $statusLabels = ['pending' => 'Pending', 'confirmed' => 'Confirmed', 'rejected' 
 $statusColors = ['pending' => '#f59e0b', 'confirmed' => '#10b981', 'rejected' => '#ef4444', 'cancelled' => '#6b7280', 'completed' => '#3b82f6'];
 ?>
 <section class="reservations-overview" style="margin-bottom:24px;">
-    <div class="stats reservations-stats" style="display:grid;grid-template-columns:repeat(6, minmax(0, 1fr));gap:16px;margin-bottom:24px;">
+    <div class="stats reservations-stats" style="display:grid;grid-template-columns:repeat(5, minmax(0, 1fr));gap:16px;margin-bottom:24px;">
         <?php foreach ($statuses as $s): ?>
         <div class="stat-card" style="background:#fff;padding:16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);border-left:3px solid <?php echo $statusColors[$s] ?? '#e5e7eb'; ?>;">
             <div class="stat-label" style="font-size:0.7rem;color:<?php echo $statusColors[$s] ?? '#6b7280'; ?>;text-transform:uppercase;margin-bottom:4px;font-weight:600;"><?php echo htmlspecialchars($statusLabels[$s]); ?></div>
@@ -109,7 +109,7 @@ $statusColors = ['pending' => '#f59e0b', 'confirmed' => '#10b981', 'rejected' =>
             </div>
             <div class="revenue-chart-filters" style="display:flex;flex-wrap:wrap;gap:6px;">
                 <button type="button" class="res-revenue-range-btn" data-range="today">Today</button>
-                <button type="button" class="res-revenue-range-btn" data-range="2days">2 Days</button>
+                <button type="button" class="res-revenue-range-btn" data-range="3days">3 Days</button>
                 <button type="button" class="res-revenue-range-btn" data-range="7days">7 Days</button>
                 <button type="button" class="res-revenue-range-btn" data-range="1month">1 Month</button>
                 <button type="button" class="res-revenue-range-btn btn-active" data-range="all">All Time</button>
@@ -212,6 +212,18 @@ $statusColors = ['pending' => '#f59e0b', 'confirmed' => '#10b981', 'rejected' =>
 .res-revenue-range-btn { padding: 6px 12px; border-radius: 6px; border: 1px solid #e5e7eb; background: #fff; font-size: 0.75rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
 .res-revenue-range-btn:hover { background: #f3f4f6; }
 .res-revenue-range-btn.btn-active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.detail-modal { display: flex; flex-direction: column; gap: 20px; }
+.detail-modal-section { padding: 16px; background: #f9fafb; border-radius: 8px; border: 1px solid #e5e7eb; }
+.detail-modal-heading { margin: 0 0 12px 0; font-size: 0.8rem; font-weight: 600; color: #374151; text-transform: uppercase; letter-spacing: 0.05em; }
+.detail-modal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px 20px; }
+.detail-modal-item { display: flex; flex-direction: column; gap: 4px; }
+.detail-label { font-size: 0.7rem; color: #6b7280; font-weight: 500; text-transform: uppercase; }
+.detail-value { font-size: 0.9rem; color: #111827; font-weight: 500; }
+.detail-badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; width: fit-content; }
+.detail-link { color: var(--primary); text-decoration: none; }
+.detail-link:hover { text-decoration: underline; }
+.detail-modal-footer { background: #f3f4f6; }
+.detail-total { font-size: 1.1rem; font-weight: 700; }
 </style>
 
 <script>
@@ -341,17 +353,34 @@ $statusColors = ['pending' => '#f59e0b', 'confirmed' => '#10b981', 'rejected' =>
             fetch('../api/get-reservation-details.php?reservation_id=' + encodeURIComponent(id)).then(r => r.json()).then(function(data) {
                 if (!data.success || !data.reservation) return;
                 const r = data.reservation;
+                function esc(s){ if(s==null||s==='')return ''; const t=String(s); return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+                const dateStr = r.reservation_date ? new Date(r.reservation_date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : '-';
+                const timeStr = r.reservation_time ? r.reservation_time.substring(0, 5) : '-';
+                const statusClr = { pending: '#f59e0b', confirmed: '#10b981', rejected: '#ef4444', cancelled: '#6b7280', completed: '#3b82f6' }[r.status] || '#6b7280';
                 const body = document.getElementById('reservation-modal-body');
-                body.innerHTML = '<p><strong>Date:</strong> ' + (r.reservation_date || '-') + '</p>' +
-                    '<p><strong>Time:</strong> ' + (r.reservation_time ? r.reservation_time.substring(0, 5) : '-') + '</p>' +
-                    '<p><strong>Guests:</strong> ' + (r.party_size || '-') + '</p>' +
-                    '<p><strong>Name:</strong> ' + (r.guest_name || '-') + '</p>' +
-                    '<p><strong>Email:</strong> ' + (r.guest_email || '-') + '</p>' +
-                    '<p><strong>Phone:</strong> ' + (r.guest_phone || '-') + '</p>' +
-                    (r.special_occasion ? '<p><strong>Occasion:</strong> ' + r.special_occasion + '</p>' : '') +
-                    (r.notes ? '<p><strong>Notes:</strong> ' + r.notes + '</p>' : '') +
-                    '<p><strong>Deposit:</strong> ' + symbol + (parseFloat(r.deposit_amount || 0)).toFixed(2) + (r.deposit_paid ? ' (Paid)' : '') + '</p>' +
-                    '<p><strong>Status:</strong> ' + (r.status || 'pending') + '</p>';
+                body.innerHTML = '<div class="detail-modal">' +
+                    '<div class="detail-modal-section">' +
+                    '<h4 class="detail-modal-heading">Reservation Details</h4>' +
+                    '<div class="detail-modal-grid">' +
+                    '<div class="detail-modal-item"><span class="detail-label">Date</span><span class="detail-value">' + dateStr + '</span></div>' +
+                    '<div class="detail-modal-item"><span class="detail-label">Time</span><span class="detail-value">' + timeStr + '</span></div>' +
+                    '<div class="detail-modal-item"><span class="detail-label">Guests</span><span class="detail-value">' + (r.party_size || '-') + '</span></div>' +
+                    '<div class="detail-modal-item"><span class="detail-label">Status</span><span class="detail-badge" style="background:' + statusClr + '22;color:' + statusClr + '">' + esc(r.status || 'pending') + '</span></div>' +
+                    '</div></div>' +
+                    '<div class="detail-modal-section">' +
+                    '<h4 class="detail-modal-heading">Guest Information</h4>' +
+                    '<div class="detail-modal-grid">' +
+                    '<div class="detail-modal-item"><span class="detail-label">Name</span><span class="detail-value">' + (esc(r.guest_name) || '-') + '</span></div>' +
+                    '<div class="detail-modal-item"><span class="detail-label">Email</span><span class="detail-value">' + ((r.guest_email && r.guest_email.trim()) ? '<a href="mailto:' + esc(r.guest_email) + '" class="detail-link">' + esc(r.guest_email) + '</a>' : '-') + '</span></div>' +
+                    '<div class="detail-modal-item"><span class="detail-label">Phone</span><span class="detail-value">' + ((r.guest_phone && r.guest_phone.trim()) ? '<a href="tel:' + esc((r.guest_phone||'').replace(/\s/g,'')) + '" class="detail-link">' + esc(r.guest_phone) + '</a>' : '-') + '</span></div>' +
+                    '</div></div>' +
+                    (r.special_occasion || r.notes ? '<div class="detail-modal-section"><h4 class="detail-modal-heading">Additional Information</h4>' +
+                    (r.special_occasion ? '<div class="detail-modal-item"><span class="detail-label">Occasion</span><span class="detail-value">' + esc(r.special_occasion) + '</span></div>' : '') +
+                    (r.notes ? '<div class="detail-modal-item"><span class="detail-label">Notes</span><span class="detail-value">' + esc(r.notes) + '</span></div>' : '') +
+                    '</div>' : '') +
+                    '<div class="detail-modal-section detail-modal-footer">' +
+                    '<div class="detail-modal-item"><span class="detail-label">Deposit</span><span class="detail-value detail-total">' + symbol + (parseFloat(r.deposit_amount || 0)).toFixed(2) + (r.deposit_paid ? ' <span style="color:#10b981;font-size:0.8em;">(Paid)</span>' : '') + '</span></div>' +
+                    '</div></div>';
                 document.getElementById('reservation-modal').style.display = 'flex';
             });
         });
