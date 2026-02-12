@@ -151,11 +151,11 @@ $statusLabels = ['pending' => 'Pending', 'confirmed' => 'Confirmed', 'on_hold' =
                 <p id="revenue-trend" style="font-size:0.75rem;margin:4px 0 0;color:#6b7280;display:flex;align-items:center;gap:4px;"></p>
             </div>
             <div class="revenue-chart-filters" style="display:flex;flex-wrap:wrap;gap:6px;">
-                <button type="button" class="revenue-range-btn btn-active" data-range="today">Today</button>
-                <button type="button" class="revenue-range-btn" data-range="3days">3 Days</button>
+                <button type="button" class="revenue-range-btn" data-range="today">Today</button>
+                <button type="button" class="revenue-range-btn" data-range="2days">2 Days</button>
                 <button type="button" class="revenue-range-btn" data-range="7days">7 Days</button>
                 <button type="button" class="revenue-range-btn" data-range="1month">1 Month</button>
-                <button type="button" class="revenue-range-btn" data-range="all">All Time</button>
+                <button type="button" class="revenue-range-btn btn-active" data-range="all">All Time</button>
             </div>
         </div>
         <div id="revenue-chart-wrapper" style="position:relative;height:280px;min-width:0;">
@@ -311,7 +311,7 @@ $statusLabels = ['pending' => 'Pending', 'confirmed' => 'Confirmed', 'on_hold' =
         const svgEl = document.getElementById('revenue-svg');
         const tooltipEl = document.getElementById('revenue-tooltip');
         const trendEl = document.getElementById('revenue-trend');
-        const url = '../api/orders-analytics.php?range=' + encodeURIComponent(range || 'today');
+        const url = '../api/orders-analytics.php?range=' + encodeURIComponent(range || 'all');
         fetch(url).then(r => r.json()).then(function(data) {
             if (!data.success || !data.revenue_by_date) return;
             const rows = data.revenue_by_date || [];
@@ -406,7 +406,7 @@ $statusLabels = ['pending' => 'Pending', 'confirmed' => 'Confirmed', 'on_hold' =
             loadRevenueChart(this.getAttribute('data-range'));
         });
     });
-    loadRevenueChart('today');
+    loadRevenueChart('all');
 
     document.querySelectorAll('.order-status-select').forEach(function(sel) {
         sel.addEventListener('change', function() { this.closest('form').submit(); });

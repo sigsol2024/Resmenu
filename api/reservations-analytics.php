@@ -31,13 +31,65 @@ try {
     $startDate = trim($_GET['start_date'] ?? '');
     $endDate = trim($_GET['end_date'] ?? '');
     $statusFilter = trim($_GET['status'] ?? '');
+    $range = trim($_GET['range'] ?? 'all');
 
     $allowedStatuses = ['pending', 'confirmed', 'rejected', 'cancelled', 'completed'];
     if ($statusFilter && !in_array($statusFilter, $allowedStatuses)) {
         $statusFilter = '';
     }
 
+    $allowedRanges = ['today', '2days', '7days', '1month', 'all'];
+    if ($range && !in_array($range, $allowedRanges)) {
+        $range = 'all';
+    }
+
+    // Build date range for revenue chart
+    $dateFrom = null;
+    $dateTo = null;
+    if ($range && $range !== 'all') {
+        $now = new DateTime('now');
+        $todayEnd = $now->format('Y-m-d');
+        switch ($range) {
+            case 'today':
+                $dateFrom = $todayEnd;
+                $dateTo = $todayEnd;
+                break;
+            case '2days':
+                $from = (clone $now)->modify('-2 days');
+                $dateFrom = $from->format('Y-m-d');
+                $dateTo = $todayEnd;
+                break;
+            case '7days':
+                $from = (clone $now)->modify('-7 days');
+                $dateFrom = $from->format('Y-m-d');
+                $dateTo = $todayEnd;
+                break;
+            case '1month':
+                $from = (clone $now)->modify('-1 month');
+                $dateFrom = $from->format('Y-m-d');
+                $dateTo = $todayEnd;
+                break;
+        }
+    }
+
     $response = ['success' => true];
+
+    // Revenue by date (deposit amounts collected - deposit_paid=1)
+    $revenueSql = "SELECT reservation_date AS date, COALESCE(SUM(deposit_amount), 0) AS revenue
+        FROM table_reservations WHERE restaurant_id = ? AND deposit_paid = 1";
+    $revParams = [$restaurantId];
+    if ($dateFrom) {
+        $revenueSql .= " AND reservation_date >= ?";
+        $revParams[] = $dateFrom;
+    }
+    if ($dateTo) {
+        $revenueSql .= " AND reservation_date <= ?";
+        $revParams[] = $dateTo;
+    }
+    $revenueSql .= " GROUP BY reservation_date ORDER BY date ASC";
+    $stmt = $pdo->prepare($revenueSql);
+    $stmt->execute($revParams);
+    $response['revenue_by_date'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Stats
     $statsByStatus = [];

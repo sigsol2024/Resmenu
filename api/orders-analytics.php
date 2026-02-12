@@ -56,7 +56,7 @@ if ($statusFilter && !in_array($statusFilter, $allowedStatuses)) {
     $statusFilter = '';
 }
 
-$allowedRanges = ['today', '3days', '7days', '1month', 'all'];
+$allowedRanges = ['today', '2days', '3days', '7days', '1month', 'all'];
 if ($range && !in_array($range, $allowedRanges)) {
     $range = '';
 }
@@ -84,6 +84,11 @@ if (!empty($startDate) && !empty($endDate) && _ordersAnalyticsDateValid($startDa
     switch ($range) {
         case 'today':
             $dateFrom = $now->format('Y-m-d') . ' 00:00:00';
+            $dateTo = $todayEnd;
+            break;
+        case '2days':
+            $from = (clone $now)->modify('-2 days');
+            $dateFrom = $from->format('Y-m-d') . ' 00:00:00';
             $dateTo = $todayEnd;
             break;
         case '3days':

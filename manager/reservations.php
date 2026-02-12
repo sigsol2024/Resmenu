@@ -99,6 +99,30 @@ $statusColors = ['pending' => '#f59e0b', 'confirmed' => '#10b981', 'rejected' =>
         </form>
         <p style="font-size:0.75rem;color:#6b7280;margin-top:8px;">Amount charged at checkout when customers make a reservation. Set to 0 for no deposit.</p>
     </div>
+
+    <!-- Revenue Chart (deposits collected) -->
+    <div class="settings-card revenue-chart-card" style="padding:24px;margin-bottom:24px;">
+        <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px;margin-bottom:16px;">
+            <div>
+                <h3 class="chart-title" style="font-size:1rem;font-weight:600;margin:0;color:#111827;">Deposit Revenue Over Time</h3>
+                <p id="res-revenue-trend" style="font-size:0.75rem;margin:4px 0 0;color:#6b7280;display:flex;align-items:center;gap:4px;"></p>
+            </div>
+            <div class="revenue-chart-filters" style="display:flex;flex-wrap:wrap;gap:6px;">
+                <button type="button" class="res-revenue-range-btn" data-range="today">Today</button>
+                <button type="button" class="res-revenue-range-btn" data-range="2days">2 Days</button>
+                <button type="button" class="res-revenue-range-btn" data-range="7days">7 Days</button>
+                <button type="button" class="res-revenue-range-btn" data-range="1month">1 Month</button>
+                <button type="button" class="res-revenue-range-btn btn-active" data-range="all">All Time</button>
+            </div>
+        </div>
+        <div id="res-revenue-chart-wrapper" style="position:relative;height:280px;min-width:0;">
+            <div id="res-revenue-chart-empty" style="display:none;color:#6b7280;padding:60px 24px;text-align:center;font-size:0.875rem;">No deposit revenue for this period.</div>
+            <div id="res-revenue-line-chart" style="display:none;height:100%;width:100%;position:relative;">
+                <svg id="res-revenue-svg" style="width:100%;height:100%;" preserveAspectRatio="none" viewBox="0 0 800 280"></svg>
+                <div id="res-revenue-tooltip" style="display:none;position:absolute;background:#111827;color:#fff;padding:8px 12px;border-radius:8px;font-size:0.75rem;font-weight:500;pointer-events:none;z-index:10;box-shadow:0 4px 12px rgba(0,0,0,0.15);white-space:nowrap;min-width:100px;line-height:1.4;"></div>
+            </div>
+        </div>
+    </div>
 </section>
 
 <section class="reservations-list">
@@ -185,12 +209,105 @@ $statusColors = ['pending' => '#f59e0b', 'confirmed' => '#10b981', 'rejected' =>
 @media (max-width: 768px) { .reservations-stats { grid-template-columns: repeat(2, 1fr) !important; } }
 .reservations-list .actions-cell { position: relative; }
 .reservations-list .actions-dropdown { z-index: 50; right: 100%; left: auto; top: 0; margin-right: 6px; min-width: 160px; }
+.res-revenue-range-btn { padding: 6px 12px; border-radius: 6px; border: 1px solid #e5e7eb; background: #fff; font-size: 0.75rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+.res-revenue-range-btn:hover { background: #f3f4f6; }
+.res-revenue-range-btn.btn-active { background: var(--primary); color: #fff; border-color: var(--primary); }
 </style>
 
 <script>
 (function() {
     const slug = <?php echo json_encode($restaurantSlug); ?>;
     const symbol = <?php echo json_encode($currencySymbol); ?>;
+
+    function loadResRevenueChart(range) {
+        const wrapper = document.getElementById('res-revenue-chart-wrapper');
+        const chartEl = document.getElementById('res-revenue-line-chart');
+        const emptyEl = document.getElementById('res-revenue-chart-empty');
+        const svgEl = document.getElementById('res-revenue-svg');
+        const tooltipEl = document.getElementById('res-revenue-tooltip');
+        const trendEl = document.getElementById('res-revenue-trend');
+        const url = '../api/reservations-analytics.php?range=' + encodeURIComponent(range || 'all');
+        fetch(url).then(r => r.json()).then(function(data) {
+            if (!data.success || !data.revenue_by_date) return;
+            const rows = data.revenue_by_date || [];
+            if (rows.length === 0) {
+                chartEl.style.display = 'none';
+                emptyEl.style.display = 'block';
+                trendEl.innerHTML = '';
+                return;
+            }
+            emptyEl.style.display = 'none';
+            chartEl.style.display = 'block';
+            const revenues = rows.map(function(r) { return parseFloat(r.revenue) || 0; });
+            const maxRev = Math.max.apply(null, revenues) || 1;
+            const minRev = Math.min.apply(null, revenues);
+            const rangeRev = maxRev - minRev || 1;
+            const pad = 0.1;
+            const chartW = 800, chartH = 280;
+            const padL = 48, padR = 24, padT = 24, padB = 40;
+            const plotW = chartW - padL - padR, plotH = chartH - padT - padB;
+            const firstVal = revenues[0] || 0, lastVal = revenues[revenues.length - 1] || 0;
+            const isGrowth = lastVal >= firstVal;
+            const lineColor = isGrowth ? '#059669' : '#DC2626';
+            const gradientId = 'resRevGrad-' + (isGrowth ? 'up' : 'down');
+            const pts = rows.map(function(r, i) {
+                const val = parseFloat(r.revenue) || 0;
+                const y = padT + plotH - ((val - minRev) / rangeRev) * plotH;
+                const x = padL + (rows.length > 1 ? (i / (rows.length - 1)) * plotW : plotW / 2);
+                return { x: x, y: y, val: val, date: r.date };
+            });
+            const pathD = pts.map(function(p, i) { return (i === 0 ? 'M' : 'L') + p.x + ' ' + p.y; }).join(' ');
+            const areaD = pathD + ' L' + (padL + plotW) + ' ' + (padT + plotH) + ' L' + padL + ' ' + (padT + plotH) + ' Z';
+            const yTicks = 5;
+            let html = '<defs><linearGradient id="' + gradientId + '" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:' + lineColor + ';stop-opacity:0.25"/><stop offset="100%" style="stop-color:' + lineColor + ';stop-opacity:0"/></linearGradient></defs>';
+            for (var g = 0; g <= yTicks; g++) {
+                var gy = padT + (g / yTicks) * plotH;
+                var gval = (maxRev - (g / yTicks) * (maxRev - minRev)).toFixed(0);
+                html += '<line x1="' + padL + '" y1="' + gy + '" x2="' + (padL + plotW) + '" y2="' + gy + '" stroke="#e5e7eb" stroke-width="1"/>';
+                html += '<text x="' + (padL - 8) + '" y="' + (gy + 4) + '" text-anchor="end" font-size="10" fill="#6b7280">' + symbol + gval + '</text>';
+            }
+            html += '<path d="' + areaD + '" fill="url(#' + gradientId + ')"/><path d="' + pathD + '" fill="none" stroke="' + lineColor + '" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>';
+            for (var i = 0; i < pts.length; i++) {
+                var p = pts[i];
+                var d = p.date ? new Date(p.date + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: pts.length > 14 ? '2-digit' : undefined }) : p.date;
+                html += '<circle class="res-revenue-point" cx="' + p.x + '" cy="' + p.y + '" r="6" fill="' + lineColor + '" stroke="#fff" stroke-width="2" opacity="0.9" data-date="' + (d || '') + '" data-rev="' + symbol + p.val.toFixed(2) + '"/>';
+            }
+            var step = Math.max(1, Math.floor(pts.length / 6));
+            for (var xi = 0; xi < pts.length; xi += step) {
+                var px = pts[xi];
+                var dx = px.date ? new Date(px.date + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
+                html += '<text x="' + px.x + '" y="' + (chartH - 8) + '" text-anchor="middle" font-size="10" fill="#6b7280">' + dx + '</text>';
+            }
+            svgEl.innerHTML = html;
+            var trendText = rows.length >= 2 && firstVal > 0 ? ((parseFloat(((lastVal - firstVal) / firstVal * 100).toFixed(1)) >= 0 ? '+' : '') + ((lastVal - firstVal) / firstVal * 100).toFixed(1) + '% vs first day') : (rows.length >= 1 ? symbol + lastVal.toFixed(2) + ' total' : '');
+            trendEl.innerHTML = isGrowth ? '<span style="color:#059669">&#9650;</span> ' + trendText : '<span style="color:#DC2626">&#9660;</span> ' + trendText;
+            function showTooltip(el, e) {
+                var rect = wrapper.getBoundingClientRect();
+                tooltipEl.innerHTML = '<strong>' + (el.getAttribute('data-date') || '') + '</strong><br/>Deposits: ' + (el.getAttribute('data-rev') || '');
+                tooltipEl.style.display = 'block';
+                tooltipEl.style.left = Math.min(e.clientX - rect.left + 12, rect.width - 140) + 'px';
+                tooltipEl.style.top = Math.max(e.clientY - rect.top - 50, 8) + 'px';
+            }
+            wrapper.querySelectorAll('.res-revenue-point').forEach(function(el) {
+                el.addEventListener('mouseenter', function(e) { showTooltip(el, e); });
+                el.addEventListener('mouseleave', function() { tooltipEl.style.display = 'none'; });
+                el.addEventListener('mousemove', function(e) { showTooltip(el, e); });
+            });
+        }).catch(function() {
+            chartEl.style.display = 'none';
+            emptyEl.style.display = 'block';
+            trendEl.innerHTML = '';
+        });
+    }
+
+    document.querySelectorAll('.res-revenue-range-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.res-revenue-range-btn').forEach(function(b) { b.classList.remove('btn-active'); });
+            this.classList.add('btn-active');
+            loadResRevenueChart(this.getAttribute('data-range'));
+        });
+    });
+    loadResRevenueChart('all');
 
     document.getElementById('deposit-form').addEventListener('submit', function(e) {
         e.preventDefault();
