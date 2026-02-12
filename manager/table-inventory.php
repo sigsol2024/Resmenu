@@ -81,6 +81,21 @@ include __DIR__ . '/../includes/manager-layout.php';
     </div>
 </div>
 
+<div id="walkin-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;padding:24px;">
+    <div style="background:#fff;border-radius:12px;max-width:400px;width:100%;padding:24px;box-shadow:0 20px 25px -5px rgba(0,0,0,0.1),0 10px 10px -5px rgba(0,0,0,0.04);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+            <h3 style="font-size:1.25rem;font-weight:600;color:#111827;margin:0;">Add Walk-in Guest</h3>
+            <button type="button" id="walkin-modal-close" style="background:0;border:0;cursor:pointer;padding:4px;color:#6b7280;font-size:1.5rem;line-height:1;">&times;</button>
+        </div>
+        <label style="display:block;font-size:0.875rem;font-weight:500;color:#374151;margin-bottom:8px;">Guest name</label>
+        <input type="text" id="walkin-guest-name" placeholder="Walk-in" value="Walk-in" style="width:100%;padding:10px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:0.875rem;margin-bottom:20px;box-sizing:border-box;"/>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+            <button type="button" id="walkin-modal-cancel" class="btn btn-secondary" style="padding:8px 16px;">Cancel</button>
+            <button type="button" id="walkin-modal-confirm" class="btn btn-primary" style="padding:8px 16px;">Add Walk-in</button>
+        </div>
+    </div>
+</div>
+
 <style>
 .inventory-calendar .inv-day { padding:10px;border-radius:8px;min-height:60px;cursor:pointer;font-size:0.8rem;font-weight:500;border:1px solid #e5e7eb;transition:all 0.2s; }
 .inventory-calendar .inv-day:hover { border-color:var(--primary); }
@@ -232,12 +247,26 @@ include __DIR__ . '/../includes/manager-layout.php';
 
     document.getElementById('day-add-walkin').onclick = function() {
         if (!selectedDate) return;
-        const name = prompt('Guest name for walk-in:', 'Walk-in');
-        if (name === null) return;
+        const modal = document.getElementById('walkin-modal');
+        const input = document.getElementById('walkin-guest-name');
+        input.value = 'Walk-in';
+        modal.style.display = 'flex';
+        input.focus();
+        input.select();
+    };
+    function closeWalkinModal() {
+        document.getElementById('walkin-modal').style.display = 'none';
+    }
+    document.getElementById('walkin-modal-close').onclick = closeWalkinModal;
+    document.getElementById('walkin-modal-cancel').onclick = closeWalkinModal;
+    document.getElementById('walkin-modal').onclick = function(e) { if (e.target === this) closeWalkinModal(); };
+    document.getElementById('walkin-modal-confirm').onclick = function() {
+        const name = document.getElementById('walkin-guest-name').value.trim() || 'Walk-in';
+        closeWalkinModal();
         const fd = new FormData();
         fd.append('action', 'add_walkin');
         fd.append('date', selectedDate);
-        fd.append('guest_name', name || 'Walk-in');
+        fd.append('guest_name', name);
         fetch('../api/table-inventory.php', { method: 'POST', body: fd })
             .then(function(res) { return res.json(); })
             .then(function(data) {

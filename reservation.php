@@ -85,6 +85,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($guestEmail)) $errors[] = 'Email address is required.';
     if (!isValidEmail($guestEmail)) $errors[] = 'Please enter a valid email address.';
     if (empty($guestPhone)) $errors[] = 'Phone number is required.';
+    $phoneDigits = preg_replace('/\D/', '', $guestPhone);
+    if (strlen($phoneDigits) < 10 || strlen($phoneDigits) > 15) $errors[] = 'Please enter a valid phone number (digits only, 10-15 characters).';
 
     if (empty($errors)) {
         try {
@@ -241,7 +243,11 @@ $restaurantName = htmlspecialchars($restaurant['name']);
                             <div>
                                 <label class="block text-sm font-semibold uppercase tracking-wider mb-3 text-gray-700">Select Date</label>
                                 <input type="hidden" name="reservation_date" id="reservation-date-input" value="<?php echo htmlspecialchars($_POST['reservation_date'] ?? $selectedDate); ?>" required/>
-                                <div id="reservation-calendar-wrap" class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                                <div id="reservation-date-trigger" class="border border-gray-200 rounded-lg p-4 bg-gray-50 cursor-pointer hover:border-gray-300 transition-colors flex items-center justify-between" role="button" tabindex="0">
+                                    <span id="res-date-display" class="text-gray-600 font-medium">Click to select date</span>
+                                    <span class="material-icons text-gray-500 text-lg">expand_more</span>
+                                </div>
+                                <div id="reservation-calendar-wrap" class="border border-gray-200 rounded-lg p-4 bg-gray-50 mt-3 hidden">
                                     <div class="flex justify-between items-center mb-4">
                                         <button type="button" id="res-cal-prev" class="p-2 rounded hover:bg-gray-200 text-gray-600"><span class="material-icons text-lg">chevron_left</span></button>
                                         <span id="res-cal-month" class="font-bold text-gray-800 text-sm"></span>
@@ -254,11 +260,11 @@ $restaurantName = htmlspecialchars($restaurant['name']);
                             <div>
                                 <label class="block text-sm font-semibold uppercase tracking-wider mb-3 text-gray-700">Number of Guests</label>
                                 <div class="flex items-center justify-between px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg">
-                                    <button type="button" id="party-minus" class="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-gray-200 shadow hover:bg-primary hover:text-white hover:border-primary transition-colors">
+                                    <button type="button" id="party-minus" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 border border-gray-300 text-gray-700 hover:bg-primary hover:text-white hover:border-primary transition-colors shadow-sm">
                                         <span class="material-icons text-sm">remove</span>
                                     </button>
                                     <span id="party-display" class="font-bold text-lg px-4 text-gray-900"><?php echo (int) ($_POST['party_size'] ?? 1); ?> Guest<?php echo ($_POST['party_size'] ?? 1) != 1 ? 's' : ''; ?></span>
-                                    <button type="button" id="party-plus" class="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-gray-200 shadow hover:bg-primary hover:text-white hover:border-primary transition-colors">
+                                    <button type="button" id="party-plus" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 border border-gray-300 text-gray-700 hover:bg-primary hover:text-white hover:border-primary transition-colors shadow-sm">
                                         <span class="material-icons text-sm">add</span>
                                     </button>
                                 </div>
@@ -294,7 +300,7 @@ $restaurantName = htmlspecialchars($restaurant['name']);
                                 value="<?php echo htmlspecialchars($_POST['guest_email'] ?? ''); ?>"
                                 class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-gray-900"/>
                         </div>
-                        <input name="guest_phone" type="tel" placeholder="Phone Number" required
+                        <input name="guest_phone" type="tel" placeholder="Phone Number (numbers only)" required inputmode="numeric"
                             value="<?php echo htmlspecialchars($_POST['guest_phone'] ?? ''); ?>"
                             class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-gray-900 mb-8"/>
                         <div class="flex justify-between">
@@ -616,6 +622,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.querySelectorAll('#reservation-calendar [data-date]').forEach(function(c) { c.classList.remove('ring-2','ring-offset-1','font-bold'); c.style.boxShadow = ''; });
                 this.classList.add('ring-2','ring-offset-1','font-bold');
                 this.style.boxShadow = '0 0 0 2px ' + primaryColor;
+                var disp = document.getElementById('res-date-display');
+                var wrap = document.getElementById('reservation-calendar-wrap');
+                if (disp) disp.textContent = new Date(dt + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+                if (wrap) wrap.classList.add('hidden');
             });
         });
     }
@@ -629,6 +639,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     loadReservationCalendar();
+    var dateTrigger = document.getElementById('reservation-date-trigger');
+    var dateDisplay = document.getElementById('res-date-display');
+    var calendarWrap = document.getElementById('reservation-calendar-wrap');
+    function updateDateDisplay() {
+        var d = dateInput.value;
+        if (d) {
+            var dt = new Date(d + 'T12:00:00');
+            dateDisplay.textContent = dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+        } else {
+            dateDisplay.textContent = 'Click to select date';
+        }
+    }
+    updateDateDisplay();
+    dateTrigger.addEventListener('click', function() {
+        calendarWrap.classList.toggle('hidden');
+    });
+    dateTrigger.addEventListener('keydown', function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); calendarWrap.classList.toggle('hidden'); } });
     document.getElementById('res-cal-prev').onclick = function() {
         if (calMonth === 0) { calMonth = 11; calYear--; } else calMonth--;
         loadReservationCalendar();
@@ -667,8 +694,35 @@ document.addEventListener('DOMContentLoaded', function() {
         if (occBtn) { occBtn.style.backgroundColor = primaryColor; occBtn.classList.add('border-primary', 'text-white'); occBtn.classList.remove('bg-gray-50', 'text-gray-600'); }
     }
 
+    function isValidEmailClient(val) {
+        return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test((val || '').trim());
+    }
+    function isValidPhoneClient(val) {
+        var digits = (val || '').replace(/\D/g, '');
+        return digits.length >= 10 && digits.length <= 15;
+    }
     document.querySelectorAll('.res-next-btn').forEach(function(btn) {
         btn.addEventListener('click', function() {
+            if (currentStep === 2) {
+                var emailEl = document.querySelector('input[name="guest_email"]');
+                var phoneEl = document.querySelector('input[name="guest_phone"]');
+                var ok = true;
+                if (emailEl) {
+                    if (!isValidEmailClient(emailEl.value)) {
+                        emailEl.setCustomValidity('Please enter a valid email address (e.g. name@example.com)');
+                        emailEl.reportValidity();
+                        ok = false;
+                    } else { emailEl.setCustomValidity(''); }
+                }
+                if (phoneEl && ok) {
+                    if (!isValidPhoneClient(phoneEl.value)) {
+                        phoneEl.setCustomValidity('Please enter a valid phone number (digits only, 10-15 characters)');
+                        phoneEl.reportValidity();
+                        ok = false;
+                    } else { phoneEl.setCustomValidity(''); }
+                }
+                if (!ok) return;
+            }
             if (currentStep < 4) showStep(currentStep + 1);
         });
     });
@@ -677,7 +731,15 @@ document.addEventListener('DOMContentLoaded', function() {
             if (currentStep > 1) showStep(currentStep - 1);
         });
     });
-
+    var phoneInput = document.querySelector('input[name="guest_phone"]');
+    if (phoneInput) phoneInput.addEventListener('input', function() { this.value = this.value.replace(/[^\d+\s\-]/g, ''); });
+    var formEl = document.getElementById('reservation-form');
+    if (formEl) formEl.addEventListener('submit', function(e) {
+        var emailEl = document.querySelector('input[name="guest_email"]');
+        var phoneEl = document.querySelector('input[name="guest_phone"]');
+        if (emailEl && !isValidEmailClient(emailEl.value)) { e.preventDefault(); emailEl.setCustomValidity('Please enter a valid email address'); emailEl.reportValidity(); return false; }
+        if (phoneEl && !isValidPhoneClient(phoneEl.value)) { e.preventDefault(); phoneEl.setCustomValidity('Please enter a valid phone number (digits only)'); phoneEl.reportValidity(); return false; }
+    });
     showStep(1);
 });
 </script>

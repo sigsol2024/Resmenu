@@ -15,6 +15,7 @@
 -- 7. orders.status comment updated to include on_hold
 -- 8. pending_online_payments (draft before Paystack/Flutterwave confirms)
 -- 9. table_reservations (Template 4 table reservation system)
+-- 15. table_inventory_daily (daily table capacity) + is_walkin on table_reservations
 --
 -- Requires: MariaDB 10.0.2+ or MySQL 8.0.12+ for ADD COLUMN IF NOT EXISTS
 -- ============================================================
@@ -190,3 +191,21 @@ ALTER TABLE `pending_online_payments` ADD COLUMN IF NOT EXISTS `reservation_id` 
 -- 14. Add deposit columns to existing table_reservations (if table already exists)
 ALTER TABLE `table_reservations` ADD COLUMN IF NOT EXISTS `deposit_amount` decimal(10,2) NOT NULL DEFAULT 0.00 AFTER `notes`;
 ALTER TABLE `table_reservations` ADD COLUMN IF NOT EXISTS `deposit_paid` tinyint(1) NOT NULL DEFAULT 0 AFTER `deposit_amount`;
+
+-- 15. Table inventory (daily table capacity for reservations, Template 4)
+CREATE TABLE IF NOT EXISTS `table_inventory_daily` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `restaurant_id` int(11) NOT NULL,
+  `inventory_date` date NOT NULL,
+  `total_tables` int(11) NOT NULL DEFAULT 10,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `restaurant_date` (`restaurant_id`, `inventory_date`),
+  KEY `restaurant_id` (`restaurant_id`),
+  KEY `inventory_date` (`inventory_date`),
+  CONSTRAINT `table_inventory_daily_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 16. Add is_walkin flag to table_reservations (for walk-in tracking)
+ALTER TABLE `table_reservations` ADD COLUMN IF NOT EXISTS `is_walkin` tinyint(1) NOT NULL DEFAULT 0 AFTER `status`;

@@ -618,6 +618,7 @@ CREATE TABLE `table_reservations` (
   `special_occasion` varchar(50) DEFAULT NULL,
   `notes` text DEFAULT NULL,
   `status` varchar(50) NOT NULL DEFAULT 'pending' COMMENT 'pending, confirmed, rejected, cancelled, completed',
+  `is_walkin` tinyint(1) NOT NULL DEFAULT 0,
   `deposit_amount` decimal(10,2) NOT NULL DEFAULT 0.00,
   `deposit_paid` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -626,6 +627,26 @@ CREATE TABLE `table_reservations` (
   KEY `restaurant_id` (`restaurant_id`),
   KEY `reservation_date` (`reservation_date`),
   KEY `status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `table_inventory_daily`
+--
+
+CREATE TABLE `table_inventory_daily` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `restaurant_id` int(11) NOT NULL,
+  `inventory_date` date NOT NULL,
+  `total_tables` int(11) NOT NULL DEFAULT 10,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `restaurant_date` (`restaurant_id`, `inventory_date`),
+  KEY `restaurant_id` (`restaurant_id`),
+  KEY `inventory_date` (`inventory_date`),
+  CONSTRAINT `table_inventory_daily_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
