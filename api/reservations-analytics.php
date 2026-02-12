@@ -75,18 +75,19 @@ try {
     $response = ['success' => true];
 
     // Revenue by date (deposit amounts collected - deposit_paid=1)
-    $revenueSql = "SELECT reservation_date AS date, COALESCE(SUM(deposit_amount), 0) AS revenue
+    // Use DATE(updated_at) = payment date (when deposit was marked paid), not reservation_date
+    $revenueSql = "SELECT DATE(updated_at) AS date, COALESCE(SUM(deposit_amount), 0) AS revenue
         FROM table_reservations WHERE restaurant_id = ? AND deposit_paid = 1";
     $revParams = [$restaurantId];
     if ($dateFrom) {
-        $revenueSql .= " AND reservation_date >= ?";
+        $revenueSql .= " AND DATE(updated_at) >= ?";
         $revParams[] = $dateFrom;
     }
     if ($dateTo) {
-        $revenueSql .= " AND reservation_date <= ?";
+        $revenueSql .= " AND DATE(updated_at) <= ?";
         $revParams[] = $dateTo;
     }
-    $revenueSql .= " GROUP BY reservation_date ORDER BY date ASC";
+    $revenueSql .= " GROUP BY DATE(updated_at) ORDER BY date ASC";
     $stmt = $pdo->prepare($revenueSql);
     $stmt->execute($revParams);
     $response['revenue_by_date'] = $stmt->fetchAll(PDO::FETCH_ASSOC);

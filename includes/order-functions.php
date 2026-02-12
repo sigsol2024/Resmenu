@@ -142,7 +142,7 @@ function completeReservationDepositFromPending($reference, $gateway) {
     $reservationId = (int)$draft['reservation_id'];
     $restaurantId = (int)$draft['restaurant_id'];
 
-    $pdo->prepare("UPDATE table_reservations SET deposit_paid = 1, updated_at = NOW() WHERE id = ? AND restaurant_id = ?")->execute([$reservationId, $restaurantId]);
+    $pdo->prepare("UPDATE table_reservations SET deposit_paid = 1, status = 'confirmed', updated_at = NOW() WHERE id = ? AND restaurant_id = ?")->execute([$reservationId, $restaurantId]);
     $pdo->prepare("DELETE FROM pending_online_payments WHERE reference = ?")->execute([$reference]);
 
     $restaurant = getRestaurant($restaurantId);

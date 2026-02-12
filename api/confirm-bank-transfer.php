@@ -46,7 +46,7 @@ $paymentType = $draft['payment_type'] ?? 'order';
 $reservationId = isset($draft['reservation_id']) ? (int)$draft['reservation_id'] : 0;
 
 if ($paymentType === 'reservation' && $reservationId > 0) {
-    $pdo->prepare("UPDATE table_reservations SET deposit_paid = 1, updated_at = NOW() WHERE id = ? AND restaurant_id = ?")->execute([$reservationId, $draft['restaurant_id']]);
+    $pdo->prepare("UPDATE table_reservations SET deposit_paid = 1, status = 'confirmed', updated_at = NOW() WHERE id = ? AND restaurant_id = ?")->execute([$reservationId, $draft['restaurant_id']]);
     $pdo->prepare("DELETE FROM pending_bank_transfers WHERE token = ?")->execute([$token]);
     $restaurant = getRestaurant($draft['restaurant_id']);
     $slug = $restaurant['slug'] ?? '';
