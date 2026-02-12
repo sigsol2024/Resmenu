@@ -364,134 +364,6 @@ include __DIR__ . '/../includes/admin-layout.php';
     margin: 4px 0 0;
 }
 
-/* Stats cards (match manager dashboard) */
-.stats-row {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 20px;
-    margin-bottom: 24px;
-}
-
-.stat-card {
-    background: #fff;
-    padding: 16px;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    min-height: 80px;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-}
-
-.stat-card:hover { box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
-
-.stat-label {
-    font-size: 0.7rem;
-    color: #6b7280;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 6px;
-    font-weight: 600;
-}
-
-.stat-value {
-    font-size: 1.35rem;
-    font-weight: 700;
-    color: #111827;
-}
-
-/* Filters */
-.filters-card {
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    padding: 20px 24px;
-    margin-bottom: 24px;
-}
-
-.filters-card h3 {
-    font-size: 0.875rem;
-    font-weight: 600;
-    margin: 0 0 12px;
-    color: #111827;
-}
-
-.filters-form {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-    align-items: flex-end;
-}
-
-.filters-form .form-group {
-    margin-bottom: 0;
-}
-
-.filters-form label {
-    display: block;
-    font-size: 0.75rem;
-    color: #6b7280;
-    margin-bottom: 4px;
-}
-
-/* Bar chart */
-.chart-card {
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    padding: 24px;
-    margin-bottom: 24px;
-}
-
-.chart-title {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: #111827;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.simple-bar-chart {
-    height: 10rem;
-    display: grid;
-    grid-auto-flow: column;
-    gap: 2%;
-    align-items: end;
-    padding: 1.5rem 2% 1.5rem;
-    position: relative;
-}
-
-.simple-bar-chart > .item {
-    height: calc(1% * var(--val));
-    background-color: var(--clr, #111827);
-    border-radius: 4px 4px 0 0;
-    position: relative;
-}
-
-.simple-bar-chart > .item > .label {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    font-size: 0.75rem;
-    color: #6b7280;
-    margin-top: 4px;
-    text-align: center;
-}
-
-.simple-bar-chart > .item > .value {
-    position: absolute;
-    bottom: 100%;
-    left: 0;
-    right: 0;
-    font-size: 0.875rem;
-    font-weight: 600;
-    margin-bottom: 4px;
-    text-align: center;
-}
-
 .alert {
     padding: 12px 16px;
     border-radius: 6px;
@@ -781,10 +653,6 @@ include __DIR__ . '/../includes/admin-layout.php';
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
-    .stats-row {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
     .card-header {
         flex-direction: column;
         align-items: flex-start;
@@ -831,66 +699,8 @@ include __DIR__ . '/../includes/admin-layout.php';
 <!-- Page Header -->
 <div class="page-header">
     <h1 class="page-title">Restaurant Management</h1>
-    <p class="page-subtitle">Create and manage restaurants. View stats, revenue, and orders per restaurant.</p>
+    <p class="page-subtitle">Create and manage restaurants on the platform</p>
 </div>
-
-<!-- Stats Cards -->
-<section class="stats-row" id="stats-section">
-    <div class="stat-card">
-        <div class="stat-label">Total Revenue</div>
-        <div class="stat-value" id="stat-revenue">₦0</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-label">Total Menu Items</div>
-        <div class="stat-value" id="stat-menu-items">0</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-label">Total Categories</div>
-        <div class="stat-value" id="stat-categories">0</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-label">Total Orders</div>
-        <div class="stat-value" id="stat-orders">0</div>
-    </div>
-</section>
-
-<!-- Filters -->
-<div class="filters-card">
-    <h3>Filters</h3>
-    <form id="overview-filter-form" class="filters-form">
-        <div>
-            <label for="start_date">Start Date</label>
-            <input type="date" id="start_date" name="start_date" class="form-input" style="padding:8px 12px;">
-        </div>
-        <div>
-            <label for="end_date">End Date</label>
-            <input type="date" id="end_date" name="end_date" class="form-input" style="padding:8px 12px;">
-        </div>
-        <div>
-            <label for="restaurant_filter">Restaurant</label>
-            <select id="restaurant_filter" name="restaurant_id" class="form-select" style="padding:8px 12px;min-width:200px;">
-                <option value="">All Restaurants</option>
-                <?php foreach ($restaurants as $r): ?>
-                <option value="<?php echo (int)$r['id']; ?>"><?php echo htmlspecialchars($r['name']); ?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <button type="submit" class="btn btn-primary" style="padding:8px 16px;">Apply</button>
-    </form>
-</div>
-
-<!-- Bar Chart -->
-<section class="chart-card" id="chart-section">
-    <h2 class="chart-title">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
-        Statistics Overview
-    </h2>
-    <div class="simple-bar-chart" id="bar-chart">
-        <!-- Populated by JS -->
-    </div>
-</section>
 
 <!-- Create/Edit Restaurant Modal -->
         <div class="modal" id="restaurantModal" style="display: <?php echo $editRestaurant ? 'flex' : 'none'; ?>;">
@@ -1111,16 +921,41 @@ include __DIR__ . '/../includes/admin-layout.php';
                         <th>ID</th>
                         <th>Name</th>
                         <th>Slug</th>
-                        <th>Revenue</th>
-                        <th>Menu Items</th>
-                        <th>Categories</th>
-                        <th>Orders</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody id="restaurants-tbody">
-                    <tr><td colspan="9" style="text-align: center; padding: 24px; color: #6b7280;">Loading...</td></tr>
+                <tbody>
+                    <?php if (empty($restaurants)): ?>
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 40px; color: var(--muted);">
+                                No restaurants found.
+                            </td>
+                        </tr>
+                    <?php else: ?>
+                        <?php foreach ($restaurants as $restaurant): ?>
+                            <tr>
+                                <td><?php echo $restaurant['id']; ?></td>
+                                <td><?php echo htmlspecialchars($restaurant['name']); ?></td>
+                                <td><code style="background: #f9fafb; padding: 4px 8px; border-radius: 4px; font-size: 12px;"><?php echo htmlspecialchars($restaurant['slug']); ?></code></td>
+                                <td><span class="status-badge <?php echo $restaurant['is_active'] ? 'active' : 'inactive'; ?>"><?php echo $restaurant['is_active'] ? 'Active' : 'Inactive'; ?></span></td>
+                                <td class="actions-cell">
+                                    <button class="actions-btn" onclick="toggleDropdown(this)" title="Actions">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                        </svg>
+                                    </button>
+                                    <div class="actions-dropdown">
+                                        <a href="restaurant-view.php?slug=<?php echo htmlspecialchars($restaurant['slug']); ?>" class="actions-dropdown-item">Manage</a>
+                                        <a href="?action=edit&id=<?php echo $restaurant['id']; ?>" class="actions-dropdown-item">Edit</a>
+                                        <a href="/restaurant/<?php echo htmlspecialchars($restaurant['slug']); ?>" target="_blank" class="actions-dropdown-item">View Menu</a>
+                                        <div class="actions-dropdown-divider"></div>
+                                        <button type="button" onclick="openDeleteModal(<?php echo $restaurant['id']; ?>, '<?php echo htmlspecialchars(addslashes($restaurant['name'])); ?>')" class="actions-dropdown-item danger">Delete</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>
@@ -1188,95 +1023,6 @@ include __DIR__ . '/../includes/admin-layout.php';
             openRestaurantModal();
         });
         <?php endif; ?>
-
-        // Restaurants overview: stats, bar chart, table
-        (function() {
-            function esc(s) {
-                if (s == null || s === '') return '';
-                const t = String(s);
-                return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-            }
-
-            function loadOverview() {
-                const start = document.getElementById('start_date').value || '';
-                const end = document.getElementById('end_date').value || '';
-                const restaurantId = document.getElementById('restaurant_filter').value || '';
-                let url = '../api/orders-analytics.php?action=restaurants_overview&';
-                if (start) url += 'start_date=' + encodeURIComponent(start) + '&';
-                if (end) url += 'end_date=' + encodeURIComponent(end) + '&';
-                if (restaurantId) url += 'restaurant_id=' + encodeURIComponent(restaurantId) + '&';
-
-                const tbody = document.getElementById('restaurants-tbody');
-                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 24px; color: #6b7280;">Loading...</td></tr>';
-
-                fetch(url).then(r => r.json()).then(function(data) {
-                    if (!data.success) {
-                        tbody.innerHTML = '<tr><td colspan="9" style="padding: 24px; text-align: center; color: #ef4444;">' + esc(data.message || 'Failed to load data.') + '</td></tr>';
-                        return;
-                    }
-                    const rows = data.restaurants || [];
-                    const summary = data.summary || { total_revenue: 0, total_orders: 0, total_menu_items: 0, total_categories: 0 };
-
-                    // Update stats cards
-                    document.getElementById('stat-revenue').textContent = '\u20A6' + parseFloat(summary.total_revenue || 0).toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-                    document.getElementById('stat-menu-items').textContent = parseInt(summary.total_menu_items || 0, 10).toLocaleString();
-                    document.getElementById('stat-categories').textContent = parseInt(summary.total_categories || 0, 10).toLocaleString();
-                    document.getElementById('stat-orders').textContent = parseInt(summary.total_orders || 0, 10).toLocaleString();
-
-                    // Update bar chart
-                    const chartData = [
-                        { label: 'Revenue (\u20A6)', value: parseFloat(summary.total_revenue || 0), color: '#10b981' },
-                        { label: 'Orders', value: parseInt(summary.total_orders || 0, 10), color: '#5EB344' },
-                        { label: 'Menu Items', value: parseInt(summary.total_menu_items || 0, 10), color: '#F8821A' },
-                        { label: 'Categories', value: parseInt(summary.total_categories || 0, 10), color: '#069CDB' }
-                    ];
-                    const maxVal = Math.max(1, ...chartData.map(d => d.value));
-                    const chartEl = document.getElementById('bar-chart');
-                    chartEl.innerHTML = chartData.map(function(d) {
-                        const pct = maxVal > 0 ? (d.value / maxVal) * 100 : 0;
-                        return '<div class="item" style="--clr: ' + d.color + '; --val: ' + pct.toFixed(1) + '"><span class="value">' + (typeof d.value === 'number' && d.value >= 1000 ? d.value.toLocaleString() : d.value) + '</span><span class="label">' + esc(d.label) + '</span></div>';
-                    }).join('');
-
-                    // Update table
-                    if (rows.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="9" style="padding: 24px; text-align: center; color: #6b7280;">No data found.</td></tr>';
-                        return;
-                    }
-                    tbody.innerHTML = rows.map(function(r) {
-                        const slug = encodeURIComponent(r.slug || '');
-                        const nameJs = JSON.stringify(String(r.name || '')).replace(/"/g, '&quot;');
-                        const isActive = (r.is_active !== undefined && r.is_active != 0 && r.is_active !== '0');
-                        return '<tr>' +
-                            '<td>' + parseInt(r.id || 0, 10) + '</td>' +
-                            '<td>' + esc(r.name) + '</td>' +
-                            '<td><code style="background:#f9fafb;padding:4px 8px;border-radius:4px;font-size:12px;">' + esc(r.slug) + '</code></td>' +
-                            '<td>\u20A6' + parseFloat(r.total_revenue || 0).toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + '</td>' +
-                            '<td>' + parseInt(r.menu_items || 0, 10) + '</td>' +
-                            '<td>' + parseInt(r.categories || 0, 10) + '</td>' +
-                            '<td>' + parseInt(r.total_orders || 0, 10) + '</td>' +
-                            '<td><span class="status-badge ' + (isActive ? 'active' : 'inactive') + '">' + (isActive ? 'Active' : 'Inactive') + '</span></td>' +
-                            '<td class="actions-cell">' +
-                            '<button class="actions-btn" onclick="toggleDropdown(this)" title="Actions"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/></svg></button>' +
-                            '<div class="actions-dropdown">' +
-                            '<a href="restaurant-view.php?slug=' + slug + '" class="actions-dropdown-item">Manage</a>' +
-                            '<a href="?action=edit&id=' + parseInt(r.id, 10) + '" class="actions-dropdown-item">Edit</a>' +
-                            '<a href="/restaurant/' + slug + '" target="_blank" class="actions-dropdown-item">View Menu</a>' +
-                            '<div class="actions-dropdown-divider"></div>' +
-                            '<button type="button" onclick="openDeleteModal(' + parseInt(r.id, 10) + ', ' + nameJs + ')" class="actions-dropdown-item danger">Delete</button>' +
-                            '</div></td></tr>';
-                    }).join('');
-                }).catch(function() {
-                    tbody.innerHTML = '<tr><td colspan="9" style="padding: 24px; text-align: center; color: #ef4444;">Failed to load data.</td></tr>';
-                });
-            }
-
-            document.getElementById('overview-filter-form').addEventListener('submit', function(e) {
-                e.preventDefault();
-                loadOverview();
-            });
-
-            loadOverview();
-        })();
     </script>
 
 <?php include __DIR__ . '/../includes/admin-footer.php'; ?>
