@@ -20,10 +20,10 @@ $stmt = $pdo->prepare("SELECT id, username, email, created_at FROM managers WHER
 $stmt->execute([$managerId]);
 $manager = $stmt->fetch();
 
-// Get restaurant info
+// Get restaurant info (full details for editing)
 $restaurant = null;
 if ($restaurantId) {
-    $stmt = $pdo->prepare("SELECT name, slug FROM restaurants WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT * FROM restaurants WHERE id = ?");
     $stmt->execute([$restaurantId]);
     $restaurant = $stmt->fetch();
 }
@@ -79,6 +79,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $error = 'Error updating profile: ' . $e->getMessage();
                     }
                 }
+            }
+        }
+    }
+    
+    if ($action === 'update_restaurant' && $restaurantId) {
+        $name = sanitize($_POST['name'] ?? '');
+        $description = sanitize($_POST['description'] ?? '');
+        $phone = sanitize($_POST['phone'] ?? '');
+        $email = sanitize($_POST['email'] ?? '');
+        $address = sanitize($_POST['address'] ?? '');
+        $whatsapp_link = sanitize($_POST['whatsapp_link'] ?? '');
+        $instagram_url = sanitize($_POST['instagram_url'] ?? '');
+        $facebook_url = sanitize($_POST['facebook_url'] ?? '');
+        $twitter_url = sanitize($_POST['twitter_url'] ?? '');
+        $footer_content = sanitize($_POST['footer_content'] ?? '');
+        
+        if (empty($name)) {
+            $error = 'Restaurant name is required';
+        } else {
+            try {
+                $stmt = $pdo->prepare("UPDATE restaurants SET name = ?, description = ?, phone = ?, email = ?, address = ?, whatsapp_link = ?, instagram_url = ?, facebook_url = ?, twitter_url = ?, footer_content = ?, updated_at = NOW() WHERE id = ?");
+                $stmt->execute([$name, $description, $phone, $email, $address, $whatsapp_link, $instagram_url, $facebook_url, $twitter_url, $footer_content, $restaurantId]);
+                $message = 'Restaurant details updated successfully';
+                $stmt = $pdo->prepare("SELECT * FROM restaurants WHERE id = ?");
+                $stmt->execute([$restaurantId]);
+                $restaurant = $stmt->fetch();
+            } catch (PDOException $e) {
+                $error = 'Error updating restaurant: ' . $e->getMessage();
             }
         }
     }
@@ -199,6 +227,81 @@ include __DIR__ . '/../includes/manager-layout.php';
                     </button>
                 </form>
         </div>
+
+        <!-- Restaurant Details (Manager can edit their restaurant) -->
+        <?php if ($restaurant): ?>
+        <div class="settings-card">
+            <div class="section-header">
+                <h2 class="section-title">Restaurant Details</h2>
+                <p style="color: var(--muted); font-size: 0.875rem; margin-top: 4px;">Edit your restaurant information. Social links appear as icons in the menu footer.</p>
+            </div>
+            <form method="POST" action="">
+                <input type="hidden" name="action" value="update_restaurant">
+                
+                <div class="form-group">
+                    <label class="form-label" for="rest_name">Restaurant Name *</label>
+                    <input type="text" id="rest_name" name="name" class="form-input" required value="<?php echo htmlspecialchars($restaurant['name'] ?? ''); ?>">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="rest_description">Description</label>
+                    <textarea id="rest_description" name="description" class="form-input" rows="3"><?php echo htmlspecialchars($restaurant['description'] ?? ''); ?></textarea>
+                </div>
+                
+                <div class="form-group-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="form-group">
+                        <label class="form-label" for="rest_phone">Phone</label>
+                        <input type="text" id="rest_phone" name="phone" class="form-input" value="<?php echo htmlspecialchars($restaurant['phone'] ?? ''); ?>">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="rest_email">Email</label>
+                        <input type="email" id="rest_email" name="email" class="form-input" value="<?php echo htmlspecialchars($restaurant['email'] ?? ''); ?>">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="rest_address">Address</label>
+                    <textarea id="rest_address" name="address" class="form-input" rows="2"><?php echo htmlspecialchars($restaurant['address'] ?? ''); ?></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" style="margin-bottom: 8px;">Social Media Links</label>
+                    <p style="color: var(--muted); font-size: 0.8rem; margin-bottom: 12px;">Only links with values will appear as icons in the menu footer.</p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label" for="rest_whatsapp" style="font-size: 0.8rem;">WhatsApp</label>
+                            <input type="url" id="rest_whatsapp" name="whatsapp_link" class="form-input" value="<?php echo htmlspecialchars($restaurant['whatsapp_link'] ?? ''); ?>" placeholder="https://wa.me/...">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label" for="rest_instagram" style="font-size: 0.8rem;">Instagram</label>
+                            <input type="url" id="rest_instagram" name="instagram_url" class="form-input" value="<?php echo htmlspecialchars($restaurant['instagram_url'] ?? ''); ?>" placeholder="https://instagram.com/...">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label" for="rest_facebook" style="font-size: 0.8rem;">Facebook</label>
+                            <input type="url" id="rest_facebook" name="facebook_url" class="form-input" value="<?php echo htmlspecialchars($restaurant['facebook_url'] ?? ''); ?>" placeholder="https://facebook.com/...">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label" for="rest_twitter" style="font-size: 0.8rem;">Twitter</label>
+                            <input type="url" id="rest_twitter" name="twitter_url" class="form-input" value="<?php echo htmlspecialchars($restaurant['twitter_url'] ?? ''); ?>" placeholder="https://twitter.com/...">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="rest_footer">Footer Content</label>
+                    <textarea id="rest_footer" name="footer_content" class="form-input" rows="3"><?php echo htmlspecialchars($restaurant['footer_content'] ?? ''); ?></textarea>
+                    <small style="color: var(--muted); display: block; margin-top: 5px;">Optional text displayed in the footer of your menu.</small>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Save Restaurant Details
+                </button>
+            </form>
+        </div>
+        <?php endif; ?>
 
         <!-- Update Password Form -->
         <div class="settings-card">

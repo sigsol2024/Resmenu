@@ -127,6 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $instagramUrl = sanitize($_POST['instagram_url'] ?? '');
         $facebookUrl = sanitize($_POST['facebook_url'] ?? '');
         $twitterUrl = sanitize($_POST['twitter_url'] ?? '');
+        $whatsappLink = sanitize($_POST['whatsapp_link'] ?? '');
         $mapLatitude = !empty($_POST['map_latitude']) ? floatval($_POST['map_latitude']) : null;
         $mapLongitude = !empty($_POST['map_longitude']) ? floatval($_POST['map_longitude']) : null;
         
@@ -136,8 +137,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Invalid JSON format for header menu items';
         } else {
             try {
-                $stmt = $pdo->prepare("UPDATE restaurants SET header_menu_items = ?, footer_content = ?, instagram_url = ?, facebook_url = ?, twitter_url = ?, map_latitude = ?, map_longitude = ? WHERE id = ?");
-                $stmt->execute([$headerMenuItems, $footerContent, $instagramUrl, $facebookUrl, $twitterUrl, $mapLatitude, $mapLongitude, $restaurantId]);
+                $stmt = $pdo->prepare("UPDATE restaurants SET header_menu_items = ?, footer_content = ?, instagram_url = ?, facebook_url = ?, twitter_url = ?, whatsapp_link = ?, map_latitude = ?, map_longitude = ? WHERE id = ?");
+                $stmt->execute([$headerMenuItems, $footerContent, $instagramUrl, $facebookUrl, $twitterUrl, $whatsappLink, $mapLatitude, $mapLongitude, $restaurantId]);
                 $message = 'Header and footer settings saved successfully';
             } catch (PDOException $e) {
                 $error = 'Error saving header/footer: ' . $e->getMessage();
@@ -1230,7 +1231,12 @@ include __DIR__ . '/../includes/admin-layout.php';
                         <div class="card-header">
                             <h2 class="card-title">Social Media Links</h2>
                         </div>
+                        <p style="margin-bottom: 12px; color: var(--muted); font-size: 13px;">Only links with values will appear as icons in the menu footer.</p>
                         <div class="form-group-row">
+                            <div class="form-group">
+                                <label class="form-label">WhatsApp Link</label>
+                                <input type="url" name="whatsapp_link" class="form-input" value="<?php echo htmlspecialchars($restaurant['whatsapp_link'] ?? ''); ?>" placeholder="https://wa.me/...">
+                            </div>
                             <div class="form-group">
                                 <label class="form-label">Instagram URL</label>
                                 <input type="url" name="instagram_url" class="form-input" value="<?php echo htmlspecialchars($restaurant['instagram_url'] ?? ''); ?>" placeholder="https://instagram.com/...">

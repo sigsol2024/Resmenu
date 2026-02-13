@@ -714,6 +714,20 @@ body {
 .social-icons a {
   text-decoration: none;
   color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s, transform 0.2s;
+}
+
+.social-icons a:hover {
+  color: var(--dark);
+  transform: scale(1.1);
+}
+
+.social-icon-svg {
+  width: 24px;
+  height: 24px;
 }
 
 .brand-right h3 {

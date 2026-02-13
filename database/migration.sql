@@ -23,6 +23,9 @@
 -- 18. site_settings (site name, logo, favicon for super admin)
 -- 19. customization_settings: add template_id for per-template color customization
 --    (all color/size/font columns already exist; no schema change needed for full customization)
+-- 20. restaurants: ensure social media link columns exist (WhatsApp, Instagram, Facebook, Twitter)
+-- 21. Theview Hotel Lekki: optional menu data (18 categories, ~173 items for restaurant_id=3)
+--     Skip or comment out section 21 if Theview menu is already loaded.
 --
 -- Requires: MariaDB 10.0.2+ or MySQL 8.0.12+ for ADD COLUMN IF NOT EXISTS
 -- Section 19 index statements: MariaDB 10.5.2+ (IF NOT EXISTS supported). For MySQL, use commented alternative.
@@ -271,3 +274,182 @@ ALTER TABLE `customization_settings` DROP INDEX IF EXISTS `restaurant_id`;
 -- MySQL 8.0 (if above fails): run these instead, skip if index/column already exists:
 -- ALTER TABLE `customization_settings` ADD UNIQUE KEY `restaurant_template` (`restaurant_id`, `template_id`);
 -- ALTER TABLE `customization_settings` DROP INDEX `restaurant_id`;
+
+-- 20. Restaurants: ensure social media link columns exist (for manager profile + footer icons)
+-- Run these if your restaurants table was created before these columns were added.
+ALTER TABLE `restaurants` ADD COLUMN IF NOT EXISTS `whatsapp_link` varchar(255) DEFAULT NULL AFTER `website`;
+ALTER TABLE `restaurants` ADD COLUMN IF NOT EXISTS `instagram_url` varchar(255) DEFAULT NULL AFTER `whatsapp_link`;
+ALTER TABLE `restaurants` ADD COLUMN IF NOT EXISTS `facebook_url` varchar(255) DEFAULT NULL AFTER `instagram_url`;
+ALTER TABLE `restaurants` ADD COLUMN IF NOT EXISTS `twitter_url` varchar(255) DEFAULT NULL AFTER `facebook_url`;
+
+-- ============================================================
+-- 21. Theview Hotel Lekki - Optional Menu Import (restaurant_id=3)
+-- ============================================================
+-- 18 categories, ~173 menu items. Run ONCE.
+-- If categories already exist for restaurant 3, delete first:
+--   DELETE FROM menu_items WHERE restaurant_id = 3;
+--   DELETE FROM categories WHERE restaurant_id = 3;
+-- Then run this section. Or comment out this entire section if not needed.
+-- ============================================================
+
+-- 21a. Insert categories (IDs 23-40 for restaurant_id=3)
+INSERT IGNORE INTO `categories` (`id`, `restaurant_id`, `name`, `slug`, `image`, `description`, `display_order`, `is_active`, `created_at`, `updated_at`) VALUES
+(23, 3, 'Soft Drinks & Non-Alcoholic', 'soft-drinks-non-alcoholic', NULL, 'Refreshing non-alcoholic beverages', 1, 1, NOW(), NOW()),
+(24, 3, 'Beer & Cider', 'beer-cider', NULL, 'Local and imported beers and ciders', 2, 1, NOW(), NOW()),
+(25, 3, 'Brandy & Cognac', 'brandy-cognac', NULL, 'Premium brandy and cognac selection', 3, 1, NOW(), NOW()),
+(26, 3, 'Whiskey', 'whiskey', NULL, 'Fine whiskey collection', 4, 1, NOW(), NOW()),
+(27, 3, 'Rum', 'rum', NULL, 'Rum selection', 5, 1, NOW(), NOW()),
+(28, 3, 'Vodka', 'vodka', NULL, 'Vodka selection', 6, 1, NOW(), NOW()),
+(29, 3, 'Gin', 'gin', NULL, 'Premium gin selection', 7, 1, NOW(), NOW()),
+(30, 3, 'Tequila', 'tequila', NULL, 'Tequila selection', 8, 1, NOW(), NOW()),
+(31, 3, 'Liqueurs', 'liqueurs', NULL, 'Sweet liqueurs and digestifs', 9, 1, NOW(), NOW()),
+(32, 3, 'Aperitifs & Bitters', 'aperitifs-bitters', NULL, 'Aperitifs and bitters', 10, 1, NOW(), NOW()),
+(33, 3, 'Champagne', 'champagne', NULL, 'Premium champagne selection', 11, 1, NOW(), NOW()),
+(34, 3, 'Mocktails', 'mocktails', NULL, 'Alcohol-free cocktails', 12, 1, NOW(), NOW()),
+(35, 3, 'Cocktails', 'cocktails', NULL, 'Classic and signature cocktails', 13, 1, NOW(), NOW()),
+(36, 3, 'White Wines', 'white-wines', NULL, 'White wine selection', 14, 1, NOW(), NOW()),
+(37, 3, 'Red Wines', 'red-wines', NULL, 'Red wine selection', 15, 1, NOW(), NOW()),
+(38, 3, 'Coffee', 'coffee', NULL, 'Hot coffee drinks', 16, 1, NOW(), NOW()),
+(39, 3, 'Smoothies', 'smoothies', NULL, 'Fresh fruit smoothies', 17, 1, NOW(), NOW()),
+(40, 3, 'Fresh Juices', 'fresh-juices', NULL, 'Freshly squeezed juices', 18, 1, NOW(), NOW());
+
+-- 21b. Insert menu items (requires categories 23-40 to exist; delete menu_items + categories for restaurant 3 first if re-running)
+INSERT INTO `menu_items` (`restaurant_id`, `category_id`, `name`, `slug`, `description`, `price`, `image`, `display_order`, `is_available`, `created_at`, `updated_at`) VALUES
+(3, 23, 'Cranberry Juice', 'cranberry-juice', '', 6000.00, NULL, 1, 1, NOW(), NOW()),
+(3, 23, 'Juice Pack', 'juice-pack', '', 6000.00, NULL, 2, 1, NOW(), NOW()),
+(3, 23, 'Malt Drink', 'malt-drink', '', 1500.00, NULL, 3, 1, NOW(), NOW()),
+(3, 23, 'Energy Drink', 'energy-drink', '', 5000.00, NULL, 4, 1, NOW(), NOW()),
+(3, 23, 'Water (Small)', 'water-small', '', 1000.00, NULL, 5, 1, NOW(), NOW()),
+(3, 23, 'Soft Drinks (Coke, Fanta, Sprite, etc.)', 'soft-drinks', 'Coke, Fanta, Sprite and more', 1000.00, NULL, 6, 1, NOW(), NOW()),
+(3, 23, 'Red Bull / Power Horse', 'red-bull-power-horse', '', 5000.00, NULL, 7, 1, NOW(), NOW()),
+(3, 24, '33 Lager', '33-lager', '', 3000.00, NULL, 1, 1, NOW(), NOW()),
+(3, 24, 'Smirnoff Ice', 'smirnoff-ice', '', 3000.00, NULL, 2, 1, NOW(), NOW()),
+(3, 24, 'Star Draft (Big)', 'star-draft-big', '', 2000.00, NULL, 3, 1, NOW(), NOW()),
+(3, 24, 'Star Draft (Small)', 'star-draft-small', '', 1000.00, NULL, 4, 1, NOW(), NOW()),
+(3, 24, 'Star Radler', 'star-radler', '', 3000.00, NULL, 5, 1, NOW(), NOW()),
+(3, 24, 'Budweiser (Big)', 'budweiser-big', '', 3500.00, NULL, 6, 1, NOW(), NOW()),
+(3, 24, 'Heineken', 'heineken', '', 3500.00, NULL, 7, 1, NOW(), NOW()),
+(3, 24, 'Heineken Draft (Big)', 'heineken-draft-big', '', 3500.00, NULL, 8, 1, NOW(), NOW()),
+(3, 24, 'Heineken Draft (Small)', 'heineken-draft-small', '', 1500.00, NULL, 9, 1, NOW(), NOW()),
+(3, 24, 'Flying Fish', 'flying-fish', '', 3000.00, NULL, 10, 1, NOW(), NOW()),
+(3, 24, 'Desperados', 'desperados', '', 3000.00, NULL, 11, 1, NOW(), NOW()),
+(3, 24, 'Guinness Stout (Big)', 'guinness-stout-big', '', 3500.00, NULL, 12, 1, NOW(), NOW()),
+(3, 24, 'Guinness Stout (Small)', 'guinness-stout-small', '', 3000.00, NULL, 13, 1, NOW(), NOW()),
+(3, 24, 'Guinness Extra Smooth', 'guinness-extra-smooth', '', 3000.00, NULL, 14, 1, NOW(), NOW()),
+(3, 24, 'Gulder', 'gulder', '', 3000.00, NULL, 15, 1, NOW(), NOW()),
+(3, 24, 'Star', 'star', '', 3000.00, NULL, 16, 1, NOW(), NOW()),
+(3, 24, 'Trophy', 'trophy', '', 3000.00, NULL, 17, 1, NOW(), NOW()),
+(3, 24, 'Goldberg', 'goldberg', '', 3000.00, NULL, 18, 1, NOW(), NOW()),
+(3, 24, 'Harp', 'harp', '', 3000.00, NULL, 19, 1, NOW(), NOW()),
+(3, 25, 'Rémy Martin XO', 'remy-martin-xo', 'Bottle', 230000.00, NULL, 1, 1, NOW(), NOW()),
+(3, 25, 'Hennessy XO', 'hennessy-xo', 'Bottle', 575000.00, NULL, 2, 1, NOW(), NOW()),
+(3, 25, 'Hennessy VSOP (Bottle)', 'hennessy-vsop-bottle', 'Bottle', 130000.00, NULL, 3, 1, NOW(), NOW()),
+(3, 25, 'Hennessy VSOP (Shot)', 'hennessy-vsop-shot', 'Per shot', 9000.00, NULL, 4, 1, NOW(), NOW()),
+(3, 25, 'Rémy Martin VSOP (Bottle)', 'remy-martin-vsop-bottle', 'Bottle', 90000.00, NULL, 5, 1, NOW(), NOW()),
+(3, 25, 'Rémy Martin VSOP (Shot)', 'remy-martin-vsop-shot', 'Per shot', 6500.00, NULL, 6, 1, NOW(), NOW()),
+(3, 25, 'Martell Blue Swift (Bottle)', 'martell-blue-swift-bottle', 'Bottle', 80000.00, NULL, 7, 1, NOW(), NOW()),
+(3, 25, 'Martell Blue Swift (Shot)', 'martell-blue-swift-shot', 'Per shot', 6000.00, NULL, 8, 1, NOW(), NOW()),
+(3, 25, 'Hennessy VS (Bottle)', 'hennessy-vs-bottle', 'Bottle', 80000.00, NULL, 9, 1, NOW(), NOW()),
+(3, 25, 'Hennessy VS (Shot)', 'hennessy-vs-shot', 'Per shot', 7000.00, NULL, 10, 1, NOW(), NOW()),
+(3, 26, 'Glenfiddich 18 Years', 'glenfiddich-18-years', 'Bottle', 180000.00, NULL, 1, 1, NOW(), NOW()),
+(3, 26, 'Glenfiddich 15 Years (Bottle)', 'glenfiddich-15-years-bottle', 'Bottle', 120000.00, NULL, 2, 1, NOW(), NOW()),
+(3, 26, 'Glenfiddich 15 Years (Shot)', 'glenfiddich-15-years-shot', 'Per shot', 8000.00, NULL, 3, 1, NOW(), NOW()),
+(3, 26, 'Glenfiddich 12 Years (Bottle)', 'glenfiddich-12-years-bottle', 'Bottle', 90000.00, NULL, 4, 1, NOW(), NOW()),
+(3, 26, 'Glenfiddich 12 Years (Shot)', 'glenfiddich-12-years-shot', 'Per shot', 5000.00, NULL, 5, 1, NOW(), NOW()),
+(3, 26, 'Jameson Black Barrel (Bottle)', 'jameson-black-barrel-bottle', 'Bottle', 55000.00, NULL, 6, 1, NOW(), NOW()),
+(3, 26, 'Jameson Black Barrel (Shot)', 'jameson-black-barrel-shot', 'Per shot', 3000.00, NULL, 7, 1, NOW(), NOW()),
+(3, 26, 'Jameson (Big Bottle)', 'jameson-big-bottle', 'Bottle', 47000.00, NULL, 8, 1, NOW(), NOW()),
+(3, 26, 'Jameson (Shot)', 'jameson-shot', 'Per shot', 5000.00, NULL, 9, 1, NOW(), NOW()),
+(3, 26, 'Jameson Miniature', 'jameson-miniature', '', 18500.00, NULL, 10, 1, NOW(), NOW()),
+(3, 26, 'Johnnie Walker Black Label (Bottle)', 'johnnie-walker-black-label-bottle', 'Bottle', 45000.00, NULL, 11, 1, NOW(), NOW()),
+(3, 26, 'Johnnie Walker Black Label (Shot)', 'johnnie-walker-black-label-shot', 'Per shot', 5000.00, NULL, 12, 1, NOW(), NOW()),
+(3, 26, 'Johnnie Walker Red Label (Bottle)', 'johnnie-walker-red-label-bottle', 'Bottle', 27000.00, NULL, 13, 1, NOW(), NOW()),
+(3, 26, 'Johnnie Walker Red Label (Shot)', 'johnnie-walker-red-label-shot', 'Per shot', 3000.00, NULL, 14, 1, NOW(), NOW()),
+(3, 26, 'Johnnie Walker Blue Label', 'johnnie-walker-blue-label', 'Bottle', 90000.00, NULL, 15, 1, NOW(), NOW()),
+(3, 26, 'Jack Daniel''s (Bottle)', 'jack-daniels-bottle', 'Bottle', 48000.00, NULL, 16, 1, NOW(), NOW()),
+(3, 26, 'Jack Daniel''s (Shot)', 'jack-daniels-shot', 'Per shot', 4000.00, NULL, 17, 1, NOW(), NOW()),
+(3, 26, 'Chivas Regal (Bottle)', 'chivas-regal-bottle', 'Bottle', 25000.00, NULL, 18, 1, NOW(), NOW()),
+(3, 26, 'Chivas Regal (Shot)', 'chivas-regal-shot', 'Per shot', 2500.00, NULL, 19, 1, NOW(), NOW()),
+(3, 27, 'Bacardi White (Bottle)', 'bacardi-white-bottle', 'Bottle', 35000.00, NULL, 1, 1, NOW(), NOW()),
+(3, 27, 'Bacardi White (Shot)', 'bacardi-white-shot', 'Per shot', 3500.00, NULL, 2, 1, NOW(), NOW()),
+(3, 27, 'Bacardi Gold (Bottle)', 'bacardi-gold-bottle', 'Bottle', 35000.00, NULL, 3, 1, NOW(), NOW()),
+(3, 27, 'Bacardi Gold (Shot)', 'bacardi-gold-shot', 'Per shot', 2000.00, NULL, 4, 1, NOW(), NOW()),
+(3, 27, 'Malibu (Bottle)', 'malibu-bottle', 'Bottle', 28000.00, NULL, 5, 1, NOW(), NOW()),
+(3, 27, 'Malibu (Shot)', 'malibu-shot', 'Per shot', 4000.00, NULL, 6, 1, NOW(), NOW()),
+(3, 28, 'Ciroc', 'ciroc', 'Bottle', 62000.00, NULL, 1, 1, NOW(), NOW()),
+(3, 28, 'Absolut Vodka (Bottle)', 'absolut-vodka-bottle', 'Bottle', 35000.00, NULL, 2, 1, NOW(), NOW()),
+(3, 28, 'Absolut Vodka (Shot)', 'absolut-vodka-shot', 'Per shot', 3000.00, NULL, 3, 1, NOW(), NOW()),
+(3, 28, 'Smirnoff (Bottle)', 'smirnoff-bottle', 'Bottle', 22000.00, NULL, 4, 1, NOW(), NOW()),
+(3, 28, 'Smirnoff (Shot)', 'smirnoff-shot', 'Per shot', 2500.00, NULL, 5, 1, NOW(), NOW()),
+(3, 28, 'Grey Goose (Bottle)', 'grey-goose-bottle', 'Bottle', 45000.00, NULL, 6, 1, NOW(), NOW()),
+(3, 28, 'Grey Goose (Shot)', 'grey-goose-shot', 'Per shot', 2500.00, NULL, 7, 1, NOW(), NOW()),
+(3, 29, 'Gin Mare (Bottle)', 'gin-mare-bottle', 'Bottle', 40000.00, NULL, 1, 1, NOW(), NOW()),
+(3, 29, 'Gin Mare (Shot)', 'gin-mare-shot', 'Per shot', 3000.00, NULL, 2, 1, NOW(), NOW()),
+(3, 29, 'Hendrick''s (Bottle)', 'hendricks-bottle', 'Bottle', 73000.00, NULL, 3, 1, NOW(), NOW()),
+(3, 29, 'Hendrick''s (Shot)', 'hendricks-shot', 'Per shot', 4000.00, NULL, 4, 1, NOW(), NOW()),
+(3, 29, 'Hendrick''s Alt Bottle', 'hendricks-alt-bottle', 'Alternative bottle', 50000.00, NULL, 5, 1, NOW(), NOW()),
+(3, 29, 'Hendrick''s Alt Bottle (Shot)', 'hendricks-alt-bottle-shot', 'Per shot', 2500.00, NULL, 6, 1, NOW(), NOW()),
+(3, 29, 'Bombay Sapphire (Bottle)', 'bombay-sapphire-bottle', 'Bottle', 50000.00, NULL, 7, 1, NOW(), NOW()),
+(3, 29, 'Bombay Sapphire (Shot)', 'bombay-sapphire-shot', 'Per shot', 4000.00, NULL, 8, 1, NOW(), NOW()),
+(3, 30, 'Olmeca White (Bottle)', 'olmeca-white-bottle', 'Bottle', 45000.00, NULL, 1, 1, NOW(), NOW()),
+(3, 30, 'Olmeca White (Shot)', 'olmeca-white-shot', 'Per shot', 4000.00, NULL, 2, 1, NOW(), NOW()),
+(3, 31, 'Baileys (Bottle)', 'baileys-bottle', 'Bottle', 30000.00, NULL, 1, 1, NOW(), NOW()),
+(3, 31, 'Baileys (Shot)', 'baileys-shot', 'Per shot', 2000.00, NULL, 2, 1, NOW(), NOW()),
+(3, 31, 'Kahlua (Bottle)', 'kahlua-bottle', 'Bottle', 23000.00, NULL, 3, 1, NOW(), NOW()),
+(3, 31, 'Kahlua (Shot)', 'kahlua-shot', 'Per shot', 2000.00, NULL, 4, 1, NOW(), NOW()),
+(3, 31, 'Cointreau', 'cointreau', 'Per shot', 2000.00, NULL, 5, 1, NOW(), NOW()),
+(3, 31, 'Triple Sec', 'triple-sec', 'Per shot', 2000.00, NULL, 6, 1, NOW(), NOW()),
+(3, 32, 'Campari', 'campari', 'Bottle', 20000.00, NULL, 1, 1, NOW(), NOW()),
+(3, 32, 'Origin Bitters (Big)', 'origin-bitters-big', 'Bottle', 9000.00, NULL, 2, 1, NOW(), NOW()),
+(3, 32, 'Origin Bitters (Mini)', 'origin-bitters-mini', '', 2500.00, NULL, 3, 1, NOW(), NOW()),
+(3, 32, 'Palm Spirit (Aphro / Moor Rum)', 'palm-spirit', 'Bottle', 25000.00, NULL, 4, 1, NOW(), NOW()),
+(3, 33, 'Moët Nectar Rosé', 'moet-nectar-rose', 'Bottle', 176000.00, NULL, 1, 1, NOW(), NOW()),
+(3, 33, 'Veuve Clicquot Brut', 'veuve-clicquot-brut', 'Bottle', 170000.00, NULL, 2, 1, NOW(), NOW()),
+(3, 33, 'Moët Imperial Brut', 'moet-imperial-brut', 'Bottle', 130000.00, NULL, 3, 1, NOW(), NOW()),
+(3, 34, 'Virgin Colada', 'virgin-colada', '', 4500.00, NULL, 1, 1, NOW(), NOW()),
+(3, 34, 'Virgin Margarita', 'virgin-margarita', '', 5500.00, NULL, 2, 1, NOW(), NOW()),
+(3, 34, 'Chapman', 'chapman', '', 8000.00, NULL, 3, 1, NOW(), NOW()),
+(3, 35, 'Long Island Iced Tea', 'long-island-iced-tea', '', 7500.00, NULL, 1, 1, NOW(), NOW()),
+(3, 35, 'Daiquiri', 'daiquiri', '', 6500.00, NULL, 2, 1, NOW(), NOW()),
+(3, 35, 'Moscow Mule', 'moscow-mule', '', 6000.00, NULL, 3, 1, NOW(), NOW()),
+(3, 35, 'Cosmopolitan', 'cosmopolitan', '', 6000.00, NULL, 4, 1, NOW(), NOW()),
+(3, 35, 'Margarita', 'margarita', '', 5000.00, NULL, 5, 1, NOW(), NOW()),
+(3, 35, 'Mojito', 'mojito', '', 7500.00, NULL, 6, 1, NOW(), NOW()),
+(3, 35, 'Sex on the Beach', 'sex-on-the-beach', '', 5000.00, NULL, 7, 1, NOW(), NOW()),
+(3, 35, 'Piña Colada', 'pina-colada', '', 6000.00, NULL, 8, 1, NOW(), NOW()),
+(3, 35, 'Tequila Sunrise', 'tequila-sunrise', '', 4000.00, NULL, 9, 1, NOW(), NOW()),
+(3, 35, 'Mai Tai', 'mai-tai', '', 6000.00, NULL, 10, 1, NOW(), NOW()),
+(3, 35, 'Whiskey Sour', 'whiskey-sour', '', 6000.00, NULL, 11, 1, NOW(), NOW()),
+(3, 35, 'Screaming Orgasm', 'screaming-orgasm', '', 8500.00, NULL, 12, 1, NOW(), NOW()),
+(3, 35, 'The Boss', 'the-boss', '', 5000.00, NULL, 13, 1, NOW(), NOW()),
+(3, 35, 'D''View Cocktail', 'dview-cocktail', 'Signature cocktail', 5000.00, NULL, 14, 1, NOW(), NOW()),
+(3, 36, 'Nederburg Sauvignon Blanc', 'nederburg-sauvignon-blanc', 'Bottle', 36000.00, NULL, 1, 1, NOW(), NOW()),
+(3, 36, 'Nederburg Late Harvest', 'nederburg-late-harvest', 'Bottle', 36000.00, NULL, 2, 1, NOW(), NOW()),
+(3, 36, 'Nederburg Chardonnay', 'nederburg-chardonnay', 'Bottle', 36000.00, NULL, 3, 1, NOW(), NOW()),
+(3, 36, 'Mapu Sauvignon Blanc', 'mapu-sauvignon-blanc', 'Bottle', 19000.00, NULL, 4, 1, NOW(), NOW()),
+(3, 36, 'Four Cousins', 'four-cousins-white', 'Bottle', 19000.00, NULL, 5, 1, NOW(), NOW()),
+(3, 36, 'Frontera Moscato', 'frontera-moscato', 'Bottle', 16000.00, NULL, 6, 1, NOW(), NOW()),
+(3, 36, 'Viala Moscato', 'viala-moscato', 'Bottle', 12000.00, NULL, 7, 1, NOW(), NOW()),
+(3, 37, 'Nederburg Merlot', 'nederburg-merlot', 'Bottle', 36000.00, NULL, 1, 1, NOW(), NOW()),
+(3, 37, 'Nederburg Cabernet Sauvignon', 'nederburg-cabernet-sauvignon', 'Bottle', 36000.00, NULL, 2, 1, NOW(), NOW()),
+(3, 37, 'Escudo Rojo', 'escudo-rojo', 'Bottle', 32000.00, NULL, 3, 1, NOW(), NOW()),
+(3, 37, 'Mapu Cabernet Sauvignon', 'mapu-cabernet-sauvignon', 'Bottle', 19000.00, NULL, 4, 1, NOW(), NOW()),
+(3, 37, 'Four Cousins', 'four-cousins-red', 'Bottle', 18000.00, NULL, 5, 1, NOW(), NOW()),
+(3, 37, 'Carlo Rossi', 'carlo-rossi', 'Bottle', 12000.00, NULL, 6, 1, NOW(), NOW()),
+(3, 37, 'Drostdy-Hof', 'drostdy-hof', 'Bottle', 12000.00, NULL, 7, 1, NOW(), NOW()),
+(3, 37, '4th Street Red', '4th-street-red', 'Bottle', 12000.00, NULL, 8, 1, NOW(), NOW()),
+(3, 37, 'Asara', 'asara', 'Bottle', 12000.00, NULL, 9, 1, NOW(), NOW()),
+(3, 37, 'Bolzano', 'bolzano', 'Bottle', 12000.00, NULL, 10, 1, NOW(), NOW()),
+(3, 37, 'Châteauneuf-du-Pape', 'chateauneuf-du-pape', 'Bottle', 20000.00, NULL, 11, 1, NOW(), NOW()),
+(3, 38, 'Cappuccino', 'cappuccino', '', 2000.00, NULL, 1, 1, NOW(), NOW()),
+(3, 38, 'Turkish Coffee', 'turkish-coffee', '', 2000.00, NULL, 2, 1, NOW(), NOW()),
+(3, 38, 'Double Espresso', 'double-espresso', '', 1500.00, NULL, 3, 1, NOW(), NOW()),
+(3, 38, 'Single Espresso', 'single-espresso', '', 1000.00, NULL, 4, 1, NOW(), NOW()),
+(3, 39, 'Fruit Medley Smoothie', 'fruit-medley-smoothie', 'Seasonal mixed fruits', 2500.00, NULL, 1, 1, NOW(), NOW()),
+(3, 40, 'Fresh Orange Juice', 'fresh-orange-juice', '', 4000.00, NULL, 1, 1, NOW(), NOW()),
+(3, 40, 'Fresh Pineapple Juice', 'fresh-pineapple-juice', '', 4000.00, NULL, 2, 1, NOW(), NOW()),
+(3, 40, 'Fresh Watermelon Juice', 'fresh-watermelon-juice', '', 4000.00, NULL, 3, 1, NOW(), NOW()),
+(3, 40, 'Sweet Zobo Drink', 'sweet-zobo-drink', '', 2000.00, NULL, 4, 1, NOW(), NOW());
+
+-- 21c. Update restaurant item counts
+UPDATE `restaurants` SET `available_items_count` = (SELECT COUNT(*) FROM `menu_items` WHERE `restaurant_id` = 3 AND `is_available` = 1), `unavailable_items_count` = (SELECT COUNT(*) FROM `menu_items` WHERE `restaurant_id` = 3 AND `is_available` = 0) WHERE `id` = 3;

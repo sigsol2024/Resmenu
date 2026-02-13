@@ -70,6 +70,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $email = sanitize($_POST['email'] ?? '');
         $address = sanitize($_POST['address'] ?? '');
         $whatsapp_link = sanitize($_POST['whatsapp_link'] ?? '');
+        $instagram_url = sanitize($_POST['instagram_url'] ?? '');
+        $facebook_url = sanitize($_POST['facebook_url'] ?? '');
+        $twitter_url = sanitize($_POST['twitter_url'] ?? '');
         $google_rating = isset($_POST['google_rating']) && $_POST['google_rating'] !== '' ? floatval($_POST['google_rating']) : null;
         $rating_source = sanitize($_POST['rating_source'] ?? 'Google');
         $is_active = isset($_POST['is_active']) ? 1 : 0;
@@ -156,8 +159,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 $pdo->beginTransaction();
                                 
                                 // Create restaurant
-                                $stmt = $pdo->prepare("INSERT INTO restaurants (name, slug, description, phone, email, address, whatsapp_link, logo, hero_image, manager_email, google_rating, rating_source, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                                $stmt->execute([$name, $slug, $description, $phone, $email, $address, $whatsapp_link, $logo, $heroImage, $managerEmail, $google_rating, $rating_source, $is_active]);
+                                $stmt = $pdo->prepare("INSERT INTO restaurants (name, slug, description, phone, email, address, whatsapp_link, instagram_url, facebook_url, twitter_url, logo, hero_image, manager_email, google_rating, rating_source, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                                $stmt->execute([$name, $slug, $description, $phone, $email, $address, $whatsapp_link, $instagram_url, $facebook_url, $twitter_url, $logo, $heroImage, $managerEmail, $google_rating, $rating_source, $is_active]);
                                 $restaurantId = $pdo->lastInsertId();
                                 
                                 // Create manager user account
@@ -249,8 +252,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     } else {
                         $id = $_POST['id'] ?? 0;
                         // Build update query based on what's being updated
-                        $updateFields = ['name', 'slug', 'description', 'phone', 'email', 'address', 'whatsapp_link', 'google_rating', 'rating_source', 'is_active'];
-                        $updateValues = [$name, $slug, $description, $phone, $email, $address, $whatsapp_link, $google_rating, $rating_source, $is_active];
+                        $updateFields = ['name', 'slug', 'description', 'phone', 'email', 'address', 'whatsapp_link', 'instagram_url', 'facebook_url', 'twitter_url', 'google_rating', 'rating_source', 'is_active'];
+                        $updateValues = [$name, $slug, $description, $phone, $email, $address, $whatsapp_link, $instagram_url, $facebook_url, $twitter_url, $google_rating, $rating_source, $is_active];
                         
                         if ($logo) {
                             $updateFields[] = 'logo';
@@ -749,9 +752,23 @@ include __DIR__ . '/../includes/admin-layout.php';
                     <textarea id="address" name="address" class="form-textarea" rows="2"><?php echo htmlspecialchars($editRestaurant['address'] ?? ''); ?></textarea>
                 </div>
                 
-                <div class="form-group">
-                    <label class="form-label" for="whatsapp_link">WhatsApp Link</label>
-                    <input type="text" id="whatsapp_link" name="whatsapp_link" class="form-input" value="<?php echo htmlspecialchars($editRestaurant['whatsapp_link'] ?? ''); ?>">
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label class="form-label" for="whatsapp_link">WhatsApp Link</label>
+                        <input type="url" id="whatsapp_link" name="whatsapp_link" class="form-input" value="<?php echo htmlspecialchars($editRestaurant['whatsapp_link'] ?? ''); ?>" placeholder="https://wa.me/...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="instagram_url">Instagram URL</label>
+                        <input type="url" id="instagram_url" name="instagram_url" class="form-input" value="<?php echo htmlspecialchars($editRestaurant['instagram_url'] ?? ''); ?>" placeholder="https://instagram.com/...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="facebook_url">Facebook URL</label>
+                        <input type="url" id="facebook_url" name="facebook_url" class="form-input" value="<?php echo htmlspecialchars($editRestaurant['facebook_url'] ?? ''); ?>" placeholder="https://facebook.com/...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="twitter_url">Twitter URL</label>
+                        <input type="url" id="twitter_url" name="twitter_url" class="form-input" value="<?php echo htmlspecialchars($editRestaurant['twitter_url'] ?? ''); ?>" placeholder="https://twitter.com/...">
+                    </div>
                 </div>
                 
                 <div class="form-group-row">

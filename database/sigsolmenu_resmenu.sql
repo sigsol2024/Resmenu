@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Feb 09, 2026 at 11:40 AM
+-- Generation Time: Feb 13, 2026 at 09:27 AM
 -- Server version: 10.6.25-MariaDB
 -- PHP Version: 8.4.17
 
@@ -126,8 +126,9 @@ CREATE TABLE `customization_settings` (
 --
 
 INSERT INTO `customization_settings` (`id`, `restaurant_id`, `template_id`, `menu_title_color`, `menu_title_size`, `menu_title_font`, `price_color`, `price_size`, `price_font`, `description_color`, `description_size`, `description_font`, `category_title_color`, `category_title_size`, `category_title_font`, `background_color`, `header_background_color`, `primary_color`, `secondary_color`, `created_at`, `updated_at`) VALUES
-(1, 2, 2, '#000000', 24, 'Inter', '#000000', 18, 'Inter', '#666666', 14, 'Inter', '#000000', 20, 'Inter', '#FFFFFF', '#FFFFFF', '#111111', '#FFFFFF', '2025-12-19 18:43:25', '2025-12-19 18:43:25'),
-(2, 1, 1, '#000000', 24, 'Inter', '#000000', 18, 'Inter', '#666666', 14, 'Inter', '#000000', 20, 'Inter', '#FFFFFF', '#FFFFFF', '#111111', '#FFFFFF', '2025-12-19 18:45:58', '2025-12-19 18:45:58');
+(1, 2, 4, '#000000', 24, 'Inter', '#000000', 18, 'Inter', '#666666', 14, 'Inter', '#000000', 20, 'Inter', '#FFFFFF', '#FFFFFF', '#111111', '#FFFFFF', '2025-12-19 18:43:25', '2026-02-13 09:01:35'),
+(2, 1, 4, '#000000', 24, 'Inter', '#000000', 18, 'Inter', '#666666', 14, 'Inter', '#000000', 20, 'Inter', '#FFFFFF', '#FFFFFF', '#111111', '#FFFFFF', '2025-12-19 18:45:58', '2026-02-13 09:01:35'),
+(4, 3, 2, '#000000', 24, 'Inter', '#000000', 18, 'Inter', '#666666', 14, 'Inter', '#000000', 20, 'Inter', '#FFFFFF', '#FFFFFF', '#111111', '#FFFFFF', '2026-02-13 09:12:56', '2026-02-13 09:12:56');
 
 -- --------------------------------------------------------
 
@@ -151,7 +152,8 @@ CREATE TABLE `managers` (
 
 INSERT INTO `managers` (`id`, `username`, `email`, `password_hash`, `restaurant_id`, `created_at`, `updated_at`) VALUES
 (1, 'skyhuz_manager', 'manager@skyhuz.com', '$2y$10$M6adKoSY2rV83qNJjMDb.e0fUo51hwTvoWau2NwDsPjEG904Zq0sa', 1, '2025-12-19 18:43:07', '2025-12-20 03:49:55'),
-(2, 'lava_manager', 'jamesamaila07@gmail.com', '$2y$10$h0RdJU4tRyPL1Gi9vi6slOR6UT6G4pbO8JjCGP7z/11CeK6AzzdDK', 2, '2025-12-19 18:43:07', '2025-12-24 03:18:32');
+(2, 'lava_manager', 'jamesamaila07@gmail.com', '$2y$10$h0RdJU4tRyPL1Gi9vi6slOR6UT6G4pbO8JjCGP7z/11CeK6AzzdDK', 2, '2025-12-19 18:43:07', '2025-12-24 03:18:32'),
+(3, 'heviewotelekki_manager', 'reservations@theviewlekki.com', '$2y$10$it3gLTDg5Xs66JtBM9XPs./c.WWAdxbEfbYOkKStFAe2RrdJEeCwa', 3, '2026-02-13 08:57:39', '2026-02-13 08:57:39');
 
 -- --------------------------------------------------------
 
@@ -219,7 +221,7 @@ INSERT INTO `menu_items` (`id`, `restaurant_id`, `category_id`, `name`, `slug`, 
 (38, 1, 12, 'Chicken Wings or Drum stick', 'chicken-wings-or-drum-stick', 'Herb-marinated oven-roasted. Served tossed in chili sauce or sweet sauce', 10000.00, NULL, 2, 1, '2025-12-19 18:43:07', '2025-12-19 18:43:07'),
 (39, 1, 13, 'Chicken Caesar Salad', 'chicken-caesar-salad', 'Grilled chicken layered on fresh lettuce and cabbage, Caesar dressing, croutons, and parmesan', 18500.00, NULL, 1, 1, '2025-12-19 18:43:07', '2025-12-19 18:43:07'),
 (40, 1, 14, 'Club Sandwich', 'club-sandwich', 'Chicken, egg, lettuce, and tomatoes layered with artisan bread', 12500.00, NULL, 1, 1, '2025-12-19 18:43:07', '2025-12-19 18:43:07'),
-(41, 2, 15, 'Chicken Spring Rolls', 'chicken-spring-rolls', 'Chicken stuffed rolls with mixed bell peppers and cabbage served with plum sauce', 19000.00, '6945dee5937fd.jpg', 1, 1, '2025-12-19 18:43:07', '2025-12-22 14:34:27'),
+(41, 2, 15, 'Chicken Spring Rolls', 'chicken-spring-rolls', 'Chicken stuffed rolls with mixed bell peppers and cabbage served with plum sauce', 100.00, '6945dee5937fd.jpg', 1, 1, '2025-12-19 18:43:07', '2026-02-11 13:10:35'),
 (42, 2, 15, 'Grilled Chicken Wings', 'grilled-chicken-wings', 'Grilled Marinated Chicken Wings, Served With Homemade Chili Sauce.', 23000.00, '6945df24c6e77.jpg', 2, 1, '2025-12-19 18:43:07', '2025-12-19 23:26:28'),
 (43, 2, 15, 'Lollipop Chicken', 'lollipop-chicken', 'Half boneless fried wings with your choice of spicy BBQ or honey mustard sauce.', 25000.00, '6945e61603f0b.jpg', 3, 1, '2025-12-19 18:43:07', '2025-12-19 23:56:06'),
 (44, 2, 15, 'Caesar Chicken Sliders', 'caesar-chicken-sliders', 'marinated grilled chicken, Caesar sauce, lettuce, tomato, dill pickles, parmesan cheese.', 19000.00, '6945e63143e76.jpg', 4, 1, '2025-12-19 18:43:07', '2025-12-19 23:56:33'),
@@ -288,6 +290,88 @@ INSERT INTO `menu_items` (`id`, `restaurant_id`, `category_id`, `name`, `slug`, 
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `orders`
+--
+
+CREATE TABLE `orders` (
+  `id` int(11) NOT NULL,
+  `order_number` varchar(10) DEFAULT NULL,
+  `restaurant_id` int(11) NOT NULL,
+  `customer_name` varchar(255) NOT NULL,
+  `customer_phone` varchar(50) NOT NULL,
+  `customer_email` varchar(255) NOT NULL,
+  `delivery_address` text NOT NULL,
+  `payment_method` varchar(50) DEFAULT NULL,
+  `status` varchar(50) NOT NULL DEFAULT 'pending' COMMENT 'pending, confirmed, on_hold, cancelled, completed',
+  `subtotal` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `delivery_fee` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `tax` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `total` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `orders`
+--
+
+INSERT INTO `orders` (`id`, `order_number`, `restaurant_id`, `customer_name`, `customer_phone`, `customer_email`, `delivery_address`, `payment_method`, `status`, `subtotal`, `delivery_fee`, `tax`, `total`, `created_at`, `updated_at`) VALUES
+(1, NULL, 2, 'carter tech', '91347593', 'mr.carter.tech07@gmail.com', 'Cf', NULL, 'pending', 42000.00, 0.00, 0.00, 42000.00, '2026-02-09 16:34:30', '2026-02-09 16:34:30'),
+(2, NULL, 2, 'Abdulrahman Shittu', '08032336586', 'mr.carter.tech07@gmail.com', 'gdd', 'bank_transfer', 'pending', 42000.00, 0.00, 0.00, 42000.00, '2026-02-10 16:19:58', '2026-02-10 16:19:58'),
+(3, NULL, 2, 'Abdulrahman Shittu', '08032336586', 'mr.carter.tech07@gmail.com', 'fsdg', 'bank_transfer', 'confirmed', 19000.00, 0.00, 0.00, 19000.00, '2026-02-10 16:36:59', '2026-02-10 17:03:22'),
+(4, NULL, 2, 'Abdulrahman Shittu', '08032336586', 'mr.carter.tech07@gmail.com', 'jhh', 'bank_transfer', 'pending', 85000.00, 0.00, 0.00, 85000.00, '2026-02-10 16:51:05', '2026-02-10 16:51:05'),
+(5, NULL, 2, 'Abdulrahman Shittu', '08032336586', 'mr.carter.tech07@gmail.com', 'dgddg', 'bank_transfer', 'pending', 230000.00, 0.00, 0.00, 230000.00, '2026-02-10 17:26:01', '2026-02-10 17:26:01'),
+(6, NULL, 2, 'Abdulrahman Shittu', '08032336586', 'mr.carter.tech07@gmail.com', 'dgtggdg', 'paystack', 'pending', 44000.00, 0.00, 0.00, 44000.00, '2026-02-10 17:42:17', '2026-02-10 17:42:17'),
+(7, NULL, 2, 'Abdulrahman Shittu', '08032336586', 'mr.carter.tech07@gmail.com', 'ffdfdgdgd', 'paystack', 'pending', 44000.00, 0.00, 0.00, 44000.00, '2026-02-10 18:09:27', '2026-02-10 18:09:27'),
+(8, NULL, 2, 'Abdulrahman Shittu', '08032336586', 'mr.carter.tech07@gmail.com', 'ffdfdgdgd', 'bank_transfer', 'pending', 44000.00, 0.00, 0.00, 44000.00, '2026-02-10 18:10:09', '2026-02-10 18:10:09'),
+(9, 'KMK9M2QM', 2, 'Abdulrahman Shittu', '08032336586', 'sigsol2024@gmail.com', 'aafs', 'bank_transfer', 'confirmed', 100.00, 0.00, 0.00, 100.00, '2026-02-11 13:13:02', '2026-02-11 13:13:15'),
+(10, 'MYC6DN8Z', 2, 'Abdulrahman Shittu', '08032336586', 'sigsol2024@gmail.com', 'sfsf', 'paystack', 'pending', 100.00, 0.00, 0.00, 100.00, '2026-02-11 13:15:40', '2026-02-11 13:15:40'),
+(11, 'BYRO5UG8', 2, 'Abdulrahman Shittu', '08032336586', 'sigsol2024@gmail.com', 'sfsfsf', 'paystack', 'confirmed', 100.00, 0.00, 0.00, 100.00, '2026-02-11 13:25:23', '2026-02-11 13:25:23'),
+(12, '0NQ0334D', 2, 'Abdulrahman Shittu', '08032336586', 'mr.carter.tech07@gmail.com', 'fsfs', 'bank_transfer', 'confirmed', 100.00, 0.00, 0.00, 100.00, '2026-02-12 23:30:50', '2026-02-12 23:31:55');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `order_items`
+--
+
+CREATE TABLE `order_items` (
+  `id` int(11) NOT NULL,
+  `order_id` int(11) NOT NULL,
+  `menu_item_id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `price` decimal(10,2) NOT NULL,
+  `quantity` int(11) NOT NULL DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `order_items`
+--
+
+INSERT INTO `order_items` (`id`, `order_id`, `menu_item_id`, `name`, `price`, `quantity`, `created_at`) VALUES
+(1, 1, 41, 'Chicken Spring Rolls', 19000.00, 1, '2026-02-09 16:34:30'),
+(2, 1, 42, 'Grilled Chicken Wings', 23000.00, 1, '2026-02-09 16:34:30'),
+(3, 2, 41, 'Chicken Spring Rolls', 19000.00, 1, '2026-02-10 16:19:58'),
+(4, 2, 42, 'Grilled Chicken Wings', 23000.00, 1, '2026-02-10 16:19:58'),
+(5, 3, 41, 'Chicken Spring Rolls', 19000.00, 1, '2026-02-10 16:36:59'),
+(6, 4, 45, 'Grilled Pettit Prawns', 35000.00, 1, '2026-02-10 16:51:05'),
+(7, 4, 46, 'Dynamite Shrimp', 25000.00, 2, '2026-02-10 16:51:05'),
+(8, 5, 42, 'Grilled Chicken Wings', 23000.00, 10, '2026-02-10 17:26:01'),
+(9, 6, 43, 'Lollipop Chicken', 25000.00, 1, '2026-02-10 17:42:17'),
+(10, 6, 44, 'Caesar Chicken Sliders', 19000.00, 1, '2026-02-10 17:42:17'),
+(11, 7, 43, 'Lollipop Chicken', 25000.00, 1, '2026-02-10 18:09:27'),
+(12, 7, 44, 'Caesar Chicken Sliders', 19000.00, 1, '2026-02-10 18:09:27'),
+(13, 8, 43, 'Lollipop Chicken', 25000.00, 1, '2026-02-10 18:10:09'),
+(14, 8, 44, 'Caesar Chicken Sliders', 19000.00, 1, '2026-02-10 18:10:09'),
+(15, 9, 41, 'Chicken Spring Rolls', 100.00, 1, '2026-02-11 13:13:02'),
+(16, 10, 41, 'Chicken Spring Rolls', 100.00, 1, '2026-02-11 13:15:40'),
+(17, 11, 41, 'Chicken Spring Rolls', 100.00, 1, '2026-02-11 13:25:23'),
+(18, 12, 41, 'Chicken Spring Rolls', 100.00, 1, '2026-02-12 23:30:50');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `payments`
 --
 
@@ -344,6 +428,69 @@ CREATE TABLE `payment_settings` (
 INSERT INTO `payment_settings` (`id`, `gateway`, `is_active`, `test_mode`, `public_key_live`, `secret_key_live`, `webhook_secret_live`, `public_key_test`, `secret_key_test`, `webhook_secret_test`, `created_at`, `updated_at`) VALUES
 (1, 'paystack', 1, 0, 'pk_live_acf5bb359c73ca5492ff2a65d28f3143edb25d49', 'fe9ffSaWR69MXqxx55sQ6jo6T2J4bi9INjU1Rm9yd0FqQU1Vc1BkWUYwLzB1MTY5NnBVNjErWitOM1R4RWpxZkNJa2xvTHRQVEVCMTVmbVRvRjUrKzZZUDhCZzRtV2FsOEdxOTUrNFE9PQ==', '', 'sigsol2024', '1aMJkPa6LL4sKIi8NwaMkjo6MEc3OHEycTR4L2ZrUFUwSFFlMXBkNnFFN2FFekNhWHhWd3UydWd1WGE5QT0=', '', '2025-12-24 02:38:31', '2025-12-24 03:13:14'),
 (2, 'flutterwave', 0, 1, NULL, NULL, NULL, NULL, NULL, NULL, '2025-12-24 02:38:31', '2025-12-24 02:38:31');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `pending_bank_transfers`
+--
+
+CREATE TABLE `pending_bank_transfers` (
+  `id` int(11) NOT NULL,
+  `token` varchar(64) NOT NULL,
+  `restaurant_id` int(11) NOT NULL,
+  `payment_type` varchar(20) NOT NULL DEFAULT 'order',
+  `reservation_id` int(11) DEFAULT NULL,
+  `cart_json` text NOT NULL,
+  `customer_name` varchar(255) NOT NULL,
+  `customer_phone` varchar(50) NOT NULL,
+  `customer_email` varchar(255) NOT NULL,
+  `delivery_address` text NOT NULL,
+  `subtotal` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `delivery_fee` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `tax` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `total` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `pending_bank_transfers`
+--
+
+INSERT INTO `pending_bank_transfers` (`id`, `token`, `restaurant_id`, `payment_type`, `reservation_id`, `cart_json`, `customer_name`, `customer_phone`, `customer_email`, `delivery_address`, `subtotal`, `delivery_fee`, `tax`, `total`, `created_at`) VALUES
+(2, '04a0e81ab38e7e08216b95d376fa6742ac0c5388c16cc6c4', 2, 'order', NULL, '[{\"id\":41,\"name\":\"Chicken Spring Rolls\",\"price\":100,\"image\":\"6945dee5937fd.jpg\",\"quantity\":1}]', 'Abdulrahman Shittu', '08032336586', 'sigsol2024@gmail.com', 'aaaf', 100.00, 0.00, 0.00, 100.00, '2026-02-11 13:13:49');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `pending_online_payments`
+--
+
+CREATE TABLE `pending_online_payments` (
+  `id` int(11) NOT NULL,
+  `reference` varchar(80) NOT NULL,
+  `restaurant_id` int(11) NOT NULL,
+  `payment_type` varchar(20) NOT NULL DEFAULT 'order',
+  `reservation_id` int(11) DEFAULT NULL,
+  `gateway` varchar(50) NOT NULL,
+  `cart_json` text NOT NULL,
+  `customer_name` varchar(255) NOT NULL,
+  `customer_phone` varchar(50) NOT NULL,
+  `customer_email` varchar(255) NOT NULL,
+  `delivery_address` text NOT NULL,
+  `subtotal` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `delivery_fee` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `tax` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `total` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `pending_online_payments`
+--
+
+INSERT INTO `pending_online_payments` (`id`, `reference`, `restaurant_id`, `payment_type`, `reservation_id`, `gateway`, `cart_json`, `customer_name`, `customer_phone`, `customer_email`, `delivery_address`, `subtotal`, `delivery_fee`, `tax`, `total`, `created_at`) VALUES
+(1, 'POP_1770815548_101794a814066c6c', 2, 'order', NULL, 'paystack', '[{\"id\":41,\"name\":\"Chicken Spring Rolls\",\"price\":100,\"image\":\"6945dee5937fd.jpg\",\"quantity\":1}]', 'Abdulrahman Shittu', '08032336586', 'sigsol2024@gmail.com', 'aafs', 100.00, 0.00, 0.00, 100.00, '2026-02-11 13:12:28');
 
 -- --------------------------------------------------------
 
@@ -436,13 +583,23 @@ CREATE TABLE `restaurants` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `restaurants`
+--
+
+INSERT INTO `restaurants` (`id`, `name`, `slug`, `logo`, `hero_image`, `description`, `phone`, `email`, `address`, `website`, `whatsapp_link`, `instagram_url`, `facebook_url`, `twitter_url`, `map_latitude`, `map_longitude`, `header_menu_items`, `footer_content`, `manager_email`, `google_rating`, `rating_source`, `template_id`, `is_active`, `available_items_count`, `unavailable_items_count`, `subscription_id`, `created_at`, `updated_at`) VALUES
+(1, 'Skyhuz', 'skyhuz', NULL, NULL, 'Wash and Chill all in one place', '0707 581 7419', NULL, 'G & K mall, Opposite Etiosa Maternal And Child Care Center, Ogombo Road, Ajah.', NULL, NULL, NULL, NULL, NULL, 6.46278000, 3.58594000, '[\n  {\"label\": \"Menu\", \"url\": \"#menu\"},\n  {\"label\": \"News\", \"url\": \"#news\"}\n]', 'At Skyhuz, our story began with a simple love for great service. Founded in 2025 by friends and food enthusiasts.\nOur mission is to bring fun and relaxation to the regular way of doing chores.\nJoin us at Skyhuz and taste the difference passion and quality make.', 'manager@skyhuz.com', 4.5, 'Google', 4, 1, 34, 6, NULL, '2025-12-19 18:43:07', '2026-02-09 12:38:13'),
+(2, 'LAVA', 'lava', '69459eb555362.jpg', '69459edb896e3.png', 'Premium dining experience with exquisite cuisine and fine beverages', '+234 800 000 0000', 'info@lava.com', 'LAVA., 5 Adetokunbu Ademola Street, Victoria Island', NULL, '', NULL, NULL, NULL, NULL, NULL, '[\r\n  {\"label\": \"Menu\", \"url\": \"#menu\"},\r\n  {\"label\": \"Drinks\", \"url\": \"#drinks\"}\r\n]', NULL, 'jamesamaila07@gmail.com', 4.5, 'Google', 4, 1, 65, 0, 1, '2025-12-19 18:43:07', '2026-02-13 09:27:23'),
+(3, 'Theview Hotel Lekki', 'theview-hotel', '698ee78360beb.jpg', '698ee783613af.jpg', '', '+23490 9091 3608', 'reservations@theviewlekki.com', '1, Godwin Omene Street, Chief Collins Uchidiuno, Off Fola Osibo, Lekki Phase 1, Lagos, Nigeria', NULL, 'https://wa.link/g1n8bq', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'reservations@theviewlekki.com', 4.5, 'Google', 2, 1, 0, 0, 2, '2026-02-13 08:57:39', '2026-02-13 09:12:56');
+
 -- --------------------------------------------------------
+
 --
 -- Table structure for table `restaurant_payment_settings`
 --
 
 CREATE TABLE `restaurant_payment_settings` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` int(11) NOT NULL,
   `restaurant_id` int(11) NOT NULL,
   `gateway` varchar(50) NOT NULL,
   `is_active` tinyint(1) DEFAULT 0,
@@ -457,19 +614,16 @@ CREATE TABLE `restaurant_payment_settings` (
   `account_number` varchar(100) DEFAULT NULL,
   `account_name` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `restaurant_id_gateway` (`restaurant_id`, `gateway`),
-  CONSTRAINT `restaurant_payment_settings_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Dumping data for table `restaurants`
+-- Dumping data for table `restaurant_payment_settings`
 --
 
-INSERT INTO `restaurants` (`id`, `name`, `slug`, `logo`, `hero_image`, `description`, `phone`, `email`, `address`, `website`, `whatsapp_link`, `instagram_url`, `facebook_url`, `twitter_url`, `map_latitude`, `map_longitude`, `header_menu_items`, `footer_content`, `manager_email`, `google_rating`, `rating_source`, `template_id`, `is_active`, `available_items_count`, `unavailable_items_count`, `subscription_id`, `created_at`, `updated_at`) VALUES
-(1, 'Skyhuz', 'skyhuz', NULL, NULL, 'Wash and Chill all in one place', '0707 581 7419', NULL, 'G & K mall, Opposite Etiosa Maternal And Child Care Center, Ogombo Road, Ajah.', NULL, NULL, NULL, NULL, NULL, 6.46278000, 3.58594000, '[\n  {\"label\": \"Menu\", \"url\": \"#menu\"},\n  {\"label\": \"News\", \"url\": \"#news\"}\n]', 'At Skyhuz, our story began with a simple love for great service. Founded in 2025 by friends and food enthusiasts.\nOur mission is to bring fun and relaxation to the regular way of doing chores.\nJoin us at Skyhuz and taste the difference passion and quality make.', 'manager@skyhuz.com', 4.5, 'Google', 1, 1, 34, 6, NULL, '2025-12-19 18:43:07', '2025-12-20 03:50:00'),
-(2, 'LAVA', 'lava', '69459eb555362.jpg', '69459edb896e3.png', 'Premium dining experience with exquisite cuisine and fine beverages', '+234 800 000 0000', 'info@lava.com', 'LAVA., 5 Adetokunbu Ademola Street, Victoria Island', NULL, '', NULL, NULL, NULL, NULL, NULL, '[\r\n  {\"label\": \"Menu\", \"url\": \"#menu\"},\r\n  {\"label\": \"Drinks\", \"url\": \"#drinks\"}\r\n]', NULL, 'jamesamaila07@gmail.com', 4.5, 'Google', 2, 1, 65, 0, 1, '2025-12-19 18:43:07', '2026-01-15 13:10:45');
+INSERT INTO `restaurant_payment_settings` (`id`, `restaurant_id`, `gateway`, `is_active`, `test_mode`, `public_key_test`, `secret_key_test`, `webhook_secret_test`, `public_key_live`, `secret_key_live`, `webhook_secret_live`, `bank_name`, `account_number`, `account_name`, `created_at`, `updated_at`) VALUES
+(1, 2, 'bank_transfer', 1, 1, NULL, NULL, NULL, NULL, NULL, NULL, 'access bank', '8247865824847585', 'Lava Fly', '2026-02-09 17:46:32', '2026-02-09 17:46:32'),
+(2, 2, 'paystack', 1, 0, '', NULL, '', 'pk_live_acf5bb359c73ca5492ff2a65d28f3143edb25d49', '2wFU5zuDj4i0Tppls2j1fjo6K2w2YUhLNXBvS2YyVzdIdFJlTHE3ZXRjMEV2R2RTZDhqVzk2eUtoNHl2aHRRZGRaZTVLR1JrbHJiTlVtVVE3ZXNSMkZzZ3lWdTh5aVppWUc3aGJmWUE9PQ==', '', NULL, NULL, NULL, '2026-02-10 17:30:59', '2026-02-10 17:31:43');
 
 -- --------------------------------------------------------
 
@@ -507,165 +661,45 @@ INSERT INTO `restaurant_qr_codes` (`id`, `restaurant_id`, `qr_template_id`, `ove
 -- --------------------------------------------------------
 
 --
--- Table structure for table `orders`
---
-
-CREATE TABLE `orders` (
-  `id` int(11) NOT NULL,
-  `order_number` varchar(10) DEFAULT NULL,
-  `restaurant_id` int(11) NOT NULL,
-  `customer_name` varchar(255) NOT NULL,
-  `customer_phone` varchar(50) NOT NULL,
-  `customer_email` varchar(255) NOT NULL,
-  `delivery_address` text NOT NULL,
-  `payment_method` varchar(50) DEFAULT NULL,
-  `status` varchar(50) NOT NULL DEFAULT 'pending' COMMENT 'pending, confirmed, on_hold, cancelled, completed',
-  `subtotal` decimal(10,2) NOT NULL DEFAULT 0.00,
-  `delivery_fee` decimal(10,2) NOT NULL DEFAULT 0.00,
-  `tax` decimal(10,2) NOT NULL DEFAULT 0.00,
-  `total` decimal(10,2) NOT NULL DEFAULT 0.00,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `order_items`
---
-
-CREATE TABLE `order_items` (
-  `id` int(11) NOT NULL,
-  `order_id` int(11) NOT NULL,
-  `menu_item_id` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `price` decimal(10,2) NOT NULL,
-  `quantity` int(11) NOT NULL DEFAULT 1,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `pending_bank_transfers`
---
-
-CREATE TABLE `pending_bank_transfers` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `token` varchar(64) NOT NULL,
-  `restaurant_id` int(11) NOT NULL,
-  `payment_type` varchar(20) NOT NULL DEFAULT 'order',
-  `reservation_id` int(11) DEFAULT NULL,
-  `cart_json` text DEFAULT NULL,
-  `customer_name` varchar(255) NOT NULL,
-  `customer_phone` varchar(50) NOT NULL,
-  `customer_email` varchar(255) NOT NULL,
-  `delivery_address` text NOT NULL,
-  `subtotal` decimal(10,2) NOT NULL DEFAULT 0.00,
-  `delivery_fee` decimal(10,2) NOT NULL DEFAULT 0.00,
-  `tax` decimal(10,2) NOT NULL DEFAULT 0.00,
-  `total` decimal(10,2) NOT NULL DEFAULT 0.00,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `token` (`token`),
-  KEY `restaurant_id` (`restaurant_id`),
-  KEY `created_at` (`created_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `pending_online_payments`
---
-
-CREATE TABLE `pending_online_payments` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `reference` varchar(80) NOT NULL,
-  `restaurant_id` int(11) NOT NULL,
-  `payment_type` varchar(20) NOT NULL DEFAULT 'order',
-  `reservation_id` int(11) DEFAULT NULL,
-  `gateway` varchar(50) NOT NULL,
-  `cart_json` text DEFAULT NULL,
-  `customer_name` varchar(255) NOT NULL,
-  `customer_phone` varchar(50) NOT NULL,
-  `customer_email` varchar(255) NOT NULL,
-  `delivery_address` text NOT NULL,
-  `subtotal` decimal(10,2) NOT NULL DEFAULT 0.00,
-  `delivery_fee` decimal(10,2) NOT NULL DEFAULT 0.00,
-  `tax` decimal(10,2) NOT NULL DEFAULT 0.00,
-  `total` decimal(10,2) NOT NULL DEFAULT 0.00,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `reference` (`reference`),
-  KEY `restaurant_id` (`restaurant_id`),
-  KEY `created_at` (`created_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `table_reservations`
---
-
-CREATE TABLE `table_reservations` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `reservation_number` varchar(10) DEFAULT NULL,
-  `restaurant_id` int(11) NOT NULL,
-  `reservation_date` date NOT NULL,
-  `reservation_time` time NOT NULL,
-  `party_size` int(11) NOT NULL DEFAULT 1,
-  `guest_name` varchar(255) NOT NULL,
-  `guest_email` varchar(255) NOT NULL,
-  `guest_phone` varchar(50) NOT NULL,
-  `special_occasion` varchar(50) DEFAULT NULL,
-  `notes` text DEFAULT NULL,
-  `status` varchar(50) NOT NULL DEFAULT 'pending' COMMENT 'pending, confirmed, rejected, cancelled, completed',
-  `is_walkin` tinyint(1) NOT NULL DEFAULT 0,
-  `deposit_amount` decimal(10,2) NOT NULL DEFAULT 0.00,
-  `deposit_paid` tinyint(1) NOT NULL DEFAULT 0,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `restaurant_id` (`restaurant_id`),
-  KEY `reservation_date` (`reservation_date`),
-  KEY `status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `table_inventory_daily`
---
-
-CREATE TABLE `table_inventory_daily` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `restaurant_id` int(11) NOT NULL,
-  `inventory_date` date NOT NULL,
-  `total_tables` int(11) NOT NULL DEFAULT 10,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `restaurant_date` (`restaurant_id`, `inventory_date`),
-  KEY `restaurant_id` (`restaurant_id`),
-  KEY `inventory_date` (`inventory_date`),
-  CONSTRAINT `table_inventory_daily_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `restaurant_reservation_settings`
 --
 
 CREATE TABLE `restaurant_reservation_settings` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` int(11) NOT NULL,
   `restaurant_id` int(11) NOT NULL,
   `deposit_amount` decimal(10,2) NOT NULL DEFAULT 0.00,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `restaurant_id` (`restaurant_id`)
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `restaurant_reservation_settings`
+--
+
+INSERT INTO `restaurant_reservation_settings` (`id`, `restaurant_id`, `deposit_amount`, `created_at`, `updated_at`) VALUES
+(1, 2, 150.00, '2026-02-12 04:52:44', '2026-02-12 15:48:17');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `site_settings`
+--
+
+CREATE TABLE `site_settings` (
+  `id` int(11) NOT NULL,
+  `site_name` varchar(255) NOT NULL DEFAULT 'Resmenu',
+  `site_logo` varchar(255) DEFAULT NULL,
+  `favicon` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `site_settings`
+--
+
+INSERT INTO `site_settings` (`id`, `site_name`, `site_logo`, `favicon`, `created_at`, `updated_at`) VALUES
+(1, 'Resmenu', NULL, NULL, '2026-02-12 23:18:09', '2026-02-12 23:18:09');
 
 -- --------------------------------------------------------
 
@@ -692,7 +726,8 @@ CREATE TABLE `subscriptions` (
 --
 
 INSERT INTO `subscriptions` (`id`, `restaurant_id`, `plan_id`, `billing_cycle`, `status`, `trial_ends_at`, `current_period_start`, `current_period_end`, `cancelled_at`, `created_at`, `updated_at`) VALUES
-(1, 2, 3, 'monthly', 'pending', NULL, '2025-12-24 17:08:48', '2026-01-24 17:08:48', NULL, '2025-12-24 03:13:58', '2025-12-25 01:06:11');
+(1, 2, 3, 'monthly', 'pending', NULL, '2025-12-24 17:08:48', '2026-01-24 17:08:48', NULL, '2025-12-24 03:13:58', '2025-12-25 01:06:11'),
+(2, 3, 1, 'monthly', 'trial', '2026-02-20 08:57:39', NULL, NULL, NULL, '2026-02-13 08:57:39', '2026-02-13 08:57:39');
 
 -- --------------------------------------------------------
 
@@ -744,6 +779,71 @@ INSERT INTO `subscription_plans` (`id`, `name`, `slug`, `description`, `monthly_
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `table_inventory_daily`
+--
+
+CREATE TABLE `table_inventory_daily` (
+  `id` int(11) NOT NULL,
+  `restaurant_id` int(11) NOT NULL,
+  `inventory_date` date NOT NULL,
+  `total_tables` int(11) NOT NULL DEFAULT 10,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `table_inventory_daily`
+--
+
+INSERT INTO `table_inventory_daily` (`id`, `restaurant_id`, `inventory_date`, `total_tables`, `created_at`, `updated_at`) VALUES
+(1, 2, '2026-02-25', 10, '2026-02-12 22:10:57', '2026-02-12 22:49:21'),
+(3, 2, '2026-02-19', 59, '2026-02-12 22:55:24', '2026-02-12 22:55:24'),
+(4, 2, '2026-02-20', 59, '2026-02-12 22:55:24', '2026-02-12 22:55:24'),
+(5, 2, '2026-02-21', 59, '2026-02-12 22:55:24', '2026-02-12 22:55:24'),
+(6, 2, '2026-02-22', 59, '2026-02-12 22:55:24', '2026-02-12 22:55:24');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `table_reservations`
+--
+
+CREATE TABLE `table_reservations` (
+  `id` int(11) NOT NULL,
+  `reservation_number` varchar(10) DEFAULT NULL,
+  `restaurant_id` int(11) NOT NULL,
+  `reservation_date` date NOT NULL,
+  `reservation_time` time NOT NULL,
+  `party_size` int(11) NOT NULL DEFAULT 1,
+  `guest_name` varchar(255) NOT NULL,
+  `guest_email` varchar(255) NOT NULL,
+  `guest_phone` varchar(50) NOT NULL,
+  `special_occasion` varchar(50) DEFAULT NULL,
+  `notes` text DEFAULT NULL,
+  `deposit_amount` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `deposit_paid` tinyint(1) NOT NULL DEFAULT 0,
+  `status` varchar(50) NOT NULL DEFAULT 'pending' COMMENT 'pending, confirmed, cancelled, completed',
+  `is_walkin` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `table_reservations`
+--
+
+INSERT INTO `table_reservations` (`id`, `reservation_number`, `restaurant_id`, `reservation_date`, `reservation_time`, `party_size`, `guest_name`, `guest_email`, `guest_phone`, `special_occasion`, `notes`, `deposit_amount`, `deposit_paid`, `status`, `is_walkin`, `created_at`, `updated_at`) VALUES
+(1, NULL, 2, '2026-02-13', '19:00:00', 3, 'carter tech', 'mr.carter.tech07@gmail.com', '91347593', 'ANNIVERSARY', 'Vvghh', 0.00, 0, 'confirmed', 0, '2026-02-12 02:03:26', '2026-02-12 04:53:03'),
+(2, NULL, 2, '2026-02-13', '18:30:00', 3, 'Abdulrahman Shittu', 'mr.carter.tech07@gmail.com', '08032336586', 'BIRTHDAY', 'sfsfs', 0.00, 0, 'pending', 0, '2026-02-12 04:20:31', '2026-02-12 04:20:31'),
+(3, NULL, 2, '2026-02-13', '19:00:00', 2, 'Abdulrahman Shittu', 'mr.carter.tech07@gmail.com', '08032336586', 'ANNIVERSARY', 'xg', 599.00, 1, 'pending', 0, '2026-02-12 04:53:31', '2026-02-12 04:53:48'),
+(4, NULL, 2, '2026-02-13', '18:00:00', 2, 'Abdulrahman Shittu', 'mr.carter.tech07@gmail.com', '08032336586', 'ANNIVERSARY', 'sfs', 100.00, 1, 'pending', 0, '2026-02-12 15:44:37', '2026-02-12 15:46:13'),
+(5, NULL, 2, '2026-02-13', '21:30:00', 2, 'BOULEVARD INTEGRATED SERVICES LIMITED', 'mr.carter.tech07@gmail.com', '08032336586', NULL, 'zs', 150.00, 1, 'pending', 0, '2026-02-12 15:48:50', '2026-02-12 15:49:40'),
+(6, NULL, 2, '2026-02-19', '18:30:00', 1, 'dada', 'ad@fj.com', '2224244255', 'ANNIVERSARY', 'sfsf', 150.00, 1, 'confirmed', 0, '2026-02-12 22:08:54', '2026-02-12 22:09:53'),
+(7, '4GLULEF9', 2, '2026-02-13', '18:30:00', 1, 'Abdulrahman Shittu', 'mr.carter.tech07@gmail.com', '08032336586', NULL, 'z', 150.00, 1, 'confirmed', 0, '2026-02-12 23:32:46', '2026-02-12 23:32:54');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `templates`
 --
 
@@ -765,7 +865,7 @@ INSERT INTO `templates` (`id`, `name`, `description`, `preview_image`, `is_activ
 (1, 'Framer Design', 'Clean, modern design with rounded corners and elegant typography', NULL, 1, '2025-12-19 18:43:07', '2025-12-19 18:43:07'),
 (2, 'Salt and Social', 'Modern restaurant template with Tailwind CSS, featuring hero sections and featured items', NULL, 1, '2025-12-19 18:43:07', '2025-12-19 18:43:07'),
 (3, 'Dark Navy Gradient', 'Dark navy blue gradient background template with red gradient category text and white cards', NULL, 1, '2025-12-19 18:43:07', '2025-12-19 18:43:07'),
-(4, 'The Gourmet Grill', 'Premium dark-themed design with Epilogue font, herb pattern, and flame-grilled aesthetic', NULL, 1, '2025-12-19 18:43:07', '2025-12-19 18:43:07');
+(4, 'The Gourmet Grill', 'Premium dark-themed design with Epilogue font, herb pattern, and flame-grilled aesthetic', NULL, 1, '2026-02-09 12:24:42', '2026-02-13 09:24:58');
 
 -- --------------------------------------------------------
 
@@ -800,29 +900,11 @@ CREATE TABLE `template_customizations` (
 -- Dumping data for table `template_customizations`
 --
 
-INSERT INTO `template_customizations` (`template_id`, `menu_title_color`, `menu_title_size`, `menu_title_font`, `price_color`, `price_size`, `price_font`, `description_color`, `description_size`, `description_font`, `category_title_color`, `category_title_size`, `category_title_font`, `background_color`, `header_background_color`, `primary_color`, `secondary_color`, `created_at`, `updated_at`) VALUES
-(1, '#1A1A1A', 24, 'Inter', '#1A1A1A', 18, 'Inter', '#666666', 14, 'Inter', '#1A1A1A', 20, 'Inter', '#FFFFFF', '#FFFFFF', '#1A1A1A', '#FAF3E6', NOW(), NOW()),
-(2, '#1A1A1A', 24, 'Inter', '#ea2a33', 18, 'Inter', '#666666', 14, 'Inter', '#1A1A1A', 20, 'Inter', '#f8f6f6', '#f8f6f6', '#ea2a33', '#FFFFFF', NOW(), NOW()),
-(3, '#1A1A1A', 24, 'Inter', '#ea2a33', 18, 'Inter', '#666666', 14, 'Inter', '#1A1A1A', 20, 'Inter', '#f8f6f6', '#f8f6f6', '#ea2a33', '#FFFFFF', NOW(), NOW()),
-(4, '#121212', 24, 'Epilogue', '#f20d0d', 18, 'Epilogue', '#666666', 14, 'Epilogue', '#121212', 20, 'Epilogue', '#f8f5f5', '#121212', '#f20d0d', '#FFFFFF', NOW(), NOW());
-
--- --------------------------------------------------------
-
---
--- Table structure for table `site_settings`
---
-
-CREATE TABLE `site_settings` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `site_name` varchar(255) NOT NULL DEFAULT 'Resmenu',
-  `site_logo` varchar(255) DEFAULT NULL,
-  `favicon` varchar(255) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-INSERT INTO `site_settings` (`id`, `site_name`) VALUES (1, 'Resmenu');
+INSERT INTO `template_customizations` (`id`, `template_id`, `menu_title_color`, `menu_title_size`, `menu_title_font`, `price_color`, `price_size`, `price_font`, `description_color`, `description_size`, `description_font`, `category_title_color`, `category_title_size`, `category_title_font`, `background_color`, `header_background_color`, `primary_color`, `secondary_color`, `created_at`, `updated_at`) VALUES
+(1, 4, '#121212', 24, 'Epilogue', '#f20d0d', 18, 'Epilogue', '#666666', 14, 'Epilogue', '#121212', 20, 'Epilogue', '#f8f5f5', '#121212', '#f20d0d', '#FFFFFF', '2026-02-09 12:24:42', '2026-02-13 09:24:58'),
+(20, 1, '#1A1A1A', 24, 'Inter', '#1A1A1A', 18, 'Inter', '#666666', 14, 'Inter', '#1A1A1A', 20, 'Inter', '#FFFFFF', '#FFFFFF', '#1A1A1A', '#FAF3E6', '2026-02-13 09:22:33', '2026-02-13 09:24:58'),
+(21, 2, '#1A1A1A', 24, 'Inter', '#ea2a33', 18, 'Inter', '#666666', 14, 'Inter', '#1A1A1A', 20, 'Inter', '#f8f6f6', '#f8f6f6', '#ea2a33', '#FFFFFF', '2026-02-13 09:22:33', '2026-02-13 09:24:58'),
+(22, 3, '#1A1A1A', 24, 'Inter', '#ea2a33', 18, 'Inter', '#666666', 14, 'Inter', '#1A1A1A', 20, 'Inter', '#f8f6f6', '#f8f6f6', '#ea2a33', '#FFFFFF', '2026-02-13 09:22:33', '2026-02-13 09:24:58');
 
 --
 -- Indexes for dumped tables
@@ -851,7 +933,7 @@ ALTER TABLE `categories`
 --
 ALTER TABLE `customization_settings`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `restaurant_template` (`restaurant_id`, `template_id`);
+  ADD UNIQUE KEY `restaurant_template` (`restaurant_id`,`template_id`);
 
 --
 -- Indexes for table `managers`
@@ -874,6 +956,23 @@ ALTER TABLE `menu_items`
   ADD KEY `idx_display_order` (`display_order`);
 
 --
+-- Indexes for table `orders`
+--
+ALTER TABLE `orders`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `restaurant_id` (`restaurant_id`),
+  ADD KEY `status` (`status`),
+  ADD KEY `created_at` (`created_at`);
+
+--
+-- Indexes for table `order_items`
+--
+ALTER TABLE `order_items`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `order_id` (`order_id`),
+  ADD KEY `menu_item_id` (`menu_item_id`);
+
+--
 -- Indexes for table `payments`
 --
 ALTER TABLE `payments`
@@ -889,6 +988,24 @@ ALTER TABLE `payments`
 ALTER TABLE `payment_settings`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `gateway` (`gateway`);
+
+--
+-- Indexes for table `pending_bank_transfers`
+--
+ALTER TABLE `pending_bank_transfers`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `token` (`token`),
+  ADD KEY `restaurant_id` (`restaurant_id`),
+  ADD KEY `created_at` (`created_at`);
+
+--
+-- Indexes for table `pending_online_payments`
+--
+ALTER TABLE `pending_online_payments`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `reference` (`reference`),
+  ADD KEY `restaurant_id` (`restaurant_id`),
+  ADD KEY `created_at` (`created_at`);
 
 --
 -- Indexes for table `qr_code_scans`
@@ -915,6 +1032,13 @@ ALTER TABLE `restaurants`
   ADD KEY `subscription_id` (`subscription_id`);
 
 --
+-- Indexes for table `restaurant_payment_settings`
+--
+ALTER TABLE `restaurant_payment_settings`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `restaurant_id_gateway` (`restaurant_id`,`gateway`);
+
+--
 -- Indexes for table `restaurant_qr_codes`
 --
 ALTER TABLE `restaurant_qr_codes`
@@ -923,55 +1047,17 @@ ALTER TABLE `restaurant_qr_codes`
   ADD KEY `qr_template_id` (`qr_template_id`);
 
 --
--- Indexes for table `orders`
---
-ALTER TABLE `orders`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `restaurant_id` (`restaurant_id`),
-  ADD KEY `status` (`status`),
-  ADD KEY `created_at` (`created_at`);
-
---
--- Indexes for table `order_items`
---
-ALTER TABLE `order_items`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `order_id` (`order_id`),
-  ADD KEY `menu_item_id` (`menu_item_id`);
-
---
--- Indexes for table `pending_bank_transfers`
---
-ALTER TABLE `pending_bank_transfers`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `token` (`token`),
-  ADD KEY `restaurant_id` (`restaurant_id`),
-  ADD KEY `created_at` (`created_at`);
-
---
--- Indexes for table `pending_online_payments`
---
-ALTER TABLE `pending_online_payments`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `reference` (`reference`),
-  ADD KEY `restaurant_id` (`restaurant_id`),
-  ADD KEY `created_at` (`created_at`);
-
---
--- Indexes for table `table_reservations`
---
-ALTER TABLE `table_reservations`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `restaurant_id` (`restaurant_id`),
-  ADD KEY `reservation_date` (`reservation_date`),
-  ADD KEY `status` (`status`);
-
---
 -- Indexes for table `restaurant_reservation_settings`
 --
 ALTER TABLE `restaurant_reservation_settings`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `restaurant_id` (`restaurant_id`);
+
+--
+-- Indexes for table `site_settings`
+--
+ALTER TABLE `site_settings`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `subscriptions`
@@ -997,6 +1083,24 @@ ALTER TABLE `subscription_emails`
 ALTER TABLE `subscription_plans`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `slug` (`slug`);
+
+--
+-- Indexes for table `table_inventory_daily`
+--
+ALTER TABLE `table_inventory_daily`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `restaurant_date` (`restaurant_id`,`inventory_date`),
+  ADD KEY `restaurant_id` (`restaurant_id`),
+  ADD KEY `inventory_date` (`inventory_date`);
+
+--
+-- Indexes for table `table_reservations`
+--
+ALTER TABLE `table_reservations`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `restaurant_id` (`restaurant_id`),
+  ADD KEY `reservation_date` (`reservation_date`),
+  ADD KEY `status` (`status`);
 
 --
 -- Indexes for table `templates`
@@ -1032,19 +1136,31 @@ ALTER TABLE `categories`
 -- AUTO_INCREMENT for table `customization_settings`
 --
 ALTER TABLE `customization_settings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `managers`
 --
 ALTER TABLE `managers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `menu_items`
 --
 ALTER TABLE `menu_items`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=106;
+
+--
+-- AUTO_INCREMENT for table `orders`
+--
+ALTER TABLE `orders`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+
+--
+-- AUTO_INCREMENT for table `order_items`
+--
+ALTER TABLE `order_items`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `payments`
@@ -1057,6 +1173,18 @@ ALTER TABLE `payments`
 --
 ALTER TABLE `payment_settings`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `pending_bank_transfers`
+--
+ALTER TABLE `pending_bank_transfers`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT for table `pending_online_payments`
+--
+ALTER TABLE `pending_online_payments`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `qr_code_scans`
@@ -1074,6 +1202,12 @@ ALTER TABLE `qr_templates`
 -- AUTO_INCREMENT for table `restaurants`
 --
 ALTER TABLE `restaurants`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `restaurant_payment_settings`
+--
+ALTER TABLE `restaurant_payment_settings`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
@@ -1083,52 +1217,22 @@ ALTER TABLE `restaurant_qr_codes`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
--- AUTO_INCREMENT for table `restaurant_payment_settings`
---
-ALTER TABLE `restaurant_payment_settings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `orders`
---
-ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `order_items`
---
-ALTER TABLE `order_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `pending_bank_transfers`
---
-ALTER TABLE `pending_bank_transfers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `pending_online_payments`
---
-ALTER TABLE `pending_online_payments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `table_reservations`
---
-ALTER TABLE `table_reservations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT for table `restaurant_reservation_settings`
 --
 ALTER TABLE `restaurant_reservation_settings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `site_settings`
+--
+ALTER TABLE `site_settings`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `subscriptions`
 --
 ALTER TABLE `subscriptions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `subscription_emails`
@@ -1143,6 +1247,18 @@ ALTER TABLE `subscription_plans`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
+-- AUTO_INCREMENT for table `table_inventory_daily`
+--
+ALTER TABLE `table_inventory_daily`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `table_reservations`
+--
+ALTER TABLE `table_reservations`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
 -- AUTO_INCREMENT for table `templates`
 --
 ALTER TABLE `templates`
@@ -1152,7 +1268,7 @@ ALTER TABLE `templates`
 -- AUTO_INCREMENT for table `template_customizations`
 --
 ALTER TABLE `template_customizations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- Constraints for dumped tables
@@ -1184,32 +1300,6 @@ ALTER TABLE `menu_items`
   ADD CONSTRAINT `menu_items_ibfk_2` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE CASCADE;
 
 --
--- Constraints for table `payments`
---
-ALTER TABLE `payments`
-  ADD CONSTRAINT `payments_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `payments_ibfk_2` FOREIGN KEY (`subscription_id`) REFERENCES `subscriptions` (`id`);
-
---
--- Constraints for table `qr_code_scans`
---
-ALTER TABLE `qr_code_scans`
-  ADD CONSTRAINT `qr_code_scans_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `restaurants`
---
-ALTER TABLE `restaurants`
-  ADD CONSTRAINT `restaurants_subscription_fk` FOREIGN KEY (`subscription_id`) REFERENCES `subscriptions` (`id`) ON DELETE SET NULL;
-
---
--- Constraints for table `restaurant_qr_codes`
---
-ALTER TABLE `restaurant_qr_codes`
-  ADD CONSTRAINT `restaurant_qr_codes_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `restaurant_qr_codes_ibfk_2` FOREIGN KEY (`qr_template_id`) REFERENCES `qr_templates` (`id`) ON DELETE SET NULL;
-
---
 -- Constraints for table `orders`
 --
 ALTER TABLE `orders`
@@ -1221,6 +1311,13 @@ ALTER TABLE `orders`
 ALTER TABLE `order_items`
   ADD CONSTRAINT `order_items_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `order_items_ibfk_2` FOREIGN KEY (`menu_item_id`) REFERENCES `menu_items` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `payments`
+--
+ALTER TABLE `payments`
+  ADD CONSTRAINT `payments_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `payments_ibfk_2` FOREIGN KEY (`subscription_id`) REFERENCES `subscriptions` (`id`);
 
 --
 -- Constraints for table `pending_bank_transfers`
@@ -1235,10 +1332,29 @@ ALTER TABLE `pending_online_payments`
   ADD CONSTRAINT `pending_online_payments_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE;
 
 --
--- Constraints for table `table_reservations`
+-- Constraints for table `qr_code_scans`
 --
-ALTER TABLE `table_reservations`
-  ADD CONSTRAINT `table_reservations_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE;
+ALTER TABLE `qr_code_scans`
+  ADD CONSTRAINT `qr_code_scans_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `restaurants`
+--
+ALTER TABLE `restaurants`
+  ADD CONSTRAINT `restaurants_subscription_fk` FOREIGN KEY (`subscription_id`) REFERENCES `subscriptions` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `restaurant_payment_settings`
+--
+ALTER TABLE `restaurant_payment_settings`
+  ADD CONSTRAINT `restaurant_payment_settings_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `restaurant_qr_codes`
+--
+ALTER TABLE `restaurant_qr_codes`
+  ADD CONSTRAINT `restaurant_qr_codes_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `restaurant_qr_codes_ibfk_2` FOREIGN KEY (`qr_template_id`) REFERENCES `qr_templates` (`id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `restaurant_reservation_settings`
@@ -1258,6 +1374,18 @@ ALTER TABLE `subscriptions`
 --
 ALTER TABLE `subscription_emails`
   ADD CONSTRAINT `subscription_emails_ibfk_1` FOREIGN KEY (`subscription_id`) REFERENCES `subscriptions` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `table_inventory_daily`
+--
+ALTER TABLE `table_inventory_daily`
+  ADD CONSTRAINT `table_inventory_daily_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `table_reservations`
+--
+ALTER TABLE `table_reservations`
+  ADD CONSTRAINT `table_reservations_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `template_customizations`
