@@ -246,6 +246,23 @@ INSERT IGNORE INTO `site_settings` (`id`, `site_name`) VALUES (1, 'Resmenu');
 -- 19. Per-template customization (each restaurant can have different colors per template)
 -- Adds template_id, all color/size/font columns already exist in customization_settings.
 ALTER TABLE `customization_settings` ADD COLUMN IF NOT EXISTS `template_id` int(11) NOT NULL DEFAULT 1 AFTER `restaurant_id`;
+-- Remove rows that would create duplicates: if restaurant has multiple rows and one already matches restaurant.template_id, delete the others (MySQL #1093 workaround: use derived table)
+DELETE FROM `customization_settings` WHERE id IN (
+  SELECT id FROM (
+    SELECT cs1.id FROM `customization_settings` cs1
+    INNER JOIN `restaurants` r ON r.id = cs1.restaurant_id
+    INNER JOIN `customization_settings` cs2 ON cs2.restaurant_id = cs1.restaurant_id AND cs2.template_id = COALESCE(r.template_id, 1) AND cs2.id != cs1.id
+    WHERE cs1.template_id != COALESCE(r.template_id, 1)
+  ) AS t
+);
+-- Remove duplicate (restaurant_id, template_id) pairs, keeping the row with the lowest id
+DELETE FROM `customization_settings` WHERE id IN (
+  SELECT id FROM (
+    SELECT cs1.id FROM `customization_settings` cs1
+    INNER JOIN `customization_settings` cs2 ON cs1.restaurant_id = cs2.restaurant_id AND cs1.template_id = cs2.template_id AND cs1.id > cs2.id
+  ) AS t
+);
+-- Now safe to update remaining rows to match restaurant's template_id
 UPDATE `customization_settings` cs JOIN `restaurants` r ON r.id = cs.restaurant_id SET cs.template_id = COALESCE(r.template_id, 1);
 -- Index changes: MariaDB supports IF NOT EXISTS; MySQL does not. Use one of the two blocks below.
 -- MariaDB 10.5.2+ (recommended):
