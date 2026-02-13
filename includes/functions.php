@@ -23,7 +23,9 @@ function generateSlug($text) {
 }
 
 /**
- * Sanitize input
+ * Sanitize input for database storage (strip tags, trim).
+ * Do NOT use htmlspecialchars here - that encodes & to &amp; and causes double-encoding
+ * when output. Use htmlspecialchars only when outputting to HTML.
  * @param mixed $data
  * @return mixed
  */
@@ -31,7 +33,7 @@ function sanitize($data) {
     if (is_array($data)) {
         return array_map('sanitize', $data);
     }
-    return htmlspecialchars(strip_tags(trim($data)), ENT_QUOTES, 'UTF-8');
+    return strip_tags(trim((string) $data));
 }
 
 /**
