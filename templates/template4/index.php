@@ -513,7 +513,7 @@ document.addEventListener('DOMContentLoaded', function() {
         window.addEventListener('scroll', function() {
             var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
             var docHeight = document.documentElement.scrollHeight - window.innerHeight;
-            if (docHeight > 0 && scrollTop >= docHeight * 0.7) {
+            if (docHeight > 0 && scrollTop >= docHeight * 0.3) {
                 scrollBtn.classList.add('visible');
             } else {
                 scrollBtn.classList.remove('visible');

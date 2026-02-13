@@ -380,7 +380,23 @@ function toggleCategoryMenu() {
         overlay.classList.toggle('hidden');
     }
 }
+
+// Back to top (show at 30% scroll)
+(function(){
+    var btn = document.getElementById('scrollToTop');
+    if (btn) {
+        window.addEventListener('scroll', function() {
+            var st = window.pageYOffset || document.documentElement.scrollTop;
+            var dh = document.documentElement.scrollHeight - window.innerHeight;
+            if (dh > 0 && st >= dh * 0.3) btn.classList.add('visible');
+            else btn.classList.remove('visible');
+        });
+        btn.addEventListener('click', function(e) { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+    }
+})();
 </script>
+<a id="scrollToTop" href="#" class="fixed bottom-6 right-6 z-30 w-12 h-12 flex items-center justify-center rounded-full bg-primary text-white shadow-lg opacity-0 invisible translate-y-2 transition-all duration-300 hover:bg-primary/90" aria-label="Scroll to top" style="pointer-events:none;"><span class="material-symbols-outlined text-2xl">arrow_upward</span></a>
+<style>#scrollToTop.visible{opacity:1!important;visibility:visible!important;transform:translateY(0)!important;pointer-events:auto!important;}</style>
 
 </body>
 </html>

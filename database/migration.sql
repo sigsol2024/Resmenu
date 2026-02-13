@@ -25,6 +25,7 @@
 --    (all color/size/font columns already exist; no schema change needed for full customization)
 -- 20. restaurants: ensure social media link columns exist (WhatsApp, Instagram, Facebook, Twitter)
 -- 21. Theview Hotel Lekki: optional menu data (18 categories, ~173 items for restaurant_id=3)
+-- 22. Theview Hotel Lekki: food menu (15 categories, ~108 items for restaurant_id=3)
 --     Skip or comment out section 21 if Theview menu is already loaded.
 --
 -- Requires: MariaDB 10.0.2+ or MySQL 8.0.12+ for ADD COLUMN IF NOT EXISTS
@@ -452,4 +453,138 @@ INSERT IGNORE INTO `menu_items` (`restaurant_id`, `category_id`, `name`, `slug`,
 (3, 40, 'Sweet Zobo Drink', 'sweet-zobo-drink', '', 2000.00, NULL, 4, 1, NOW(), NOW());
 
 -- 21c. Update restaurant item counts
+UPDATE `restaurants` SET `available_items_count` = (SELECT COUNT(*) FROM `menu_items` WHERE `restaurant_id` = 3 AND `is_available` = 1), `unavailable_items_count` = (SELECT COUNT(*) FROM `menu_items` WHERE `restaurant_id` = 3 AND `is_available` = 0) WHERE `id` = 3;
+
+-- ============================================================
+-- 22. Theview Hotel Lekki - Food Menu (restaurant_id=3)
+-- ============================================================
+-- 15 food categories, ~108 menu items. Run after section 21.
+-- INSERT IGNORE skips duplicates if already loaded.
+-- ============================================================
+
+-- 22a. Insert food categories (IDs 41-55 for restaurant_id=3)
+INSERT IGNORE INTO `categories` (`id`, `restaurant_id`, `name`, `slug`, `image`, `description`, `display_order`, `is_active`, `created_at`, `updated_at`) VALUES
+(41, 3, 'Breakfast Trays (48-Hour Pre-Order)', 'breakfast-trays-48hr', NULL, 'Premium breakfast trays for pre-order', 19, 1, NOW(), NOW()),
+(42, 3, 'Breakfast', 'breakfast', NULL, 'Morning meals', 20, 1, NOW(), NOW()),
+(43, 3, 'Salads', 'salads', NULL, 'Fresh salads', 21, 1, NOW(), NOW()),
+(44, 3, 'Pepper Soups & Continental Soups', 'pepper-soups-continental-soups', NULL, 'Served with fresh bread rolls', 22, 1, NOW(), NOW()),
+(45, 3, 'Finger Foods & Small Chops', 'finger-foods-small-chops', NULL, 'Appetizers and small bites', 23, 1, NOW(), NOW()),
+(46, 3, 'Sandwiches & Burgers', 'sandwiches-burgers', NULL, 'Sandwiches and burgers', 24, 1, NOW(), NOW()),
+(47, 3, 'Chicken Entrées', 'chicken-entrees', NULL, 'Served with choice of fries, roast potatoes, sweet potato fries, or yam fries', 25, 1, NOW(), NOW()),
+(48, 3, 'Seafood', 'seafood', NULL, 'Fresh seafood dishes', 26, 1, NOW(), NOW()),
+(49, 3, 'Steaks, Ribs & Chops', 'steaks-ribs-chops', NULL, 'South African cuts — served with side of choice', 27, 1, NOW(), NOW()),
+(50, 3, 'Grills', 'grills', NULL, 'Grilled specialties', 28, 1, NOW(), NOW()),
+(51, 3, 'Platters', 'platters', NULL, 'Sharing platters', 29, 1, NOW(), NOW()),
+(52, 3, 'Pasta', 'pasta', NULL, 'Pasta dishes', 30, 1, NOW(), NOW()),
+(53, 3, 'Naija Soups', 'naija-soups', NULL, 'Served with semovita, eba, or pounded yam — protein choice included', 31, 1, NOW(), NOW()),
+(54, 3, 'Naija Specialties', 'naija-specialties', NULL, 'Nigerian specialties', 32, 1, NOW(), NOW()),
+(55, 3, 'Sides', 'sides', NULL, 'Side dishes', 33, 1, NOW(), NOW());
+
+-- 22b. Insert food menu items
+INSERT IGNORE INTO `menu_items` (`restaurant_id`, `category_id`, `name`, `slug`, `description`, `price`, `image`, `display_order`, `is_available`, `created_at`, `updated_at`) VALUES
+(3, 41, 'Premium Tray', 'premium-tray', 'Miniature wine bottle, juice pack, lemonade bottle, biscuits, wafers, coconut flakes, yoghurt cups, almonds, mug with assorted hot beverages, fresh bread rolls with butter, jam & cheese, club sandwich, cakes & croissants, plantain skewers, grapes & kiwi, English breakfast with lamb sausage, French toast, pancakes', 60000.00, NULL, 1, 1, NOW(), NOW()),
+(3, 41, 'Deluxe Tray', 'deluxe-tray', 'Mug with assorted hot beverages, fresh bread rolls with butter, jam & cheese, club sandwich, biscuit pack, juice pack, yoghurt cups, grapes, apples, English breakfast with lamb sausage', 60000.00, NULL, 2, 1, NOW(), NOW()),
+(3, 42, 'Breakfast Burger', 'breakfast-burger', 'With tea or coffee', 10000.00, NULL, 1, 1, NOW(), NOW()),
+(3, 42, 'Hungry Jack Breakfast', 'hungry-jack-breakfast', 'Bacon, sausages, egg, milk mix', 7500.00, NULL, 2, 1, NOW(), NOW()),
+(3, 42, 'Classic English Breakfast', 'classic-english-breakfast', 'Sausages, bread, eggs, baked beans, butter, toast', 10000.00, NULL, 3, 1, NOW(), NOW()),
+(3, 42, 'African Breakfast', 'african-breakfast', 'Boiled or fried yam or plantain, egg sauce', 10000.00, NULL, 4, 1, NOW(), NOW()),
+(3, 42, 'Naija Special', 'naija-special', 'Indomie noodles, egg, vegetables', 8000.00, NULL, 5, 1, NOW(), NOW()),
+(3, 43, 'Chef''s Salad', 'chefs-salad', 'Chicken breast, lettuce, cheese, croutons, bacon, tomatoes', 12000.00, NULL, 1, 1, NOW(), NOW()),
+(3, 43, 'Chicken Caesar Salad', 'chicken-caesar-salad', 'Lettuce, chicken breast, cucumber, olives, tomatoes, egg', 15000.00, NULL, 2, 1, NOW(), NOW()),
+(3, 43, 'Russian Salad', 'russian-salad', 'Chicken breast, carrot, Irish potatoes, sauce', 15000.00, NULL, 3, 1, NOW(), NOW()),
+(3, 44, 'Fresh Croaker Fish (Whole)', 'fresh-croaker-fish-whole', 'Served with fresh bread rolls', 30000.00, NULL, 1, 1, NOW(), NOW()),
+(3, 44, 'Catfish (Whole)', 'catfish-whole', 'Served with fresh bread rolls', 30000.00, NULL, 2, 1, NOW(), NOW()),
+(3, 44, 'Fresh Croaker Fish (Portion)', 'fresh-croaker-fish-portion', 'Served with fresh bread rolls', 15000.00, NULL, 3, 1, NOW(), NOW()),
+(3, 44, 'Catfish (Portion)', 'catfish-portion', 'Served with fresh bread rolls', 15000.00, NULL, 4, 1, NOW(), NOW()),
+(3, 44, 'Goat Meat Pepper Soup', 'goat-meat-pepper-soup', 'Served with fresh bread rolls', 15000.00, NULL, 5, 1, NOW(), NOW()),
+(3, 44, 'Chicken Pepper Soup', 'chicken-pepper-soup', 'Served with fresh bread rolls', 15000.00, NULL, 6, 1, NOW(), NOW()),
+(3, 44, 'Chinese Noodle Soup (Shrimp & Chicken)', 'chinese-noodle-soup-shrimp-chicken', 'Served with fresh bread rolls', 15000.00, NULL, 7, 1, NOW(), NOW()),
+(3, 44, 'Creamy Italian Seafood Soup', 'creamy-italian-seafood-soup', 'Served with fresh bread rolls', 15000.00, NULL, 8, 1, NOW(), NOW()),
+(3, 44, 'Cream of Chicken Soup', 'cream-of-chicken-soup', 'Served with fresh bread rolls', 15000.00, NULL, 9, 1, NOW(), NOW()),
+(3, 44, 'French Onion Soup', 'french-onion-soup', 'Served with fresh bread rolls', 10000.00, NULL, 10, 1, NOW(), NOW()),
+(3, 44, 'Oxtail Soup', 'oxtail-soup', 'Served with fresh bread rolls', 10000.00, NULL, 11, 1, NOW(), NOW()),
+(3, 45, 'Nick Nack Combo Board', 'nick-nack-combo-board', '', 10500.00, NULL, 1, 1, NOW(), NOW()),
+(3, 45, 'Spicy Snails', 'spicy-snails', '', 15000.00, NULL, 2, 1, NOW(), NOW()),
+(3, 45, 'Spicy Goat Dodo', 'spicy-goat-dodo', '', 15500.00, NULL, 3, 1, NOW(), NOW()),
+(3, 45, 'Peppered Goat Meat', 'peppered-goat-meat', '', 15000.00, NULL, 4, 1, NOW(), NOW()),
+(3, 45, 'Crusted Calamari', 'crusted-calamari', '', 15000.00, NULL, 5, 1, NOW(), NOW()),
+(3, 45, 'Gizzdodo', 'gizzdodo', '', 15500.00, NULL, 6, 1, NOW(), NOW()),
+(3, 45, 'Smokey Chicken Wings', 'smokey-chicken-wings', '', 15000.00, NULL, 7, 1, NOW(), NOW()),
+(3, 45, 'Hot Chicken Wings', 'hot-chicken-wings', '', 15000.00, NULL, 8, 1, NOW(), NOW()),
+(3, 45, 'Yaji Wings', 'yaji-wings', '', 15000.00, NULL, 9, 1, NOW(), NOW()),
+(3, 45, 'Buffalo Wings', 'buffalo-wings', '', 15000.00, NULL, 10, 1, NOW(), NOW()),
+(3, 45, 'Nkwobi', 'nkwobi', '', 15000.00, NULL, 11, 1, NOW(), NOW()),
+(3, 45, 'Peppered Gizzard', 'peppered-gizzard', '', 15000.00, NULL, 12, 1, NOW(), NOW()),
+(3, 45, 'Pepper Fish', 'pepper-fish', '', 14000.00, NULL, 13, 1, NOW(), NOW()),
+(3, 45, 'Shrimp Rolls (4 pcs)', 'shrimp-rolls-4pcs', '', 15000.00, NULL, 14, 1, NOW(), NOW()),
+(3, 45, 'Pepper Beef', 'pepper-beef', '', 15000.00, NULL, 15, 1, NOW(), NOW()),
+(3, 45, 'Pepper Chicken', 'pepper-chicken', '', 14000.00, NULL, 16, 1, NOW(), NOW()),
+(3, 45, 'Pepper Turkey', 'pepper-turkey', '', 15000.00, NULL, 17, 1, NOW(), NOW()),
+(3, 45, 'Coleslaw', 'coleslaw', '', 4000.00, NULL, 18, 1, NOW(), NOW()),
+(3, 46, 'GM''s Special Chicken Sandwich', 'gms-special-chicken-sandwich', '', 12500.00, NULL, 1, 1, NOW(), NOW()),
+(3, 46, 'Classic Burger', 'classic-burger', '', 10000.00, NULL, 2, 1, NOW(), NOW()),
+(3, 46, 'D''View Club Sandwich', 'dview-club-sandwich', '', 10000.00, NULL, 3, 1, NOW(), NOW()),
+(3, 46, 'Classic Ham & Cheese', 'classic-ham-cheese', '', 7500.00, NULL, 4, 1, NOW(), NOW()),
+(3, 46, 'Chunky Tuna Sandwich', 'chunky-tuna-sandwich', '', 6500.00, NULL, 5, 1, NOW(), NOW()),
+(3, 47, 'Southern Fried Chicken on Mash', 'southern-fried-chicken-on-mash', 'Served with choice of fries, roast potatoes, sweet potato fries, or yam fries', 16000.00, NULL, 1, 1, NOW(), NOW()),
+(3, 47, 'Chicken Escalope', 'chicken-escalope', 'Served with choice of fries, roast potatoes, sweet potato fries, or yam fries', 15000.00, NULL, 2, 1, NOW(), NOW()),
+(3, 47, 'D''View Curry Chicken', 'dview-curry-chicken', 'Served with choice of fries, roast potatoes, sweet potato fries, or yam fries', 15000.00, NULL, 3, 1, NOW(), NOW()),
+(3, 47, 'Chicken in Cream Sauce', 'chicken-in-cream-sauce', 'Served with choice of fries, roast potatoes, sweet potato fries, or yam fries', 15000.00, NULL, 4, 1, NOW(), NOW()),
+(3, 47, 'Creamy Mustard Chicken', 'creamy-mustard-chicken', 'Served with choice of fries, roast potatoes, sweet potato fries, or yam fries', 15000.00, NULL, 5, 1, NOW(), NOW()),
+(3, 47, 'Creamy Spinach Chicken Roll', 'creamy-spinach-chicken-roll', 'Served with choice of fries, roast potatoes, sweet potato fries, or yam fries', 9000.00, NULL, 6, 1, NOW(), NOW()),
+(3, 47, 'Pepper Chicken', 'pepper-chicken-entree', 'Served with choice of fries, roast potatoes, sweet potato fries, or yam fries', 15000.00, NULL, 7, 1, NOW(), NOW()),
+(3, 47, 'Oven Roast Chicken', 'oven-roast-chicken', 'Served with choice of fries, roast potatoes, sweet potato fries, or yam fries', 15500.00, NULL, 8, 1, NOW(), NOW()),
+(3, 48, 'Grilled Salmon', 'grilled-salmon', '', 25000.00, NULL, 1, 1, NOW(), NOW()),
+(3, 48, 'Grilled Croaker Fish', 'grilled-croaker-fish', '', 30000.00, NULL, 2, 1, NOW(), NOW()),
+(3, 48, 'Grilled Catfish', 'grilled-catfish', '', 30000.00, NULL, 3, 1, NOW(), NOW()),
+(3, 48, 'Grilled Jumbo Prawns', 'grilled-jumbo-prawns', '', 17000.00, NULL, 4, 1, NOW(), NOW()),
+(3, 48, 'Butterfly Prawns', 'butterfly-prawns', '', 13000.00, NULL, 5, 1, NOW(), NOW()),
+(3, 48, 'Lobster Thermidor', 'lobster-thermidor', '', 28500.00, NULL, 6, 1, NOW(), NOW()),
+(3, 48, 'Golden Tilapia', 'golden-tilapia', '', 15000.00, NULL, 7, 1, NOW(), NOW()),
+(3, 49, 'T-Bone', 't-bone', 'South African cuts — served with side of choice', 28000.00, NULL, 1, 1, NOW(), NOW()),
+(3, 49, 'Rib-Eye', 'rib-eye', 'South African cuts — served with side of choice', 22000.00, NULL, 2, 1, NOW(), NOW()),
+(3, 49, 'Lamb Chops', 'lamb-chops', 'South African cuts — served with side of choice', 30000.00, NULL, 3, 1, NOW(), NOW()),
+(3, 49, 'Beef Ribs', 'beef-ribs', 'South African cuts — served with side of choice', 22000.00, NULL, 4, 1, NOW(), NOW()),
+(3, 49, 'Oxtail', 'oxtail', 'South African cuts — served with side of choice', 6000.00, NULL, 5, 1, NOW(), NOW()),
+(3, 50, 'Mixed Grill Special', 'mixed-grill-special', '', 13300.00, NULL, 1, 1, NOW(), NOW()),
+(3, 50, 'Egyptian Mixed Grill', 'egyptian-mixed-grill', '', 13500.00, NULL, 2, 1, NOW(), NOW()),
+(3, 51, 'MD''s Prime Platter', 'mds-prime-platter', '', 56000.00, NULL, 1, 1, NOW(), NOW()),
+(3, 51, 'Pacific Platter', 'pacific-platter', '', 38000.00, NULL, 2, 1, NOW(), NOW()),
+(3, 51, 'D''View Special Platter', 'dview-special-platter', '', 25000.00, NULL, 3, 1, NOW(), NOW()),
+(3, 51, 'Ogazi Platter', 'ogazi-platter', '', 25000.00, NULL, 4, 1, NOW(), NOW()),
+(3, 52, 'Spaghetti Prawn Marinara', 'spaghetti-prawn-marinara', '', 15000.00, NULL, 1, 1, NOW(), NOW()),
+(3, 52, 'Creamy Prawn Tagliatelle', 'creamy-prawn-tagliatelle', '', 13000.00, NULL, 2, 1, NOW(), NOW()),
+(3, 52, 'Seafood Pasta', 'seafood-pasta', '', 15000.00, NULL, 3, 1, NOW(), NOW()),
+(3, 52, 'Spaghetti & Meatballs', 'spaghetti-meatballs', '', 8000.00, NULL, 4, 1, NOW(), NOW()),
+(3, 52, 'Fettuccine Alfredo', 'fettuccine-alfredo', '', 16000.00, NULL, 5, 1, NOW(), NOW()),
+(3, 52, 'Chicken Pesto Penne', 'chicken-pesto-penne', '', 13000.00, NULL, 6, 1, NOW(), NOW()),
+(3, 52, 'Spaghetti Bolognese', 'spaghetti-bolognese', '', 15000.00, NULL, 7, 1, NOW(), NOW()),
+(3, 52, 'Spaghetti Aglio Olio', 'spaghetti-aglio-olio', '', 6000.00, NULL, 8, 1, NOW(), NOW()),
+(3, 52, 'Fettuccine Prawn Grill', 'fettuccine-prawn-grill', '', 7000.00, NULL, 9, 1, NOW(), NOW()),
+(3, 53, 'Okro (Seafood)', 'okro-seafood', 'Served with semovita, eba, or pounded yam', 30000.00, NULL, 1, 1, NOW(), NOW()),
+(3, 53, 'Eforiro (Seafood)', 'eforiro-seafood', 'Served with semovita, eba, or pounded yam', 30000.00, NULL, 2, 1, NOW(), NOW()),
+(3, 53, 'Edikaikong (Seafood)', 'edikaikong-seafood', 'Served with semovita, eba, or pounded yam', 30000.00, NULL, 3, 1, NOW(), NOW()),
+(3, 53, 'Egusi (Seafood)', 'egusi-seafood', 'Served with semovita, eba, or pounded yam', 30000.00, NULL, 4, 1, NOW(), NOW()),
+(3, 53, 'Fisherman Soup (Croaker / Catfish)', 'fisherman-soup', 'Served with semovita, eba, or pounded yam', 30000.00, NULL, 5, 1, NOW(), NOW()),
+(3, 53, 'Edikaikong (Regular)', 'edikaikong-regular', 'Served with semovita, eba, or pounded yam', 18000.00, NULL, 6, 1, NOW(), NOW()),
+(3, 53, 'Eforiro (Regular)', 'eforiro-regular', 'Served with semovita, eba, or pounded yam', 18000.00, NULL, 7, 1, NOW(), NOW()),
+(3, 53, 'Afang', 'afang', 'Served with semovita, eba, or pounded yam', 18000.00, NULL, 8, 1, NOW(), NOW()),
+(3, 53, 'Ogbono', 'ogbono', 'Served with semovita, eba, or pounded yam', 18000.00, NULL, 9, 1, NOW(), NOW()),
+(3, 54, 'Seafood Jollof Rice', 'seafood-jollof-rice', '', 25000.00, NULL, 1, 1, NOW(), NOW()),
+(3, 54, 'D''View Special Fried Rice', 'dview-special-fried-rice', '', 16000.00, NULL, 2, 1, NOW(), NOW()),
+(3, 54, 'Jollof Rice Fiesta', 'jollof-rice-fiesta', '', 16000.00, NULL, 3, 1, NOW(), NOW()),
+(3, 54, 'Isi Ewu', 'isi-ewu', '', 20000.00, NULL, 4, 1, NOW(), NOW()),
+(3, 54, 'Yam Pottage', 'yam-pottage', '', 15000.00, NULL, 5, 1, NOW(), NOW()),
+(3, 55, 'Jollof Rice', 'jollof-rice-side', '', 7000.00, NULL, 1, 1, NOW(), NOW()),
+(3, 55, 'Fried Rice', 'fried-rice', '', 5000.00, NULL, 2, 1, NOW(), NOW()),
+(3, 55, 'Fried Plantain', 'fried-plantain', '', 7000.00, NULL, 3, 1, NOW(), NOW()),
+(3, 55, 'Yam Chips', 'yam-chips', '', 7000.00, NULL, 4, 1, NOW(), NOW()),
+(3, 55, 'French Fries', 'french-fries', '', 5000.00, NULL, 5, 1, NOW(), NOW()),
+(3, 55, 'Sweet Potato Fries', 'sweet-potato-fries', '', 5000.00, NULL, 6, 1, NOW(), NOW()),
+(3, 55, 'Steamed Rice', 'steamed-rice', '', 5000.00, NULL, 7, 1, NOW(), NOW()),
+(3, 55, 'Bread Rolls (2 pcs)', 'bread-rolls-2pcs', '', 1000.00, NULL, 8, 1, NOW(), NOW()),
+(3, 55, 'Eggs (2)', 'eggs-2', '', 5000.00, NULL, 9, 1, NOW(), NOW()),
+(3, 55, 'Ogbono Extra', 'ogbono-extra', '', 7000.00, NULL, 10, 1, NOW(), NOW());
+
+-- 22c. Update restaurant item counts
 UPDATE `restaurants` SET `available_items_count` = (SELECT COUNT(*) FROM `menu_items` WHERE `restaurant_id` = 3 AND `is_available` = 1), `unavailable_items_count` = (SELECT COUNT(*) FROM `menu_items` WHERE `restaurant_id` = 3 AND `is_available` = 0) WHERE `id` = 3;

@@ -173,7 +173,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $stmt = $pdo->prepare("INSERT INTO categories (restaurant_id, name, slug, description, image, display_order, is_active) VALUES (?, ?, ?, ?, ?, ?, ?)");
                         $stmt->execute([$restaurantId, $name, $slug, $description, $image, $display_order, $is_active]);
                         // Redirect to prevent form resubmission
-                        header('Location: categories.php' . (isSuperAdmin() && $restaurantId ? '?restaurant_id=' . urlencode($restaurantId) : '') . '&success=created');
+                        header('Location: categories.php?' . (isSuperAdmin() && $restaurantId ? 'restaurant_id=' . urlencode($restaurantId) . '&' : '') . 'success=created');
                         exit;
                     } else {
                         $id = $_POST['id'] ?? 0;
@@ -185,7 +185,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $stmt->execute([$name, $slug, $description, $display_order, $is_active, $id, $restaurantId]);
                         }
                         // Redirect to prevent form resubmission
-                        header('Location: categories.php' . (isSuperAdmin() && $restaurantId ? '?restaurant_id=' . urlencode($restaurantId) : '') . '&success=updated');
+                        header('Location: categories.php?' . (isSuperAdmin() && $restaurantId ? 'restaurant_id=' . urlencode($restaurantId) . '&' : '') . 'success=updated');
                         exit;
                     }
                 }
