@@ -697,6 +697,28 @@ function getReservationSettings($restaurantId) {
 }
 
 /**
+ * Ensure Template 4 (hotel) restaurants have reservation settings so they redirect to checkout.
+ * Auto-creates a row with default deposit when none exists.
+ * @param int $restaurantId
+ * @param int $templateId
+ * @param float $defaultDeposit Default 5000
+ */
+function ensureHotelReservationSettings($restaurantId, $templateId, $defaultDeposit = 5000) {
+    if ((int)$templateId !== 4 || $defaultDeposit <= 0) return;
+    $pdo = getDBConnection();
+    if (!$pdo) return;
+    try {
+        $stmt = $pdo->prepare("SELECT id FROM restaurant_reservation_settings WHERE restaurant_id = ?");
+        $stmt->execute([$restaurantId]);
+        if ($stmt->fetch()) return;
+        $stmt = $pdo->prepare("INSERT INTO restaurant_reservation_settings (restaurant_id, deposit_amount) VALUES (?, ?)");
+        $stmt->execute([$restaurantId, $defaultDeposit]);
+    } catch (PDOException $e) {
+        error_log("ensureHotelReservationSettings: " . $e->getMessage());
+    }
+}
+
+/**
  * Update restaurant menu item statistics
  * @param int $restaurantId
  * @return bool

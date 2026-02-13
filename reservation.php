@@ -39,6 +39,7 @@ $menuUrl = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : '') . '/restaurant/' . 
 $reservationUrl = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : '') . '/restaurant/' . $slug . '/reservation';
 $baseUrl = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : '');
 $uploadBaseUrl = defined('UPLOAD_URL') ? rtrim(UPLOAD_URL, '/') : '';
+ensureHotelReservationSettings($restaurant['id'], (int)($restaurant['template_id'] ?? 1));
 $reservationSettings = getReservationSettings($restaurant['id']);
 $depositAmount = (float) ($reservationSettings['deposit_amount'] ?? 0);
 

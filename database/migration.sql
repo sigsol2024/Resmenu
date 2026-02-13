@@ -27,6 +27,7 @@
 -- 21. Theview Hotel Lekki: optional menu data (18 categories, ~173 items for restaurant_id=3)
 -- 22. Theview Hotel Lekki: food menu (15 categories, ~108 items for restaurant_id=3)
 --     Skip or comment out section 21 if Theview menu is already loaded.
+-- 23. Ensure Template 4 restaurants have reservation settings (default deposit 5000) for checkout redirect
 --
 -- Requires: MariaDB 10.0.2+ or MySQL 8.0.12+ for ADD COLUMN IF NOT EXISTS
 -- Section 19 index statements: MariaDB 10.5.2+ (IF NOT EXISTS supported). For MySQL, use commented alternative.
@@ -588,3 +589,10 @@ INSERT IGNORE INTO `menu_items` (`restaurant_id`, `category_id`, `name`, `slug`,
 
 -- 22c. Update restaurant item counts
 UPDATE `restaurants` SET `available_items_count` = (SELECT COUNT(*) FROM `menu_items` WHERE `restaurant_id` = 3 AND `is_available` = 1), `unavailable_items_count` = (SELECT COUNT(*) FROM `menu_items` WHERE `restaurant_id` = 3 AND `is_available` = 0) WHERE `id` = 3;
+
+-- 23. Ensure Template 4 (hotel) restaurants have reservation settings for checkout redirect
+--     Inserts default deposit (5000) for any Template 4 restaurant missing settings
+INSERT INTO `restaurant_reservation_settings` (`restaurant_id`, `deposit_amount`)
+SELECT r.id, 5000 FROM `restaurants` r
+LEFT JOIN `restaurant_reservation_settings` rrs ON r.id = rrs.restaurant_id
+WHERE r.template_id = 4 AND rrs.restaurant_id IS NULL;
