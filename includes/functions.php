@@ -195,6 +195,38 @@ function getCategories($restaurantId) {
 }
 
 /**
+ * Make space for a new category at the given display_order (shift others down).
+ * Call before INSERT when creating a category.
+ * @param int $restaurantId
+ * @param int $newOrder
+ */
+function reorderCategoriesForInsert($restaurantId, $newOrder) {
+    $pdo = getDBConnection();
+    if (!$pdo || $newOrder < 1) return;
+    $stmt = $pdo->prepare("UPDATE categories SET display_order = display_order + 1 WHERE restaurant_id = ? AND display_order >= ?");
+    $stmt->execute([$restaurantId, $newOrder]);
+}
+
+/**
+ * Reorder categories when updating one category's display_order. Shifts others to avoid duplicates.
+ * @param int $restaurantId
+ * @param int $categoryId
+ * @param int $oldOrder
+ * @param int $newOrder
+ */
+function reorderCategoriesForUpdate($restaurantId, $categoryId, $oldOrder, $newOrder) {
+    $pdo = getDBConnection();
+    if (!$pdo || $oldOrder == $newOrder) return;
+    if ($newOrder < $oldOrder) {
+        $stmt = $pdo->prepare("UPDATE categories SET display_order = display_order + 1 WHERE restaurant_id = ? AND display_order >= ? AND display_order < ? AND id != ?");
+        $stmt->execute([$restaurantId, $newOrder, $oldOrder, $categoryId]);
+    } else {
+        $stmt = $pdo->prepare("UPDATE categories SET display_order = display_order - 1 WHERE restaurant_id = ? AND display_order > ? AND display_order <= ? AND id != ?");
+        $stmt->execute([$restaurantId, $oldOrder, $newOrder, $categoryId]);
+    }
+}
+
+/**
  * Get menu items for category
  * @param int $categoryId
  * @return array

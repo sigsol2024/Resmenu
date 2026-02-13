@@ -170,23 +170,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 if (!$error) {
                     if ($action === 'create') {
+                        reorderCategoriesForInsert($restaurantId, max(1, $display_order));
                         $stmt = $pdo->prepare("INSERT INTO categories (restaurant_id, name, slug, description, image, display_order, is_active) VALUES (?, ?, ?, ?, ?, ?, ?)");
-                        $stmt->execute([$restaurantId, $name, $slug, $description, $image, $display_order, $is_active]);
+                        $stmt->execute([$restaurantId, $name, $slug, $description, $image, max(1, $display_order), $is_active]);
                         // Redirect to prevent form resubmission
                         header('Location: categories.php?' . (isSuperAdmin() && $restaurantId ? 'restaurant_id=' . urlencode($restaurantId) . '&' : '') . 'success=created');
                         exit;
                     } else {
-                        $id = $_POST['id'] ?? 0;
-                        if ($image) {
-                            $stmt = $pdo->prepare("UPDATE categories SET name = ?, slug = ?, description = ?, image = ?, display_order = ?, is_active = ? WHERE id = ? AND restaurant_id = ?");
-                            $stmt->execute([$name, $slug, $description, $image, $display_order, $is_active, $id, $restaurantId]);
-                        } else {
-                            $stmt = $pdo->prepare("UPDATE categories SET name = ?, slug = ?, description = ?, display_order = ?, is_active = ? WHERE id = ? AND restaurant_id = ?");
-                            $stmt->execute([$name, $slug, $description, $display_order, $is_active, $id, $restaurantId]);
+                        $id = intval($_POST['id'] ?? 0);
+                        if ($id > 0) {
+                            $stmt = $pdo->prepare("SELECT display_order FROM categories WHERE id = ? AND restaurant_id = ?");
+                            $stmt->execute([$id, $restaurantId]);
+                            $old = $stmt->fetch();
+                            $oldOrder = $old ? (int)$old['display_order'] : 0;
+                            reorderCategoriesForUpdate($restaurantId, $id, $oldOrder, max(1, $display_order));
+                            if ($image) {
+                                $stmt = $pdo->prepare("UPDATE categories SET name = ?, slug = ?, description = ?, image = ?, display_order = ?, is_active = ? WHERE id = ? AND restaurant_id = ?");
+                                $stmt->execute([$name, $slug, $description, $image, max(1, $display_order), $is_active, $id, $restaurantId]);
+                            } else {
+                                $stmt = $pdo->prepare("UPDATE categories SET name = ?, slug = ?, description = ?, display_order = ?, is_active = ? WHERE id = ? AND restaurant_id = ?");
+                                $stmt->execute([$name, $slug, $description, max(1, $display_order), $is_active, $id, $restaurantId]);
+                            }
+                            // Redirect to prevent form resubmission
+                            header('Location: categories.php?' . (isSuperAdmin() && $restaurantId ? 'restaurant_id=' . urlencode($restaurantId) . '&' : '') . 'success=updated');
+                            exit;
                         }
-                        // Redirect to prevent form resubmission
-                        header('Location: categories.php?' . (isSuperAdmin() && $restaurantId ? 'restaurant_id=' . urlencode($restaurantId) . '&' : '') . 'success=updated');
-                        exit;
                     }
                 }
             } catch (PDOException $e) {
