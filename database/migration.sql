@@ -313,8 +313,8 @@ INSERT IGNORE INTO `categories` (`id`, `restaurant_id`, `name`, `slug`, `image`,
 (39, 3, 'Smoothies', 'smoothies', NULL, 'Fresh fruit smoothies', 17, 1, NOW(), NOW()),
 (40, 3, 'Fresh Juices', 'fresh-juices', NULL, 'Freshly squeezed juices', 18, 1, NOW(), NOW());
 
--- 21b. Insert menu items (requires categories 23-40 to exist; delete menu_items + categories for restaurant 3 first if re-running)
-INSERT INTO `menu_items` (`restaurant_id`, `category_id`, `name`, `slug`, `description`, `price`, `image`, `display_order`, `is_available`, `created_at`, `updated_at`) VALUES
+-- 21b. Insert menu items (INSERT IGNORE skips duplicates if already loaded)
+INSERT IGNORE INTO `menu_items` (`restaurant_id`, `category_id`, `name`, `slug`, `description`, `price`, `image`, `display_order`, `is_available`, `created_at`, `updated_at`) VALUES
 (3, 23, 'Cranberry Juice', 'cranberry-juice', '', 6000.00, NULL, 1, 1, NOW(), NOW()),
 (3, 23, 'Juice Pack', 'juice-pack', '', 6000.00, NULL, 2, 1, NOW(), NOW()),
 (3, 23, 'Malt Drink', 'malt-drink', '', 1500.00, NULL, 3, 1, NOW(), NOW()),
