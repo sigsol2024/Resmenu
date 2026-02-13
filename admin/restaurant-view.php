@@ -90,8 +90,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'secondary_color' => sanitize($_POST['secondary_color'] ?? '#FFFFFF'),
         ];
         
+        $templateId = (int)($_POST['template_id'] ?? $restaurant['template_id'] ?? 1);
         try {
-            $stmt = $pdo->prepare("UPDATE customization_settings SET menu_title_color = ?, menu_title_size = ?, menu_title_font = ?, price_color = ?, price_size = ?, price_font = ?, description_color = ?, description_size = ?, description_font = ?, category_title_color = ?, category_title_size = ?, category_title_font = ?, background_color = ?, header_background_color = ?, primary_color = ?, secondary_color = ? WHERE restaurant_id = ?");
+            $stmt = $pdo->prepare("UPDATE customization_settings SET menu_title_color = ?, menu_title_size = ?, menu_title_font = ?, price_color = ?, price_size = ?, price_font = ?, description_color = ?, description_size = ?, description_font = ?, category_title_color = ?, category_title_size = ?, category_title_font = ?, background_color = ?, header_background_color = ?, primary_color = ?, secondary_color = ? WHERE restaurant_id = ? AND template_id = ?");
             $stmt->execute([
                 $customizationData['menu_title_color'], $customizationData['menu_title_size'], $customizationData['menu_title_font'],
                 $customizationData['price_color'], $customizationData['price_size'], $customizationData['price_font'],
@@ -99,8 +100,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $customizationData['category_title_color'], $customizationData['category_title_size'], $customizationData['category_title_font'],
                 $customizationData['background_color'], $customizationData['header_background_color'],
                 $customizationData['primary_color'], $customizationData['secondary_color'],
-                $restaurantId
+                $restaurantId, $templateId
             ]);
+            if ($stmt->rowCount() === 0) {
+                $stmt = $pdo->prepare("INSERT INTO customization_settings (restaurant_id, template_id, menu_title_color, menu_title_size, menu_title_font, price_color, price_size, price_font, description_color, description_size, description_font, category_title_color, category_title_size, category_title_font, background_color, header_background_color, primary_color, secondary_color) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt->execute([
+                    $restaurantId, $templateId,
+                    $customizationData['menu_title_color'], $customizationData['menu_title_size'], $customizationData['menu_title_font'],
+                    $customizationData['price_color'], $customizationData['price_size'], $customizationData['price_font'],
+                    $customizationData['description_color'], $customizationData['description_size'], $customizationData['description_font'],
+                    $customizationData['category_title_color'], $customizationData['category_title_size'], $customizationData['category_title_font'],
+                    $customizationData['background_color'], $customizationData['header_background_color'],
+                    $customizationData['primary_color'], $customizationData['secondary_color']
+                ]);
+            }
             $message = 'Customization settings saved successfully';
         } catch (PDOException $e) {
             $error = 'Error saving customization: ' . $e->getMessage();
@@ -406,8 +419,8 @@ if ($pdo) {
     $categories = $stmt->fetchAll();
 }
 
-// Get customization settings
-$customization = getCustomizationSettings($restaurantId);
+// Get customization settings (per-template - uses restaurant's current template)
+$customization = getCustomizationSettings($restaurantId, $restaurant['template_id'] ?? 1);
 
 // Parse header menu items
 $headerMenuItems = [];
@@ -1049,6 +1062,7 @@ include __DIR__ . '/../includes/admin-layout.php';
                 
                 <form method="POST" action="" style="margin-top: 24px;">
                     <input type="hidden" name="action" value="save_customization">
+                    <input type="hidden" name="template_id" value="<?php echo (int)($restaurant['template_id'] ?? 1); ?>">
                     
                     <div class="card" style="margin-bottom: 24px;">
                         <div class="card-header">

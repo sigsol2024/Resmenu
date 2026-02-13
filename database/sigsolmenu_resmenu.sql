@@ -100,6 +100,7 @@ INSERT INTO `categories` (`id`, `restaurant_id`, `name`, `slug`, `image`, `descr
 CREATE TABLE `customization_settings` (
   `id` int(11) NOT NULL,
   `restaurant_id` int(11) NOT NULL,
+  `template_id` int(11) NOT NULL DEFAULT 1,
   `menu_title_color` varchar(7) DEFAULT '#000000',
   `menu_title_size` int(11) DEFAULT 24,
   `menu_title_font` varchar(100) DEFAULT 'Inter',
@@ -124,9 +125,9 @@ CREATE TABLE `customization_settings` (
 -- Dumping data for table `customization_settings`
 --
 
-INSERT INTO `customization_settings` (`id`, `restaurant_id`, `menu_title_color`, `menu_title_size`, `menu_title_font`, `price_color`, `price_size`, `price_font`, `description_color`, `description_size`, `description_font`, `category_title_color`, `category_title_size`, `category_title_font`, `background_color`, `header_background_color`, `primary_color`, `secondary_color`, `created_at`, `updated_at`) VALUES
-(1, 2, '#000000', 24, 'Inter', '#000000', 18, 'Inter', '#666666', 14, 'Inter', '#000000', 20, 'Inter', '#FFFFFF', '#FFFFFF', '#111111', '#FFFFFF', '2025-12-19 18:43:25', '2025-12-19 18:43:25'),
-(2, 1, '#000000', 24, 'Inter', '#000000', 18, 'Inter', '#666666', 14, 'Inter', '#000000', 20, 'Inter', '#FFFFFF', '#FFFFFF', '#111111', '#FFFFFF', '2025-12-19 18:45:58', '2025-12-19 18:45:58');
+INSERT INTO `customization_settings` (`id`, `restaurant_id`, `template_id`, `menu_title_color`, `menu_title_size`, `menu_title_font`, `price_color`, `price_size`, `price_font`, `description_color`, `description_size`, `description_font`, `category_title_color`, `category_title_size`, `category_title_font`, `background_color`, `header_background_color`, `primary_color`, `secondary_color`, `created_at`, `updated_at`) VALUES
+(1, 2, 2, '#000000', 24, 'Inter', '#000000', 18, 'Inter', '#666666', 14, 'Inter', '#000000', 20, 'Inter', '#FFFFFF', '#FFFFFF', '#111111', '#FFFFFF', '2025-12-19 18:43:25', '2025-12-19 18:43:25'),
+(2, 1, 1, '#000000', 24, 'Inter', '#000000', 18, 'Inter', '#666666', 14, 'Inter', '#000000', 20, 'Inter', '#FFFFFF', '#FFFFFF', '#111111', '#FFFFFF', '2025-12-19 18:45:58', '2025-12-19 18:45:58');
 
 -- --------------------------------------------------------
 
@@ -847,7 +848,7 @@ ALTER TABLE `categories`
 --
 ALTER TABLE `customization_settings`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `restaurant_id` (`restaurant_id`);
+  ADD UNIQUE KEY `restaurant_template` (`restaurant_id`, `template_id`);
 
 --
 -- Indexes for table `managers`

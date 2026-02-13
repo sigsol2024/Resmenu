@@ -21,13 +21,16 @@
 -- 16. is_walkin on table_reservations
 -- 17. reservation_number on table_reservations
 -- 18. site_settings (site name, logo, favicon for super admin)
+-- 19. customization_settings: add template_id for per-template color customization
 --
 -- Requires: MariaDB 10.0.2+ or MySQL 8.0.12+ for ADD COLUMN IF NOT EXISTS
+-- Section 19 also needs: MariaDB 10.5.2+ or MySQL 8.0.13+ for DROP/CREATE INDEX IF NOT EXISTS
 -- ============================================================
 
 -- 1. Orders table (food ordering system)
 CREATE TABLE IF NOT EXISTS `orders` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `order_number` varchar(10) DEFAULT NULL,
   `restaurant_id` int(11) NOT NULL,
   `customer_name` varchar(255) NOT NULL,
   `customer_phone` varchar(50) NOT NULL,
@@ -108,6 +111,8 @@ CREATE TABLE IF NOT EXISTS `pending_bank_transfers` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `token` varchar(64) NOT NULL,
   `restaurant_id` int(11) NOT NULL,
+  `payment_type` varchar(20) NOT NULL DEFAULT 'order',
+  `reservation_id` int(11) DEFAULT NULL,
   `cart_json` text NOT NULL,
   `customer_name` varchar(255) NOT NULL,
   `customer_phone` varchar(50) NOT NULL,
@@ -133,6 +138,8 @@ CREATE TABLE IF NOT EXISTS `pending_online_payments` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `reference` varchar(80) NOT NULL,
   `restaurant_id` int(11) NOT NULL,
+  `payment_type` varchar(20) NOT NULL DEFAULT 'order',
+  `reservation_id` int(11) DEFAULT NULL,
   `gateway` varchar(50) NOT NULL,
   `cart_json` text NOT NULL,
   `customer_name` varchar(255) NOT NULL,
@@ -154,6 +161,7 @@ CREATE TABLE IF NOT EXISTS `pending_online_payments` (
 -- 11. Table reservations (Template 4 only)
 CREATE TABLE IF NOT EXISTS `table_reservations` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `reservation_number` varchar(10) DEFAULT NULL,
   `restaurant_id` int(11) NOT NULL,
   `reservation_date` date NOT NULL,
   `reservation_time` time NOT NULL,
@@ -164,6 +172,7 @@ CREATE TABLE IF NOT EXISTS `table_reservations` (
   `special_occasion` varchar(50) DEFAULT NULL,
   `notes` text DEFAULT NULL,
   `status` varchar(50) NOT NULL DEFAULT 'pending' COMMENT 'pending, confirmed, rejected, cancelled, completed',
+  `is_walkin` tinyint(1) NOT NULL DEFAULT 0,
   `deposit_amount` decimal(10,2) NOT NULL DEFAULT 0.00,
   `deposit_paid` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -229,3 +238,10 @@ CREATE TABLE IF NOT EXISTS `site_settings` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 INSERT IGNORE INTO `site_settings` (`id`, `site_name`) VALUES (1, 'Resmenu');
+
+-- 19. Per-template customization (each restaurant can have different colors per template)
+ALTER TABLE `customization_settings` ADD COLUMN IF NOT EXISTS `template_id` int(11) NOT NULL DEFAULT 1 AFTER `restaurant_id`;
+UPDATE `customization_settings` cs JOIN `restaurants` r ON r.id = cs.restaurant_id SET cs.template_id = r.template_id;
+-- Drop old unique; create new composite unique (requires DROP INDEX IF EXISTS, CREATE INDEX IF NOT EXISTS)
+ALTER TABLE `customization_settings` DROP INDEX IF EXISTS `restaurant_id`;
+CREATE UNIQUE INDEX IF NOT EXISTS `restaurant_template` ON `customization_settings` (`restaurant_id`, `template_id`);

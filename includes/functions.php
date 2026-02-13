@@ -239,24 +239,50 @@ function getManagerEmailForRestaurant($restaurantId) {
 }
 
 /**
- * Get customization settings for restaurant
+ * Get customization settings for restaurant (per-template)
  * @param int $restaurantId
+ * @param int|null $templateId If null, uses restaurant's current template_id
  * @return array
  */
-function getCustomizationSettings($restaurantId) {
+function getCustomizationSettings($restaurantId, $templateId = null) {
     $pdo = getDBConnection();
     if (!$pdo) return [];
     
     try {
-        $stmt = $pdo->prepare("SELECT * FROM customization_settings WHERE restaurant_id = ?");
-        $stmt->execute([$restaurantId]);
+        if ($templateId === null) {
+            $stmt = $pdo->prepare("SELECT template_id FROM restaurants WHERE id = ?");
+            $stmt->execute([$restaurantId]);
+            $row = $stmt->fetch();
+            $templateId = (int)($row['template_id'] ?? 1);
+        } else {
+            $templateId = (int)$templateId;
+        }
+        
+        $stmt = $pdo->prepare("SELECT * FROM customization_settings WHERE restaurant_id = ? AND template_id = ?");
+        $stmt->execute([$restaurantId, $templateId]);
         $settings = $stmt->fetch();
         
         if (!$settings) {
-            // Create default settings
-            $stmt = $pdo->prepare("INSERT INTO customization_settings (restaurant_id) VALUES (?)");
-            $stmt->execute([$restaurantId]);
-            return getCustomizationSettings($restaurantId);
+            // Get template defaults and create row
+            $stmt = $pdo->prepare("SELECT * FROM template_customizations WHERE template_id = ?");
+            $stmt->execute([$templateId]);
+            $defaults = $stmt->fetch();
+            if ($defaults) {
+                $stmt = $pdo->prepare("INSERT INTO customization_settings (restaurant_id, template_id, menu_title_color, menu_title_size, menu_title_font, price_color, price_size, price_font, description_color, description_size, description_font, category_title_color, category_title_size, category_title_font, background_color, header_background_color, primary_color, secondary_color) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt->execute([
+                    $restaurantId, $templateId,
+                    $defaults['menu_title_color'] ?? '#000000', $defaults['menu_title_size'] ?? 24, $defaults['menu_title_font'] ?? 'Inter',
+                    $defaults['price_color'] ?? '#000000', $defaults['price_size'] ?? 18, $defaults['price_font'] ?? 'Inter',
+                    $defaults['description_color'] ?? '#666666', $defaults['description_size'] ?? 14, $defaults['description_font'] ?? 'Inter',
+                    $defaults['category_title_color'] ?? '#000000', $defaults['category_title_size'] ?? 20, $defaults['category_title_font'] ?? 'Inter',
+                    $defaults['background_color'] ?? '#FFFFFF', $defaults['header_background_color'] ?? '#FFFFFF',
+                    $defaults['primary_color'] ?? '#111111', $defaults['secondary_color'] ?? '#FFFFFF'
+                ]);
+            } else {
+                $stmt = $pdo->prepare("INSERT INTO customization_settings (restaurant_id, template_id) VALUES (?, ?)");
+                $stmt->execute([$restaurantId, $templateId]);
+            }
+            return getCustomizationSettings($restaurantId, $templateId);
         }
         
         return $settings;

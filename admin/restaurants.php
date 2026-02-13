@@ -211,8 +211,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 $stmt = $pdo->prepare("INSERT INTO managers (username, email, password_hash, restaurant_id) VALUES (?, ?, ?, ?)");
                                 $stmt->execute([$username, $managerEmail, $passwordHash, $restaurantId]);
                                 
-                                // Create default customization settings
-                                $stmt = $pdo->prepare("INSERT INTO customization_settings (restaurant_id) VALUES (?)");
+                                // Create default customization settings (template_id=1 for new restaurants)
+                                $stmt = $pdo->prepare("INSERT INTO customization_settings (restaurant_id, template_id) VALUES (?, 1)");
                                 $stmt->execute([$restaurantId]);
                                 
                                 // Create trial subscription for the new restaurant

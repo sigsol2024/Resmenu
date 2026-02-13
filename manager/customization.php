@@ -1,7 +1,7 @@
 <?php
 /**
- * Template Selection (Manager)
- * Managers can only select templates, not customize design settings
+ * Template Selection & Primary Color (Manager)
+ * Managers can select templates and customize the primary color per template
  */
 
 require_once __DIR__ . '/../includes/auth.php';
@@ -72,11 +72,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     }
+    
+    // Handle primary color save (per-template)
+    if ($action === 'save_primary_color') {
+        $primaryColor = preg_match('/^#[0-9A-Fa-f]{6}$/', $_POST['primary_color'] ?? '') ? $_POST['primary_color'] : null;
+        $templateId = (int)($_POST['template_id'] ?? $restaurant['template_id'] ?? 1);
+        if ($primaryColor && $templateId >= 1) {
+            try {
+                $stmt = $pdo->prepare("INSERT INTO customization_settings (restaurant_id, template_id, primary_color) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE primary_color = VALUES(primary_color)");
+                $stmt->execute([$restaurantId, $templateId, $primaryColor]);
+                $redirectUrl = '/manager/customization.php';
+                if (!empty($restaurant['slug'])) $redirectUrl .= '?slug=' . urlencode($restaurant['slug']);
+                $redirectUrl .= (strpos($redirectUrl, '?') !== false ? '&' : '?') . 'message=color_updated';
+                header('Location: ' . $redirectUrl);
+                exit;
+            } catch (PDOException $e) {
+                $error = 'Error saving color: ' . $e->getMessage();
+            }
+        } else {
+            $error = 'Please select a valid color.';
+        }
+    }
 }
 
 // Show success message from redirect
-if (isset($_GET['message']) && $_GET['message'] === 'template_updated') {
-    $message = 'Template updated successfully';
+if (isset($_GET['message'])) {
+    if ($_GET['message'] === 'template_updated') $message = 'Template updated successfully';
+    elseif ($_GET['message'] === 'color_updated') $message = 'Primary color saved. Each template keeps its own color when you switch.';
 }
 
 // Store template ID BEFORE layout include (sidebar overwrites $restaurant with only name/logo)
@@ -87,6 +109,7 @@ include __DIR__ . '/../includes/manager-layout.php';
 
 require_once __DIR__ . '/../includes/template-loader.php';
 $availableTemplates = getAvailableTemplates();
+$customization = getCustomizationSettings($restaurantId, $currentTemplateId);
 ?>
 
         <div class="page-header">
@@ -141,6 +164,31 @@ $availableTemplates = getAvailableTemplates();
                 }
                 ?>
             </p>
+        </div>
+        
+        <!-- Primary Color (per-template) -->
+        <div class="settings-card" style="margin-top: 24px;">
+            <div class="section-header">
+                <h2 class="section-title">Template Primary Color</h2>
+            </div>
+            <p style="margin-bottom: 20px; color: var(--muted); font-size: 0.875rem;">Customize the primary color for the selected template. Each template remembers its own color when you switch between them.</p>
+            <form method="POST" action="/manager/customization.php<?php echo !empty($restaurant['slug']) ? '?slug=' . htmlspecialchars(urlencode($restaurant['slug'])) : ''; ?>">
+                <input type="hidden" name="action" value="save_primary_color">
+                <input type="hidden" name="template_id" value="<?php echo $currentTemplateId; ?>">
+                <div class="form-group">
+                    <label class="form-label">Primary Color (Template <?php echo $currentTemplateId; ?>)</label>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <input type="color" name="primary_color" value="<?php echo htmlspecialchars($customization['primary_color'] ?? '#111111'); ?>" style="width: 60px; height: 40px; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer;">
+                        <input type="text" value="<?php echo htmlspecialchars($customization['primary_color'] ?? '#111111'); ?>" readonly style="font-family: monospace; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px; width: 90px; font-size: 0.875rem;" id="primary-color-hex">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Save Color
+                </button>
+            </form>
         </div>
         
         <div class="card">
@@ -288,6 +336,12 @@ $availableTemplates = getAvailableTemplates();
     margin: 0;
 }
 </style>
+<script>
+document.querySelector('input[name="primary_color"]')?.addEventListener('input', function() {
+    var hex = document.getElementById('primary-color-hex');
+    if (hex) hex.value = this.value;
+});
+</script>
 
 <?php include __DIR__ . '/../includes/admin-footer.php'; ?>
 

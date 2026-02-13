@@ -519,13 +519,17 @@ try {
     // Step 7: Create default customization settings
     logMessage("Step 7: Creating default customization settings...", 'info');
     
-    $stmt = $pdo->prepare("SELECT id FROM customization_settings WHERE restaurant_id = ?");
+    $stmt = $pdo->prepare("SELECT template_id FROM restaurants WHERE id = ?");
     $stmt->execute([$restaurantId]);
+    $r = $stmt->fetch();
+    $templateId = (int)($r['template_id'] ?? 1);
+    $stmt = $pdo->prepare("SELECT id FROM customization_settings WHERE restaurant_id = ? AND template_id = ?");
+    $stmt->execute([$restaurantId, $templateId]);
     $existingSettings = $stmt->fetch();
     
     if (!$existingSettings) {
-        $stmt = $pdo->prepare("INSERT INTO customization_settings (restaurant_id) VALUES (?)");
-        $stmt->execute([$restaurantId]);
+        $stmt = $pdo->prepare("INSERT INTO customization_settings (restaurant_id, template_id) VALUES (?, ?)");
+        $stmt->execute([$restaurantId, $templateId]);
         logMessage("Default customization settings created.", 'success');
     } else {
         logMessage("Customization settings already exist.", 'info');
