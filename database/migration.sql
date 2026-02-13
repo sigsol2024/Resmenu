@@ -22,9 +22,10 @@
 -- 17. reservation_number on table_reservations
 -- 18. site_settings (site name, logo, favicon for super admin)
 -- 19. customization_settings: add template_id for per-template color customization
+--    (all color/size/font columns already exist; no schema change needed for full customization)
 --
 -- Requires: MariaDB 10.0.2+ or MySQL 8.0.12+ for ADD COLUMN IF NOT EXISTS
--- Section 19 also needs: MariaDB 10.5.2+ or MySQL 8.0.13+ for DROP/CREATE INDEX IF NOT EXISTS
+-- Section 19 index statements: MariaDB 10.5.2+ (IF NOT EXISTS supported). For MySQL, use commented alternative.
 -- ============================================================
 
 -- 1. Orders table (food ordering system)
@@ -240,8 +241,13 @@ CREATE TABLE IF NOT EXISTS `site_settings` (
 INSERT IGNORE INTO `site_settings` (`id`, `site_name`) VALUES (1, 'Resmenu');
 
 -- 19. Per-template customization (each restaurant can have different colors per template)
+-- Adds template_id, all color/size/font columns already exist in customization_settings.
 ALTER TABLE `customization_settings` ADD COLUMN IF NOT EXISTS `template_id` int(11) NOT NULL DEFAULT 1 AFTER `restaurant_id`;
-UPDATE `customization_settings` cs JOIN `restaurants` r ON r.id = cs.restaurant_id SET cs.template_id = r.template_id;
--- Drop old unique; create new composite unique (requires DROP INDEX IF EXISTS, CREATE INDEX IF NOT EXISTS)
-ALTER TABLE `customization_settings` DROP INDEX IF EXISTS `restaurant_id`;
+UPDATE `customization_settings` cs JOIN `restaurants` r ON r.id = cs.restaurant_id SET cs.template_id = COALESCE(r.template_id, 1);
+-- Index changes: MariaDB supports IF NOT EXISTS; MySQL does not. Use one of the two blocks below.
+-- MariaDB 10.5.2+ (recommended):
 CREATE UNIQUE INDEX IF NOT EXISTS `restaurant_template` ON `customization_settings` (`restaurant_id`, `template_id`);
+ALTER TABLE `customization_settings` DROP INDEX IF EXISTS `restaurant_id`;
+-- MySQL 8.0 (if above fails): run these instead, skip if index/column already exists:
+-- ALTER TABLE `customization_settings` ADD UNIQUE KEY `restaurant_template` (`restaurant_id`, `template_id`);
+-- ALTER TABLE `customization_settings` DROP INDEX `restaurant_id`;

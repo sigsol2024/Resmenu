@@ -1,7 +1,7 @@
 <?php
 /**
- * Template Selection & Primary Color (Manager)
- * Managers can select templates and customize the primary color per template
+ * Template Selection & Customization (Manager)
+ * Managers can select templates and customize all colors/styles per template
  */
 
 require_once __DIR__ . '/../includes/auth.php';
@@ -73,24 +73,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
     
-    // Handle primary color save (per-template)
-    if ($action === 'save_primary_color') {
-        $primaryColor = preg_match('/^#[0-9A-Fa-f]{6}$/', $_POST['primary_color'] ?? '') ? $_POST['primary_color'] : null;
+    // Handle full customization save (per-template)
+    if ($action === 'save_customization') {
+        $customizationData = [
+            'menu_title_color' => sanitize($_POST['menu_title_color'] ?? '#000000'),
+            'menu_title_size' => intval($_POST['menu_title_size'] ?? 24),
+            'menu_title_font' => sanitize($_POST['menu_title_font'] ?? 'Inter'),
+            'price_color' => sanitize($_POST['price_color'] ?? '#000000'),
+            'price_size' => intval($_POST['price_size'] ?? 18),
+            'price_font' => sanitize($_POST['price_font'] ?? 'Inter'),
+            'description_color' => sanitize($_POST['description_color'] ?? '#666666'),
+            'description_size' => intval($_POST['description_size'] ?? 14),
+            'description_font' => sanitize($_POST['description_font'] ?? 'Inter'),
+            'category_title_color' => sanitize($_POST['category_title_color'] ?? '#000000'),
+            'category_title_size' => intval($_POST['category_title_size'] ?? 20),
+            'category_title_font' => sanitize($_POST['category_title_font'] ?? 'Inter'),
+            'background_color' => sanitize($_POST['background_color'] ?? '#FFFFFF'),
+            'header_background_color' => sanitize($_POST['header_background_color'] ?? '#FFFFFF'),
+            'primary_color' => sanitize($_POST['primary_color'] ?? '#111111'),
+            'secondary_color' => sanitize($_POST['secondary_color'] ?? '#FFFFFF'),
+        ];
         $templateId = (int)($_POST['template_id'] ?? $restaurant['template_id'] ?? 1);
-        if ($primaryColor && $templateId >= 1) {
+        if ($templateId >= 1) {
             try {
-                $stmt = $pdo->prepare("INSERT INTO customization_settings (restaurant_id, template_id, primary_color) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE primary_color = VALUES(primary_color)");
-                $stmt->execute([$restaurantId, $templateId, $primaryColor]);
+                $stmt = $pdo->prepare("UPDATE customization_settings SET menu_title_color = ?, menu_title_size = ?, menu_title_font = ?, price_color = ?, price_size = ?, price_font = ?, description_color = ?, description_size = ?, description_font = ?, category_title_color = ?, category_title_size = ?, category_title_font = ?, background_color = ?, header_background_color = ?, primary_color = ?, secondary_color = ? WHERE restaurant_id = ? AND template_id = ?");
+                $stmt->execute([
+                    $customizationData['menu_title_color'], $customizationData['menu_title_size'], $customizationData['menu_title_font'],
+                    $customizationData['price_color'], $customizationData['price_size'], $customizationData['price_font'],
+                    $customizationData['description_color'], $customizationData['description_size'], $customizationData['description_font'],
+                    $customizationData['category_title_color'], $customizationData['category_title_size'], $customizationData['category_title_font'],
+                    $customizationData['background_color'], $customizationData['header_background_color'],
+                    $customizationData['primary_color'], $customizationData['secondary_color'],
+                    $restaurantId, $templateId
+                ]);
+                if ($stmt->rowCount() === 0) {
+                    $stmt = $pdo->prepare("INSERT INTO customization_settings (restaurant_id, template_id, menu_title_color, menu_title_size, menu_title_font, price_color, price_size, price_font, description_color, description_size, description_font, category_title_color, category_title_size, category_title_font, background_color, header_background_color, primary_color, secondary_color) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    $stmt->execute([
+                        $restaurantId, $templateId,
+                        $customizationData['menu_title_color'], $customizationData['menu_title_size'], $customizationData['menu_title_font'],
+                        $customizationData['price_color'], $customizationData['price_size'], $customizationData['price_font'],
+                        $customizationData['description_color'], $customizationData['description_size'], $customizationData['description_font'],
+                        $customizationData['category_title_color'], $customizationData['category_title_size'], $customizationData['category_title_font'],
+                        $customizationData['background_color'], $customizationData['header_background_color'],
+                        $customizationData['primary_color'], $customizationData['secondary_color']
+                    ]);
+                }
                 $redirectUrl = '/manager/customization.php';
                 if (!empty($restaurant['slug'])) $redirectUrl .= '?slug=' . urlencode($restaurant['slug']);
-                $redirectUrl .= (strpos($redirectUrl, '?') !== false ? '&' : '?') . 'message=color_updated';
+                $redirectUrl .= (strpos($redirectUrl, '?') !== false ? '&' : '?') . 'message=customization_updated';
                 header('Location: ' . $redirectUrl);
                 exit;
             } catch (PDOException $e) {
-                $error = 'Error saving color: ' . $e->getMessage();
+                $error = 'Error saving customization: ' . $e->getMessage();
             }
         } else {
-            $error = 'Please select a valid color.';
+            $error = 'Invalid template.';
         }
     }
 }
@@ -98,7 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Show success message from redirect
 if (isset($_GET['message'])) {
     if ($_GET['message'] === 'template_updated') $message = 'Template updated successfully';
-    elseif ($_GET['message'] === 'color_updated') $message = 'Primary color saved. Each template keeps its own color when you switch.';
+    elseif ($_GET['message'] === 'customization_updated') $message = 'Template colors and styles saved. Each template keeps its own settings when you switch.';
 }
 
 // Store template ID BEFORE layout include (sidebar overwrites $restaurant with only name/logo)
@@ -166,27 +203,137 @@ $customization = getCustomizationSettings($restaurantId, $currentTemplateId);
             </p>
         </div>
         
-        <!-- Primary Color (per-template) -->
+        <!-- Template Colors & Styles (per-template) -->
         <div class="settings-card" style="margin-top: 24px;">
             <div class="section-header">
-                <h2 class="section-title">Template Primary Color</h2>
+                <h2 class="section-title">Template Colors & Styles</h2>
             </div>
-            <p style="margin-bottom: 20px; color: var(--muted); font-size: 0.875rem;">Customize the primary color for the selected template. Each template remembers its own color when you switch between them.</p>
+            <p style="margin-bottom: 20px; color: var(--muted); font-size: 0.875rem;">Customize all colors and styles for the selected template. Each template remembers its own settings when you switch between them.</p>
             <form method="POST" action="/manager/customization.php<?php echo !empty($restaurant['slug']) ? '?slug=' . htmlspecialchars(urlencode($restaurant['slug'])) : ''; ?>">
-                <input type="hidden" name="action" value="save_primary_color">
+                <input type="hidden" name="action" value="save_customization">
                 <input type="hidden" name="template_id" value="<?php echo $currentTemplateId; ?>">
-                <div class="form-group">
-                    <label class="form-label">Primary Color (Template <?php echo $currentTemplateId; ?>)</label>
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <input type="color" name="primary_color" value="<?php echo htmlspecialchars($customization['primary_color'] ?? '#111111'); ?>" style="width: 60px; height: 40px; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer;">
-                        <input type="text" value="<?php echo htmlspecialchars($customization['primary_color'] ?? '#111111'); ?>" readonly style="font-family: monospace; padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 6px; width: 90px; font-size: 0.875rem;" id="primary-color-hex">
+                
+                <div class="card" style="margin-bottom: 24px;">
+                    <div class="card-header">
+                        <h2 class="card-title">Menu Title</h2>
+                    </div>
+                    <div class="color-input-group">
+                        <div class="form-group">
+                            <label class="form-label">Color</label>
+                            <input type="color" name="menu_title_color" value="<?php echo htmlspecialchars($customization['menu_title_color'] ?? '#000000'); ?>" style="width: 60px; height: 40px; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer;">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Size (px)</label>
+                            <input type="number" name="menu_title_size" class="form-input" value="<?php echo htmlspecialchars($customization['menu_title_size'] ?? 24); ?>" min="12" max="72">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Font</label>
+                            <select name="menu_title_font" class="form-select">
+                                <option value="Inter" <?php echo ($customization['menu_title_font'] ?? 'Inter') === 'Inter' ? 'selected' : ''; ?>>Inter</option>
+                                <option value="Poppins" <?php echo ($customization['menu_title_font'] ?? 'Inter') === 'Poppins' ? 'selected' : ''; ?>>Poppins</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
+                
+                <div class="card" style="margin-bottom: 24px;">
+                    <div class="card-header">
+                        <h2 class="card-title">Price</h2>
+                    </div>
+                    <div class="color-input-group">
+                        <div class="form-group">
+                            <label class="form-label">Color</label>
+                            <input type="color" name="price_color" value="<?php echo htmlspecialchars($customization['price_color'] ?? '#000000'); ?>" style="width: 60px; height: 40px; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer;">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Size (px)</label>
+                            <input type="number" name="price_size" class="form-input" value="<?php echo htmlspecialchars($customization['price_size'] ?? 18); ?>" min="12" max="48">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Font</label>
+                            <select name="price_font" class="form-select">
+                                <option value="Inter" <?php echo ($customization['price_font'] ?? 'Inter') === 'Inter' ? 'selected' : ''; ?>>Inter</option>
+                                <option value="Poppins" <?php echo ($customization['price_font'] ?? 'Inter') === 'Poppins' ? 'selected' : ''; ?>>Poppins</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card" style="margin-bottom: 24px;">
+                    <div class="card-header">
+                        <h2 class="card-title">Description</h2>
+                    </div>
+                    <div class="color-input-group">
+                        <div class="form-group">
+                            <label class="form-label">Color</label>
+                            <input type="color" name="description_color" value="<?php echo htmlspecialchars($customization['description_color'] ?? '#666666'); ?>" style="width: 60px; height: 40px; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer;">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Size (px)</label>
+                            <input type="number" name="description_size" class="form-input" value="<?php echo htmlspecialchars($customization['description_size'] ?? 14); ?>" min="10" max="24">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Font</label>
+                            <select name="description_font" class="form-select">
+                                <option value="Inter" <?php echo ($customization['description_font'] ?? 'Inter') === 'Inter' ? 'selected' : ''; ?>>Inter</option>
+                                <option value="Poppins" <?php echo ($customization['description_font'] ?? 'Inter') === 'Poppins' ? 'selected' : ''; ?>>Poppins</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card" style="margin-bottom: 24px;">
+                    <div class="card-header">
+                        <h2 class="card-title">Category Title</h2>
+                    </div>
+                    <div class="color-input-group">
+                        <div class="form-group">
+                            <label class="form-label">Color</label>
+                            <input type="color" name="category_title_color" value="<?php echo htmlspecialchars($customization['category_title_color'] ?? '#000000'); ?>" style="width: 60px; height: 40px; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer;">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Size (px)</label>
+                            <input type="number" name="category_title_size" class="form-input" value="<?php echo htmlspecialchars($customization['category_title_size'] ?? 20); ?>" min="12" max="48">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Font</label>
+                            <select name="category_title_font" class="form-select">
+                                <option value="Inter" <?php echo ($customization['category_title_font'] ?? 'Inter') === 'Inter' ? 'selected' : ''; ?>>Inter</option>
+                                <option value="Poppins" <?php echo ($customization['category_title_font'] ?? 'Inter') === 'Poppins' ? 'selected' : ''; ?>>Poppins</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card" style="margin-bottom: 24px;">
+                    <div class="card-header">
+                        <h2 class="card-title">Background & Accent Colors</h2>
+                    </div>
+                    <div class="color-input-group">
+                        <div class="form-group">
+                            <label class="form-label">Page Background</label>
+                            <input type="color" name="background_color" value="<?php echo htmlspecialchars($customization['background_color'] ?? '#FFFFFF'); ?>" style="width: 60px; height: 40px; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer;">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Header Background</label>
+                            <input type="color" name="header_background_color" value="<?php echo htmlspecialchars($customization['header_background_color'] ?? '#FFFFFF'); ?>" style="width: 60px; height: 40px; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer;">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Primary Color</label>
+                            <input type="color" name="primary_color" value="<?php echo htmlspecialchars($customization['primary_color'] ?? '#111111'); ?>" style="width: 60px; height: 40px; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer;">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Secondary Color</label>
+                            <input type="color" name="secondary_color" value="<?php echo htmlspecialchars($customization['secondary_color'] ?? '#FFFFFF'); ?>" style="width: 60px; height: 40px; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer;">
+                        </div>
+                    </div>
+                </div>
+                
                 <button type="submit" class="btn btn-primary">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                     </svg>
-                    Save Color
+                    Save Colors & Styles
                 </button>
             </form>
         </div>
@@ -290,8 +437,25 @@ $customization = getCustomizationSettings($restaurantId, $currentTemplateId);
     border: 1px solid #fecaca;
 }
 
+.color-input-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+    padding: 20px 24px;
+}
+
 .form-group {
     margin-bottom: 20px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    color: #111827;
 }
 
 .form-label {
@@ -336,12 +500,6 @@ $customization = getCustomizationSettings($restaurantId, $currentTemplateId);
     margin: 0;
 }
 </style>
-<script>
-document.querySelector('input[name="primary_color"]')?.addEventListener('input', function() {
-    var hex = document.getElementById('primary-color-hex');
-    if (hex) hex.value = this.value;
-});
-</script>
 
 <?php include __DIR__ . '/../includes/admin-footer.php'; ?>
 
