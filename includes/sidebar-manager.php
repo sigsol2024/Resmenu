@@ -50,9 +50,9 @@ if (isLoggedIn() && isManager()) {
         if ($restaurantId) {
             $stmt = $pdo->prepare("SELECT name, logo FROM restaurants WHERE id = ?");
             $stmt->execute([$restaurantId]);
-            $restaurant = $stmt->fetch();
-            $restaurantName = $restaurant['name'] ?? '';
-            $restaurantLogo = $restaurant['logo'] ?? '';
+            $sidebarRestaurant = $stmt->fetch(PDO::FETCH_ASSOC);
+            $restaurantName = $sidebarRestaurant['name'] ?? '';
+            $restaurantLogo = $sidebarRestaurant['logo'] ?? '';
         }
     }
 }

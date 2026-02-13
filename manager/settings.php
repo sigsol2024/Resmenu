@@ -1,7 +1,8 @@
 <?php
 /**
  * Manager Settings Page
- * Account, Restaurant Details, Password - matches Payment Settings design pattern
+ * Account, Restaurant Details (synced with admin), Password
+ * Same restaurants table as admin/restaurants.php - no conflicts
  */
 
 require_once __DIR__ . '/../includes/auth.php';
@@ -13,7 +14,6 @@ $pdo = getDBConnection();
 $message = '';
 $error = '';
 
-// Get current manager info
 $managerId = getCurrentUserId();
 $restaurantId = getCurrentUserRestaurantId();
 
@@ -21,7 +21,7 @@ $restaurantId = getCurrentUserRestaurantId();
 if (!$restaurantId && $pdo && $managerId) {
     $stmt = $pdo->prepare("SELECT restaurant_id FROM managers WHERE id = ?");
     $stmt->execute([$managerId]);
-    $row = $stmt->fetch();
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
     if ($row && !empty($row['restaurant_id'])) {
         $restaurantId = (int)$row['restaurant_id'];
         $_SESSION['restaurant_id'] = $restaurantId;
@@ -30,9 +30,9 @@ if (!$restaurantId && $pdo && $managerId) {
 
 $stmt = $pdo->prepare("SELECT id, username, email, created_at FROM managers WHERE id = ?");
 $stmt->execute([$managerId]);
-$manager = $stmt->fetch();
+$manager = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// Get restaurant info (full details for editing) - pull admin-entered data
+// Get restaurant info - same table admin uses (restaurants)
 $restaurant = null;
 if ($restaurantId && $pdo) {
     $stmt = $pdo->prepare("SELECT * FROM restaurants WHERE id = ?");
@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $_SESSION['username'] = $newUsername;
                         $stmt = $pdo->prepare("SELECT id, username, email, created_at FROM managers WHERE id = ?");
                         $stmt->execute([$managerId]);
-                        $manager = $stmt->fetch();
+                        $manager = $stmt->fetch(PDO::FETCH_ASSOC);
                     } catch (PDOException $e) {
                         $error = 'Error updating account: ' . $e->getMessage();
                     }
@@ -130,7 +130,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $stmt = $pdo->prepare("SELECT password_hash FROM managers WHERE id = ?");
             $stmt->execute([$managerId]);
-            $managerData = $stmt->fetch();
+            $managerData = $stmt->fetch(PDO::FETCH_ASSOC);
             if (!$managerData || !password_verify($currentPassword, $managerData['password_hash'])) {
                 $error = 'Current password is incorrect';
             } else {
@@ -149,7 +149,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $pageTitle = 'Settings';
-// Preserve tab on POST (for errors) or use GET param
 $activeTab = $_POST['tab'] ?? $_GET['tab'] ?? 'account';
 if (!in_array($activeTab, ['account', 'restaurant', 'password'])) $activeTab = 'account';
 include __DIR__ . '/../includes/manager-layout.php';
@@ -224,37 +223,37 @@ include __DIR__ . '/../includes/manager-layout.php';
                 <h2 class="section-title">Account Information</h2>
             </div>
             <div class="info-row">
-                <div><label class="form-label">Username</label><div class="info-value"><?php echo htmlspecialchars($manager['username']); ?></div></div>
-                <div><label class="form-label">Email</label><div class="info-value"><?php echo htmlspecialchars($manager['email']); ?></div></div>
+                <div><label class="form-label">Username</label><div class="info-value"><?php echo htmlspecialchars($manager['username'] ?? ''); ?></div></div>
+                <div><label class="form-label">Email</label><div class="info-value"><?php echo htmlspecialchars($manager['email'] ?? ''); ?></div></div>
                 <?php if ($restaurant): ?>
-                <div><label class="form-label">Restaurant</label><div class="info-value"><?php echo htmlspecialchars($restaurant['name']); ?></div></div>
+                <div><label class="form-label">Restaurant</label><div class="info-value"><?php echo htmlspecialchars($restaurant['name'] ?? ''); ?></div></div>
                 <?php endif; ?>
-                <div><label class="form-label">Account Created</label><div class="info-value"><?php echo $manager['created_at'] ? date('F j, Y g:i A', strtotime($manager['created_at'])) : 'N/A'; ?></div></div>
+                <div><label class="form-label">Account Created</label><div class="info-value"><?php echo !empty($manager['created_at']) ? date('F j, Y g:i A', strtotime($manager['created_at'])) : 'N/A'; ?></div></div>
             </div>
             <form method="POST" action="">
                 <input type="hidden" name="tab" value="account">
                 <input type="hidden" name="action" value="update_profile">
                 <div class="form-group">
                     <label class="form-label" for="username">Username *</label>
-                    <input type="text" id="username" name="username" class="form-input" required value="<?php echo htmlspecialchars($manager['username']); ?>">
+                    <input type="text" id="username" name="username" class="form-input" required value="<?php echo htmlspecialchars($manager['username'] ?? ''); ?>">
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="email">Email *</label>
-                    <input type="email" id="email" name="email" class="form-input" required value="<?php echo htmlspecialchars($manager['email']); ?>">
+                    <input type="email" id="email" name="email" class="form-input" required value="<?php echo htmlspecialchars($manager['email'] ?? ''); ?>">
                 </div>
                 <button type="submit" class="btn">Save Account</button>
             </form>
         </div>
     </div>
 
-    <!-- Restaurant Details Tab -->
+    <!-- Restaurant Details Tab (synced with admin - same restaurants table) -->
     <div id="tab-restaurant" class="tab-content <?php echo $activeTab === 'restaurant' ? 'active' : ''; ?>">
         <?php if ($restaurant): ?>
         <div class="settings-card">
             <div class="section-header">
                 <h2 class="section-title">Restaurant Details</h2>
             </div>
-            <p style="color: var(--muted); font-size: 0.875rem; margin-bottom: 20px;">Edit your restaurant information. Data entered by admin is shown below. Social links appear as icons in the menu footer.</p>
+            <p style="color: var(--muted); font-size: 0.875rem; margin-bottom: 20px;">Edit your restaurant information. Synced with admin—changes here appear in admin and vice versa. All data is saved to the same database.</p>
             <form method="POST" action="">
                 <input type="hidden" name="tab" value="restaurant">
                 <input type="hidden" name="action" value="update_restaurant">

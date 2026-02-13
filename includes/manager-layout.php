@@ -13,11 +13,11 @@ if (isLoggedIn() && isManager()) {
     if ($restaurantId) {
         $pdo = getDBConnection();
         if ($pdo) {
-            // If restaurant not set, fetch it
+            // If restaurant not set, fetch it (FETCH_ASSOC for consistent associative keys)
             if (!isset($restaurant)) {
                 $stmt = $pdo->prepare("SELECT * FROM restaurants WHERE id = ?");
                 $stmt->execute([$restaurantId]);
-                $restaurant = $stmt->fetch();
+                $restaurant = $stmt->fetch(PDO::FETCH_ASSOC);
             }
             
             // Ensure restaurant slug is available - check URL first (manager pages use /manager/{slug}), then database
