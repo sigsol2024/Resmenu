@@ -239,14 +239,58 @@ function getManagerEmailForRestaurant($restaurantId) {
 }
 
 /**
+ * Get template default colors/styles from template_customizations (or hardcoded fallbacks)
+ * @param int $templateId
+ * @return array
+ */
+function getTemplateDefaults($templateId) {
+    $templateId = (int)$templateId;
+    $pdo = getDBConnection();
+    if ($pdo) {
+        $stmt = $pdo->prepare("SELECT * FROM template_customizations WHERE template_id = ?");
+        $stmt->execute([$templateId]);
+        $row = $stmt->fetch();
+        if ($row) {
+            return [
+                'menu_title_color' => $row['menu_title_color'] ?? '#000000',
+                'menu_title_size' => (int)($row['menu_title_size'] ?? 24),
+                'menu_title_font' => $row['menu_title_font'] ?? 'Inter',
+                'price_color' => $row['price_color'] ?? '#000000',
+                'price_size' => (int)($row['price_size'] ?? 18),
+                'price_font' => $row['price_font'] ?? 'Inter',
+                'description_color' => $row['description_color'] ?? '#666666',
+                'description_size' => (int)($row['description_size'] ?? 14),
+                'description_font' => $row['description_font'] ?? 'Inter',
+                'category_title_color' => $row['category_title_color'] ?? '#000000',
+                'category_title_size' => (int)($row['category_title_size'] ?? 20),
+                'category_title_font' => $row['category_title_font'] ?? 'Inter',
+                'background_color' => $row['background_color'] ?? '#FFFFFF',
+                'header_background_color' => $row['header_background_color'] ?? '#FFFFFF',
+                'primary_color' => $row['primary_color'] ?? '#111111',
+                'secondary_color' => $row['secondary_color'] ?? '#FFFFFF',
+            ];
+        }
+    }
+    // Hardcoded fallbacks per template (from template files)
+    $fallbacks = [
+        1 => ['menu_title_color'=>'#1A1A1A','menu_title_size'=>24,'menu_title_font'=>'Inter','price_color'=>'#1A1A1A','price_size'=>18,'price_font'=>'Inter','description_color'=>'#666666','description_size'=>14,'description_font'=>'Inter','category_title_color'=>'#1A1A1A','category_title_size'=>20,'category_title_font'=>'Inter','background_color'=>'#FFFFFF','header_background_color'=>'#FFFFFF','primary_color'=>'#1A1A1A','secondary_color'=>'#FAF3E6'],
+        2 => ['menu_title_color'=>'#1A1A1A','menu_title_size'=>24,'menu_title_font'=>'Inter','price_color'=>'#ea2a33','price_size'=>18,'price_font'=>'Inter','description_color'=>'#666666','description_size'=>14,'description_font'=>'Inter','category_title_color'=>'#1A1A1A','category_title_size'=>20,'category_title_font'=>'Inter','background_color'=>'#f8f6f6','header_background_color'=>'#f8f6f6','primary_color'=>'#ea2a33','secondary_color'=>'#FFFFFF'],
+        3 => ['menu_title_color'=>'#1A1A1A','menu_title_size'=>24,'menu_title_font'=>'Inter','price_color'=>'#ea2a33','price_size'=>18,'price_font'=>'Inter','description_color'=>'#666666','description_size'=>14,'description_font'=>'Inter','category_title_color'=>'#1A1A1A','category_title_size'=>20,'category_title_font'=>'Inter','background_color'=>'#f8f6f6','header_background_color'=>'#f8f6f6','primary_color'=>'#ea2a33','secondary_color'=>'#FFFFFF'],
+        4 => ['menu_title_color'=>'#121212','menu_title_size'=>24,'menu_title_font'=>'Epilogue','price_color'=>'#f20d0d','price_size'=>18,'price_font'=>'Epilogue','description_color'=>'#666666','description_size'=>14,'description_font'=>'Epilogue','category_title_color'=>'#121212','category_title_size'=>20,'category_title_font'=>'Epilogue','background_color'=>'#f8f5f5','header_background_color'=>'#121212','primary_color'=>'#f20d0d','secondary_color'=>'#FFFFFF'],
+    ];
+    return $fallbacks[$templateId] ?? $fallbacks[1];
+}
+
+/**
  * Get customization settings for restaurant (per-template)
+ * Merges template defaults with user overrides so displayed colors match template design
  * @param int $restaurantId
  * @param int|null $templateId If null, uses restaurant's current template_id
  * @return array
  */
 function getCustomizationSettings($restaurantId, $templateId = null) {
     $pdo = getDBConnection();
-    if (!$pdo) return [];
+    if (!$pdo) return getTemplateDefaults($templateId ?? 1);
     
     try {
         if ($templateId === null) {
@@ -258,37 +302,42 @@ function getCustomizationSettings($restaurantId, $templateId = null) {
             $templateId = (int)$templateId;
         }
         
+        $templateDefaults = getTemplateDefaults($templateId);
+        
         $stmt = $pdo->prepare("SELECT * FROM customization_settings WHERE restaurant_id = ? AND template_id = ?");
         $stmt->execute([$restaurantId, $templateId]);
-        $settings = $stmt->fetch();
+        $userSettings = $stmt->fetch();
         
-        if (!$settings) {
-            // Get template defaults and create row
-            $stmt = $pdo->prepare("SELECT * FROM template_customizations WHERE template_id = ?");
-            $stmt->execute([$templateId]);
-            $defaults = $stmt->fetch();
-            if ($defaults) {
-                $stmt = $pdo->prepare("INSERT INTO customization_settings (restaurant_id, template_id, menu_title_color, menu_title_size, menu_title_font, price_color, price_size, price_font, description_color, description_size, description_font, category_title_color, category_title_size, category_title_font, background_color, header_background_color, primary_color, secondary_color) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                $stmt->execute([
-                    $restaurantId, $templateId,
-                    $defaults['menu_title_color'] ?? '#000000', $defaults['menu_title_size'] ?? 24, $defaults['menu_title_font'] ?? 'Inter',
-                    $defaults['price_color'] ?? '#000000', $defaults['price_size'] ?? 18, $defaults['price_font'] ?? 'Inter',
-                    $defaults['description_color'] ?? '#666666', $defaults['description_size'] ?? 14, $defaults['description_font'] ?? 'Inter',
-                    $defaults['category_title_color'] ?? '#000000', $defaults['category_title_size'] ?? 20, $defaults['category_title_font'] ?? 'Inter',
-                    $defaults['background_color'] ?? '#FFFFFF', $defaults['header_background_color'] ?? '#FFFFFF',
-                    $defaults['primary_color'] ?? '#111111', $defaults['secondary_color'] ?? '#FFFFFF'
-                ]);
-            } else {
-                $stmt = $pdo->prepare("INSERT INTO customization_settings (restaurant_id, template_id) VALUES (?, ?)");
-                $stmt->execute([$restaurantId, $templateId]);
-            }
-            return getCustomizationSettings($restaurantId, $templateId);
+        if (!$userSettings) {
+            return $templateDefaults;
         }
         
-        return $settings;
+        $genericDefaults = ['menu_title_color'=>'#000000','price_color'=>'#000000','description_color'=>'#666666','category_title_color'=>'#000000','background_color'=>'#FFFFFF','header_background_color'=>'#FFFFFF','primary_color'=>'#111111','secondary_color'=>'#FFFFFF','menu_title_size'=>24,'price_size'=>18,'description_size'=>14,'category_title_size'=>20,'menu_title_font'=>'Inter','price_font'=>'Inter','description_font'=>'Inter','category_title_font'=>'Inter'];
+        $allKeys = array_keys($genericDefaults);
+        $allGeneric = true;
+        foreach ($allKeys as $k) {
+            $v = $userSettings[$k] ?? null;
+            if ($v === null || $v === '') continue;
+            if (!isset($genericDefaults[$k]) || (string)$v !== (string)$genericDefaults[$k]) {
+                $allGeneric = false;
+                break;
+            }
+        }
+        if ($allGeneric) {
+            return $templateDefaults;
+        }
+        $sizeKeys = ['menu_title_size','price_size','description_size','category_title_size'];
+        $merged = $templateDefaults;
+        foreach ($allKeys as $k) {
+            $v = $userSettings[$k] ?? null;
+            if ($v === null || $v === '') continue;
+            if (in_array($k, $sizeKeys)) $merged[$k] = (int)$v;
+            else $merged[$k] = $v;
+        }
+        return $merged;
     } catch (PDOException $e) {
         error_log("Error getting customization settings: " . $e->getMessage());
-        return [];
+        return getTemplateDefaults($templateId ?? 1);
     }
 }
 
