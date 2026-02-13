@@ -421,7 +421,8 @@ if ($pdo) {
 
 // Get all categories (admin can see all, not just active)
 $categories = [];
-if ($pdo) {
+if ($pdo && $restaurantId) {
+    normalizeCategoryDisplayOrder($restaurantId);
     $stmt = $pdo->prepare("SELECT * FROM categories WHERE restaurant_id = ? ORDER BY display_order ASC, name ASC");
     $stmt->execute([$restaurantId]);
     $categories = $stmt->fetchAll();

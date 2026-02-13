@@ -216,6 +216,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'edit' && isset($_GET['id'])) 
 // Get all categories
 $categories = [];
 if ($pdo && $restaurantId) {
+    normalizeCategoryDisplayOrder($restaurantId);
     $stmt = $pdo->prepare("SELECT * FROM categories WHERE restaurant_id = ? ORDER BY display_order ASC, name ASC");
     $stmt->execute([$restaurantId]);
     $categories = $stmt->fetchAll();

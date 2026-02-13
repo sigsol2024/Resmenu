@@ -195,6 +195,32 @@ function getCategories($restaurantId) {
 }
 
 /**
+ * Normalize display_order for all categories in a restaurant: renumber to 1, 2, 3...
+ * Fixes existing duplicates. Call when loading categories list.
+ * Only runs if duplicates exist (avoids unnecessary writes).
+ * @param int $restaurantId
+ */
+function normalizeCategoryDisplayOrder($restaurantId) {
+    $pdo = getDBConnection();
+    if (!$pdo || !$restaurantId) return;
+    try {
+        $check = $pdo->prepare("SELECT COUNT(*) as total, COUNT(DISTINCT display_order) as distinct_orders FROM categories WHERE restaurant_id = ?");
+        $check->execute([$restaurantId]);
+        $r = $check->fetch(PDO::FETCH_ASSOC);
+        if (!$r || $r['total'] == $r['distinct_orders']) return;
+        $stmt = $pdo->prepare("SELECT id FROM categories WHERE restaurant_id = ? ORDER BY display_order ASC, id ASC");
+        $stmt->execute([$restaurantId]);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $order = 1;
+        foreach ($rows as $row) {
+            $pdo->prepare("UPDATE categories SET display_order = ? WHERE id = ?")->execute([$order++, $row['id']]);
+        }
+    } catch (PDOException $e) {
+        error_log("normalizeCategoryDisplayOrder: " . $e->getMessage());
+    }
+}
+
+/**
  * Make space for a new category at the given display_order (shift others down).
  * Call before INSERT when creating a category.
  * @param int $restaurantId
