@@ -38,10 +38,12 @@ $currentDir = ($currentDir === '/' || $currentDir === '\\') ? '' : rtrim($curren
 $baseUrl = $protocol . $host . $currentDir;
 $uploadBaseUrl = $baseUrl . '/uploads';
 
-// Get hero image
+// Get hero image (hero_image_url for template preview cover, else hero_image in heroes/, else fallback)
 $heroImage = '';
-if (!empty($restaurant['hero_image'])) {
-    $heroImage = $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['hero_image']);
+if (!empty($restaurant['hero_image_url'])) {
+    $heroImage = $restaurant['hero_image_url'];
+} elseif (!empty($restaurant['hero_image'])) {
+    $heroImage = $uploadBaseUrl . '/heroes/' . htmlspecialchars($restaurant['hero_image']);
 } else {
     $heroImage = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&h=800&fit=crop';
 }

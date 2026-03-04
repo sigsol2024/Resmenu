@@ -290,7 +290,9 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
       
       <div class="hero-image-container">
-        <?php if (!empty($restaurant['hero_image'])): ?>
+        <?php if (!empty($restaurant['hero_image_url'])): ?>
+          <div class="hero-main-image" style="background-image: url('<?php echo htmlspecialchars($restaurant['hero_image_url']); ?>'); background-size: cover; background-position: center;"></div>
+        <?php elseif (!empty($restaurant['hero_image'])): ?>
           <div class="hero-main-image" style="background-image: url('<?php echo $uploadBaseUrl . '/heroes/' . htmlspecialchars($restaurant['hero_image']); ?>'); background-size: cover; background-position: center;"></div>
         <?php elseif (!empty($restaurant['logo'])): ?>
           <div class="hero-main-image" style="background-image: url('<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>'); background-size: cover; background-position: center;"></div>

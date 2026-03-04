@@ -7,6 +7,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 requireSuperAdmin();
 
+require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/template-loader.php';
 
@@ -43,6 +44,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message = 'Template name updated successfully';
             } catch (PDOException $e) {
                 $error = 'Error updating template name: ' . $e->getMessage();
+            }
+        }
+    }
+    
+    // Update template marketing (description + cover image for resmenu.net)
+    if ($action === 'update_template_marketing') {
+        $templateId = intval($_POST['template_id'] ?? 0);
+        $description = sanitize($_POST['template_description'] ?? '');
+        
+        if ($templateId < 1) {
+            $error = 'Invalid template ID';
+        } else {
+            try {
+                $previewImage = null;
+                $uploadDir = (defined('UPLOAD_PATH') ? UPLOAD_PATH : (dirname(__DIR__) . '/uploads')) . '/template-previews';
+                if (!is_dir($uploadDir)) {
+                    @mkdir($uploadDir, 0755, true);
+                }
+                if (!empty($_FILES['template_cover_image']['name']) && $_FILES['template_cover_image']['error'] === UPLOAD_ERR_OK && is_dir($uploadDir)) {
+                    $result = uploadFile($_FILES['template_cover_image'], $uploadDir);
+                    if ($result['success'] && $result['filename']) {
+                        $previewImage = $result['filename'];
+                    }
+                }
+                
+                $stmt = $pdo->prepare("SELECT id, preview_image FROM templates WHERE id = ?");
+                $stmt->execute([$templateId]);
+                $row = $stmt->fetch();
+                if ($row) {
+                    $newPreview = $previewImage !== null ? $previewImage : $row['preview_image'];
+                    $stmt = $pdo->prepare("UPDATE templates SET description = ?, preview_image = ?, updated_at = NOW() WHERE id = ?");
+                    $stmt->execute([$description, $newPreview ?: null, $templateId]);
+                } else {
+                    $stmt = $pdo->prepare("INSERT INTO templates (id, name, description, preview_image, is_active) VALUES (?, ?, ?, ?, 1)");
+                    $stmt->execute([$templateId, 'Template ' . $templateId, $description, $previewImage]);
+                }
+                $message = 'Template description and cover image updated successfully';
+            } catch (PDOException $e) {
+                $error = 'Error updating template marketing: ' . $e->getMessage();
             }
         }
     }
@@ -370,6 +410,40 @@ include __DIR__ . '/../includes/admin-layout.php';
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                     </svg>
                                     Update Name
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <!-- Marketing: Description & Cover Image (for resmenu.net templates page) -->
+                        <div class="card" style="margin-bottom: 20px;">
+                            <div class="card-header">
+                                <h3 class="card-title">Marketing (Description &amp; Cover Image)</h3>
+                            </div>
+                            <p style="margin-bottom: 16px; color: #6b7280; font-size: 0.875rem;">Used on the resmenu.net templates page. Description is shown under the template name; cover image is used as the card preview image.</p>
+                            <form method="POST" action="" enctype="multipart/form-data">
+                                <input type="hidden" name="action" value="update_template_marketing">
+                                <input type="hidden" name="template_id" value="<?php echo $template['id']; ?>">
+                                <div class="form-group">
+                                    <label class="form-label">Description</label>
+                                    <textarea name="template_description" class="form-input" rows="4" placeholder="e.g. Elegant and sophisticated fine dining style..."><?php echo htmlspecialchars($template['description'] ?? ''); ?></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Cover image (preview card on resmenu.net)</label>
+                                    <?php
+                                    $previewImg = $template['preview_image'] ?? null;
+                                    $previewUrl = $previewImg ? (defined('SITE_URL') ? rtrim(SITE_URL, '/') : '') . '/uploads/template-previews/' . $previewImg : null;
+                                    ?>
+                                    <?php if ($previewUrl): ?>
+                                    <p style="margin-bottom: 8px;"><img src="<?php echo htmlspecialchars($previewUrl); ?>" alt="Current cover" style="max-width: 200px; max-height: 120px; object-fit: contain; border: 1px solid #e5e7eb; border-radius: 6px;"></p>
+                                    <?php endif; ?>
+                                    <input type="file" name="template_cover_image" class="form-input" accept="image/jpeg,image/png,image/gif,image/webp">
+                                    <p style="margin-top: 6px; color: #6b7280; font-size: 0.8rem;">Leave empty to keep current image. JPG, PNG, GIF or WebP.</p>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    Save Description &amp; Cover Image
                                 </button>
                             </form>
                         </div>

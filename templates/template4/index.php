@@ -43,9 +43,12 @@ if (defined('UPLOAD_URL')) {
 $template4BaseUrl = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https://' : 'http://') . ($_SERVER['HTTP_HOST'] ?? 'localhost'))) . '/templates/template4';
 $reservationUrl = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : '') . '/restaurant/' . ($restaurant['slug'] ?? '') . '/reservation';
 
-// Hero image
+// Hero image (hero_image_url for template preview cover, else hero_image, logo, fallback)
 $heroBgImage = '';
-if (!empty($restaurant['hero_image'])) {
+if (!empty($restaurant['hero_image_url'])) {
+    $heroBgImage = $restaurant['hero_image_url'];
+}
+if (empty($heroBgImage) && !empty($restaurant['hero_image'])) {
     $heroBgImage = $uploadBaseUrl . '/heroes/' . htmlspecialchars($restaurant['hero_image']);
 }
 if (empty($heroBgImage) && !empty($restaurant['logo'])) {

@@ -13,23 +13,46 @@ $siteSettings = getSiteSettings();
 $siteName = $siteSettings['site_name'] ?? 'SigSol Resmenu';
 $siteLogo = $siteSettings['site_logo'] ?? null;
 
-// Optional: grab existing menu item images from DB for preview
-$sampleImages = [];
+$uploadBaseUrl = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : '') . '/uploads';
+$baseUrl = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : '');
+
 $pdo = getDBConnection();
+
+// Template cover image from DB (used as hero/cover in preview)
+$templateCoverUrl = null;
 if ($pdo) {
     try {
-        $stmt = $pdo->query("SELECT image FROM menu_items WHERE image IS NOT NULL AND image != '' LIMIT 12");
-        while ($row = $stmt->fetch()) {
-            $sampleImages[] = $row['image'];
+        $stmt = $pdo->prepare("SELECT preview_image FROM templates WHERE id = ? AND is_active = 1");
+        $stmt->execute([$templateId]);
+        $row = $stmt->fetch();
+        if ($row && !empty($row['preview_image'])) {
+            $templateCoverUrl = $baseUrl . '/uploads/template-previews/' . $row['preview_image'];
         }
     } catch (Exception $e) {
         // ignore
     }
 }
 
-$uploadBaseUrl = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : '') . '/uploads';
+// Menu item images from any restaurant (for menu items in preview)
+$sampleImages = [];
+// Category images from any restaurant (for template 1-style category sections)
+$categoryImages = [];
+if ($pdo) {
+    try {
+        $stmt = $pdo->query("SELECT image FROM menu_items WHERE image IS NOT NULL AND image != '' LIMIT 12");
+        while ($row = $stmt->fetch()) {
+            $sampleImages[] = $row['image'];
+        }
+        $stmt = $pdo->query("SELECT image FROM categories WHERE image IS NOT NULL AND image != '' ORDER BY RAND() LIMIT 8");
+        while ($row = $stmt->fetch()) {
+            $categoryImages[] = $row['image'];
+        }
+    } catch (Exception $e) {
+        // ignore
+    }
+}
 
-// Fake restaurant for preview
+// Fake restaurant for preview: full footer/contact/social so all sections and icons render
 $restaurant = [
     'id' => 0,
     'name' => 'Your Restaurant',
@@ -38,16 +61,21 @@ $restaurant = [
     'description' => 'Template preview – replace with your own name, logo, and menu.',
     'template_id' => $templateId,
     'header_menu_items' => null,
-    'address' => null,
-    'phone' => null,
-    'email' => null,
+    'address' => '123 Sample Street, City Centre',
+    'phone' => '+1 (555) 123-4567',
+    'email' => 'hello@yourrestaurant.com',
     'hero_image' => null,
-    'footer_content' => null,
-    'google_rating' => null,
-    'rating_source' => null,
+    'hero_image_url' => $templateCoverUrl,
+    'footer_content' => "At Your Restaurant, we believe in great food and warm service. This is a template preview – your real content will replace this. Visit us for a memorable experience.",
+    'google_rating' => 4.8,
+    'rating_source' => 'Google',
     'map_latitude' => null,
     'map_longitude' => null,
-    'whatsapp_link' => null,
+    'opening_hours' => "Mon–Fri: 11:00 – 22:00\nSat–Sun: 10:00 – 23:00",
+    'instagram_url' => 'https://instagram.com',
+    'facebook_url' => 'https://facebook.com',
+    'twitter_url' => 'https://twitter.com',
+    'whatsapp_link' => 'https://wa.me/15551234567',
 ];
 
 // Sample categories and menu items
@@ -75,6 +103,7 @@ $sampleCategories = [
 $categories = [];
 $catId = 1;
 $itemId = 1;
+$catIndex = 0;
 foreach ($sampleCategories as $cat) {
     $menuItems = [];
     foreach ($cat['items'] as $item) {
@@ -89,16 +118,23 @@ foreach ($sampleCategories as $cat) {
             'description' => $item['description'],
             'image' => $img,
             'display_order' => count($menuItems) + 1,
+            'is_available' => 1,
         ];
+    }
+    $catImage = null;
+    if (!empty($categoryImages)) {
+        $catImage = $categoryImages[$catIndex % count($categoryImages)];
     }
     $categories[] = [
         'id' => $catId++,
         'name' => $cat['name'],
         'slug' => $cat['slug'],
+        'image' => $catImage,
         'menu_items' => $menuItems,
         'is_active' => 1,
         'display_order' => count($categories) + 1,
     ];
+    $catIndex++;
 }
 
 $customization = getTemplateDefaults($templateId);
