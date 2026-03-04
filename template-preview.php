@@ -35,22 +35,33 @@ if ($pdo) {
 
 // Menu item images from any restaurant (for menu items in preview)
 $sampleImages = [];
-// Category images from any restaurant (for template 1-style category sections)
-$categoryImages = [];
+// Category images: match by type so we don't use drink images for food sections (template 1)
+$categoryImagesByType = ['starters' => [], 'mains' => [], 'desserts' => [], 'drinks' => []];
 if ($pdo) {
     try {
         $stmt = $pdo->query("SELECT image FROM menu_items WHERE image IS NOT NULL AND image != '' LIMIT 12");
         while ($row = $stmt->fetch()) {
             $sampleImages[] = $row['image'];
         }
-        $stmt = $pdo->query("SELECT image FROM categories WHERE image IS NOT NULL AND image != '' ORDER BY RAND() LIMIT 8");
+        $stmt = $pdo->query("SELECT id, name, slug, image FROM categories WHERE image IS NOT NULL AND image != ''");
         while ($row = $stmt->fetch()) {
-            $categoryImages[] = $row['image'];
+            $name = strtolower($row['name'] . ' ' . $row['slug']);
+            $img = $row['image'];
+            if (preg_match('/starter|appetizer|salad|soup|small plate/i', $name)) {
+                $categoryImagesByType['starters'][] = $img;
+            } elseif (preg_match('/main|entree|grill|mains|rice|pasta|noodle|taco|burger|meat|fish|chicken|beef|seafood|special/i', $name)) {
+                $categoryImagesByType['mains'][] = $img;
+            } elseif (preg_match('/dessert|sweet|cake|ice|pastry|bakery/i', $name)) {
+                $categoryImagesByType['desserts'][] = $img;
+            } elseif (preg_match('/drink|beverage|wine|beer|cocktail|coffee|tea|juice|bar|soft/i', $name)) {
+                $categoryImagesByType['drinks'][] = $img;
+            }
         }
     } catch (Exception $e) {
         // ignore
     }
 }
+$typeOrder = ['starters', 'mains', 'desserts', 'drinks'];
 
 // Fake restaurant for preview: full footer/contact/social so all sections and icons render
 $restaurant = [
@@ -78,25 +89,25 @@ $restaurant = [
     'whatsapp_link' => 'https://wa.me/15551234567',
 ];
 
-// Sample categories and menu items
+// Sample categories and menu items (realistic Naira pricing: N1,000 – N50,000 range)
 $sampleCategories = [
     ['name' => 'Starters', 'slug' => 'starters', 'items' => [
-        ['name' => 'Bruschetta', 'price' => 8.99, 'description' => 'Toasted bread with tomato, basil & olive oil'],
-        ['name' => 'Caesar Salad', 'price' => 9.50, 'description' => 'Crisp romaine, parmesan, croutons'],
-        ['name' => 'Soup of the Day', 'price' => 6.99, 'description' => 'Ask your server for today’s selection'],
+        ['name' => 'Bruschetta', 'price' => 2500, 'description' => 'Toasted bread with tomato, basil & olive oil'],
+        ['name' => 'Caesar Salad', 'price' => 3200, 'description' => 'Crisp romaine, parmesan, croutons'],
+        ['name' => 'Soup of the Day', 'price' => 1800, 'description' => 'Ask your server for today’s selection'],
     ]],
     ['name' => 'Mains', 'slug' => 'mains', 'items' => [
-        ['name' => 'Grilled Salmon', 'price' => 18.99, 'description' => 'With seasonal vegetables and herb butter'],
-        ['name' => 'Beef Burger', 'price' => 14.99, 'description' => 'Angus beef, lettuce, tomato, house sauce'],
-        ['name' => 'Vegetable Pasta', 'price' => 13.99, 'description' => 'Fresh pasta with garden vegetables'],
+        ['name' => 'Grilled Salmon', 'price' => 18500, 'description' => 'With seasonal vegetables and herb butter'],
+        ['name' => 'Beef Burger', 'price' => 9500, 'description' => 'Angus beef, lettuce, tomato, house sauce'],
+        ['name' => 'Vegetable Pasta', 'price' => 7200, 'description' => 'Fresh pasta with garden vegetables'],
     ]],
     ['name' => 'Desserts', 'slug' => 'desserts', 'items' => [
-        ['name' => 'Chocolate Cake', 'price' => 7.99, 'description' => 'Rich chocolate with cream'],
-        ['name' => 'Ice Cream', 'price' => 5.50, 'description' => 'Vanilla, strawberry, or chocolate'],
+        ['name' => 'Chocolate Cake', 'price' => 4500, 'description' => 'Rich chocolate with cream'],
+        ['name' => 'Ice Cream', 'price' => 2800, 'description' => 'Vanilla, strawberry, or chocolate'],
     ]],
     ['name' => 'Drinks', 'slug' => 'drinks', 'items' => [
-        ['name' => 'Fresh Lemonade', 'price' => 4.99, 'description' => 'House-made lemonade'],
-        ['name' => 'Coffee', 'price' => 3.50, 'description' => 'Espresso, americano, or cappuccino'],
+        ['name' => 'Fresh Lemonade', 'price' => 1500, 'description' => 'House-made lemonade'],
+        ['name' => 'Coffee', 'price' => 1200, 'description' => 'Espresso, americano, or cappuccino'],
     ]],
 ];
 
@@ -122,8 +133,20 @@ foreach ($sampleCategories as $cat) {
         ];
     }
     $catImage = null;
-    if (!empty($categoryImages)) {
-        $catImage = $categoryImages[$catIndex % count($categoryImages)];
+    $key = $typeOrder[$catIndex] ?? 'starters';
+    $bucket = $categoryImagesByType[$key] ?? [];
+    if (!empty($bucket)) {
+        $catImage = $bucket[array_rand($bucket)];
+    } else {
+        $fallback = array_merge(
+            $categoryImagesByType['starters'],
+            $categoryImagesByType['mains'],
+            $categoryImagesByType['desserts'],
+            ($key === 'drinks' ? $categoryImagesByType['drinks'] : [])
+        );
+        if (!empty($fallback)) {
+            $catImage = $fallback[array_rand($fallback)];
+        }
     }
     $categories[] = [
         'id' => $catId++,
