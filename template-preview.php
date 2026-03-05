@@ -11,7 +11,8 @@ require_once __DIR__ . '/config/config.php';
 // Allow this page to be embedded in iframes on resmenu.net (and same origin)
 header("Content-Security-Policy: frame-ancestors 'self' https://resmenu.net https://www.resmenu.net http://resmenu.net http://www.resmenu.net");
 
-$templateId = isset($_GET['t']) ? max(1, min(4, (int)$_GET['t'])) : 1;
+// Allow template IDs 1–20 so new templates (5, 6, …) get the same preview behaviour and viewport widget
+$templateId = isset($_GET['t']) ? max(1, min(20, (int)$_GET['t'])) : 1;
 
 $siteSettings = getSiteSettings();
 $siteName = $siteSettings['site_name'] ?? 'SigSol Resmenu';
@@ -167,9 +168,84 @@ foreach ($sampleCategories as $cat) {
 $customization = getTemplateDefaults($templateId);
 $headerMenuItems = [];
 
+ob_start();
 $templateLoaded = loadTemplate($restaurant, $categories, $customization, $headerMenuItems, true);
 
 if (!$templateLoaded) {
+    ob_end_clean();
     http_response_code(500);
     die('Template preview unavailable.');
 }
+
+$previewHtml = ob_get_clean();
+
+// Floating viewport toggle widget (desktop/tablet only; applied to all template previews)
+$viewportWidget = <<<'WIDGET'
+<style id="preview-viewport-widget-styles">
+/* Widget: show on desktop and tablet only; hide on mobile */
+.preview-viewport-widget { display: none; position: fixed; bottom: 20px; right: 20px; z-index: 99999; flex-direction: row; gap: 6px; align-items: center; background: #fff; padding: 8px 10px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,.15); border: 1px solid #e5e7eb; }
+@media (min-width: 768px) { .preview-viewport-widget { display: flex !important; } }
+@media (max-width: 767px) { .preview-viewport-widget { display: none !important; } }
+.preview-viewport-widget button { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; padding: 0; border: none; border-radius: 8px; background: #f3f4f6; color: #374151; cursor: pointer; transition: background .2s, color .2s; }
+.preview-viewport-widget button:hover { background: #e5e7eb; color: #111; }
+.preview-viewport-widget button.active { background: #1e3a5f; color: #fff; }
+.preview-viewport-widget button svg { width: 22px; height: 22px; }
+/* Constrain viewport when toggled */
+html.preview-viewport-tablet { width: 768px !important; max-width: 100% !important; margin-left: auto !important; margin-right: auto !important; min-width: 0 !important; box-shadow: 0 0 0 2px #e5e7eb; }
+html.preview-viewport-mobile { width: 375px !important; max-width: 100% !important; margin-left: auto !important; margin-right: auto !important; min-width: 0 !important; box-shadow: 0 0 0 2px #e5e7eb; }
+html.preview-viewport-tablet body, html.preview-viewport-mobile body { min-width: 0 !important; }
+</style>
+<div class="preview-viewport-widget" id="previewViewportWidget" aria-label="Toggle preview viewport size">
+  <button type="button" id="previewViewportDesktop" title="Desktop view" aria-pressed="true"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg></button>
+  <button type="button" id="previewViewportTablet" title="Tablet view"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg></button>
+  <button type="button" id="previewViewportMobile" title="Mobile view"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg></button>
+</div>
+<script id="preview-viewport-widget-script">
+(function() {
+  var w = window.innerWidth;
+  var widget = document.getElementById('previewViewportWidget');
+  if (!widget) return;
+  var html = document.documentElement;
+  var key = 'previewViewport';
+  var desktopBtn = document.getElementById('previewViewportDesktop');
+  var tabletBtn = document.getElementById('previewViewportTablet');
+  var mobileBtn = document.getElementById('previewViewportMobile');
+  function setViewport(mode) {
+    html.classList.remove('preview-viewport-tablet', 'preview-viewport-mobile');
+    if (mode === 'tablet') html.classList.add('preview-viewport-tablet');
+    if (mode === 'mobile') html.classList.add('preview-viewport-mobile');
+    desktopBtn && (desktopBtn.setAttribute('aria-pressed', mode === 'desktop' ? 'true' : 'false'));
+    tabletBtn && (tabletBtn.setAttribute('aria-pressed', mode === 'tablet' ? 'true' : 'false'));
+    mobileBtn && (mobileBtn.setAttribute('aria-pressed', mode === 'mobile' ? 'true' : 'false'));
+    desktopBtn && desktopBtn.classList.toggle('active', mode === 'desktop');
+    tabletBtn && tabletBtn.classList.toggle('active', mode === 'tablet');
+    mobileBtn && mobileBtn.classList.toggle('active', mode === 'mobile');
+    try { localStorage.setItem(key, mode); } catch (e) {}
+  }
+  var saved = null;
+  try { saved = localStorage.getItem(key); } catch (e) {}
+  if (w <= 767) {
+    widget.style.display = 'none';
+    setViewport('desktop');
+    return;
+  }
+  if (w >= 1024) {
+    setViewport(saved === 'tablet' || saved === 'mobile' ? saved : 'desktop');
+  } else {
+    setViewport(saved === 'mobile' ? 'mobile' : 'tablet');
+  }
+  desktopBtn && desktopBtn.addEventListener('click', function() { setViewport('desktop'); });
+  tabletBtn && tabletBtn.addEventListener('click', function() { setViewport('tablet'); });
+  mobileBtn && mobileBtn.addEventListener('click', function() { setViewport('mobile'); });
+})();
+</script>
+WIDGET;
+
+// Inject widget before </body> so it runs on every template preview
+if (stripos($previewHtml, '</body>') !== false) {
+    $previewHtml = str_ireplace('</body>', $viewportWidget . "\n</body>", $previewHtml);
+} else {
+    $previewHtml .= $viewportWidget;
+}
+
+echo $previewHtml;

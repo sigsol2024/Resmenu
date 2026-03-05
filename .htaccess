@@ -38,15 +38,15 @@ DirectoryIndex index.php index.html
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^manager/([a-z0-9-]+)/?$ manager/dashboard.php?slug=$1 [L,QSA]
 
-    # Template preview (template1-preview, template2-preview, etc.)
+    # Template preview (template1-preview, template2-preview, … template20-preview; new templates get same preview + viewport widget)
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^template([1-4])-preview/?$ template-preview.php?t=$1 [L,QSA]
+    RewriteRule ^template([0-9]+)-preview/?$ template-preview.php?t=$1 [L,QSA]
 </IfModule>
 
 # Security Headers (allow template preview to be embedded in iframe on resmenu.net)
 <IfModule mod_headers.c>
-    SetEnvIf Request_URI "^/template[1-4]-preview" allow_embed
+    SetEnvIf Request_URI "^/template[0-9]+-preview" allow_embed
     Header set X-Content-Type-Options "nosniff"
     Header set X-Frame-Options "SAMEORIGIN" env=!allow_embed
     Header set X-XSS-Protection "1; mode=block"
