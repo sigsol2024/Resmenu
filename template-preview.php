@@ -179,10 +179,9 @@ if (!$templateLoaded) {
 
 $previewHtml = ob_get_clean();
 
-// Floating viewport toggle widget (desktop/tablet only; applied to all template previews)
+// Floating viewport toggle: changes viewport META so the template's real responsive CSS (media queries) applies
 $viewportWidget = <<<'WIDGET'
 <style id="preview-viewport-widget-styles">
-/* Widget: show on desktop and tablet only; hide on mobile */
 .preview-viewport-widget { display: none; position: fixed; bottom: 20px; right: 20px; z-index: 99999; flex-direction: row; gap: 6px; align-items: center; background: #fff; padding: 8px 10px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,.15); border: 1px solid #e5e7eb; }
 @media (min-width: 768px) { .preview-viewport-widget { display: flex !important; } }
 @media (max-width: 767px) { .preview-viewport-widget { display: none !important; } }
@@ -190,10 +189,6 @@ $viewportWidget = <<<'WIDGET'
 .preview-viewport-widget button:hover { background: #e5e7eb; color: #111; }
 .preview-viewport-widget button.active { background: #1e3a5f; color: #fff; }
 .preview-viewport-widget button svg { width: 22px; height: 22px; }
-/* Constrain viewport when toggled */
-html.preview-viewport-tablet { width: 768px !important; max-width: 100% !important; margin-left: auto !important; margin-right: auto !important; min-width: 0 !important; box-shadow: 0 0 0 2px #e5e7eb; }
-html.preview-viewport-mobile { width: 375px !important; max-width: 100% !important; margin-left: auto !important; margin-right: auto !important; min-width: 0 !important; box-shadow: 0 0 0 2px #e5e7eb; }
-html.preview-viewport-tablet body, html.preview-viewport-mobile body { min-width: 0 !important; }
 </style>
 <div class="preview-viewport-widget" id="previewViewportWidget" aria-label="Toggle preview viewport size">
   <button type="button" id="previewViewportDesktop" title="Desktop view" aria-pressed="true"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg></button>
@@ -205,15 +200,28 @@ html.preview-viewport-tablet body, html.preview-viewport-mobile body { min-width
   var w = window.innerWidth;
   var widget = document.getElementById('previewViewportWidget');
   if (!widget) return;
-  var html = document.documentElement;
   var key = 'previewViewport';
   var desktopBtn = document.getElementById('previewViewportDesktop');
   var tabletBtn = document.getElementById('previewViewportTablet');
   var mobileBtn = document.getElementById('previewViewportMobile');
+  function getViewportMeta() {
+    var meta = document.querySelector('meta[name="viewport"]');
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.name = 'viewport';
+      document.head.appendChild(meta);
+    }
+    return meta;
+  }
   function setViewport(mode) {
-    html.classList.remove('preview-viewport-tablet', 'preview-viewport-mobile');
-    if (mode === 'tablet') html.classList.add('preview-viewport-tablet');
-    if (mode === 'mobile') html.classList.add('preview-viewport-mobile');
+    var meta = getViewportMeta();
+    if (mode === 'desktop') {
+      meta.content = 'width=device-width, initial-scale=1';
+    } else if (mode === 'tablet') {
+      meta.content = 'width=768';
+    } else {
+      meta.content = 'width=375';
+    }
     desktopBtn && (desktopBtn.setAttribute('aria-pressed', mode === 'desktop' ? 'true' : 'false'));
     tabletBtn && (tabletBtn.setAttribute('aria-pressed', mode === 'tablet' ? 'true' : 'false'));
     mobileBtn && (mobileBtn.setAttribute('aria-pressed', mode === 'mobile' ? 'true' : 'false'));
