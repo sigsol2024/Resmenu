@@ -22,7 +22,7 @@ try {
         exit;
     }
 
-    $stmt = $pdo->query("SELECT id, name, description, preview_image, listing_image FROM templates WHERE is_active = 1 ORDER BY id ASC");
+    $stmt = $pdo->query("SELECT id, name, description, preview_image, listing_image FROM templates WHERE is_active = 1 ORDER BY id DESC LIMIT 5");
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $list = [];
