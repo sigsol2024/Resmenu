@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
     
-    // Update template marketing (description + cover image for resmenu.net)
+    // Update template marketing (description, cover image for template preview page, listing image for resmenu.net)
     if ($action === 'update_template_marketing') {
         $templateId = intval($_POST['template_id'] ?? 0);
         $description = sanitize($_POST['template_description'] ?? '');
@@ -58,6 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             try {
                 $previewImage = null;
+                $listingImage = null;
                 $uploadDir = (defined('UPLOAD_PATH') ? UPLOAD_PATH : (dirname(__DIR__) . '/uploads')) . '/template-previews';
                 if (!is_dir($uploadDir)) {
                     @mkdir($uploadDir, 0755, true);
@@ -68,19 +69,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $previewImage = $result['filename'];
                     }
                 }
+                if (!empty($_FILES['template_listing_image']['name']) && $_FILES['template_listing_image']['error'] === UPLOAD_ERR_OK && is_dir($uploadDir)) {
+                    $result = uploadFile($_FILES['template_listing_image'], $uploadDir);
+                    if ($result['success'] && $result['filename']) {
+                        $listingImage = $result['filename'];
+                    }
+                }
                 
-                $stmt = $pdo->prepare("SELECT id, preview_image FROM templates WHERE id = ?");
+                $stmt = $pdo->prepare("SELECT id, preview_image, listing_image FROM templates WHERE id = ?");
                 $stmt->execute([$templateId]);
                 $row = $stmt->fetch();
                 if ($row) {
                     $newPreview = $previewImage !== null ? $previewImage : $row['preview_image'];
-                    $stmt = $pdo->prepare("UPDATE templates SET description = ?, preview_image = ?, updated_at = NOW() WHERE id = ?");
-                    $stmt->execute([$description, $newPreview ?: null, $templateId]);
+                    $newListing = $listingImage !== null ? $listingImage : ($row['listing_image'] ?? null);
+                    $stmt = $pdo->prepare("UPDATE templates SET description = ?, preview_image = ?, listing_image = ?, updated_at = NOW() WHERE id = ?");
+                    $stmt->execute([$description, $newPreview ?: null, $newListing ?: null, $templateId]);
                 } else {
-                    $stmt = $pdo->prepare("INSERT INTO templates (id, name, description, preview_image, is_active) VALUES (?, ?, ?, ?, 1)");
-                    $stmt->execute([$templateId, 'Template ' . $templateId, $description, $previewImage]);
+                    $stmt = $pdo->prepare("INSERT INTO templates (id, name, description, preview_image, listing_image, is_active) VALUES (?, ?, ?, ?, ?, 1)");
+                    $stmt->execute([$templateId, 'Template ' . $templateId, $description, $previewImage, $listingImage]);
                 }
-                $message = 'Template description and cover image updated successfully';
+                $message = 'Template description and images updated successfully';
             } catch (PDOException $e) {
                 $error = 'Error updating template marketing: ' . $e->getMessage();
             }
@@ -414,12 +422,12 @@ include __DIR__ . '/../includes/admin-layout.php';
                             </form>
                         </div>
                         
-                        <!-- Marketing: Description & Cover Image (for resmenu.net templates page) -->
+                        <!-- Marketing: Description, cover image (template preview page), listing image (resmenu.net timeline) -->
                         <div class="card" style="margin-bottom: 20px;">
                             <div class="card-header">
-                                <h3 class="card-title">Marketing (Description &amp; Cover Image)</h3>
+                                <h3 class="card-title">Marketing (Description &amp; Images)</h3>
                             </div>
-                            <p style="margin-bottom: 16px; color: #6b7280; font-size: 0.875rem;">Used on the resmenu.net templates page. Description is shown under the template name; cover image is used as the card preview image.</p>
+                            <p style="margin-bottom: 16px; color: #6b7280; font-size: 0.875rem;">Description is shown on resmenu.net. Cover image is used on the actual template preview page. Listing image is used on the resmenu.net templates page (timeline card).</p>
                             <form method="POST" action="" enctype="multipart/form-data">
                                 <input type="hidden" name="action" value="update_template_marketing">
                                 <input type="hidden" name="template_id" value="<?php echo $template['id']; ?>">
@@ -428,7 +436,7 @@ include __DIR__ . '/../includes/admin-layout.php';
                                     <textarea name="template_description" class="form-input" rows="4" placeholder="e.g. Elegant and sophisticated fine dining style..."><?php echo htmlspecialchars($template['description'] ?? ''); ?></textarea>
                                 </div>
                                 <div class="form-group">
-                                    <label class="form-label">Cover image (preview card on resmenu.net)</label>
+                                    <label class="form-label">Cover image (template preview page)</label>
                                     <?php
                                     $previewImg = $template['preview_image'] ?? null;
                                     $previewUrl = $previewImg ? (defined('SITE_URL') ? rtrim(SITE_URL, '/') : '') . '/uploads/template-previews/' . $previewImg : null;
@@ -437,13 +445,25 @@ include __DIR__ . '/../includes/admin-layout.php';
                                     <p style="margin-bottom: 8px;"><img src="<?php echo htmlspecialchars($previewUrl); ?>" alt="Current cover" style="max-width: 200px; max-height: 120px; object-fit: contain; border: 1px solid #e5e7eb; border-radius: 6px;"></p>
                                     <?php endif; ?>
                                     <input type="file" name="template_cover_image" class="form-input" accept="image/jpeg,image/png,image/gif,image/webp">
-                                    <p style="margin-top: 6px; color: #6b7280; font-size: 0.8rem;">Leave empty to keep current image. JPG, PNG, GIF or WebP.</p>
+                                    <p style="margin-top: 6px; color: #6b7280; font-size: 0.8rem;">Used on the backend template preview page. Leave empty to keep current. JPG, PNG, GIF or WebP.</p>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Listing image (resmenu.net templates page timeline)</label>
+                                    <?php
+                                    $listImg = $template['listing_image'] ?? null;
+                                    $listUrl = $listImg ? (defined('SITE_URL') ? rtrim(SITE_URL, '/') : '') . '/uploads/template-previews/' . $listImg : null;
+                                    ?>
+                                    <?php if ($listUrl): ?>
+                                    <p style="margin-bottom: 8px;"><img src="<?php echo htmlspecialchars($listUrl); ?>" alt="Current listing" style="max-width: 200px; max-height: 120px; object-fit: contain; border: 1px solid #e5e7eb; border-radius: 6px;"></p>
+                                    <?php endif; ?>
+                                    <input type="file" name="template_listing_image" class="form-input" accept="image/jpeg,image/png,image/gif,image/webp">
+                                    <p style="margin-top: 6px; color: #6b7280; font-size: 0.8rem;">Shown on resmenu.net templates page (timeline card). Leave empty to keep current. JPG, PNG, GIF or WebP.</p>
                                 </div>
                                 <button type="submit" class="btn btn-primary">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                     </svg>
-                                    Save Description &amp; Cover Image
+                                    Save Description &amp; Images
                                 </button>
                             </form>
                         </div>

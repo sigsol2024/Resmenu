@@ -22,7 +22,7 @@ try {
         exit;
     }
 
-    $stmt = $pdo->query("SELECT id, name, description, preview_image FROM templates WHERE is_active = 1 ORDER BY id ASC");
+    $stmt = $pdo->query("SELECT id, name, description, preview_image, listing_image FROM templates WHERE is_active = 1 ORDER BY id ASC");
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $list = [];
@@ -31,11 +31,16 @@ try {
         if (!empty($row['preview_image'])) {
             $previewUrl = $uploadBase . '/' . $row['preview_image'];
         }
+        $listingUrl = null;
+        if (!empty($row['listing_image'])) {
+            $listingUrl = $uploadBase . '/' . $row['listing_image'];
+        }
         $list[] = [
             'id' => (int) $row['id'],
             'name' => $row['name'],
             'description' => $row['description'] ?? '',
             'preview_image' => $previewUrl,
+            'listing_image' => $listingUrl,
         ];
     }
 

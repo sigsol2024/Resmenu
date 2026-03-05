@@ -285,3 +285,6 @@ INSERT INTO `restaurant_reservation_settings` (`restaurant_id`, `deposit_amount`
 SELECT r.id, 5000 FROM `restaurants` r
 LEFT JOIN `restaurant_reservation_settings` rrs ON r.id = rrs.restaurant_id
 WHERE r.template_id = 4 AND rrs.restaurant_id IS NULL;
+
+-- 23c. Template listing image (resmenu.net timeline card image; cover stays for template preview page)
+ALTER TABLE `templates` ADD COLUMN IF NOT EXISTS `listing_image` varchar(255) DEFAULT NULL AFTER `preview_image`;

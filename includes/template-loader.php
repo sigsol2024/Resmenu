@@ -72,6 +72,7 @@ function getAvailableTemplates() {
                         'name' => $dbTemplate['name'],
                         'description' => $dbTemplate['description'],
                         'preview_image' => $dbTemplate['preview_image'],
+                        'listing_image' => $dbTemplate['listing_image'] ?? null,
                         'path' => $templatePath
                     ];
                 }
