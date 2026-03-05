@@ -112,9 +112,10 @@ function getAvailableTemplates() {
  * @param array $categories Categories array
  * @param array $customization Customization settings
  * @param array $headerMenuItems Header menu items
+ * @param bool $isTemplatePreview If true, templates show text "Logo" instead of logo image
  * @return bool Success
  */
-function loadTemplate($restaurant, $categories, $customization, $headerMenuItems = []) {
+function loadTemplate($restaurant, $categories, $customization, $headerMenuItems = [], $isTemplatePreview = false) {
     $templateId = $restaurant['template_id'] ?? 1;
     $templatePath = getTemplatePath($templateId);
     
@@ -130,7 +131,8 @@ function loadTemplate($restaurant, $categories, $customization, $headerMenuItems
         'categories' => $categories,
         'customization' => $customization,
         'headerMenuItems' => $headerMenuItems,
-        'supportsOrdering' => $supportsOrdering
+        'supportsOrdering' => $supportsOrdering,
+        'isTemplatePreview' => $isTemplatePreview
     ], EXTR_SKIP);
     
     // Include the template

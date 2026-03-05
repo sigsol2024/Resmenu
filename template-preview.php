@@ -67,12 +67,12 @@ if ($pdo) {
 }
 $typeOrder = ['starters', 'mains', 'desserts', 'drinks'];
 
-// Fake restaurant for preview: full footer/contact/social so all sections and icons render
+// Fake restaurant for preview: no logo image so templates show text "Logo" instead
 $restaurant = [
     'id' => 0,
     'name' => 'Your Restaurant',
     'slug' => 'template-preview',
-    'logo' => $siteLogo,
+    'logo' => null,
     'description' => 'Template preview – replace with your own name, logo, and menu.',
     'template_id' => $templateId,
     'header_menu_items' => null,
@@ -167,7 +167,7 @@ foreach ($sampleCategories as $cat) {
 $customization = getTemplateDefaults($templateId);
 $headerMenuItems = [];
 
-$templateLoaded = loadTemplate($restaurant, $categories, $customization, $headerMenuItems);
+$templateLoaded = loadTemplate($restaurant, $categories, $customization, $headerMenuItems, true);
 
 if (!$templateLoaded) {
     http_response_code(500);

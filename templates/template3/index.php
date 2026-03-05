@@ -101,8 +101,10 @@ function formatPriceTemplate3($price, $currency = '$') {
 <nav class="w-full bg-slate-900/80 backdrop-blur-md border-b border-slate-700/50 sticky top-0 z-50">
 <div class="px-4 md:px-10 py-3 flex items-center justify-between max-w-[1440px] mx-auto">
 <div class="flex items-center gap-4 text-white">
-<?php if (!empty($restaurant['logo'])): ?>
+<?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?>
     <img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="h-8 w-auto object-contain max-w-[200px]">
+<?php elseif (!empty($isTemplatePreview)): ?>
+    <span class="text-lg font-bold">Logo</span>
 <?php else: ?>
     <div class="size-8 flex items-center justify-center text-primary">
         <span class="material-symbols-outlined text-3xl">restaurant_menu</span>
