@@ -214,11 +214,37 @@ CREATE TABLE IF NOT EXISTS `site_settings` (
   `site_name` varchar(255) NOT NULL DEFAULT 'Resmenu',
   `site_logo` varchar(255) DEFAULT NULL,
   `favicon` varchar(255) DEFAULT NULL,
+  `contact_sales_email` varchar(255) DEFAULT NULL,
+  `contact_sales_phone` varchar(50) DEFAULT NULL,
+  `contact_support_email` varchar(255) DEFAULT NULL,
+  `contact_support_phone` varchar(50) DEFAULT NULL,
+  `contact_partners_email` varchar(255) DEFAULT NULL,
+  `contact_form_recipient` varchar(255) DEFAULT NULL,
+  `contact_hq_title` varchar(255) DEFAULT NULL,
+  `contact_hq_address` text DEFAULT NULL,
+  `contact_map_embed` text DEFAULT NULL,
+  `contact_social_facebook` varchar(255) DEFAULT NULL,
+  `contact_social_twitter` varchar(255) DEFAULT NULL,
+  `contact_social_instagram` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 INSERT IGNORE INTO `site_settings` (`id`, `site_name`) VALUES (1, 'Resmenu');
+
+-- Ensure new contact/social columns exist on existing installs
+ALTER TABLE `site_settings` ADD COLUMN IF NOT EXISTS `contact_sales_email` varchar(255) DEFAULT NULL AFTER `favicon`;
+ALTER TABLE `site_settings` ADD COLUMN IF NOT EXISTS `contact_sales_phone` varchar(50) DEFAULT NULL AFTER `contact_sales_email`;
+ALTER TABLE `site_settings` ADD COLUMN IF NOT EXISTS `contact_support_email` varchar(255) DEFAULT NULL AFTER `contact_sales_phone`;
+ALTER TABLE `site_settings` ADD COLUMN IF NOT EXISTS `contact_support_phone` varchar(50) DEFAULT NULL AFTER `contact_support_email`;
+ALTER TABLE `site_settings` ADD COLUMN IF NOT EXISTS `contact_partners_email` varchar(255) DEFAULT NULL AFTER `contact_support_phone`;
+ALTER TABLE `site_settings` ADD COLUMN IF NOT EXISTS `contact_form_recipient` varchar(255) DEFAULT NULL AFTER `contact_partners_email`;
+ALTER TABLE `site_settings` ADD COLUMN IF NOT EXISTS `contact_hq_title` varchar(255) DEFAULT NULL AFTER `contact_form_recipient`;
+ALTER TABLE `site_settings` ADD COLUMN IF NOT EXISTS `contact_hq_address` text DEFAULT NULL AFTER `contact_hq_title`;
+ALTER TABLE `site_settings` ADD COLUMN IF NOT EXISTS `contact_map_embed` text DEFAULT NULL AFTER `contact_hq_address`;
+ALTER TABLE `site_settings` ADD COLUMN IF NOT EXISTS `contact_social_facebook` varchar(255) DEFAULT NULL AFTER `contact_map_embed`;
+ALTER TABLE `site_settings` ADD COLUMN IF NOT EXISTS `contact_social_twitter` varchar(255) DEFAULT NULL AFTER `contact_social_facebook`;
+ALTER TABLE `site_settings` ADD COLUMN IF NOT EXISTS `contact_social_instagram` varchar(255) DEFAULT NULL AFTER `contact_social_twitter`;
 
 -- 19. Per-template customization
 ALTER TABLE `customization_settings` ADD COLUMN IF NOT EXISTS `template_id` int(11) NOT NULL DEFAULT 1 AFTER `restaurant_id`;

@@ -420,7 +420,7 @@ function getSiteSettings() {
 
 /**
  * Update site settings
- * @param array $data site_name, site_logo, favicon
+ * @param array $data site_name, site_logo, favicon and optional contact_* fields
  * @return bool
  */
 function updateSiteSettings($data) {
@@ -430,8 +430,70 @@ function updateSiteSettings($data) {
         $siteName = trim($data['site_name'] ?? 'Resmenu');
         $siteLogo = !empty($data['site_logo']) ? $data['site_logo'] : null;
         $favicon = !empty($data['favicon']) ? $data['favicon'] : null;
-        $stmt = $pdo->prepare("INSERT INTO site_settings (id, site_name, site_logo, favicon) VALUES (1, ?, ?, ?) ON DUPLICATE KEY UPDATE site_name = VALUES(site_name), site_logo = VALUES(site_logo), favicon = VALUES(favicon)");
-        $stmt->execute([$siteName, $siteLogo, $favicon]);
+        $contactSalesEmail = $data['contact_sales_email'] ?? null;
+        $contactSalesPhone = $data['contact_sales_phone'] ?? null;
+        $contactSupportEmail = $data['contact_support_email'] ?? null;
+        $contactSupportPhone = $data['contact_support_phone'] ?? null;
+        $contactPartnersEmail = $data['contact_partners_email'] ?? null;
+        $contactFormRecipient = $data['contact_form_recipient'] ?? null;
+        $contactHqTitle = $data['contact_hq_title'] ?? null;
+        $contactHqAddress = $data['contact_hq_address'] ?? null;
+        $contactMapEmbed = $data['contact_map_embed'] ?? null;
+        $contactSocialFacebook = $data['contact_social_facebook'] ?? null;
+        $contactSocialTwitter = $data['contact_social_twitter'] ?? null;
+        $contactSocialInstagram = $data['contact_social_instagram'] ?? null;
+
+        $stmt = $pdo->prepare(
+            "INSERT INTO site_settings (
+                id, site_name, site_logo, favicon,
+                contact_sales_email, contact_sales_phone,
+                contact_support_email, contact_support_phone,
+                contact_partners_email, contact_form_recipient,
+                contact_hq_title, contact_hq_address, contact_map_embed,
+                contact_social_facebook, contact_social_twitter, contact_social_instagram
+            ) VALUES (
+                1, ?, ?, ?,
+                ?, ?,
+                ?, ?,
+                ?, ?,
+                ?, ?, ?,
+                ?, ?, ?
+            )
+            ON DUPLICATE KEY UPDATE
+                site_name = VALUES(site_name),
+                site_logo = VALUES(site_logo),
+                favicon = VALUES(favicon),
+                contact_sales_email = VALUES(contact_sales_email),
+                contact_sales_phone = VALUES(contact_sales_phone),
+                contact_support_email = VALUES(contact_support_email),
+                contact_support_phone = VALUES(contact_support_phone),
+                contact_partners_email = VALUES(contact_partners_email),
+                contact_form_recipient = VALUES(contact_form_recipient),
+                contact_hq_title = VALUES(contact_hq_title),
+                contact_hq_address = VALUES(contact_hq_address),
+                contact_map_embed = VALUES(contact_map_embed),
+                contact_social_facebook = VALUES(contact_social_facebook),
+                contact_social_twitter = VALUES(contact_social_twitter),
+                contact_social_instagram = VALUES(contact_social_instagram)"
+        );
+
+        $stmt->execute([
+            $siteName,
+            $siteLogo,
+            $favicon,
+            $contactSalesEmail,
+            $contactSalesPhone,
+            $contactSupportEmail,
+            $contactSupportPhone,
+            $contactPartnersEmail,
+            $contactFormRecipient,
+            $contactHqTitle,
+            $contactHqAddress,
+            $contactMapEmbed,
+            $contactSocialFacebook,
+            $contactSocialTwitter,
+            $contactSocialInstagram,
+        ]);
         return true;
     } catch (PDOException $e) {
         error_log("updateSiteSettings: " . $e->getMessage());

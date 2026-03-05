@@ -95,6 +95,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    if ($action === 'update_contact') {
+        // Merge existing site settings with updated contact fields so we don't wipe other columns
+        $current = getSiteSettings();
+        $data = [
+            'site_name' => $current['site_name'] ?? 'Resmenu',
+            'site_logo' => $current['site_logo'] ?? null,
+            'favicon' => $current['favicon'] ?? null,
+            'contact_sales_email' => trim($_POST['contact_sales_email'] ?? ($current['contact_sales_email'] ?? '')),
+            'contact_sales_phone' => trim($_POST['contact_sales_phone'] ?? ($current['contact_sales_phone'] ?? '')),
+            'contact_support_email' => trim($_POST['contact_support_email'] ?? ($current['contact_support_email'] ?? '')),
+            'contact_support_phone' => trim($_POST['contact_support_phone'] ?? ($current['contact_support_phone'] ?? '')),
+            'contact_partners_email' => trim($_POST['contact_partners_email'] ?? ($current['contact_partners_email'] ?? '')),
+            'contact_form_recipient' => trim($_POST['contact_form_recipient'] ?? ($current['contact_form_recipient'] ?? '')),
+            'contact_hq_title' => trim($_POST['contact_hq_title'] ?? ($current['contact_hq_title'] ?? '')),
+            'contact_hq_address' => trim($_POST['contact_hq_address'] ?? ($current['contact_hq_address'] ?? '')),
+            'contact_map_embed' => trim($_POST['contact_map_embed'] ?? ($current['contact_map_embed'] ?? '')),
+            'contact_social_facebook' => trim($_POST['contact_social_facebook'] ?? ($current['contact_social_facebook'] ?? '')),
+            'contact_social_twitter' => trim($_POST['contact_social_twitter'] ?? ($current['contact_social_twitter'] ?? '')),
+            'contact_social_instagram' => trim($_POST['contact_social_instagram'] ?? ($current['contact_social_instagram'] ?? '')),
+        ];
+
+        // Basic validation for recipient email
+        if (!empty($data['contact_form_recipient']) && !isValidEmail($data['contact_form_recipient'])) {
+            $error = $error ?: 'Contact form recipient email is invalid';
+        }
+
+        if (empty($error) && updateSiteSettings($data)) {
+            $message = $message ?: 'Contact settings updated successfully';
+            $siteSettings = getSiteSettings();
+        } elseif (empty($error)) {
+            $error = 'Failed to update contact settings';
+        }
+    }
+
     if ($action === 'update_profile') {
         $newEmail = sanitize($_POST['email'] ?? '');
         $newUsername = sanitize($_POST['username'] ?? '');
@@ -187,6 +221,14 @@ include __DIR__ . '/../includes/admin-layout.php';
 .form-input:focus { outline: none; border-color: #111827; }
 .info-display { padding: 12px; background: #f9fafb; border-radius: 6px; font-weight: 500; color: #111827; }
 .image-preview { max-width: 120px; max-height: 60px; margin-top: 8px; border-radius: 6px; border: 1px solid #e5e7eb; }
+/* Tabs (similar to payment settings) */
+.tabs-container { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 24px; overflow: hidden; }
+.tabs-nav { display: flex; border-bottom: 1px solid #e5e7eb; background: #f9fafb; }
+.tab-button { flex: 1; padding: 12px 16px; background: transparent; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-size: 0.875rem; font-weight: 500; color: #6b7280; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.tab-button:hover { background: #f3f4f6; color: #374151; }
+.tab-button.active { color: #111827; border-bottom-color: #111827; background: #fff; }
+.tab-content { display: none; padding: 20px 24px; }
+.tab-content.active { display: block; }
 </style>
 
 <div class="page-header">
@@ -201,121 +243,220 @@ include __DIR__ . '/../includes/admin-layout.php';
 <div class="alert alert-error"><?php echo htmlspecialchars($error); ?></div>
 <?php endif; ?>
 
-<!-- Email Test -->
-<div class="card">
-    <div class="card-header">
-        <h2 class="card-title">Email Configuration Test</h2>
+<div class="tabs-container">
+    <div class="tabs-nav">
+        <button type="button" class="tab-button active" data-tab="site">Site</button>
+        <button type="button" class="tab-button" data-tab="contact">Contact Page</button>
+        <button type="button" class="tab-button" data-tab="account">Admin Account</button>
     </div>
-    <div class="card-body">
-        <p style="margin: 0 0 16px; color: #6b7280; font-size: 0.875rem;">Send a test email to verify your SMTP configuration. Current: <?php echo defined('SMTP_HOST') && SMTP_HOST && SMTP_HOST !== 'smtp.example.com' ? 'SMTP (' . htmlspecialchars(SMTP_HOST) . ')' : 'PHP mail()'; ?></p>
-        <form method="POST">
-            <input type="hidden" name="action" value="test_email">
-            <div class="form-group">
-                <label class="form-label" for="test_email">Email address to send test to</label>
-                <input type="email" id="test_email" name="test_email" class="form-input" required placeholder="admin@example.com">
+    <div class="tab-content active" id="tab-site">
+        <!-- Email Test -->
+        <div class="card" style="margin-bottom:16px;">
+            <div class="card-header">
+                <h2 class="card-title">Email Configuration Test</h2>
             </div>
-            <button type="submit" class="btn btn-primary">Send Test Email</button>
-        </form>
-    </div>
-</div>
-
-<!-- Site Settings -->
-<div class="card">
-    <div class="card-header">
-        <h2 class="card-title">Site Settings</h2>
-    </div>
-    <div class="card-body">
-        <form method="POST" enctype="multipart/form-data">
-            <input type="hidden" name="action" value="update_site">
-            <div class="form-group">
-                <label class="form-label" for="site_name">Site Name</label>
-                <input type="text" id="site_name" name="site_name" class="form-input" value="<?php echo htmlspecialchars($siteSettings['site_name'] ?? 'Resmenu'); ?>">
+            <div class="card-body">
+                <p style="margin: 0 0 16px; color: #6b7280; font-size: 0.875rem;">Send a test email to verify your SMTP configuration. Current: <?php echo defined('SMTP_HOST') && SMTP_HOST && SMTP_HOST !== 'smtp.example.com' ? 'SMTP (' . htmlspecialchars(SMTP_HOST) . ')' : 'PHP mail()'; ?></p>
+                <form method="POST">
+                    <input type="hidden" name="action" value="test_email">
+                    <div class="form-group">
+                        <label class="form-label" for="test_email">Email address to send test to</label>
+                        <input type="email" id="test_email" name="test_email" class="form-input" required placeholder="admin@example.com">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Send Test Email</button>
+                </form>
             </div>
-            <div class="form-group">
-                <label class="form-label">Site Logo</label>
-                <?php if ($siteLogoUrl): ?>
-                <div><img src="<?php echo htmlspecialchars($siteLogoUrl); ?>" alt="Logo" class="image-preview"></div>
-                <?php endif; ?>
-                <input type="file" name="site_logo" accept="image/jpeg,image/png,image/gif,image/webp" style="margin-top: 8px;">
-                <small style="color: #6b7280; display: block; margin-top: 4px;">Leave empty to keep current. JPG, PNG, GIF, WebP. Max 5MB.</small>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Favicon</label>
-                <?php if ($faviconUrl): ?>
-                <div><img src="<?php echo htmlspecialchars($faviconUrl); ?>" alt="Favicon" class="image-preview"></div>
-                <?php endif; ?>
-                <input type="file" name="favicon" accept="image/jpeg,image/png,image/gif,image/webp,image/x-icon,.ico" style="margin-top: 8px;">
-                <small style="color: #6b7280; display: block; margin-top: 4px;">Leave empty to keep current. PNG, ICO recommended.</small>
-            </div>
-            <button type="submit" class="btn btn-primary">Update Site Settings</button>
-        </form>
-    </div>
-</div>
-
-<!-- Profile (merged from profile.php) -->
-<div class="card">
-    <div class="card-header">
-        <h2 class="card-title">Account Information</h2>
-    </div>
-    <div class="card-body">
-        <div class="form-group">
-            <label class="form-label">Username</label>
-            <div class="info-display"><?php echo htmlspecialchars($admin['username']); ?></div>
         </div>
-        <div class="form-group">
-            <label class="form-label">Email</label>
-            <div class="info-display"><?php echo htmlspecialchars($admin['email']); ?></div>
-        </div>
-        <div class="form-group">
-            <label class="form-label">Account Created</label>
-            <div class="info-display"><?php echo $admin['created_at'] ? date('F j, Y g:i A', strtotime($admin['created_at'])) : 'N/A'; ?></div>
+
+        <!-- Site Settings -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Site Settings</h2>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="action" value="update_site">
+                    <div class="form-group">
+                        <label class="form-label" for="site_name">Site Name</label>
+                        <input type="text" id="site_name" name="site_name" class="form-input" value="<?php echo htmlspecialchars($siteSettings['site_name'] ?? 'Resmenu'); ?>">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Site Logo</label>
+                        <?php if ($siteLogoUrl): ?>
+                        <div><img src="<?php echo htmlspecialchars($siteLogoUrl); ?>" alt="Logo" class="image-preview"></div>
+                        <?php endif; ?>
+                        <input type="file" name="site_logo" accept="image/jpeg,image/png,image/gif,image/webp" style="margin-top: 8px;">
+                        <small style="color: #6b7280; display: block; margin-top: 4px;">Leave empty to keep current. JPG, PNG, GIF, WebP. Max 5MB.</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Favicon</label>
+                        <?php if ($faviconUrl): ?>
+                        <div><img src="<?php echo htmlspecialchars($faviconUrl); ?>" alt="Favicon" class="image-preview"></div>
+                        <?php endif; ?>
+                        <input type="file" name="favicon" accept="image/jpeg,image/png,image/gif,image/webp,image/x-icon,.ico" style="margin-top: 8px;">
+                        <small style="color: #6b7280; display: block; margin-top: 4px;">Leave empty to keep current. PNG, ICO recommended.</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Update Site Settings</button>
+                </form>
+            </div>
         </div>
     </div>
+
+    <div class="tab-content" id="tab-contact">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Contact Page Settings</h2>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <input type="hidden" name="action" value="update_contact">
+                    <div class="form-group">
+                        <label class="form-label" for="contact_sales_email">Sales email</label>
+                        <input type="email" id="contact_sales_email" name="contact_sales_email" class="form-input" value="<?php echo htmlspecialchars($siteSettings['contact_sales_email'] ?? ''); ?>" placeholder="sales@yourdomain.com">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="contact_sales_phone">Sales phone</label>
+                        <input type="text" id="contact_sales_phone" name="contact_sales_phone" class="form-input" value="<?php echo htmlspecialchars($siteSettings['contact_sales_phone'] ?? ''); ?>" placeholder="+234 ...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="contact_support_email">Support email</label>
+                        <input type="email" id="contact_support_email" name="contact_support_email" class="form-input" value="<?php echo htmlspecialchars($siteSettings['contact_support_email'] ?? ''); ?>" placeholder="support@yourdomain.com">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="contact_support_phone">Support phone</label>
+                        <input type="text" id="contact_support_phone" name="contact_support_phone" class="form-input" value="<?php echo htmlspecialchars($siteSettings['contact_support_phone'] ?? ''); ?>" placeholder="+234 ...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="contact_partners_email">Partnerships email</label>
+                        <input type="email" id="contact_partners_email" name="contact_partners_email" class="form-input" value="<?php echo htmlspecialchars($siteSettings['contact_partners_email'] ?? ''); ?>" placeholder="partners@yourdomain.com">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="contact_form_recipient">Contact form recipient email</label>
+                        <input type="email" id="contact_form_recipient" name="contact_form_recipient" class="form-input" value="<?php echo htmlspecialchars($siteSettings['contact_form_recipient'] ?? ''); ?>" placeholder="where contact form emails go">
+                    </div>
+                    <hr style="margin: 20px 0;">
+                    <div class="form-group">
+                        <label class="form-label" for="contact_hq_title">HQ label</label>
+                        <input type="text" id="contact_hq_title" name="contact_hq_title" class="form-input" value="<?php echo htmlspecialchars($siteSettings['contact_hq_title'] ?? ''); ?>" placeholder="Lagos HQ">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="contact_hq_address">HQ address</label>
+                        <textarea id="contact_hq_address" name="contact_hq_address" class="form-input" rows="3" placeholder="Street, city, country"><?php echo htmlspecialchars($siteSettings['contact_hq_address'] ?? ''); ?></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="contact_map_embed">Map embed code (iframe)</label>
+                        <textarea id="contact_map_embed" name="contact_map_embed" class="form-input" rows="4" placeholder="Paste Google Maps embed iframe here"><?php echo htmlspecialchars($siteSettings['contact_map_embed'] ?? ''); ?></textarea>
+                        <small style="color:#6b7280;display:block;margin-top:4px;font-size:0.75rem;">Use the Google Maps \"Share\" → \"Embed a map\" iframe code.</small>
+                    </div>
+                    <hr style="margin: 20px 0;">
+                    <div class="form-group">
+                        <label class="form-label" for="contact_social_facebook">Facebook URL</label>
+                        <input type="url" id="contact_social_facebook" name="contact_social_facebook" class="form-input" value="<?php echo htmlspecialchars($siteSettings['contact_social_facebook'] ?? ''); ?>" placeholder="https://facebook.com/yourpage">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="contact_social_twitter">Twitter/X URL</label>
+                        <input type="url" id="contact_social_twitter" name="contact_social_twitter" class="form-input" value="<?php echo htmlspecialchars($siteSettings['contact_social_twitter'] ?? ''); ?>" placeholder="https://twitter.com/yourhandle">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="contact_social_instagram">Instagram URL</label>
+                        <input type="url" id="contact_social_instagram" name="contact_social_instagram" class="form-input" value="<?php echo htmlspecialchars($siteSettings['contact_social_instagram'] ?? ''); ?>" placeholder="https://instagram.com/yourhandle">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Update Contact Settings</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-content" id="tab-account">
+        <!-- Profile (merged from profile.php) -->
+        <div class="card" style="margin-bottom:16px;">
+            <div class="card-header">
+                <h2 class="card-title">Account Information</h2>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <div class="info-display"><?php echo htmlspecialchars($admin['username']); ?></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <div class="info-display"><?php echo htmlspecialchars($admin['email']); ?></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Account Created</label>
+                    <div class="info-display"><?php echo $admin['created_at'] ? date('F j, Y g:i A', strtotime($admin['created_at'])) : 'N/A'; ?></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-bottom:16px;">
+            <div class="card-header">
+                <h2 class="card-title">Update Profile</h2>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <input type="hidden" name="action" value="update_profile">
+                    <div class="form-group">
+                        <label class="form-label" for="username">Username *</label>
+                        <input type="text" id="username" name="username" class="form-input" required value="<?php echo htmlspecialchars($admin['username']); ?>">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="email">Email *</label>
+                        <input type="email" id="email" name="email" class="form-input" required value="<?php echo htmlspecialchars($admin['email']); ?>">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Update Profile</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Change Password</h2>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <input type="hidden" name="action" value="update_password">
+                    <div class="form-group">
+                        <label class="form-label" for="current_password">Current Password *</label>
+                        <input type="password" id="current_password" name="current_password" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="new_password">New Password *</label>
+                        <input type="password" id="new_password" name="new_password" class="form-input" required minlength="6">
+                        <small style="color: #6b7280; display: block; margin-top: 5px; font-size: 0.75rem;">Password must be at least 6 characters</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="confirm_password">Confirm New Password *</label>
+                        <input type="password" id="confirm_password" name="confirm_password" class="form-input" required minlength="6">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Change Password</button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
-<div class="card">
-    <div class="card-header">
-        <h2 class="card-title">Update Profile</h2>
-    </div>
-    <div class="card-body">
-        <form method="POST">
-            <input type="hidden" name="action" value="update_profile">
-            <div class="form-group">
-                <label class="form-label" for="username">Username *</label>
-                <input type="text" id="username" name="username" class="form-input" required value="<?php echo htmlspecialchars($admin['username']); ?>">
-            </div>
-            <div class="form-group">
-                <label class="form-label" for="email">Email *</label>
-                <input type="email" id="email" name="email" class="form-input" required value="<?php echo htmlspecialchars($admin['email']); ?>">
-            </div>
-            <button type="submit" class="btn btn-primary">Update Profile</button>
-        </form>
-    </div>
-</div>
-
-<div class="card">
-    <div class="card-header">
-        <h2 class="card-title">Change Password</h2>
-    </div>
-    <div class="card-body">
-        <form method="POST">
-            <input type="hidden" name="action" value="update_password">
-            <div class="form-group">
-                <label class="form-label" for="current_password">Current Password *</label>
-                <input type="password" id="current_password" name="current_password" class="form-input" required>
-            </div>
-            <div class="form-group">
-                <label class="form-label" for="new_password">New Password *</label>
-                <input type="password" id="new_password" name="new_password" class="form-input" required minlength="6">
-                <small style="color: #6b7280; display: block; margin-top: 5px; font-size: 0.75rem;">Password must be at least 6 characters</small>
-            </div>
-            <div class="form-group">
-                <label class="form-label" for="confirm_password">Confirm New Password *</label>
-                <input type="password" id="confirm_password" name="confirm_password" class="form-input" required minlength="6">
-            </div>
-            <button type="submit" class="btn btn-primary">Change Password</button>
-        </form>
-    </div>
-</div>
+<script>
+(function() {
+    var buttons = document.querySelectorAll('.tab-button');
+    var contents = {
+        site: document.getElementById('tab-site'),
+        contact: document.getElementById('tab-contact'),
+        account: document.getElementById('tab-account')
+    };
+    buttons.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var tab = this.getAttribute('data-tab');
+            buttons.forEach(function(b) { b.classList.remove('active'); });
+            this.classList.add('active');
+            Object.keys(contents).forEach(function(key) {
+                if (contents[key]) {
+                    contents[key].classList.toggle('active', key === tab);
+                }
+            });
+        });
+    });
+})();
+</script>
 
 <?php include __DIR__ . '/../includes/admin-footer.php'; ?>
