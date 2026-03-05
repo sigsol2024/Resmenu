@@ -344,9 +344,9 @@ include __DIR__ . '/../includes/admin-layout.php';
                         <textarea id="contact_hq_address" name="contact_hq_address" class="form-input" rows="3" placeholder="Street, city, country"><?php echo htmlspecialchars($siteSettings['contact_hq_address'] ?? ''); ?></textarea>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="contact_map_embed">Map embed code (iframe)</label>
-                        <textarea id="contact_map_embed" name="contact_map_embed" class="form-input" rows="4" placeholder="Paste Google Maps embed iframe here"><?php echo htmlspecialchars($siteSettings['contact_map_embed'] ?? ''); ?></textarea>
-                        <small style="color:#6b7280;display:block;margin-top:4px;font-size:0.75rem;">Use the Google Maps \"Share\" → \"Embed a map\" iframe code.</small>
+                        <label class="form-label" for="contact_map_embed">Custom map embed (optional)</label>
+                        <textarea id="contact_map_embed" name="contact_map_embed" class="form-input" rows="4" placeholder="Optional: paste a full Google Maps iframe here"><?php echo htmlspecialchars($siteSettings['contact_map_embed'] ?? ''); ?></textarea>
+                        <small style="color:#6b7280;display:block;margin-top:4px;font-size:0.75rem;">Leave empty to auto-generate a map from the HQ address. Use Google Maps \"Share\" → \"Embed a map\" iframe only if you need full control.</small>
                     </div>
                     <hr style="margin: 20px 0;">
                     <div class="form-group">
