@@ -841,8 +841,9 @@ main{
     font-size:1rem;
     position:absolute;
     left:50%;
-    transform:translateX(-50%);
-    max-width:calc(100% - 52px - 16px - 64px); /* left hamburger + padding + right icon space */
+    top:50%;
+    transform:translate(-50%, -50%);
+    max-width:calc(100% - 52px - 16px - 56px); /* left hamburger + padding + right icon space */
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
@@ -850,9 +851,11 @@ main{
   }
 
   .btn-view-menu{
-    padding:8px 10px;
+    width:40px;
+    height:40px;
+    padding:0;
     border-radius:10px;
-    gap:0;
+    justify-content:center;
   }
 
   /* Icon-only on mobile */
@@ -860,7 +863,7 @@ main{
   
   /* Add padding to main so content isn't hidden under fixed header */
   main{
-    padding-top:64px;
+    padding-top:72px;
   }
   
   /* Card responsive */
