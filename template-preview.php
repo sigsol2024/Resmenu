@@ -179,16 +179,15 @@ if (!$templateLoaded) {
 
 $previewHtml = ob_get_clean();
 
-// Floating viewport toggle: changes viewport META so the template's real responsive CSS (media queries) applies
+// Floating viewport toggle: changes viewport META so the template's real responsive CSS applies.
+// Widget visibility is based on INITIAL window size only (JS), so it stays clickable when simulating mobile.
 $viewportWidget = <<<'WIDGET'
 <style id="preview-viewport-widget-styles">
-.preview-viewport-widget { display: none; position: fixed; bottom: 20px; right: 20px; z-index: 99999; flex-direction: row; gap: 6px; align-items: center; background: #fff; padding: 8px 10px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,.15); border: 1px solid #e5e7eb; }
-@media (min-width: 768px) { .preview-viewport-widget { display: flex !important; } }
-@media (max-width: 767px) { .preview-viewport-widget { display: none !important; } }
+.preview-viewport-widget { position: fixed; bottom: 20px; right: 20px; z-index: 99999; display: flex; flex-direction: row; gap: 6px; align-items: center; background: #fff; padding: 8px 10px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,.15); border: 1px solid #e5e7eb; }
 .preview-viewport-widget button { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; padding: 0; border: none; border-radius: 8px; background: #f3f4f6; color: #374151; cursor: pointer; transition: background .2s, color .2s; }
 .preview-viewport-widget button:hover { background: #e5e7eb; color: #111; }
 .preview-viewport-widget button.active { background: #1e3a5f; color: #fff; }
-.preview-viewport-widget button svg { width: 22px; height: 22px; }
+.preview-viewport-widget button svg { width: 22px; height: 22px; pointer-events: none; }
 </style>
 <div class="preview-viewport-widget" id="previewViewportWidget" aria-label="Toggle preview viewport size">
   <button type="button" id="previewViewportDesktop" title="Desktop view" aria-pressed="true"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg></button>
@@ -197,9 +196,14 @@ $viewportWidget = <<<'WIDGET'
 </div>
 <script id="preview-viewport-widget-script">
 (function() {
-  var w = window.innerWidth;
   var widget = document.getElementById('previewViewportWidget');
   if (!widget) return;
+  var realWidth = window.innerWidth;
+  if (realWidth <= 767) {
+    widget.style.display = 'none';
+    return;
+  }
+  widget.style.display = 'flex';
   var key = 'previewViewport';
   var desktopBtn = document.getElementById('previewViewportDesktop');
   var tabletBtn = document.getElementById('previewViewportTablet');
@@ -222,29 +226,21 @@ $viewportWidget = <<<'WIDGET'
     } else {
       meta.content = 'width=375';
     }
-    desktopBtn && (desktopBtn.setAttribute('aria-pressed', mode === 'desktop' ? 'true' : 'false'));
-    tabletBtn && (tabletBtn.setAttribute('aria-pressed', mode === 'tablet' ? 'true' : 'false'));
-    mobileBtn && (mobileBtn.setAttribute('aria-pressed', mode === 'mobile' ? 'true' : 'false'));
-    desktopBtn && desktopBtn.classList.toggle('active', mode === 'desktop');
-    tabletBtn && tabletBtn.classList.toggle('active', mode === 'tablet');
-    mobileBtn && mobileBtn.classList.toggle('active', mode === 'mobile');
+    if (desktopBtn) { desktopBtn.setAttribute('aria-pressed', mode === 'desktop' ? 'true' : 'false'); desktopBtn.classList.toggle('active', mode === 'desktop'); }
+    if (tabletBtn) { tabletBtn.setAttribute('aria-pressed', mode === 'tablet' ? 'true' : 'false'); tabletBtn.classList.toggle('active', mode === 'tablet'); }
+    if (mobileBtn) { mobileBtn.setAttribute('aria-pressed', mode === 'mobile' ? 'true' : 'false'); mobileBtn.classList.toggle('active', mode === 'mobile'); }
     try { localStorage.setItem(key, mode); } catch (e) {}
   }
   var saved = null;
   try { saved = localStorage.getItem(key); } catch (e) {}
-  if (w <= 767) {
-    widget.style.display = 'none';
-    setViewport('desktop');
-    return;
-  }
-  if (w >= 1024) {
+  if (realWidth >= 1024) {
     setViewport(saved === 'tablet' || saved === 'mobile' ? saved : 'desktop');
   } else {
     setViewport(saved === 'mobile' ? 'mobile' : 'tablet');
   }
-  desktopBtn && desktopBtn.addEventListener('click', function() { setViewport('desktop'); });
-  tabletBtn && tabletBtn.addEventListener('click', function() { setViewport('tablet'); });
-  mobileBtn && mobileBtn.addEventListener('click', function() { setViewport('mobile'); });
+  if (desktopBtn) desktopBtn.addEventListener('click', function() { setViewport('desktop'); });
+  if (tabletBtn) tabletBtn.addEventListener('click', function() { setViewport('tablet'); });
+  if (mobileBtn) mobileBtn.addEventListener('click', function() { setViewport('mobile'); });
 })();
 </script>
 WIDGET;
