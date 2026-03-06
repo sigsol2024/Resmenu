@@ -367,12 +367,12 @@ include __DIR__ . '/../includes/manager-layout.php';
         <?php endif; ?>
 
         <div class="settings-card">
-            <div style="display: flex; gap: 15px; align-items: end; margin-bottom: 20px;">
-                <form method="GET" style="display: flex; gap: 15px; align-items: end; flex: 1;">
+            <div style="margin-bottom: 20px;">
+                <form method="GET" style="display: flex; gap: 15px; align-items: end; flex-wrap: wrap;">
                     <?php if (isSuperAdmin() && $restaurantId): ?>
                         <input type="hidden" name="restaurant_id" value="<?php echo htmlspecialchars($restaurantId); ?>">
                     <?php endif; ?>
-                    <div style="flex: 1;">
+                    <div style="flex: 1; min-width: 220px;">
                         <label class="form-label" for="category_filter">Filter by Category</label>
                         <select id="category_filter" name="category_id" class="form-select">
                             <option value="">All Categories</option>
@@ -383,14 +383,14 @@ include __DIR__ . '/../includes/manager-layout.php';
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary" style="min-width: 110px;">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                         </svg>
                         Filter
                     </button>
                     <?php if ($selectedCategoryId): ?>
-                        <a href="menu-items.php<?php echo isSuperAdmin() && $restaurantId ? '?restaurant_id=' . urlencode($restaurantId) : ''; ?>" class="btn btn-secondary">
+                        <a href="menu-items.php<?php echo isSuperAdmin() && $restaurantId ? '?restaurant_id=' . urlencode($restaurantId) : ''; ?>" class="btn btn-secondary" style="min-width: 140px;">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                             </svg>
@@ -544,12 +544,12 @@ include __DIR__ . '/../includes/manager-layout.php';
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                         </svg>
-                        Create New Menu Item
+                        New Item
                     </button>
                 <?php endif; ?>
             </div>
             
-            <div class="table-wrapper">
+            <div class="table-wrapper menu-items-table-desktop">
             <table class="table restaurants-table">
                 <thead>
                     <tr>
@@ -599,6 +599,50 @@ include __DIR__ . '/../includes/manager-layout.php';
                     <?php endif; ?>
                 </tbody>
             </table>
+        </div>
+
+        <div class="menu-items-mobile" aria-label="Menu items (mobile)">
+            <?php if (empty($menuItems)): ?>
+                <p style="text-align:center; padding: 18px; color: var(--muted);">No menu items found.</p>
+            <?php else: ?>
+                <?php foreach ($menuItems as $item): ?>
+                    <details class="mi-card">
+                        <summary class="mi-summary">
+                            <div class="mi-left">
+                                <?php if ($item['image']): ?>
+                                    <img src="<?php echo UPLOAD_URL . '/menu-items/' . htmlspecialchars($item['image']); ?>" alt="" class="mi-thumb">
+                                <?php else: ?>
+                                    <div class="mi-thumb mi-thumb-empty">No Image</div>
+                                <?php endif; ?>
+                                <div class="mi-main">
+                                    <div class="mi-name"><?php echo htmlspecialchars($item['name']); ?></div>
+                                    <div class="mi-meta">
+                                        <span><?php echo htmlspecialchars($item['category_name']); ?></span>
+                                        <span class="mi-dot">•</span>
+                                        <span><?php echo formatPrice($item['price']); ?></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mi-right">
+                                <span class="mi-status" style="background: <?php echo $item['is_available'] ? '#d1fae5' : '#fee2e2'; ?>; color: <?php echo $item['is_available'] ? '#065f46' : '#991b1b'; ?>">
+                                    <?php echo $item['is_available'] ? 'Available' : 'Unavailable'; ?>
+                                </span>
+                                <span class="mi-chevron" aria-hidden="true">▾</span>
+                            </div>
+                        </summary>
+                        <div class="mi-body">
+                            <div class="mi-grid">
+                                <div class="mi-kv"><span class="mi-k">Order</span><span class="mi-v"><?php echo (int)$item['display_order']; ?></span></div>
+                                <div class="mi-kv"><span class="mi-k">Slug</span><span class="mi-v"><?php echo htmlspecialchars($item['slug']); ?></span></div>
+                            </div>
+                            <div class="mi-actions">
+                                <a class="btn btn-secondary" href="?action=edit&id=<?php echo (int)$item['id']; ?><?php echo isSuperAdmin() && $restaurantId ? '&restaurant_id=' . urlencode($restaurantId) : ''; ?>">Edit</a>
+                                <button type="button" class="btn btn-danger" onclick="openDeleteModal(<?php echo (int)$item['id']; ?>, '<?php echo htmlspecialchars(addslashes($item['name'])); ?>')">Delete</button>
+                            </div>
+                        </div>
+                    </details>
+                <?php endforeach; ?>
+            <?php endif; ?>
         </div>
     
 <style>
@@ -883,6 +927,42 @@ include __DIR__ . '/../includes/manager-layout.php';
         width: 100%;
         justify-content: center;
     }
+
+    /* Menu items: mobile cards instead of wide table */
+    .menu-items-table-desktop { display: none; }
+    .menu-items-mobile { display: block; }
+    .mi-card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
+    .mi-card + .mi-card { margin-top: 12px; }
+    .mi-summary { list-style:none; cursor:pointer; padding: 14px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .mi-summary::-webkit-details-marker { display:none; }
+    .mi-left { display:flex; align-items:center; gap:12px; min-width:0; }
+    .mi-thumb { width:48px; height:48px; border-radius:10px; object-fit:cover; border:1px solid #e5e7eb; flex-shrink:0; }
+    .mi-thumb-empty { display:flex; align-items:center; justify-content:center; font-size:0.65rem; color:#6b7280; background:#f3f4f6; }
+    .mi-main { min-width:0; }
+    .mi-name { font-weight:700; color:#111827; font-size:0.95rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 220px; }
+    .mi-meta { color:#6b7280; font-size:0.8rem; display:flex; gap:8px; align-items:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .mi-dot { color:#9ca3af; }
+    .mi-right { display:flex; align-items:center; gap:10px; flex-shrink:0; }
+    .mi-status { padding:4px 10px; border-radius:999px; font-size:0.7rem; font-weight:700; }
+    .mi-chevron { color:#6b7280; transition: transform .15s ease; }
+    .mi-card[open] .mi-chevron { transform: rotate(180deg); }
+    .mi-body { border-top:1px solid #f3f4f6; padding: 12px 14px 14px; }
+    .mi-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+    .mi-kv { background:#f9fafb; border:1px solid #e5e7eb; border-radius:10px; padding:10px; min-width:0; }
+    .mi-k { display:block; font-size:0.7rem; text-transform:uppercase; color:#6b7280; font-weight:700; letter-spacing:.04em; margin-bottom:4px; }
+    .mi-v { display:block; font-size:0.85rem; font-weight:700; color:#111827; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .mi-actions { display:flex; gap:10px; }
+    .mi-actions .btn { flex:1; justify-content:center; padding:10px 12px; }
+
+    /* Filters: better wrap on mobile */
+    .settings-card form { width: 100%; }
+    .settings-card form > div { width: 100%; }
+    .settings-card form button,
+    .settings-card form a.btn { width: 100%; justify-content: center; }
+}
+
+@media (min-width: 769px) {
+    .menu-items-mobile { display: none; }
 }
 </style>
     
