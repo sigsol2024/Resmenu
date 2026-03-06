@@ -820,34 +820,43 @@ main{
     padding:12px 16px;
     padding-left:52px; /* Space for hamburger */
     z-index:20;
-    flex-wrap:wrap;
+    flex-wrap:nowrap;
     align-items:center;
-    gap:8px;
+    gap:10px;
+    min-height:56px;
   }
 
-  /* Header is 3 columns on desktop; stack cleanly on mobile */
-  .header > div:first-child{
-    display:none;
-  }
+  /* Keep a clean single-row header on mobile */
+  .header > div:first-child{ display:none; } /* placeholder */
   
   .header-actions{
-    margin-left:0;
-    width:100%;
-    order:3;
-    justify-content:flex-start;
+    margin-left:auto;
+    width:auto;
+    order:unset;
+    justify-content:flex-end;
+    gap:8px;
   }
   
   .header-title{
     font-size:1rem;
-    width:100%;
-    order:2;
-    text-align:left;
+    position:absolute;
+    left:50%;
+    transform:translateX(-50%);
+    max-width:calc(100% - 52px - 16px - 64px); /* left hamburger + padding + right icon space */
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    text-align:center;
   }
 
   .btn-view-menu{
-    width:100%;
-    justify-content:center;
+    padding:8px 10px;
+    border-radius:10px;
+    gap:0;
   }
+
+  /* Icon-only on mobile */
+  .btn-view-menu span{ display:none; }
   
   /* Add padding to main so content isn't hidden under fixed header */
   main{

@@ -748,26 +748,39 @@ main{
     flex-wrap:wrap;
     gap:8px;
     align-items:center;
+    min-height:56px;
   }
   
-  /* Stack header items nicely on mobile */
+  /* Single-row mobile header: back icon on right, title centered */
+  .header{ flex-wrap:nowrap; gap:10px; }
+  .header > div:last-child{ display:none; } /* empty placeholder */
+
+  /* Back button block (left div in markup) moves to right as icon-only */
   .header > div:first-child{
-    width:100%;
-    order:1;
+    position:absolute;
+    right:16px;
+    top:50%;
+    transform:translateY(-50%);
   }
-
-  .header-title{
-    width:100%;
-    order:2;
-    text-align:left;
+  .header > div:first-child a{
+    padding:8px 10px;
+    border-radius:10px;
+    gap:0 !important;
   }
-
-  .header > div:last-child{
-    display:none;
-  }
+  .header > div:first-child a svg{ margin:0; }
+  .header > div:first-child a{ font-size:0; } /* hide "Dashboard" text without changing markup */
+  .header > div:first-child a svg{ width:18px !important; height:18px !important; }
   
   .header-title{
     font-size:1rem;
+    position:absolute;
+    left:50%;
+    transform:translateX(-50%);
+    max-width:calc(100% - 52px - 16px - 64px); /* left hamburger + padding + right icon space */
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    text-align:center;
   }
   
   /* Add padding to main so content isn't hidden under fixed header */
