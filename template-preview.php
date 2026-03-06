@@ -11,8 +11,173 @@ require_once __DIR__ . '/config/config.php';
 // Allow this page to be embedded in iframes on resmenu.net (and same origin)
 header("Content-Security-Policy: frame-ancestors 'self' https://resmenu.net https://www.resmenu.net http://resmenu.net http://www.resmenu.net");
 
-// Allow template IDs 1–20 so new templates (5, 6, …) get the same preview behaviour and viewport widget
-$templateId = isset($_GET['t']) ? max(1, min(20, (int)$_GET['t'])) : 1;
+// Allow template IDs 1–999 so new templates (5, 6, …) get the same preview behaviour
+$templateId = isset($_GET['t']) ? max(1, min(999, (int)$_GET['t'])) : 1;
+
+$isRaw = !empty($_GET['raw']);
+
+// ============================================================
+// Preview shell mode (default): controls + iframe
+// ============================================================
+// Media queries react to the iframe viewport width, not the <meta viewport> tag on desktop.
+// So the only reliable way to preview mobile/tablet layouts on desktop is to render the
+// template inside an iframe and change the iframe width.
+if (!$isRaw) {
+    $selfUrl = $_SERVER['REQUEST_URI'] ?? ('/template' . $templateId . '-preview');
+    // Ensure iframe loads raw view of the same template preview
+    $iframeSrc = (strpos($selfUrl, '?') === false) ? ($selfUrl . '?raw=1') : ($selfUrl . '&raw=1');
+    // If someone hits template-preview.php directly (not via /templateN-preview), still work
+    if (strpos($iframeSrc, 't=') === false) {
+        $sep = (strpos($iframeSrc, '?') === false) ? '?' : '&';
+        $iframeSrc .= $sep . 't=' . (int)$templateId;
+    }
+
+    ?><!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <title>Template Preview</title>
+        <style>
+            html, body { height: 100%; margin: 0; padding: 0; background: #0b0f19; }
+            .preview-stage {
+                height: 100%;
+                width: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 18px;
+                box-sizing: border-box;
+            }
+            .preview-frame {
+                height: calc(100vh - 36px);
+                width: 100%;
+                max-width: 1400px;
+                border: 0;
+                border-radius: 14px;
+                background: #fff;
+                box-shadow: 0 20px 60px rgba(0,0,0,.45);
+            }
+            .preview-viewport-widget {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                z-index: 99999;
+                display: flex;
+                flex-direction: row;
+                gap: 6px;
+                align-items: center;
+                background: rgba(255,255,255,.92);
+                backdrop-filter: blur(12px);
+                padding: 8px 10px;
+                border-radius: 12px;
+                box-shadow: 0 4px 20px rgba(0,0,0,.25);
+                border: 1px solid rgba(229,231,235,.8);
+            }
+            .preview-viewport-widget button {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 40px;
+                height: 40px;
+                padding: 0;
+                border: none;
+                border-radius: 8px;
+                background: #f3f4f6;
+                color: #374151;
+                cursor: pointer;
+                transition: background .2s, color .2s;
+            }
+            .preview-viewport-widget button:hover { background: #e5e7eb; color: #111; }
+            .preview-viewport-widget button.active { background: #1e3a5f; color: #fff; }
+            .preview-viewport-widget button svg { width: 22px; height: 22px; pointer-events: none; }
+            @media (max-width: 767px) { .preview-viewport-widget { display: none !important; } }
+        </style>
+    </head>
+    <body>
+    <div class="preview-stage">
+        <iframe
+            id="previewFrame"
+            class="preview-frame"
+            src="<?php echo htmlspecialchars($iframeSrc); ?>"
+            title="Template preview"
+            loading="eager"
+            referrerpolicy="no-referrer-when-downgrade"
+        ></iframe>
+    </div>
+
+    <div class="preview-viewport-widget" id="previewViewportWidget" aria-label="Toggle preview viewport size">
+        <button type="button" id="previewViewportDesktop" title="Desktop view" aria-pressed="true">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        </button>
+        <button type="button" id="previewViewportTablet" title="Tablet view" aria-pressed="false">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+        </button>
+        <button type="button" id="previewViewportMobile" title="Mobile view" aria-pressed="false">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+        </button>
+    </div>
+
+    <script>
+        (function () {
+            var widget = document.getElementById('previewViewportWidget');
+            var frame = document.getElementById('previewFrame');
+            if (!widget || !frame) return;
+
+            var key = 'previewDevice';
+            var desktopBtn = document.getElementById('previewViewportDesktop');
+            var tabletBtn = document.getElementById('previewViewportTablet');
+            var mobileBtn = document.getElementById('previewViewportMobile');
+
+            function setActive(mode) {
+                var map = { desktop: desktopBtn, tablet: tabletBtn, mobile: mobileBtn };
+                Object.keys(map).forEach(function (k) {
+                    var btn = map[k];
+                    if (!btn) return;
+                    var on = (k === mode);
+                    btn.classList.toggle('active', on);
+                    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+                });
+            }
+
+            function setDevice(mode) {
+                if (window.innerWidth <= 767) return; // widget hidden on real mobile
+                if (mode === 'desktop') {
+                    frame.style.width = 'min(1400px, 100%)';
+                    frame.style.maxWidth = '1400px';
+                } else if (mode === 'tablet') {
+                    frame.style.width = '768px';
+                    frame.style.maxWidth = '768px';
+                } else {
+                    frame.style.width = '390px';
+                    frame.style.maxWidth = '390px';
+                }
+                setActive(mode);
+                try { localStorage.setItem(key, mode); } catch (e) {}
+            }
+
+            var saved = null;
+            try { saved = localStorage.getItem(key); } catch (e) {}
+            if (window.innerWidth >= 1024) {
+                setDevice(saved === 'tablet' || saved === 'mobile' ? saved : 'desktop');
+            } else if (window.innerWidth >= 768) {
+                setDevice(saved === 'mobile' ? 'mobile' : 'tablet');
+            } else {
+                // real mobile: full width, no widget
+                widget.style.display = 'none';
+                frame.style.width = '100%';
+                frame.style.maxWidth = '100%';
+            }
+
+            desktopBtn && desktopBtn.addEventListener('click', function () { setDevice('desktop'); });
+            tabletBtn && tabletBtn.addEventListener('click', function () { setDevice('tablet'); });
+            mobileBtn && mobileBtn.addEventListener('click', function () { setDevice('mobile'); });
+        })();
+    </script>
+    </body>
+    </html><?php
+    exit;
+}
 
 $siteSettings = getSiteSettings();
 $siteName = $siteSettings['site_name'] ?? 'SigSol Resmenu';
@@ -168,88 +333,9 @@ foreach ($sampleCategories as $cat) {
 $customization = getTemplateDefaults($templateId);
 $headerMenuItems = [];
 
-ob_start();
 $templateLoaded = loadTemplate($restaurant, $categories, $customization, $headerMenuItems, true);
 
 if (!$templateLoaded) {
-    ob_end_clean();
     http_response_code(500);
     die('Template preview unavailable.');
 }
-
-$previewHtml = ob_get_clean();
-
-// Floating viewport toggle: changes viewport META so the template's real responsive CSS applies.
-// Widget visibility is based on INITIAL window size only (JS), so it stays clickable when simulating mobile.
-$viewportWidget = <<<'WIDGET'
-<style id="preview-viewport-widget-styles">
-.preview-viewport-widget { position: fixed; bottom: 20px; right: 20px; z-index: 99999; display: flex; flex-direction: row; gap: 6px; align-items: center; background: #fff; padding: 8px 10px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,.15); border: 1px solid #e5e7eb; }
-.preview-viewport-widget button { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; padding: 0; border: none; border-radius: 8px; background: #f3f4f6; color: #374151; cursor: pointer; transition: background .2s, color .2s; }
-.preview-viewport-widget button:hover { background: #e5e7eb; color: #111; }
-.preview-viewport-widget button.active { background: #1e3a5f; color: #fff; }
-.preview-viewport-widget button svg { width: 22px; height: 22px; pointer-events: none; }
-</style>
-<div class="preview-viewport-widget" id="previewViewportWidget" aria-label="Toggle preview viewport size">
-  <button type="button" id="previewViewportDesktop" title="Desktop view" aria-pressed="true"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg></button>
-  <button type="button" id="previewViewportTablet" title="Tablet view"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg></button>
-  <button type="button" id="previewViewportMobile" title="Mobile view"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg></button>
-</div>
-<script id="preview-viewport-widget-script">
-(function() {
-  var widget = document.getElementById('previewViewportWidget');
-  if (!widget) return;
-  var realWidth = window.innerWidth;
-  if (realWidth <= 767) {
-    widget.style.display = 'none';
-    return;
-  }
-  widget.style.display = 'flex';
-  var key = 'previewViewport';
-  var desktopBtn = document.getElementById('previewViewportDesktop');
-  var tabletBtn = document.getElementById('previewViewportTablet');
-  var mobileBtn = document.getElementById('previewViewportMobile');
-  function getViewportMeta() {
-    var meta = document.querySelector('meta[name="viewport"]');
-    if (!meta) {
-      meta = document.createElement('meta');
-      meta.name = 'viewport';
-      document.head.appendChild(meta);
-    }
-    return meta;
-  }
-  function setViewport(mode) {
-    var meta = getViewportMeta();
-    if (mode === 'desktop') {
-      meta.content = 'width=device-width, initial-scale=1';
-    } else if (mode === 'tablet') {
-      meta.content = 'width=768';
-    } else {
-      meta.content = 'width=375';
-    }
-    if (desktopBtn) { desktopBtn.setAttribute('aria-pressed', mode === 'desktop' ? 'true' : 'false'); desktopBtn.classList.toggle('active', mode === 'desktop'); }
-    if (tabletBtn) { tabletBtn.setAttribute('aria-pressed', mode === 'tablet' ? 'true' : 'false'); tabletBtn.classList.toggle('active', mode === 'tablet'); }
-    if (mobileBtn) { mobileBtn.setAttribute('aria-pressed', mode === 'mobile' ? 'true' : 'false'); mobileBtn.classList.toggle('active', mode === 'mobile'); }
-    try { localStorage.setItem(key, mode); } catch (e) {}
-  }
-  var saved = null;
-  try { saved = localStorage.getItem(key); } catch (e) {}
-  if (realWidth >= 1024) {
-    setViewport(saved === 'tablet' || saved === 'mobile' ? saved : 'desktop');
-  } else {
-    setViewport(saved === 'mobile' ? 'mobile' : 'tablet');
-  }
-  if (desktopBtn) desktopBtn.addEventListener('click', function() { setViewport('desktop'); });
-  if (tabletBtn) tabletBtn.addEventListener('click', function() { setViewport('tablet'); });
-  if (mobileBtn) mobileBtn.addEventListener('click', function() { setViewport('mobile'); });
-})();
-</script>
-WIDGET;
-
-// Inject widget before </body> so it runs on every template preview
-if (stripos($previewHtml, '</body>') !== false) {
-    $previewHtml = str_ireplace('</body>', $viewportWidget . "\n</body>", $previewHtml);
-} else {
-    $previewHtml .= $viewportWidget;
-}
-
-echo $previewHtml;
