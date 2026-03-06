@@ -38,6 +38,7 @@ if ($templateId !== 4) {
     <div class="settings-card" style="padding:24px;">
         <p style="color:#6b7280;">Your restaurant is using Template <?php echo $templateId; ?>. To enable table reservations, switch to Template 4 in the Templates / Customization section.</p>
     </div>
+    <?php include __DIR__ . '/../includes/admin-footer.php'; ?>
     <?php
     exit;
 }
@@ -432,3 +433,4 @@ $statusColors = ['pending' => '#f59e0b', 'confirmed' => '#10b981', 'rejected' =>
     });
 })();
 </script>
+<?php include __DIR__ . '/../includes/admin-footer.php'; ?>
