@@ -144,7 +144,7 @@ $statusColors = ['pending' => '#f59e0b', 'confirmed' => '#10b981', 'rejected' =>
     <?php if (empty($reservations)): ?>
     <p style="color:#6b7280;padding:24px;text-align:center;">No reservations yet.</p>
     <?php else: ?>
-    <div class="table-wrapper">
+    <div class="table-wrapper reservations-table-desktop">
         <table class="orders-table" style="width:100%;border-collapse:collapse;">
             <thead>
                 <tr style="border-bottom:1px solid #e5e7eb;">
@@ -200,6 +200,64 @@ $statusColors = ['pending' => '#f59e0b', 'confirmed' => '#10b981', 'rejected' =>
             </tbody>
         </table>
     </div>
+
+    <div class="reservations-list-mobile" aria-label="Recent reservations (mobile)">
+        <?php foreach ($reservations as $r): ?>
+            <?php
+            $rstatus = $r['status'] ?? 'pending';
+            $rstyle = $statusColors[$rstatus] ?? '#6b7280';
+            $rlabel = $statusLabels[$rstatus] ?? ucfirst($rstatus);
+            $dateTime = date('M j, Y', strtotime($r['reservation_date'])) . ' ' . date('g:i A', strtotime($r['reservation_time']));
+            $depositText = $currencySymbol . number_format((float)($r['deposit_amount'] ?? 0), 2) . (!empty($r['deposit_paid']) ? ' (Paid)' : '');
+            ?>
+            <details class="res-card">
+                <summary class="res-card-summary">
+                    <div class="res-card-left">
+                        <div class="res-card-top">
+                            <span class="res-card-id">#<?php echo htmlspecialchars(getReservationDisplayNumber($r)); ?></span>
+                            <span class="res-card-date"><?php echo htmlspecialchars($dateTime); ?></span>
+                        </div>
+                        <div class="res-card-bottom">
+                            <span class="res-card-guest"><?php echo htmlspecialchars($r['guest_name']); ?></span>
+                            <span class="res-card-dot">•</span>
+                            <span class="res-card-party"><?php echo (int)$r['party_size']; ?> guests</span>
+                        </div>
+                    </div>
+                    <div class="res-card-right">
+                        <span class="res-badge" style="background:<?php echo $rstyle; ?>20;color:<?php echo $rstyle; ?>;"><?php echo htmlspecialchars($rlabel); ?></span>
+                        <span class="res-card-chevron" aria-hidden="true">▾</span>
+                    </div>
+                </summary>
+                <div class="res-card-body">
+                    <div class="res-card-metrics">
+                        <div class="res-metric">
+                            <span class="res-metric-label">Deposit</span>
+                            <span class="res-metric-value" style="<?php echo !empty($r['deposit_paid']) ? 'color:#10b981;' : ''; ?>"><?php echo htmlspecialchars($depositText); ?></span>
+                        </div>
+                        <div class="res-metric">
+                            <span class="res-metric-label">Guests</span>
+                            <span class="res-metric-value"><?php echo (int)$r['party_size']; ?></span>
+                        </div>
+                    </div>
+                    <div class="res-card-actions">
+                        <button type="button" class="btn btn-secondary view-reservation-btn" data-reservation-id="<?php echo (int)$r['id']; ?>">View</button>
+                        <?php foreach (['confirmed', 'rejected'] as $s): ?>
+                            <?php if (($r['status'] ?? 'pending') !== $s): ?>
+                                <form method="post" action="../api/update-reservation-status.php">
+                                    <input type="hidden" name="reservation_id" value="<?php echo (int)$r['id']; ?>"/>
+                                    <input type="hidden" name="slug" value="<?php echo htmlspecialchars($restaurantSlug); ?>"/>
+                                    <input type="hidden" name="status" value="<?php echo htmlspecialchars($s); ?>"/>
+                                    <button type="submit" class="btn <?php echo $s === 'confirmed' ? 'btn-primary' : 'btn-danger'; ?>">
+                                        <?php echo $s === 'confirmed' ? 'Approve' : 'Reject'; ?>
+                                    </button>
+                                </form>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </details>
+        <?php endforeach; ?>
+    </div>
     <?php endif; ?>
 </section>
 
@@ -219,6 +277,36 @@ $statusColors = ['pending' => '#f59e0b', 'confirmed' => '#10b981', 'rejected' =>
 @media (max-width: 768px) { .reservations-stats { grid-template-columns: repeat(2, 1fr) !important; } }
 .reservations-list .actions-cell { position: relative; }
 .reservations-list .actions-dropdown { z-index: 50; right: 100%; left: auto; top: 0; margin-right: 6px; min-width: 160px; }
+.reservations-list-mobile { display:none; }
+.res-card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
+.res-card + .res-card { margin-top:12px; }
+.res-card-summary { list-style:none; cursor:pointer; padding:14px 14px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.res-card-summary::-webkit-details-marker { display:none; }
+.res-card-left { min-width:0; display:flex; flex-direction:column; gap:6px; }
+.res-card-top { display:flex; gap:10px; align-items:baseline; min-width:0; }
+.res-card-id { font-weight:700; color:#111827; font-size:0.95rem; flex-shrink:0; }
+.res-card-date { color:#6b7280; font-size:0.8rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.res-card-bottom { display:flex; gap:8px; align-items:center; color:#374151; font-size:0.85rem; min-width:0; }
+.res-card-guest { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px; }
+.res-card-dot { color:#9ca3af; }
+.res-card-right { display:flex; align-items:center; gap:10px; flex-shrink:0; }
+.res-badge { padding:4px 10px; border-radius:999px; font-size:0.75rem; font-weight:700; }
+.res-card-chevron { color:#6b7280; font-size:0.9rem; transition:transform .15s ease; }
+.res-card[open] .res-card-chevron { transform:rotate(180deg); }
+.res-card-body { border-top:1px solid #f3f4f6; padding:12px 14px 14px; }
+.res-card-metrics { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+.res-metric { background:#f9fafb; border:1px solid #e5e7eb; border-radius:10px; padding:10px 10px; }
+.res-metric-label { display:block; font-size:0.7rem; text-transform:uppercase; color:#6b7280; font-weight:700; letter-spacing:.04em; margin-bottom:4px; }
+.res-metric-value { font-size:0.9rem; color:#111827; font-weight:700; }
+.res-card-actions { display:flex; gap:8px; flex-wrap:wrap; }
+.res-card-actions .btn { padding:8px 12px; border-radius:10px; font-size:0.85rem; }
+.res-card-actions form { margin:0; }
+@media (max-width: 768px) {
+    .reservations-table-desktop { display:none; }
+    .reservations-list-mobile { display:block; }
+    .reservations-list .actions-dropdown { right: 0; left: auto; top: 100%; margin-right: 0; margin-top: 6px; } /* safety if table shows */
+    .table-wrapper { overflow: visible; } /* prevent horizontal scroll wrappers */
+}
 .res-revenue-range-btn { padding: 6px 12px; border-radius: 6px; border: 1px solid #e5e7eb; background: #fff; font-size: 0.75rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
 .res-revenue-range-btn:hover { background: #f3f4f6; }
 .res-revenue-range-btn.btn-active { background: var(--primary); color: #fff; border-color: var(--primary); }
