@@ -747,9 +747,24 @@ main{
     z-index:20;
     flex-wrap:wrap;
     gap:8px;
+    align-items:center;
   }
   
-  .header > div:last-child{ margin-left:auto; }
+  /* Stack header items nicely on mobile */
+  .header > div:first-child{
+    width:100%;
+    order:1;
+  }
+
+  .header-title{
+    width:100%;
+    order:2;
+    text-align:left;
+  }
+
+  .header > div:last-child{
+    display:none;
+  }
   
   .header-title{
     font-size:1rem;

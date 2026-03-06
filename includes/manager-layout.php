@@ -820,14 +820,33 @@ main{
     padding:12px 16px;
     padding-left:52px; /* Space for hamburger */
     z-index:20;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:8px;
+  }
+
+  /* Header is 3 columns on desktop; stack cleanly on mobile */
+  .header > div:first-child{
+    display:none;
   }
   
   .header-actions{
-    margin-left:auto;
+    margin-left:0;
+    width:100%;
+    order:3;
+    justify-content:flex-start;
   }
   
   .header-title{
     font-size:1rem;
+    width:100%;
+    order:2;
+    text-align:left;
+  }
+
+  .btn-view-menu{
+    width:100%;
+    justify-content:center;
   }
   
   /* Add padding to main so content isn't hidden under fixed header */
