@@ -71,7 +71,7 @@ include __DIR__ . '/../includes/manager-layout.php';
         </form>
     </div>
 
-    <div class="table-wrapper">
+    <div class="table-wrapper reservations-table-desktop">
         <table class="orders-table" style="width:100%;border-collapse:collapse;">
             <thead>
                 <tr style="border-bottom:1px solid #e5e7eb;">
@@ -89,6 +89,10 @@ include __DIR__ . '/../includes/manager-layout.php';
             </tbody>
         </table>
     </div>
+
+    <div class="reservations-list-mobile" id="reservations-mobile-list" aria-label="All reservations (mobile)">
+        <!-- Populated by JS -->
+    </div>
 </section>
 
 <div id="reservation-modal" class="order-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;padding:24px;">
@@ -104,6 +108,36 @@ include __DIR__ . '/../includes/manager-layout.php';
 <style>
 .restaurant-reservations .actions-cell { position: relative; }
 .restaurant-reservations .actions-dropdown { z-index: 50; right: 100%; left: auto; top: 0; margin-right: 6px; min-width: 160px; }
+.reservations-list-mobile { display:none; }
+.res-card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
+.res-card + .res-card { margin-top:12px; }
+.res-card-summary { list-style:none; cursor:pointer; padding:14px 14px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.res-card-summary::-webkit-details-marker { display:none; }
+.res-card-left { min-width:0; display:flex; flex-direction:column; gap:6px; }
+.res-card-top { display:flex; gap:10px; align-items:baseline; min-width:0; }
+.res-card-id { font-weight:700; color:#111827; font-size:0.95rem; flex-shrink:0; }
+.res-card-date { color:#6b7280; font-size:0.8rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.res-card-bottom { display:flex; gap:8px; align-items:center; color:#374151; font-size:0.85rem; min-width:0; }
+.res-card-guest { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px; }
+.res-card-dot { color:#9ca3af; }
+.res-card-right { display:flex; align-items:center; gap:10px; flex-shrink:0; }
+.res-badge { padding:4px 10px; border-radius:999px; font-size:0.75rem; font-weight:700; }
+.res-card-chevron { color:#6b7280; font-size:0.9rem; transition:transform .15s ease; }
+.res-card[open] .res-card-chevron { transform:rotate(180deg); }
+.res-card-body { border-top:1px solid #f3f4f6; padding:12px 14px 14px; }
+.res-card-metrics { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+.res-metric { background:#f9fafb; border:1px solid #e5e7eb; border-radius:10px; padding:10px 10px; }
+.res-metric-label { display:block; font-size:0.7rem; text-transform:uppercase; color:#6b7280; font-weight:700; letter-spacing:.04em; margin-bottom:4px; }
+.res-metric-value { font-size:0.9rem; color:#111827; font-weight:700; }
+.res-card-actions { display:flex; gap:8px; flex-wrap:wrap; }
+.res-card-actions .btn { padding:8px 12px; border-radius:10px; font-size:0.85rem; }
+.res-card-actions form { margin:0; }
+@media (max-width: 768px) {
+    .reservations-table-desktop { display:none; }
+    .reservations-list-mobile { display:block; }
+    .restaurant-reservations .actions-dropdown { right: 0; left: auto; top: 100%; margin-right: 0; margin-top: 6px; } /* safety if table shows */
+    .table-wrapper { overflow: visible; } /* prevent horizontal scroll wrappers */
+}
 .detail-modal { display: flex; flex-direction: column; gap: 20px; }
 .detail-modal-section { padding: 16px; background: #f9fafb; border-radius: 8px; border: 1px solid #e5e7eb; }
 .detail-modal-heading { margin: 0 0 12px 0; font-size: 0.8rem; font-weight: 600; color: #374151; text-transform: uppercase; letter-spacing: 0.05em; }
@@ -148,8 +182,10 @@ include __DIR__ . '/../includes/manager-layout.php';
 
         fetch(url).then(r => r.json()).then(function(data) {
             const list = data.success && data.reservations ? data.reservations : [];
+            const mobileList = document.getElementById('reservations-mobile-list');
             if (list.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="7" style="padding:24px;text-align:center;color:#6b7280;">No reservations found.</td></tr>';
+                if (mobileList) mobileList.innerHTML = '';
                 return;
             }
             function getResNum(r) {
@@ -179,8 +215,63 @@ include __DIR__ . '/../includes/manager-layout.php';
                     '</td></tr>';
             }).join('');
             initViewHandlers();
+
+            // Mobile accordion cards
+            if (mobileList) {
+                mobileList.innerHTML = list.map(function(r) {
+                    const st = r.status || 'pending';
+                    const clr = statusColors[st] || '#6b7280';
+                    const label = (st.charAt(0).toUpperCase() + st.slice(1));
+                    const id = parseInt(r.id, 10) || 0;
+                    const resNum = getResNum(r);
+                    const dateStrFull = r.reservation_date ? new Date(r.reservation_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '-';
+                    const timeStrFull = formatTime(r.reservation_time);
+                    const guest = esc(r.guest_name || '-');
+                    const party = (parseInt(r.party_size,10)||0);
+                    const deposit = symbol + parseFloat(r.deposit_amount||0).toFixed(2) + (r.deposit_paid ? ' (Paid)' : '');
+                    const approveBtn = st !== 'confirmed'
+                        ? '<form method="post" action="../api/update-reservation-status.php"><input type="hidden" name="reservation_id" value=\"' + id + '\"><input type=\"hidden\" name=\"slug\" value=\"' + esc(slug) + '\"><input type=\"hidden\" name=\"return_to\" value=\"restaurant-reservations\"><input type=\"hidden\" name=\"status\" value=\"confirmed\"><button type=\"submit\" class=\"btn btn-primary\">Approve</button></form>'
+                        : '';
+                    const rejectBtn = st !== 'rejected'
+                        ? '<form method=\"post\" action=\"../api/update-reservation-status.php\"><input type=\"hidden\" name=\"reservation_id\" value=\"' + id + '\"><input type=\"hidden\" name=\"slug\" value=\"' + esc(slug) + '\"><input type=\"hidden\" name=\"return_to\" value=\"restaurant-reservations\"><input type=\"hidden\" name=\"status\" value=\"rejected\"><button type=\"submit\" class=\"btn btn-danger\">Reject</button></form>'
+                        : '';
+                    return '' +
+                        '<details class=\"res-card\">' +
+                        '<summary class=\"res-card-summary\">' +
+                        '<div class=\"res-card-left\">' +
+                        '<div class=\"res-card-top\">' +
+                        '<span class=\"res-card-id\">#' + esc(resNum) + '</span>' +
+                        '<span class=\"res-card-date\">' + esc(dateStrFull + ' ' + timeStrFull) + '</span>' +
+                        '</div>' +
+                        '<div class=\"res-card-bottom\">' +
+                        '<span class=\"res-card-guest\">' + guest + '</span>' +
+                        '<span class=\"res-card-dot\">•</span>' +
+                        '<span class=\"res-card-party\">' + party + ' guests</span>' +
+                        '</div>' +
+                        '</div>' +
+                        '<div class=\"res-card-right\">' +
+                        '<span class=\"res-badge\" style=\"background:' + esc(clr) + '22;color:' + esc(clr) + ';\">' + esc(label) + '</span>' +
+                        '<span class=\"res-card-chevron\" aria-hidden=\"true\">▾</span>' +
+                        '</div>' +
+                        '</summary>' +
+                        '<div class=\"res-card-body\">' +
+                        '<div class=\"res-card-metrics\">' +
+                        '<div class=\"res-metric\"><span class=\"res-metric-label\">Deposit</span><span class=\"res-metric-value\" style=\"' + (r.deposit_paid ? 'color:#10b981;' : '') + '\">' + esc(deposit) + '</span></div>' +
+                        '<div class=\"res-metric\"><span class=\"res-metric-label\">Guests</span><span class=\"res-metric-value\">' + party + '</span></div>' +
+                        '</div>' +
+                        '<div class=\"res-card-actions\">' +
+                        '<button type=\"button\" class=\"btn btn-secondary view-res-btn\" data-id=\"' + id + '\">View</button>' +
+                        approveBtn + rejectBtn +
+                        '</div>' +
+                        '</div>' +
+                        '</details>';
+                }).join('');
+                initViewHandlers();
+            }
         }).catch(function() {
             tbody.innerHTML = '<tr><td colspan="7" style="padding:24px;text-align:center;color:#ef4444;">Failed to load reservations.</td></tr>';
+            const mobileList = document.getElementById('reservations-mobile-list');
+            if (mobileList) mobileList.innerHTML = '';
         });
     }
 
