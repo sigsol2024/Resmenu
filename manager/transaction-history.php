@@ -70,18 +70,24 @@ if (isset($_GET['export'])) {
         
     } elseif ($exportType === 'pdf') {
         // PDF Export
-        $pdf = generateTransactionHistoryPDF($payments, $restaurant['name']);
-        
+        if (!function_exists('generateTransactionHistoryPDF')) {
+            $_SESSION['error'] = 'PDF export is not available on this server.';
+            header('Location: transaction-history.php');
+            exit;
+        }
+
+        $pdf = call_user_func('generateTransactionHistoryPDF', $payments, $restaurant['name']);
+
         if ($pdf) {
             header('Content-Type: application/pdf');
             header('Content-Disposition: attachment; filename="transaction-history-' . date('Y-m-d') . '.pdf"');
             echo $pdf;
             exit;
-        } else {
-            $_SESSION['error'] = 'Failed to generate PDF. Please try again.';
-            header('Location: transaction-history.php');
-            exit;
         }
+
+        $_SESSION['error'] = 'Failed to generate PDF. Please try again.';
+        header('Location: transaction-history.php');
+        exit;
     }
 }
 
@@ -251,6 +257,10 @@ include __DIR__ . '/../includes/manager-layout.php';
     font-size: 0.875rem;
 }
 
+.transactions-mobile {
+    display: none;
+}
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
     .page-header {
@@ -268,19 +278,8 @@ include __DIR__ . '/../includes/manager-layout.php';
         justify-content: center;
     }
     
-    .table-card {
-        overflow-x: auto;
-    }
-    
-    .transactions-table {
-        min-width: 800px;
-    }
-    
-    .transactions-table th,
-    .transactions-table td {
-        padding: 12px 8px;
-        font-size: 0.813rem;
-    }
+    .transactions-table-desktop { display: none; }
+    .transactions-mobile { display: block; }
 }
 </style>
 
@@ -297,12 +296,14 @@ include __DIR__ . '/../includes/manager-layout.php';
             </svg>
             Export CSV
         </a>
-        <a href="?export=pdf" class="btn-export">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-            </svg>
-            Export PDF
-        </a>
+        <?php if (function_exists('generateTransactionHistoryPDF')): ?>
+            <a href="?export=pdf" class="btn-export">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                Export PDF
+            </a>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -317,7 +318,7 @@ include __DIR__ . '/../includes/manager-layout.php';
             <p>Your payment history will appear here once you make your first payment.</p>
         </div>
     <?php else: ?>
-        <table class="transactions-table">
+        <table class="transactions-table transactions-table-desktop">
             <thead>
                 <tr>
                     <th>Date</th>
@@ -371,6 +372,55 @@ include __DIR__ . '/../includes/manager-layout.php';
                 <?php endforeach; ?>
             </tbody>
         </table>
+
+        <div class="transactions-mobile" aria-label="Transactions (mobile)">
+            <?php foreach ($payments as $payment): ?>
+                <?php
+                    $date = date('M j, Y', strtotime($payment['created_at']));
+                    $time = date('g:i A', strtotime($payment['created_at']));
+                    $paid = $payment['paid_at'] ? (date('M j, Y', strtotime($payment['paid_at'])) . ' • ' . date('g:i A', strtotime($payment['paid_at']))) : '—';
+                    $tx = $payment['transaction_reference'] ?? 'N/A';
+                    $plan = $payment['plan_name'] ?? 'N/A';
+                    $amount = formatSubscriptionPrice($payment['amount'], $payment['currency'] ?? 'NGN');
+                    $gatewaySlug = $payment['payment_gateway'] ?? 'manual';
+                    $statusSlug = $payment['status'] ?? 'pending';
+                    $gateway = ucfirst($gatewaySlug);
+                    $status = ucfirst($statusSlug);
+                ?>
+                <details class="tx-card" style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+                    <summary class="tx-summary" style="list-style:none;cursor:pointer;padding:14px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                        <div style="min-width:0;display:flex;flex-direction:column;gap:6px;">
+                            <div style="display:flex;gap:10px;align-items:baseline;min-width:0;">
+                                <span style="font-weight:700;color:#111827;font-size:0.95rem;"><?php echo htmlspecialchars($amount); ?></span>
+                                <span style="color:#6b7280;font-size:0.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><?php echo htmlspecialchars($date . ' • ' . $time); ?></span>
+                            </div>
+                            <div style="display:flex;gap:8px;align-items:center;color:#374151;font-size:0.85rem;min-width:0;">
+                                <span style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;"><?php echo htmlspecialchars($plan); ?></span>
+                                <span style="color:#9ca3af;">•</span>
+                                <span style="color:#6b7280;"><?php echo htmlspecialchars($gateway); ?></span>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+                            <span class="status-badge status-<?php echo htmlspecialchars($statusSlug); ?>"><?php echo htmlspecialchars($status); ?></span>
+                            <span aria-hidden="true" style="color:#6b7280;">▾</span>
+                        </div>
+                    </summary>
+                    <div style="border-top:1px solid #f3f4f6;padding:12px 14px 14px;">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+                            <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:10px;min-width:0;">
+                                <span style="display:block;font-size:0.7rem;text-transform:uppercase;color:#6b7280;font-weight:700;letter-spacing:.04em;margin-bottom:4px;">Transaction</span>
+                                <span style="display:block;font-size:0.85rem;font-weight:700;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><?php echo htmlspecialchars($tx); ?></span>
+                            </div>
+                            <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:10px;min-width:0;">
+                                <span style="display:block;font-size:0.7rem;text-transform:uppercase;color:#6b7280;font-weight:700;letter-spacing:.04em;margin-bottom:4px;">Paid</span>
+                                <span style="display:block;font-size:0.85rem;font-weight:700;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><?php echo htmlspecialchars($paid); ?></span>
+                            </div>
+                        </div>
+                    </div>
+                </details>
+                <div style="height:12px;"></div>
+            <?php endforeach; ?>
+        </div>
     <?php endif; ?>
 </div>
 

@@ -366,11 +366,11 @@ include __DIR__ . '/../includes/manager-layout.php';
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                         </svg>
-                        Create New Category
+                        New Category
                     </button>
                 <?php endif; ?>
             </div>
-            <div class="table-wrapper">
+            <div class="table-wrapper categories-table-desktop">
             <table class="table">
                 <thead>
                     <tr>
@@ -417,6 +417,50 @@ include __DIR__ . '/../includes/manager-layout.php';
                     <?php endif; ?>
                 </tbody>
             </table>
+            </div>
+
+            <div class="categories-mobile" aria-label="Categories (mobile)">
+                <?php if (empty($categories)): ?>
+                    <p style="text-align:center; padding: 18px; color: var(--muted);">No categories found.</p>
+                <?php else: ?>
+                    <?php foreach ($categories as $category): ?>
+                        <details class="cat-card">
+                            <summary class="cat-summary">
+                                <div class="cat-left">
+                                    <?php if ($category['image']): ?>
+                                        <img src="<?php echo UPLOAD_URL . '/categories/' . htmlspecialchars($category['image']); ?>" alt="" class="cat-thumb">
+                                    <?php else: ?>
+                                        <div class="cat-thumb cat-thumb-empty">No Image</div>
+                                    <?php endif; ?>
+                                    <div class="cat-main">
+                                        <div class="cat-name"><?php echo htmlspecialchars($category['name']); ?></div>
+                                        <div class="cat-meta">
+                                            <span>Order: <?php echo (int)$category['display_order']; ?></span>
+                                            <span class="cat-dot">•</span>
+                                            <span><?php echo htmlspecialchars($category['slug']); ?></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="cat-right">
+                                    <span class="cat-status" style="background: <?php echo $category['is_active'] ? '#d1fae5' : '#fee2e2'; ?>; color: <?php echo $category['is_active'] ? '#065f46' : '#991b1b'; ?>">
+                                        <?php echo $category['is_active'] ? 'Active' : 'Inactive'; ?>
+                                    </span>
+                                    <span class="cat-chevron" aria-hidden="true">▾</span>
+                                </div>
+                            </summary>
+                            <div class="cat-body">
+                                <?php if (!empty($category['description'])): ?>
+                                    <div class="cat-desc"><?php echo nl2br(htmlspecialchars($category['description'])); ?></div>
+                                <?php endif; ?>
+                                <div class="cat-actions">
+                                    <a class="btn btn-secondary" href="?action=edit&id=<?php echo (int)$category['id']; ?><?php echo isSuperAdmin() && isset($restaurantId) && $restaurantId ? '&restaurant_id=' . urlencode($restaurantId) : ''; ?>">Edit</a>
+                                    <a class="btn btn-secondary" href="menu-items.php?category_id=<?php echo (int)$category['id']; ?><?php echo isSuperAdmin() && isset($restaurantId) && $restaurantId ? '&restaurant_id=' . urlencode($restaurantId) : ''; ?>">Items</a>
+                                    <button type="button" class="btn btn-danger" onclick="openDeleteModal(<?php echo (int)$category['id']; ?>, '<?php echo htmlspecialchars(addslashes($category['name'])); ?>')">Delete</button>
+                                </div>
+                            </div>
+                        </details>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </div>
         </div>
     
@@ -702,6 +746,34 @@ include __DIR__ . '/../includes/manager-layout.php';
         width: 100%;
         justify-content: center;
     }
+
+    /* Categories: mobile cards instead of wide table */
+    .categories-table-desktop { display: none; }
+    .categories-mobile { display: block; }
+    .cat-card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
+    .cat-card + .cat-card { margin-top: 12px; }
+    .cat-summary { list-style:none; cursor:pointer; padding: 14px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .cat-summary::-webkit-details-marker { display:none; }
+    .cat-left { display:flex; align-items:center; gap:12px; min-width:0; }
+    .cat-thumb { width:48px; height:48px; border-radius:10px; object-fit:cover; border:1px solid #e5e7eb; flex-shrink:0; }
+    .cat-thumb-empty { display:flex; align-items:center; justify-content:center; font-size:0.65rem; color:#6b7280; background:#f3f4f6; }
+    .cat-main { min-width:0; }
+    .cat-name { font-weight:700; color:#111827; font-size:0.95rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 220px; }
+    .cat-meta { color:#6b7280; font-size:0.8rem; display:flex; gap:8px; align-items:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .cat-dot { color:#9ca3af; }
+    .cat-right { display:flex; align-items:center; gap:10px; flex-shrink:0; }
+    .cat-status { padding:4px 10px; border-radius:999px; font-size:0.7rem; font-weight:700; }
+    .cat-chevron { color:#6b7280; transition: transform .15s ease; }
+    .cat-card[open] .cat-chevron { transform: rotate(180deg); }
+    .cat-body { border-top:1px solid #f3f4f6; padding: 12px 14px 14px; }
+    .cat-desc { color:#374151; font-size:0.85rem; line-height:1.5; margin-bottom: 12px; }
+    .cat-actions { display:flex; gap:10px; flex-wrap:wrap; }
+    .cat-actions .btn { flex:1; justify-content:center; padding:10px 12px; }
+    .table-wrapper { overflow: visible; }
+}
+
+@media (min-width: 769px) {
+    .categories-mobile { display: none; }
 }
 </style>
     
