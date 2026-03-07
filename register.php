@@ -93,10 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $result = createRestaurantWithManager(
                 $pdo,
                 $_POST,
-                [
-                    'logo' => $_FILES['logo'] ?? null,
-                    'hero_image' => $_FILES['hero_image'] ?? null,
-                ],
+                [],
                 [
                     'default_template_id' => 1,
                     'trial_plan_slug' => 'professional',
@@ -171,7 +168,7 @@ function oldValue($key, $default = '') {
         <div class="absolute inset-0 z-10 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
         <?php
 $assetBase = defined('SITE_URL') ? rtrim(SITE_URL, '/') : '';
-$heroImg = $assetBase . '/assets/images/woman-working-as-professional-chef.jpeg';
+$heroImg = $assetBase . '/assets/images/woman-working-as-professional-chef.jpg';
 ?>
         <img class="absolute inset-0 h-full w-full object-cover object-center" alt="Professional chef at work" src="<?php echo htmlspecialchars($heroImg); ?>"/>
         <div class="relative z-20 flex h-full w-full flex-col justify-between p-12 text-white">
@@ -240,7 +237,7 @@ $heroImg = $assetBase . '/assets/images/woman-working-as-professional-chef.jpeg'
                 <p id="progressText" class="mt-2 text-xs text-slate-500">Step 1 of 3 - Restaurant Profile</p>
             </div>
 
-            <form id="registerForm" class="space-y-5" method="post" enctype="multipart/form-data">
+            <form id="registerForm" class="space-y-5" method="post">
                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                 <input type="hidden" name="plan" value="<?php echo htmlspecialchars($selectedPlan); ?>">
                 <input type="hidden" name="cycle" value="<?php echo htmlspecialchars($selectedCycle); ?>">
@@ -330,17 +327,6 @@ $heroImg = $assetBase . '/assets/images/woman-working-as-professional-chef.jpeg'
                         <div>
                             <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="google_rating">Rating (0-5)</label>
                             <input class="block w-full rounded-lg border-slate-200 bg-white px-4 py-3 text-slate-900 focus:border-primary focus:ring-primary sm:text-sm shadow-sm" id="google_rating" name="google_rating" step="0.1" min="0" max="5" type="number" value="<?php echo oldValue('google_rating', '4.5'); ?>"/>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="logo">Logo</label>
-                            <input class="block w-full rounded-lg border-slate-200 bg-white px-3 py-2.5 text-slate-900 focus:border-primary focus:ring-primary sm:text-sm shadow-sm" id="logo" name="logo" accept="image/*" type="file"/>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="hero_image">Hero Image</label>
-                            <input class="block w-full rounded-lg border-slate-200 bg-white px-3 py-2.5 text-slate-900 focus:border-primary focus:ring-primary sm:text-sm shadow-sm" id="hero_image" name="hero_image" accept="image/*" type="file"/>
-                            <p class="mt-1 text-xs text-slate-500">Large image displayed on the right side of the hero section.</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-3">
