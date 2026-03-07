@@ -137,15 +137,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     colors: {
                         "primary": "#f97415",
                         "background-light": "#f8f7f5",
-                        "background-dark": "#23170f",
+                        "background-dark": "#111827",
                     },
                     fontFamily: {
                         "display": ["Inter", "sans-serif"],
-                        "heading": ["Poppins", "sans-serif"]
+                        "poppins": ["Poppins", "sans-serif"]
                     },
                     borderRadius: {
                         "DEFAULT": "0.5rem",
-                        "lg": "0.75rem",
+                        "lg": "1rem",
                         "xl": "1.5rem",
                         "full": "9999px"
                     },
@@ -154,61 +154,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     </script>
 </head>
-<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen lg:h-screen overflow-x-hidden lg:overflow-hidden p-4">
-<div class="mx-auto max-w-[1000px] w-full bg-white dark:bg-slate-900 rounded-xl shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[600px] lg:h-[calc(100vh-2rem)] lg:min-h-0">
-    <div class="hidden md:flex md:w-1/2 flex-shrink-0 bg-primary relative items-center justify-center p-8 overflow-hidden">
-        <div class="relative w-full max-w-md bg-slate-800 rounded-[2rem] p-12 lg:p-16 flex flex-col gap-8 overflow-hidden">
-            <a href="<?php echo htmlspecialchars($marketingHomeUrl); ?>" class="inline-flex items-center gap-3 hover:opacity-90 transition-opacity text-white">
+<body class="bg-background-light dark:bg-background-dark font-display antialiased min-h-screen lg:h-screen overflow-x-hidden lg:overflow-hidden">
+<div class="flex min-h-screen lg:h-screen flex-col lg:flex-row">
+    <div class="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-primary">
+        <div class="absolute inset-0 z-10 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+        <div class="relative z-20 flex h-full w-full flex-col justify-between p-12 text-white">
+            <a href="<?php echo htmlspecialchars($marketingHomeUrl); ?>" class="inline-flex items-center gap-3 hover:opacity-90 transition-opacity">
                 <?php if ($siteLogoUrl !== ''): ?>
-                    <img src="<?php echo htmlspecialchars($siteLogoUrl); ?>" alt="<?php echo $siteName; ?>" class="h-10 w-auto rounded-lg bg-white p-1.5">
+                    <img src="<?php echo htmlspecialchars($siteLogoUrl); ?>" alt="<?php echo $siteName; ?>" class="h-12 w-auto rounded-lg bg-white p-1.5">
                 <?php else: ?>
-                    <div class="bg-white p-2 rounded-lg">
-                        <span class="material-symbols-outlined text-primary text-3xl">restaurant_menu</span>
+                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20">
+                        <span class="material-symbols-outlined text-white">restaurant_menu</span>
                     </div>
-                    <span class="font-heading text-xl font-bold tracking-tight"><?php echo $siteName; ?></span>
+                    <span class="text-2xl font-bold tracking-tight font-poppins text-white"><?php echo $siteName; ?></span>
                 <?php endif; ?>
             </a>
-            <h2 class="text-2xl lg:text-3xl font-heading font-bold leading-tight text-white">Why Restaurants Choose Our Platform</h2>
-            <ul class="space-y-4 text-white/95 text-base lg:text-lg">
-                <li class="flex items-start gap-3">
-                    <span class="flex-shrink-0 mt-0.5 text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></span>
-                    <span>Reduce menu printing costs by 90%</span>
-                </li>
-                <li class="flex items-start gap-3">
-                    <span class="flex-shrink-0 mt-0.5 text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></span>
-                    <span>Improve customer dining experience</span>
-                </li>
-                <li class="flex items-start gap-3">
-                    <span class="flex-shrink-0 mt-0.5 text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></span>
-                    <span>Faster menu updates and seasonal changes</span>
-                </li>
-                <li class="flex items-start gap-3">
-                    <span class="flex-shrink-0 mt-0.5 text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></span>
-                    <span>Eco-friendly digital-first app</span>
-                </li>
-            </ul>
+            <div class="max-w-md">
+                <h1 class="text-5xl font-extrabold leading-tight mb-6 font-poppins">Elevate Your Dining Experience</h1>
+                <p class="text-xl text-slate-200">Join thousands of restaurants managing their digital menus with ease and style.</p>
+                <div class="mt-8">
+                    <div class="flex -space-x-2">
+                        <?php foreach ($showcaseRestaurantLogos as $logo): ?>
+                        <div class="h-10 w-10 rounded-full ring-2 ring-white/50 bg-white/80 overflow-hidden">
+                            <img src="<?php echo htmlspecialchars($logo); ?>" alt="Restaurant logo" class="h-full w-full object-cover">
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <p class="mt-3 text-sm font-medium">Trusted by industry leaders</p>
+                </div>
+            </div>
+            <div class="text-sm text-white/80">
+                © <?php echo date('Y'); ?> <?php echo $siteName; ?>. All rights reserved.
+            </div>
         </div>
     </div>
 
-    <div class="w-full md:w-1/2 flex flex-col justify-center lg:justify-start min-h-0 lg:overflow-y-auto p-8 lg:p-10 xl:p-12">
-        <div class="mb-10 text-center md:text-left">
-            <div class="mb-6 flex items-center justify-between gap-4">
-                <a href="<?php echo htmlspecialchars($marketingHomeUrl); ?>" class="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-primary transition-colors">
-                    <span class="material-symbols-outlined text-base">arrow_back</span>
-                    Back to Home
-                </a>
-                <a href="<?php echo htmlspecialchars($marketingHomeUrl); ?>" class="inline-flex items-center gap-2 hover:opacity-90 transition-opacity">
-                    <?php if ($siteLogoUrl !== ''): ?>
-                        <img src="<?php echo htmlspecialchars($siteLogoUrl); ?>" alt="<?php echo $siteName; ?>" class="h-10 w-auto">
-                    <?php else: ?>
-                        <span class="material-symbols-outlined text-primary text-3xl">restaurant_menu</span>
-                        <span class="font-heading text-lg font-bold text-slate-900 dark:text-white"><?php echo $siteName; ?></span>
-                    <?php endif; ?>
-                </a>
-            </div>
-            <h2 class="text-3xl font-heading font-bold text-slate-900 dark:text-white mb-2">Welcome Back</h2>
-            <p class="text-slate-500 dark:text-slate-400">Log in to manage your digital menu.</p>
+    <div class="flex flex-1 flex-col justify-center lg:justify-start px-6 py-8 lg:px-16 lg:py-8 xl:px-20 bg-background-light lg:overflow-y-auto">
+        <div class="mb-6 flex items-center justify-between gap-4">
+            <a href="<?php echo htmlspecialchars($marketingHomeUrl); ?>" class="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-primary transition-colors">
+                <span class="material-symbols-outlined text-base">arrow_back</span>
+                Back to Home
+            </a>
+            <a href="<?php echo htmlspecialchars($marketingHomeUrl); ?>" class="inline-flex items-center gap-2 hover:opacity-90 transition-opacity">
+                <?php if ($siteLogoUrl !== ''): ?>
+                    <img src="<?php echo htmlspecialchars($siteLogoUrl); ?>" alt="<?php echo $siteName; ?>" class="h-10 w-auto">
+                <?php else: ?>
+                    <span class="material-symbols-outlined text-primary text-3xl">restaurant_menu</span>
+                    <span class="text-lg font-bold font-poppins text-slate-900"><?php echo $siteName; ?></span>
+                <?php endif; ?>
+            </a>
         </div>
+
+        <div class="mx-auto w-full max-w-md">
+            <div class="mb-6">
+                <h2 class="text-3xl font-extrabold tracking-tight text-slate-900 font-poppins">Welcome Back</h2>
+                <p class="mt-2 text-slate-500">Log in to manage your digital menu.</p>
+            </div>
 
         <form class="space-y-5" method="POST" action="">
             <input type="hidden" name="plan" value="<?php echo htmlspecialchars($selectedPlan); ?>">
@@ -256,11 +257,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </button>
         </form>
 
-        <p class="mt-8 text-center text-sm text-slate-600 dark:text-slate-400">
+        <p class="mt-8 text-center text-sm text-slate-600">
             Don't have an account?
             <a class="font-bold text-primary hover:underline" href="<?php echo htmlspecialchars($registerLink); ?>">Sign Up</a>
         </p>
-    </div>
+        </div>
 </div>
 
 <script>

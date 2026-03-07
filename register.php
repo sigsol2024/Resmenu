@@ -166,7 +166,10 @@ function oldValue($key, $default = '') {
 <div class="flex min-h-screen lg:h-screen flex-col lg:flex-row">
     <div class="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-primary/10">
         <div class="absolute inset-0 z-10 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
-        <img class="absolute inset-0 h-full w-full object-cover object-center" alt="Professional chef at work" src="/assets/woman-working-as-professional-chef.jpg"/>
+        <?php
+$heroImg = (is_file(__DIR__ . '/assets/woman-working-as-professional-chef.jpg')) ? 'assets/woman-working-as-professional-chef.jpg' : 'assets/woman-working-as-professional-chef.jpeg';
+?>
+        <img class="absolute inset-0 h-full w-full object-cover object-center" alt="Professional chef at work" src="<?php echo htmlspecialchars($heroImg); ?>"/>
         <div class="relative z-20 flex h-full w-full flex-col justify-between p-12 text-white">
             <a href="<?php echo htmlspecialchars($marketingHomeUrl); ?>" class="inline-flex items-center gap-3 hover:opacity-90 transition-opacity">
                 <?php if ($siteLogoUrl !== ''): ?>
