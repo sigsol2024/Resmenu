@@ -4,6 +4,25 @@
  * Creates restaurant + manager + trial subscription.
  */
 
+// #region agent log
+function __dbg_reg_log($hypothesisId, $message, array $data = []) {
+    try {
+        $payload = [
+            'sessionId' => 'fef746',
+            'runId' => 'pre-fix',
+            'hypothesisId' => $hypothesisId,
+            'location' => 'Resmenu/register.php',
+            'message' => $message,
+            'data' => $data,
+            'timestamp' => (int)floor(microtime(true) * 1000),
+        ];
+        @file_put_contents(__DIR__ . '/../debug-fef746.log', json_encode($payload, JSON_UNESCAPED_SLASHES) . "\n", FILE_APPEND);
+    } catch (Throwable $e) {
+        // best-effort logging only
+    }
+}
+// #endregion
+
 if (!defined('SITE_URL')) {
     require_once __DIR__ . '/config/config.php';
 }
@@ -81,6 +100,13 @@ $showcaseRestaurantLogos = [
     'https://our-menu.online/uploads/logos/69a76f2ad31b1.png',
 ];
 $error = '';
+
+__dbg_reg_log('H1', 'request-context', [
+    'http_host' => (string)($_SERVER['HTTP_HOST'] ?? ''),
+    'script_name' => (string)($_SERVER['SCRIPT_NAME'] ?? ''),
+    'request_uri' => (string)($_SERVER['REQUEST_URI'] ?? ''),
+    'site_url' => defined('SITE_URL') ? (string)SITE_URL : '',
+]);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!validateCSRFToken($_POST['csrf_token'] ?? '')) {
@@ -169,6 +195,13 @@ function oldValue($key, $default = '') {
         <?php
 $assetBase = defined('SITE_URL') ? rtrim(SITE_URL, '/') : '';
 $heroImg = $assetBase . '/assets/images/woman_work.jpg';
+__dbg_reg_log('H2', 'hero-image-computed', [
+    'asset_base' => $assetBase,
+    'hero_img' => $heroImg,
+    'doc_root' => (string)($_SERVER['DOCUMENT_ROOT'] ?? ''),
+    'expected_local_path' => (string)(rtrim((string)($_SERVER['DOCUMENT_ROOT'] ?? ''), '\\/') . '/assets/images/woman_work.jpg'),
+    'exists_in_docroot' => (bool)@is_file(rtrim((string)($_SERVER['DOCUMENT_ROOT'] ?? ''), '\\/') . '/assets/images/woman_work.jpg'),
+]);
 ?>
         <img class="absolute inset-0 h-full w-full object-cover object-center" alt="Professional chef at work" src="<?php echo htmlspecialchars($heroImg); ?>"/>
         <div class="relative z-20 flex h-full w-full flex-col justify-between p-12 text-white">
