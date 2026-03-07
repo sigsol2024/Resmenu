@@ -96,27 +96,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <input type="hidden" name="token" value="<?php echo htmlspecialchars($token); ?>">
                 <div>
                     <label for="password" class="block text-sm font-semibold text-slate-700 mb-2">New Password</label>
-                    <input
-                        id="password"
-                        name="password"
-                        type="password"
-                        minlength="<?php echo (int)PASSWORD_MIN_LENGTH; ?>"
-                        class="block w-full rounded-lg border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-primary focus:ring-primary"
-                        placeholder="Enter new password"
-                        required
-                    />
+                    <div class="relative">
+                        <input
+                            id="password"
+                            name="password"
+                            type="password"
+                            minlength="<?php echo (int)PASSWORD_MIN_LENGTH; ?>"
+                            class="block w-full rounded-lg border-slate-200 bg-slate-50 pl-4 pr-12 py-3 text-slate-900 focus:border-primary focus:ring-primary"
+                            placeholder="Enter new password"
+                            required
+                        />
+                        <button type="button" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-primary transition-colors" aria-label="Toggle password visibility" id="togglePassword">
+                            <span class="material-symbols-outlined text-xl" id="togglePasswordIcon">visibility</span>
+                        </button>
+                    </div>
                 </div>
                 <div>
                     <label for="confirm_password" class="block text-sm font-semibold text-slate-700 mb-2">Confirm New Password</label>
-                    <input
-                        id="confirm_password"
-                        name="confirm_password"
-                        type="password"
-                        minlength="<?php echo (int)PASSWORD_MIN_LENGTH; ?>"
-                        class="block w-full rounded-lg border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-primary focus:ring-primary"
-                        placeholder="Confirm new password"
-                        required
-                    />
+                    <div class="relative">
+                        <input
+                            id="confirm_password"
+                            name="confirm_password"
+                            type="password"
+                            minlength="<?php echo (int)PASSWORD_MIN_LENGTH; ?>"
+                            class="block w-full rounded-lg border-slate-200 bg-slate-50 pl-4 pr-12 py-3 text-slate-900 focus:border-primary focus:ring-primary"
+                            placeholder="Confirm new password"
+                            required
+                        />
+                        <button type="button" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-primary transition-colors" aria-label="Toggle password visibility" id="toggleConfirmPassword">
+                            <span class="material-symbols-outlined text-xl" id="toggleConfirmPasswordIcon">visibility</span>
+                        </button>
+                    </div>
                 </div>
                 <button type="submit" class="w-full rounded-lg bg-primary px-4 py-3 font-semibold text-white hover:bg-primary/90 transition-colors">
                     Update Password
@@ -124,5 +134,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </form>
         <?php endif; ?>
     </div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function setupToggle(inputId, btnId, iconId) {
+        var input = document.getElementById(inputId);
+        var btn = document.getElementById(btnId);
+        var icon = document.getElementById(iconId);
+        if (input && btn && icon) {
+            btn.addEventListener('click', function() {
+                var isPassword = input.type === 'password';
+                input.type = isPassword ? 'text' : 'password';
+                icon.textContent = isPassword ? 'visibility_off' : 'visibility';
+            });
+        }
+    }
+    setupToggle('password', 'togglePassword', 'togglePasswordIcon');
+    setupToggle('confirm_password', 'toggleConfirmPassword', 'toggleConfirmPasswordIcon');
+});
+</script>
 </body>
 </html>

@@ -167,10 +167,9 @@ function oldValue($key, $default = '') {
     <div class="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-primary/10">
         <div class="absolute inset-0 z-10 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
         <?php
-$heroImgDir = __DIR__ . '/assets/images';
-$heroImgName = 'woman-working-as-professional-chef';
-$heroImgExt = (is_file($heroImgDir . '/' . $heroImgName . '.jpg')) ? 'jpg' : 'jpeg';
-$heroImg = 'assets/images/' . $heroImgName . '.' . $heroImgExt;
+$heroImg = (is_file(__DIR__ . '/assets/images/woman-working-as-professional-chef.jpeg'))
+    ? 'assets/images/woman-working-as-professional-chef.jpeg'
+    : 'https://resmenu.net/assets/images/woman-working-as-professional-chef.jpeg';
 ?>
         <img class="absolute inset-0 h-full w-full object-cover object-center" alt="Professional chef at work" src="<?php echo htmlspecialchars($heroImg); ?>"/>
         <div class="relative z-20 flex h-full w-full flex-col justify-between p-12 text-white">
@@ -245,25 +244,9 @@ $heroImg = 'assets/images/' . $heroImgName . '.' . $heroImgExt;
                 <input type="hidden" name="cycle" value="<?php echo htmlspecialchars($selectedCycle); ?>">
                 <input type="hidden" name="next" value="<?php echo htmlspecialchars($nextPath); ?>">
 
-                <div class="space-y-5 hidden" data-step="2">
-                    <h3 class="text-lg font-bold text-slate-900">Manager Account</h3>
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="manager_email">Manager Email *</label>
-                        <input class="block w-full rounded-lg border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-primary focus:ring-primary sm:text-sm shadow-sm" id="manager_email" name="manager_email" placeholder="manager@restaurant.com" type="email" value="<?php echo oldValue('manager_email'); ?>" required/>
-                        <p class="mt-1 text-xs text-slate-500">This email will be used for manager login.</p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="manager_password">Manager Password *</label>
-                        <input class="block w-full rounded-lg border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-primary focus:ring-primary sm:text-sm shadow-sm" id="manager_password" name="manager_password" placeholder="Enter password" type="password" minlength="8" required/>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="manager_password_confirm">Confirm Manager Password *</label>
-                        <input class="block w-full rounded-lg border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-primary focus:ring-primary sm:text-sm shadow-sm" id="manager_password_confirm" name="manager_password_confirm" placeholder="Confirm password" type="password" minlength="8" required/>
-                    </div>
-                </div>
-
+                <!-- Step 1: Restaurant details (same order as admin) -->
                 <div class="space-y-5" data-step="1">
-                    <h3 class="text-lg font-bold text-slate-900">Restaurant Profile</h3>
+                    <h3 class="text-lg font-bold text-slate-900">Restaurant Details</h3>
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="name">Restaurant Name *</label>
                         <input class="block w-full rounded-lg border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-primary focus:ring-primary sm:text-sm shadow-sm" id="name" name="name" placeholder="The Tasty Bistro" type="text" value="<?php echo oldValue('name'); ?>" required/>
@@ -289,6 +272,34 @@ $heroImg = 'assets/images/' . $heroImgName . '.' . $heroImgExt;
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="address">Address</label>
                         <textarea class="block w-full rounded-lg border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-primary focus:ring-primary sm:text-sm shadow-sm" id="address" name="address" rows="2"><?php echo oldValue('address'); ?></textarea>
+                    </div>
+                </div>
+
+                <!-- Step 2: Manager account -->
+                <div class="space-y-5 hidden" data-step="2">
+                    <h3 class="text-lg font-bold text-slate-900">Manager Account</h3>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="manager_email">Manager Email *</label>
+                        <input class="block w-full rounded-lg border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-primary focus:ring-primary sm:text-sm shadow-sm" id="manager_email" name="manager_email" placeholder="manager@restaurant.com" type="email" value="<?php echo oldValue('manager_email'); ?>" required/>
+                        <p class="mt-1 text-xs text-slate-500">This email will be used for manager login.</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="manager_password">Manager Password *</label>
+                        <div class="relative">
+                            <input class="block w-full rounded-lg border-slate-200 bg-white px-4 py-3 pr-12 text-slate-900 placeholder:text-slate-400 focus:border-primary focus:ring-primary sm:text-sm shadow-sm" id="manager_password" name="manager_password" placeholder="Enter password" type="password" minlength="8" required/>
+                            <button type="button" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-primary transition-colors" aria-label="Toggle password visibility" data-password-toggle="manager_password">
+                                <span class="material-symbols-outlined text-xl">visibility</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="manager_password_confirm">Confirm Manager Password *</label>
+                        <div class="relative">
+                            <input class="block w-full rounded-lg border-slate-200 bg-white px-4 py-3 pr-12 text-slate-900 placeholder:text-slate-400 focus:border-primary focus:ring-primary sm:text-sm shadow-sm" id="manager_password_confirm" name="manager_password_confirm" placeholder="Confirm password" type="password" minlength="8" required/>
+                            <button type="button" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-primary transition-colors" aria-label="Toggle password visibility" data-password-toggle="manager_password_confirm">
+                                <span class="material-symbols-outlined text-xl">visibility</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -376,7 +387,7 @@ $heroImg = 'assets/images/' . $heroImgName . '.' . $heroImgExt;
     let currentStep = 1;
 
     const labels = {
-        1: 'Step 1 of 3 - Restaurant Profile',
+        1: 'Step 1 of 3 - Restaurant Details',
         2: 'Step 2 of 3 - Manager Account',
         3: 'Step 3 of 3 - Social, Ratings, and Media'
     };
@@ -437,6 +448,19 @@ $heroImg = 'assets/images/' . $heroImgName . '.' . $heroImgExt;
                 .replace(/^-+|-+$/g, '');
         });
     }
+
+    document.querySelectorAll('[data-password-toggle]').forEach(function(btn) {
+        var id = btn.getAttribute('data-password-toggle');
+        var input = document.getElementById(id);
+        var icon = btn.querySelector('.material-symbols-outlined');
+        if (input && icon) {
+            btn.addEventListener('click', function() {
+                var isPassword = input.type === 'password';
+                input.type = isPassword ? 'text' : 'password';
+                icon.textContent = isPassword ? 'visibility_off' : 'visibility';
+            });
+        }
+    });
 
     updateStep();
 })();
