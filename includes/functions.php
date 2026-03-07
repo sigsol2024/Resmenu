@@ -202,6 +202,9 @@ function createRestaurantWithManager(PDO $pdo, array $input, array $files = [], 
     if ($email !== '' && !isValidEmail($email)) {
         return ['success' => false, 'message' => 'Invalid restaurant email address.', 'restaurant_id' => null, 'manager_id' => null, 'slug' => null];
     }
+    if ($phone !== '' && !preg_match('/^[0-9]{7,15}$/', $phone)) {
+        return ['success' => false, 'message' => 'Phone number must be 7-15 digits (numbers only).', 'restaurant_id' => null, 'manager_id' => null, 'slug' => null];
+    }
     foreach (['whatsapp_link' => $whatsappLink, 'instagram_url' => $instagramUrl, 'facebook_url' => $facebookUrl, 'twitter_url' => $twitterUrl] as $label => $url) {
         if ($url !== '' && filter_var($url, FILTER_VALIDATE_URL) === false) {
             return ['success' => false, 'message' => "Invalid URL in {$label}.", 'restaurant_id' => null, 'manager_id' => null, 'slug' => null];

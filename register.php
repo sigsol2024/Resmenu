@@ -4,30 +4,12 @@
  * Creates restaurant + manager + trial subscription.
  */
 
-// #region agent log
-function __dbg_reg_log($hypothesisId, $message, array $data = []) {
-    try {
-        $payload = [
-            'sessionId' => 'fef746',
-            'runId' => 'pre-fix',
-            'hypothesisId' => $hypothesisId,
-            'location' => 'Resmenu/register.php',
-            'message' => $message,
-            'data' => $data,
-            'timestamp' => (int)floor(microtime(true) * 1000),
-        ];
-        @file_put_contents(__DIR__ . '/../debug-fef746.log', json_encode($payload, JSON_UNESCAPED_SLASHES) . "\n", FILE_APPEND);
-    } catch (Throwable $e) {
-        // best-effort logging only
-    }
-}
-// #endregion
-
 if (!defined('SITE_URL')) {
     require_once __DIR__ . '/config/config.php';
 }
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/functions.php';
+require_once __DIR__ . '/includes/mail.php';
 
 function getSafeNextPath($rawNext) {
     $next = trim((string)$rawNext);
@@ -100,51 +82,129 @@ $showcaseRestaurantLogos = [
     'https://our-menu.online/uploads/logos/69a76f2ad31b1.png',
 ];
 $error = '';
+$info = '';
 
-__dbg_reg_log('H1', 'request-context', [
-    'http_host' => (string)($_SERVER['HTTP_HOST'] ?? ''),
-    'script_name' => (string)($_SERVER['SCRIPT_NAME'] ?? ''),
-    'request_uri' => (string)($_SERVER['REQUEST_URI'] ?? ''),
-    'site_url' => defined('SITE_URL') ? (string)SITE_URL : '',
-]);
+function maskEmailForDisplay($email) {
+    $email = trim((string)$email);
+    if ($email === '' || strpos($email, '@') === false) return $email;
+    [$local, $domain] = explode('@', $email, 2);
+    $local = (string)$local;
+    $domain = (string)$domain;
+    if (strlen($local) <= 2) {
+        $maskedLocal = substr($local, 0, 1) . '*';
+    } else {
+        $maskedLocal = substr($local, 0, 1) . str_repeat('*', max(1, strlen($local) - 2)) . substr($local, -1);
+    }
+    return $maskedLocal . '@' . $domain;
+}
+
+function sendRegistrationOtpEmail($toEmail, $siteName, $otpCode, $validMinutes = 10) {
+    $subject = 'Your ' . $siteName . ' verification code';
+    $html = '<div style="font-family:Inter,Arial,sans-serif;line-height:1.5;color:#111827;">'
+        . '<h2 style="margin:0 0 12px;">Verify your email</h2>'
+        . '<p style="margin:0 0 16px;">Use this code to complete your registration. It expires in ' . (int)$validMinutes . ' minutes.</p>'
+        . '<div style="font-size:28px;letter-spacing:6px;font-weight:800;background:#f3f4f6;padding:14px 16px;border-radius:12px;display:inline-block;">'
+        . htmlspecialchars($otpCode, ENT_QUOTES, 'UTF-8')
+        . '</div>'
+        . '<p style="margin:16px 0 0;color:#6b7280;font-size:12px;">If you didn’t request this, you can ignore this email.</p>'
+        . '</div>';
+    return sendEmail($toEmail, '', $subject, $html);
+}
+
+$otpSessionKey = 'registration_email_otp';
+$pendingSessionKey = 'registration_pending_payload';
+$otpActive = is_array($_SESSION[$otpSessionKey] ?? null) && is_array($_SESSION[$pendingSessionKey] ?? null);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!validateCSRFToken($_POST['csrf_token'] ?? '')) {
         $error = 'Invalid security token. Please refresh and try again.';
     } else {
-        $pdo = getDBConnection();
-        if (!$pdo) {
-            $error = 'Database connection failed. Please try again.';
-        } else {
-            $result = createRestaurantWithManager(
-                $pdo,
-                $_POST,
-                [],
-                [
-                    'default_template_id' => 1,
-                    'trial_plan_slug' => 'professional',
-                    'trial_days' => 7,
-                ]
-            );
+        $action = (string)($_POST['registration_action'] ?? 'start');
 
-            if ($result['success']) {
-                $stmt = $pdo->prepare("SELECT id, username, restaurant_id FROM managers WHERE id = ? LIMIT 1");
-                $stmt->execute([$result['manager_id']]);
-                $manager = $stmt->fetch(PDO::FETCH_ASSOC);
-
-                if ($manager) {
-                    $_SESSION['user_id'] = (int)$manager['id'];
-                    $_SESSION['user_role'] = 'manager';
-                    $_SESSION['username'] = $manager['username'];
-                    $_SESSION['restaurant_id'] = (int)$manager['restaurant_id'];
-                    $_SESSION['created'] = time();
-                    header('Location: ' . $nextPath);
-                    exit;
-                }
-
-                $error = 'Account was created, but sign-in failed. Please sign in manually.';
+        // Verify OTP step
+        if ($action === 'verify_otp') {
+            if (!$otpActive) {
+                $error = 'Verification session expired. Please start registration again.';
             } else {
-                $error = $result['message'];
+                $otp = $_SESSION[$otpSessionKey];
+                $expiresAt = (int)($otp['expires_at'] ?? 0);
+                if ($expiresAt > 0 && time() > $expiresAt) {
+                    unset($_SESSION[$otpSessionKey], $_SESSION[$pendingSessionKey]);
+                    $error = 'Verification code expired. Please request a new code.';
+                } else {
+                    $code = preg_replace('/\D+/', '', (string)($_POST['otp_code'] ?? ''));
+                    if (strlen($code) !== 6) {
+                        $error = 'Please enter the 6-digit code.';
+                    } elseif (!hash_equals((string)($otp['hash'] ?? ''), hash('sha256', $code))) {
+                        $error = 'Invalid verification code.';
+                    } else {
+                        $pdo = getDBConnection();
+                        if (!$pdo) {
+                            $error = 'Database connection failed. Please try again.';
+                        } else {
+                            $payload = $_SESSION[$pendingSessionKey];
+                            $result = createRestaurantWithManager(
+                                $pdo,
+                                $payload,
+                                [],
+                                [
+                                    'default_template_id' => 1,
+                                    'trial_plan_slug' => 'professional',
+                                    'trial_days' => 7,
+                                ]
+                            );
+
+                            if ($result['success']) {
+                                unset($_SESSION[$otpSessionKey], $_SESSION[$pendingSessionKey]);
+                                $stmt = $pdo->prepare("SELECT id, username, restaurant_id FROM managers WHERE id = ? LIMIT 1");
+                                $stmt->execute([$result['manager_id']]);
+                                $manager = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                                if ($manager) {
+                                    $_SESSION['user_id'] = (int)$manager['id'];
+                                    $_SESSION['user_role'] = 'manager';
+                                    $_SESSION['username'] = $manager['username'];
+                                    $_SESSION['restaurant_id'] = (int)$manager['restaurant_id'];
+                                    $_SESSION['created'] = time();
+                                    header('Location: ' . $nextPath);
+                                    exit;
+                                }
+
+                                $error = 'Account was created, but sign-in failed. Please sign in manually.';
+                            } else {
+                                $error = $result['message'];
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            // Start or resend OTP step
+            $payload = $_POST;
+            $managerEmail = trim((string)($payload['manager_email'] ?? ''));
+            if ($managerEmail === '' || !filter_var($managerEmail, FILTER_VALIDATE_EMAIL)) {
+                $error = 'Please enter a valid manager email address.';
+            } else {
+                $lastSentAt = (int)(($_SESSION[$otpSessionKey]['sent_at'] ?? 0));
+                if ($action === 'resend_otp' && $lastSentAt && (time() - $lastSentAt) < 30) {
+                    $error = 'Please wait a few seconds before requesting a new code.';
+                } else {
+                    $otpCode = (string)random_int(100000, 999999);
+                    $_SESSION[$otpSessionKey] = [
+                        'hash' => hash('sha256', $otpCode),
+                        'sent_at' => time(),
+                        'expires_at' => time() + (10 * 60),
+                        'email' => $managerEmail,
+                    ];
+                    $_SESSION[$pendingSessionKey] = $payload;
+                    $otpActive = true;
+
+                    if (sendRegistrationOtpEmail($managerEmail, $siteNameRaw, $otpCode, 10)) {
+                        $info = 'We sent a 6-digit verification code to ' . maskEmailForDisplay($managerEmail) . '.';
+                    } else {
+                        $error = 'We could not send the verification code. Please try again.';
+                    }
+                }
             }
         }
     }
@@ -195,13 +255,6 @@ function oldValue($key, $default = '') {
         <?php
 $assetBase = defined('SITE_URL') ? rtrim(SITE_URL, '/') : '';
 $heroImg = $assetBase . '/assets/images/woman_work.jpg';
-__dbg_reg_log('H2', 'hero-image-computed', [
-    'asset_base' => $assetBase,
-    'hero_img' => $heroImg,
-    'doc_root' => (string)($_SERVER['DOCUMENT_ROOT'] ?? ''),
-    'expected_local_path' => (string)(rtrim((string)($_SERVER['DOCUMENT_ROOT'] ?? ''), '\\/') . '/assets/images/woman_work.jpg'),
-    'exists_in_docroot' => (bool)@is_file(rtrim((string)($_SERVER['DOCUMENT_ROOT'] ?? ''), '\\/') . '/assets/images/woman_work.jpg'),
-]);
 ?>
         <img class="absolute inset-0 h-full w-full object-cover object-center" alt="Professional chef at work" src="<?php echo htmlspecialchars($heroImg); ?>"/>
         <div class="relative z-20 flex h-full w-full flex-col justify-between p-12 text-white">
@@ -263,18 +316,58 @@ __dbg_reg_log('H2', 'hero-image-computed', [
                 </div>
             <?php endif; ?>
 
-            <div class="mb-6">
-                <div class="h-2 w-full rounded-full bg-slate-200 overflow-hidden">
-                    <div id="progressFill" class="h-full bg-primary transition-all duration-300" style="width: 33%"></div>
+            <?php if ($info): ?>
+                <div class="mb-5 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                    <?php echo htmlspecialchars($info); ?>
                 </div>
-                <p id="progressText" class="mt-2 text-xs text-slate-500">Step 1 of 3 - Restaurant Profile</p>
-            </div>
+            <?php endif; ?>
 
-            <form id="registerForm" class="space-y-5" method="post">
-                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
-                <input type="hidden" name="plan" value="<?php echo htmlspecialchars($selectedPlan); ?>">
-                <input type="hidden" name="cycle" value="<?php echo htmlspecialchars($selectedCycle); ?>">
-                <input type="hidden" name="next" value="<?php echo htmlspecialchars($nextPath); ?>">
+            <?php if ($otpActive): ?>
+                <?php $otpEmail = (string)(($_SESSION[$otpSessionKey]['email'] ?? '') ?: ($_SESSION[$pendingSessionKey]['manager_email'] ?? '')); ?>
+                <div class="mb-6">
+                    <h3 class="text-lg font-bold text-slate-900">Verify your email</h3>
+                    <p class="mt-2 text-sm text-slate-600">Enter the 6-digit code sent to <span class="font-semibold"><?php echo htmlspecialchars(maskEmailForDisplay($otpEmail)); ?></span>.</p>
+                </div>
+
+                <form class="space-y-5" method="post" autocomplete="off">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
+                    <input type="hidden" name="registration_action" value="verify_otp">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="otp_code">6-digit code</label>
+                        <input class="block w-full rounded-lg border-slate-200 bg-white px-4 py-3 text-center tracking-[0.5em] font-extrabold text-slate-900 placeholder:text-slate-400 focus:border-primary focus:ring-primary sm:text-lg shadow-sm" id="otp_code" name="otp_code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="••••••" required>
+                        <p class="mt-2 text-xs text-slate-500">Code expires in 10 minutes.</p>
+                    </div>
+
+                    <button class="w-full rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white hover:bg-primary/90 transition-colors" type="submit">Verify & Create Account</button>
+                </form>
+
+                <form class="mt-4" method="post">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
+                    <input type="hidden" name="registration_action" value="resend_otp">
+                    <?php
+                    // Keep pending payload when resending.
+                    foreach (($_SESSION[$pendingSessionKey] ?? []) as $k => $v) {
+                        if ($k === 'csrf_token' || $k === 'registration_action' || $k === 'otp_code') continue;
+                        if (is_array($v)) continue;
+                        echo '<input type="hidden" name="' . htmlspecialchars((string)$k, ENT_QUOTES, 'UTF-8') . '" value="' . htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8') . '">' . "\n";
+                    }
+                    ?>
+                    <button class="w-full rounded-xl bg-slate-100 px-5 py-3 text-sm font-bold text-slate-900 hover:bg-slate-200 transition-colors" type="submit">Resend Code</button>
+                </form>
+            <?php else: ?>
+                <div class="mb-6">
+                    <div class="h-2 w-full rounded-full bg-slate-200 overflow-hidden">
+                        <div id="progressFill" class="h-full bg-primary transition-all duration-300" style="width: 33%"></div>
+                    </div>
+                    <p id="progressText" class="mt-2 text-xs text-slate-500">Step 1 of 3 - Restaurant Details</p>
+                </div>
+
+                <form id="registerForm" class="space-y-5" method="post">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
+                    <input type="hidden" name="registration_action" value="start">
+                    <input type="hidden" name="plan" value="<?php echo htmlspecialchars($selectedPlan); ?>">
+                    <input type="hidden" name="cycle" value="<?php echo htmlspecialchars($selectedCycle); ?>">
+                    <input type="hidden" name="next" value="<?php echo htmlspecialchars($nextPath); ?>">
 
                 <!-- Step 1: Restaurant details (same order as admin) -->
                 <div class="space-y-5" data-step="1">
@@ -290,7 +383,8 @@ __dbg_reg_log('H2', 'hero-image-computed', [
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="phone">Phone</label>
-                        <input class="block w-full rounded-lg border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-primary focus:ring-primary sm:text-sm shadow-sm" id="phone" name="phone" placeholder="+234..." type="tel" value="<?php echo oldValue('phone'); ?>"/>
+                        <input class="block w-full rounded-lg border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-primary focus:ring-primary sm:text-sm shadow-sm" id="phone" name="phone" placeholder="2348012345678" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="15" value="<?php echo oldValue('phone'); ?>"/>
+                        <p class="mt-1 text-xs text-slate-500">Numbers only.</p>
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="address">Address</label>
@@ -375,6 +469,7 @@ __dbg_reg_log('H2', 'hero-image-computed', [
                     <button id="submitBtn" class="hidden flex-1 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white shadow-lg shadow-primary/20 hover:bg-primary/90 transition-colors" type="submit">Create Account & Start Trial</button>
                 </div>
             </form>
+            <?php endif; ?>
 
             <div class="mt-8 text-center">
                 <p class="text-sm text-slate-600">
@@ -396,6 +491,7 @@ __dbg_reg_log('H2', 'hero-image-computed', [
     const submitBtn = document.getElementById('submitBtn');
     const nameInput = document.getElementById('name');
     const slugInput = document.getElementById('slug');
+    const phoneInput = document.getElementById('phone');
     let currentStep = 1;
 
     const labels = {
@@ -460,6 +556,15 @@ __dbg_reg_log('H2', 'hero-image-computed', [
         }
         nameInput.addEventListener('input', syncSlug);
         syncSlug();
+    }
+
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function () {
+            const digitsOnly = (phoneInput.value || '').replace(/\D+/g, '').slice(0, 15);
+            if (phoneInput.value !== digitsOnly) {
+                phoneInput.value = digitsOnly;
+            }
+        });
     }
 
     document.querySelectorAll('[data-password-toggle]').forEach(function(btn) {
