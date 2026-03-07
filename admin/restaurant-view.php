@@ -954,7 +954,7 @@ include __DIR__ . '/../includes/admin-layout.php';
                             <td><?php echo htmlspecialchars($item['category_name'] ?? 'Uncategorized'); ?></td>
                             <td><?php echo formatPrice($item['price']); ?></td>
                             <td class="actions-cell">
-                                <button class="actions-btn" onclick="toggleDropdown(this)" title="Actions">
+                                <button class="actions-btn" type="button" title="Actions">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                                     </svg>
@@ -1004,7 +1004,7 @@ include __DIR__ . '/../includes/admin-layout.php';
                             <td><?php echo $cat['display_order']; ?></td>
                             <td><?php echo $cat['is_active'] ? 'Active' : 'Inactive'; ?></td>
                             <td class="actions-cell">
-                                <button class="actions-btn" onclick="toggleDropdown(this)" title="Actions">
+                                <button class="actions-btn" type="button" title="Actions">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                                     </svg>
@@ -1492,18 +1492,6 @@ include __DIR__ . '/../includes/admin-layout.php';
         </div>
     
     <script>
-        function toggleDropdown(btn) {
-            document.querySelectorAll('.actions-dropdown.show').forEach(d => d.classList.remove('show'));
-            const dropdown = btn.nextElementSibling;
-            dropdown.classList.toggle('show');
-            document.addEventListener('click', function closeDropdown(e) {
-                if (!btn.contains(e.target) && !dropdown.contains(e.target)) {
-                    dropdown.classList.remove('show');
-                    document.removeEventListener('click', closeDropdown);
-                }
-            });
-        }
-        
         function showTab(tabName) {
             // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(tab => {

@@ -2,6 +2,7 @@
   </div>
 </div>
 
+<script src="<?php echo htmlspecialchars(defined('SITE_URL') ? SITE_URL . '/assets/js/actions-dropdown.js' : '../assets/js/actions-dropdown.js'); ?>"></script>
 <script>
 // Check if sidebar should be collapsed from cookie
 (function() {

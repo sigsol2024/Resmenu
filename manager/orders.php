@@ -440,25 +440,6 @@ $statusColors = ['pending' => '#f59e0b', 'confirmed' => '#3b82f6', 'on_hold' => 
         return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
     }
 
-    function toggleOrdersDropdown(btn) {
-        document.querySelectorAll('.orders-list .actions-dropdown.show').forEach(d => d.classList.remove('show'));
-        const dropdown = btn.nextElementSibling;
-        dropdown.classList.toggle('show');
-        document.addEventListener('click', function closeDropdown(e) {
-            if (!btn.contains(e.target) && !dropdown.contains(e.target)) {
-                dropdown.classList.remove('show');
-                document.removeEventListener('click', closeDropdown);
-            }
-        });
-    }
-
-    document.querySelectorAll('.orders-actions-btn').forEach(function(btn) {
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            toggleOrdersDropdown(this);
-        });
-    });
-
     document.querySelectorAll('.view-order-btn').forEach(function(btn) {
         btn.addEventListener('click', function() {
             const orderId = this.getAttribute('data-order-id');

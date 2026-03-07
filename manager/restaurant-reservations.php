@@ -210,7 +210,7 @@ include __DIR__ . '/../includes/manager-layout.php';
                     '<td style="padding:12px 16px;font-size:0.875rem;">' + symbol + parseFloat(r.deposit_amount||0).toFixed(2) + depositPaid + '</td>' +
                     '<td style="padding:12px 16px;"><span class="badge" style="background:' + esc(clr) + '22;color:' + esc(clr) + ';padding:4px 10px;border-radius:6px;font-size:0.75rem;font-weight:600;">' + esc(label) + '</span></td>' +
                     '<td class="actions-cell" style="padding:12px 16px;">' +
-                    '<button type="button" class="actions-btn" onclick="toggleResDropdown(this)" title="Actions"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/></svg></button>' +
+                    '<button type="button" class="actions-btn" title="Actions"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/></svg></button>' +
                     '<div class="actions-dropdown"><button type="button" class="view-res-btn actions-dropdown-item" data-id="' + id + '">View</button><div class="actions-dropdown-divider"></div><div class="actions-dropdown-title">Change Status</div>' + approveReject + rejectForm + '</div>' +
                     '</td></tr>';
             }).join('');
@@ -274,18 +274,6 @@ include __DIR__ . '/../includes/manager-layout.php';
             if (mobileList) mobileList.innerHTML = '';
         });
     }
-
-    window.toggleResDropdown = function(btn) {
-        document.querySelectorAll('.actions-dropdown.show').forEach(function(d){ d.classList.remove('show'); });
-        var dropdown = btn.nextElementSibling;
-        dropdown.classList.toggle('show');
-        document.addEventListener('click', function closeDropdown(e) {
-            if (!btn.contains(e.target) && !dropdown.contains(e.target)) {
-                dropdown.classList.remove('show');
-                document.removeEventListener('click', closeDropdown);
-            }
-        });
-    };
 
     function initViewHandlers() {
         document.querySelectorAll('.view-res-btn').forEach(function(btn) {

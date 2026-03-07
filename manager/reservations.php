@@ -460,18 +460,6 @@ $statusColors = ['pending' => '#f59e0b', 'confirmed' => '#10b981', 'rejected' =>
         });
     })();
 
-    document.querySelectorAll('.actions-btn').forEach(function(btn) {
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const dd = this.nextElementSibling;
-            document.querySelectorAll('.actions-dropdown').forEach(function(d) { if (d !== dd) d.classList.remove('show'); });
-            dd.classList.toggle('show');
-        });
-    });
-    document.addEventListener('click', function() {
-        document.querySelectorAll('.actions-dropdown').forEach(function(d) { d.classList.remove('show'); });
-    });
-
     document.querySelectorAll('.view-reservation-btn').forEach(function(btn) {
         btn.addEventListener('click', function() {
             const id = this.getAttribute('data-reservation-id');

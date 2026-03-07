@@ -580,6 +580,14 @@ textarea::placeholder {
     display: block;
 }
 
+/* Portal: when dropdown is moved to body to avoid overflow clipping */
+.actions-dropdown.resmenu-portal {
+    position: fixed !important;
+    z-index: 99999 !important;
+    right: auto !important;
+    margin-right: 0 !important;
+}
+
 .actions-dropdown-item {
     display: block;
     padding: 10px 16px;

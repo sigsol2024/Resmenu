@@ -400,7 +400,7 @@ include __DIR__ . '/../includes/manager-layout.php';
                                 <td><?php echo $category['display_order']; ?></td>
                                 <td><span style="padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; background: <?php echo $category['is_active'] ? '#d1fae5' : '#fee2e2'; ?>; color: <?php echo $category['is_active'] ? '#065f46' : '#991b1b'; ?>"><?php echo $category['is_active'] ? 'Active' : 'Inactive'; ?></span></td>
                                 <td class="actions-cell">
-                                    <button class="actions-btn" onclick="toggleDropdown(this)" title="Actions">
+                                    <button class="actions-btn" type="button" title="Actions">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                                         </svg>
@@ -778,18 +778,6 @@ include __DIR__ . '/../includes/manager-layout.php';
 </style>
     
     <script>
-        function toggleDropdown(btn) {
-            document.querySelectorAll('.actions-dropdown.show').forEach(d => d.classList.remove('show'));
-            const dropdown = btn.nextElementSibling;
-            dropdown.classList.toggle('show');
-            document.addEventListener('click', function closeDropdown(e) {
-                if (!btn.contains(e.target) && !dropdown.contains(e.target)) {
-                    dropdown.classList.remove('show');
-                    document.removeEventListener('click', closeDropdown);
-                }
-            });
-        }
-        
         // Auto-generate slug from name
         document.getElementById('name')?.addEventListener('input', function() {
             const slugInput = document.getElementById('slug');
