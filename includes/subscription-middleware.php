@@ -423,6 +423,110 @@ function renderLockoutPage($access, $returnUrl = '/manager/billing.php') {
 }
 
 /**
+ * Render a public-facing subscription blocked page (menu/checkout/reservation).
+ *
+ * IMPORTANT: Public pages do not assume a logged-in session, so the CTA links to
+ * the login page with a safe `next` path back to billing.
+ *
+ * @param array $restaurant Restaurant row (expects name, slug, logo optional)
+ * @param array $access Result from checkSubscriptionAccess()
+ * @param string|null $featureLabel Optional feature label (e.g. "Food ordering")
+ * @param int $httpCode HTTP status code
+ * @return void
+ */
+function renderPublicSubscriptionBlockedPage($restaurant, $access, $featureLabel = null, $httpCode = 402) {
+    http_response_code((int)$httpCode);
+
+    $reason = (string)($access['lockout_reason'] ?? 'subscription_required');
+    $message = (string)($access['message'] ?? 'Access is restricted.');
+    $subscription = $access['subscription'] ?? null;
+
+    $restaurantName = htmlspecialchars($restaurant['name'] ?? 'Restaurant');
+    $slug = $restaurant['slug'] ?? '';
+    $baseUrl = defined('SITE_URL') ? rtrim(SITE_URL, '/') : '';
+    $uploadBaseUrl = defined('UPLOAD_URL') ? rtrim(UPLOAD_URL, '/') : '';
+    $logoUrl = (!empty($restaurant['logo']) && $uploadBaseUrl !== '') ? ($uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo'])) : '';
+
+    $menuUrl = $slug ? ($baseUrl . '/restaurant/' . rawurlencode($slug)) : ($baseUrl ?: '/');
+    $loginRenewUrl = '/?next=' . urlencode('/manager/billing.php');
+
+    $titleMap = [
+        'trial_expired' => 'Trial Ended',
+        'subscription_expired' => 'Subscription Expired',
+        'subscription_cancelled' => 'Subscription Cancelled',
+        'payment_pending' => 'Payment Pending',
+        'no_subscription' => 'Subscription Required',
+    ];
+    $title = $titleMap[$reason] ?? 'Access Restricted';
+
+    if ($featureLabel) {
+        $message = trim($message) !== '' ? $message : ($featureLabel . ' is not available right now.');
+    }
+
+    ?>
+    <!doctype html>
+    <html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <title><?php echo htmlspecialchars($title); ?> | <?php echo $restaurantName; ?></title>
+        <style>
+            :root{--bg:#0b1220;--card:#0f172a;--text:#e5e7eb;--muted:#94a3b8;--primary:#f97415;}
+            *{box-sizing:border-box}
+            body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(900px 500px at 20% 10%, rgba(249,116,21,.18), transparent 60%), var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}
+            .card{width:100%;max-width:560px;background:rgba(15,23,42,.88);border:1px solid rgba(148,163,184,.15);border-radius:18px;padding:28px;backdrop-filter:blur(10px);box-shadow:0 20px 60px rgba(0,0,0,.35);}
+            .brand{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+            .logo{width:44px;height:44px;border-radius:12px;background:rgba(249,116,21,.15);display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid rgba(249,116,21,.25)}
+            .logo img{width:100%;height:100%;object-fit:contain;background:#fff}
+            h1{margin:10px 0 8px;font-size:1.6rem;line-height:1.2}
+            p{margin:0;color:var(--muted);line-height:1.6}
+            .meta{margin-top:10px;color:rgba(148,163,184,.9);font-size:.92rem}
+            .actions{margin-top:22px;display:flex;flex-wrap:wrap;gap:12px}
+            .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:12px 16px;border-radius:12px;font-weight:700;text-decoration:none;border:1px solid transparent}
+            .btn-primary{background:var(--primary);color:#111827}
+            .btn-primary:hover{filter:brightness(.95)}
+            .btn-secondary{background:transparent;color:var(--text);border-color:rgba(148,163,184,.22)}
+            .btn-secondary:hover{background:rgba(148,163,184,.08)}
+        </style>
+    </head>
+    <body>
+        <div class="card">
+            <div class="brand">
+                <div class="logo">
+                    <?php if ($logoUrl): ?>
+                        <img src="<?php echo $logoUrl; ?>" alt="<?php echo $restaurantName; ?>">
+                    <?php else: ?>
+                        <span style="font-weight:800;color:var(--primary);">RM</span>
+                    <?php endif; ?>
+                </div>
+                <div>
+                    <div style="font-weight:800;letter-spacing:-.02em;"><?php echo $restaurantName; ?></div>
+                    <div style="color:var(--muted);font-size:.92rem;"><?php echo htmlspecialchars($featureLabel ? ($featureLabel . ' access') : 'Menu access'); ?></div>
+                </div>
+            </div>
+
+            <h1><?php echo htmlspecialchars($title); ?></h1>
+            <p><?php echo htmlspecialchars($message); ?></p>
+
+            <?php if (is_array($subscription)): ?>
+                <?php if (!empty($subscription['trial_ends_at']) && ($subscription['status'] ?? '') === 'trial'): ?>
+                    <div class="meta">Trial ended on <?php echo date('F j, Y', strtotime($subscription['trial_ends_at'])); ?>.</div>
+                <?php elseif (!empty($subscription['current_period_end'])): ?>
+                    <div class="meta">Subscription ended on <?php echo date('F j, Y', strtotime($subscription['current_period_end'])); ?>.</div>
+                <?php endif; ?>
+            <?php endif; ?>
+
+            <div class="actions">
+                <a class="btn btn-primary" href="<?php echo htmlspecialchars($loginRenewUrl); ?>">Renew / Pay Now</a>
+                <a class="btn btn-secondary" href="<?php echo htmlspecialchars($menuUrl ?: '/'); ?>">Back to menu</a>
+            </div>
+        </div>
+    </body>
+    </html>
+    <?php
+}
+
+/**
  * Get usage summary for dashboard display
  * 
  * @param int $restaurantId

@@ -7,6 +7,8 @@
 require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/includes/restaurant-payment-functions.php';
 require_once __DIR__ . '/config/config.php';
+require_once __DIR__ . '/includes/subscription.php';
+require_once __DIR__ . '/includes/subscription-middleware.php';
 
 $slug = trim($_GET['slug'] ?? $_POST['slug'] ?? '');
 $reservationId = isset($_GET['reservation_id']) ? (int)$_GET['reservation_id'] : (isset($_POST['reservation_id']) ? (int)$_POST['reservation_id'] : 0);
@@ -20,6 +22,13 @@ $restaurant = getRestaurantBySlug($slug);
 if (!$restaurant) {
     http_response_code(404);
     die('Restaurant not found.');
+}
+
+// Subscription gating: block checkout if subscription is invalid.
+$subscriptionAccess = checkSubscriptionAccess((int)$restaurant['id']);
+if (!$subscriptionAccess['valid']) {
+    renderPublicSubscriptionBlockedPage($restaurant, $subscriptionAccess, 'Checkout');
+    exit;
 }
 
 $pdo = getDBConnection();
@@ -47,6 +56,30 @@ if ($reservationId > 0) {
         $isReservationCheckout = true;
     } else {
         $reservationId = 0;
+    }
+}
+
+// Feature gating: block order checkout if plan doesn't include ordering; block reservation checkout if plan doesn't include reservations.
+$restaurantId = (int)$restaurant['id'];
+if ($isReservationCheckout || $reservationId > 0) {
+    if (!hasFeatureAccess($restaurantId, 'table_reservations')) {
+        renderPublicSubscriptionBlockedPage(
+            $restaurant,
+            ['lockout_reason' => 'feature_not_in_plan', 'message' => 'Table reservations are not included on this plan.', 'subscription' => getRestaurantSubscription($restaurantId)],
+            'Table reservations',
+            403
+        );
+        exit;
+    }
+} else {
+    if (!hasFeatureAccess($restaurantId, 'food_ordering')) {
+        renderPublicSubscriptionBlockedPage(
+            $restaurant,
+            ['lockout_reason' => 'feature_not_in_plan', 'message' => 'Food ordering is not included on this plan.', 'subscription' => getRestaurantSubscription($restaurantId)],
+            'Food ordering',
+            403
+        );
+        exit;
     }
 }
 

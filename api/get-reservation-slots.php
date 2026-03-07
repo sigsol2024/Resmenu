@@ -8,6 +8,8 @@ header('Content-Type: application/json');
 
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../includes/subscription.php';
+require_once __DIR__ . '/../includes/subscription-middleware.php';
 
 $slug = trim($_GET['slug'] ?? '');
 $date = trim($_GET['date'] ?? '');
@@ -31,6 +33,19 @@ if (!$restaurant) {
 $templateId = (int) ($restaurant['template_id'] ?? 1);
 if ($templateId !== 4) {
     echo json_encode(['success' => false, 'message' => 'Reservations not available']);
+    exit;
+}
+
+$restaurantId = (int)$restaurant['id'];
+$subscriptionAccess = checkSubscriptionAccess($restaurantId);
+if (!$subscriptionAccess['valid']) {
+    http_response_code(402);
+    echo json_encode(['success' => false, 'message' => $subscriptionAccess['message'] ?: 'Subscription required']);
+    exit;
+}
+if (!hasFeatureAccess($restaurantId, 'table_reservations')) {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'message' => 'Table reservations are not available for this restaurant plan.']);
     exit;
 }
 

@@ -338,3 +338,39 @@ CREATE TABLE IF NOT EXISTS `password_reset_tokens` (
 -- 26. Subscription email history index (allow recurring reminders across billing cycles)
 ALTER TABLE `subscription_emails` DROP INDEX IF EXISTS `unique_email`;
 CREATE INDEX IF NOT EXISTS `idx_subscription_email_lookup` ON `subscription_emails` (`subscription_id`, `email_type`, `days_before`, `sent_at`);
+
+-- 27. Ensure plan feature flags include ordering/reservations (default mapping)
+-- Adds new JSON keys if missing:
+-- - Basic: food_ordering=false, table_reservations=false
+-- - Professional: food_ordering=true, table_reservations=false
+-- - Enterprise: food_ordering=true, table_reservations=true
+UPDATE `subscription_plans`
+SET `features` =
+  CASE
+    WHEN `features` IS NULL OR `features` = '' OR JSON_VALID(`features`) = 0 THEN
+      JSON_OBJECT(
+        'priority_support', 0,
+        'custom_domain', 0,
+        'analytics_advanced', 0,
+        'food_ordering', IF(`slug` IN ('professional','enterprise'), true, false),
+        'table_reservations', IF(`slug` = 'enterprise', true, false)
+      )
+    ELSE
+      JSON_SET(
+        JSON_SET(
+          `features`,
+          '$.food_ordering',
+          COALESCE(JSON_EXTRACT(`features`, '$.food_ordering'), CAST(IF(`slug` IN ('professional','enterprise'), 'true', 'false') AS JSON))
+        ),
+        '$.table_reservations',
+        COALESCE(JSON_EXTRACT(`features`, '$.table_reservations'), CAST(IF(`slug` = 'enterprise', 'true', 'false') AS JSON))
+      )
+  END
+WHERE `slug` IN ('basic','professional','enterprise');
+
+-- 28. Default template descriptions for marketing (resmenu.net) and template preview
+-- Run once to set or update descriptions. Admin can change them later in /admin/templates.php
+UPDATE `templates` SET `description` = 'Elegant and sophisticated fine dining style with clean typography and alternating layout. Perfect for bistros, full-service restaurants, and venues that want a classic yet modern menu presentation.' WHERE `id` = 1;
+UPDATE `templates` SET `description` = 'Modern restaurant template with hero sections and featured items. Ideal for casual dining, cafes, and bars. Tailwind-based design with a fresh, approachable look.' WHERE `id` = 2;
+UPDATE `templates` SET `description` = 'Dark navy gradient background with bold typography and white cards. Great for lounges, cocktail bars, and upscale venues that want a striking, premium feel.' WHERE `id` = 3;
+UPDATE `templates` SET `description` = 'Premium dark-themed design with warm accents and rustic charm. Ideal for steakhouses, grills, and traditional pubs. Features reservation integration and a distinctive atmosphere.' WHERE `id` = 4;

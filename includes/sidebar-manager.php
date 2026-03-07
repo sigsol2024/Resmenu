@@ -4,6 +4,7 @@
  */
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/subscription.php';
 
 $currentPage = basename($_SERVER['PHP_SELF']);
 $currentPath = $_SERVER['REQUEST_URI'];
@@ -60,8 +61,9 @@ if (isLoggedIn() && isManager()) {
 // Navigation items for manager
 $navItems = [
     ['id' => 'dashboard', 'name' => 'Dashboard', 'href' => $dashboardHref, 'icon' => 'M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25'],
-    ['id' => 'orders', 'name' => 'Orders', 'href' => '/manager/orders.php' . $slugParam, 'icon' => 'M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z'],
-    ['id' => 'reservations', 'name' => 'Reservations', 'href' => '/manager/reservations.php' . $slugParam, 'icon' => 'M3.75 9h16.5m-16.5 6.75h16.5'],
+    // Orders & reservations are feature-gated by plan (hide nav items if not included).
+    ['id' => 'orders', 'name' => 'Orders', 'href' => '/manager/orders.php' . $slugParam, 'icon' => 'M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z', 'requires_feature' => 'food_ordering'],
+    ['id' => 'reservations', 'name' => 'Reservations', 'href' => '/manager/reservations.php' . $slugParam, 'icon' => 'M3.75 9h16.5m-16.5 6.75h16.5', 'requires_feature' => 'table_reservations'],
     ['id' => 'menu-items', 'name' => 'Menu Items', 'href' => '/manager/menu-items.php', 'icon' => 'M12 6v12m-3-3h6m-3-3h6'],
     ['id' => 'categories', 'name' => 'Categories', 'href' => '/manager/categories.php', 'icon' => 'M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z'],
     ['id' => 'qr-code', 'name' => 'QR Code', 'href' => '/manager/qr-code.php' . $slugParam, 'icon' => 'M3.75 4.5a.75.75 0 01.75-.75h4.5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0V6.31l-3.72 3.72a.75.75 0 01-1.06-1.06l3.72-3.72H4.5a.75.75 0 01-.75-.75zm9.75 0a.75.75 0 01.75-.75h4.5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0V6.31l-3.72 3.72a.75.75 0 11-1.06-1.06l3.72-3.72H14.25a.75.75 0 01-.75-.75zM3.75 15a.75.75 0 01.75.75H5.69l3.72-3.72a.75.75 0 111.06 1.06l-3.72 3.72v1.19a.75.75 0 01-1.5 0v-4.5zm9.75 0a.75.75 0 01.75.75h1.19l-3.72-3.72a.75.75 0 111.06-1.06l3.72 3.72V10.5a.75.75 0 011.5 0v4.5a.75.75 0 01-.75.75z'],
@@ -70,6 +72,17 @@ $navItems = [
     ['id' => 'payment-settings', 'name' => 'Payment Settings', 'href' => '/manager/payment-settings.php', 'icon' => 'M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z'],
     ['id' => 'settings', 'name' => 'Settings', 'href' => '/manager/settings.php', 'icon' => 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065zM15 12a3 3 0 11-6 0 3 3 0 016 0z'],
 ];
+
+// Remove feature-gated nav items if not enabled for this restaurant.
+if (isLoggedIn() && isManager()) {
+    $rid = (int)getCurrentUserRestaurantId();
+    if ($rid > 0) {
+        $navItems = array_values(array_filter($navItems, function ($item) use ($rid) {
+            if (empty($item['requires_feature'])) return true;
+            return hasFeatureAccess($rid, (string)$item['requires_feature']);
+        }));
+    }
+}
 
 // Determine active item
 $activeId = 'dashboard';
@@ -196,18 +209,16 @@ $userInitials = strtoupper(substr($username, 0, 2));
 
         <!-- Logout Button -->
         <div class="sidebar-logout">
-            <a
-                href="/admin/logout.php"
-                class="logout-btn"
-                title="Logout"
-            >
-                <div class="nav-icon-wrapper">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="nav-icon logout-icon">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9l5.5-5.5m0 0l-5.5-5.5m5.5 5.5H3.75" />
-                    </svg>
-                </div>
-                <span class="nav-text">Logout</span>
-            </a>
+            <form action="/admin/logout.php" method="post">
+                <button type="submit" class="logout-btn" title="Logout">
+                    <div class="nav-icon-wrapper" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="nav-icon logout-icon">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 2v10m6.364-6.364a9 9 0 1 1-12.728 0" />
+                        </svg>
+                    </div>
+                    <span class="nav-text">Logout</span>
+                </button>
+            </form>
         </div>
     </div>
 </aside>

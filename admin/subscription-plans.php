@@ -14,6 +14,30 @@ $pdo = getDBConnection();
 $message = '';
 $messageType = '';
 
+if (isset($_GET['success'])) {
+    $messageType = 'success';
+    switch ((string)$_GET['success']) {
+        case 'created':
+            $message = 'Plan created successfully!';
+            break;
+        case 'updated':
+            $message = 'Plan updated successfully!';
+            break;
+        case 'deleted':
+            $message = 'Plan deleted successfully!';
+            break;
+        case 'status_updated':
+            $message = 'Plan status updated!';
+            break;
+    }
+}
+if (isset($_GET['error'])) {
+    $messageType = 'error';
+    if ((string)$_GET['error'] === 'active_subscribers') {
+        $message = 'Cannot deactivate a plan that has active subscriptions.';
+    }
+}
+
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
@@ -35,7 +59,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $features = [
             'priority_support' => isset($_POST['feature_priority_support']),
             'custom_domain' => isset($_POST['feature_custom_domain']),
-            'analytics_advanced' => isset($_POST['feature_analytics_advanced'])
+            'analytics_advanced' => isset($_POST['feature_analytics_advanced']),
+            'food_ordering' => isset($_POST['feature_food_ordering']),
+            'table_reservations' => isset($_POST['feature_table_reservations']),
         ];
         
         // Auto-generate slug if empty
@@ -62,6 +88,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ]);
                     $message = 'Plan created successfully!';
                     $messageType = 'success';
+                    header('Location: subscription-plans.php?success=created');
+                    exit;
                 } else {
                     $planId = intval($_POST['plan_id'] ?? 0);
                     $stmt = $pdo->prepare("
@@ -78,6 +106,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ]);
                     $message = 'Plan updated successfully!';
                     $messageType = 'success';
+                    header('Location: subscription-plans.php?success=updated');
+                    exit;
                 }
             } catch (PDOException $e) {
                 $message = 'Error: ' . $e->getMessage();
@@ -100,6 +130,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->execute([$planId]);
                 $message = 'Plan deleted successfully!';
                 $messageType = 'success';
+                header('Location: subscription-plans.php?success=deleted');
+                exit;
             }
         } catch (PDOException $e) {
             $message = 'Error: ' . $e->getMessage();
@@ -108,10 +140,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($action === 'toggle_status') {
         $planId = intval($_POST['plan_id'] ?? 0);
         try {
+            // Disallow deactivation when plan has active/trial subscribers
+            $stmt = $pdo->prepare("SELECT is_active FROM subscription_plans WHERE id = ? LIMIT 1");
+            $stmt->execute([$planId]);
+            $planRow = $stmt->fetch(PDO::FETCH_ASSOC);
+            $isCurrentlyActive = (int)($planRow['is_active'] ?? 0) === 1;
+
+            if ($isCurrentlyActive) {
+                $stmt = $pdo->prepare("SELECT COUNT(*) FROM subscriptions WHERE plan_id = ? AND status IN ('trial', 'active')");
+                $stmt->execute([$planId]);
+                $activeCount = (int)$stmt->fetchColumn();
+                if ($activeCount > 0) {
+                    $message = 'Cannot deactivate a plan that has active subscriptions.';
+                    $messageType = 'error';
+                    header('Location: subscription-plans.php?error=active_subscribers');
+                    exit;
+                }
+            }
+
             $stmt = $pdo->prepare("UPDATE subscription_plans SET is_active = NOT is_active WHERE id = ?");
             $stmt->execute([$planId]);
             $message = 'Plan status updated!';
             $messageType = 'success';
+            header('Location: subscription-plans.php?success=status_updated');
+            exit;
         } catch (PDOException $e) {
             $message = 'Error: ' . $e->getMessage();
             $messageType = 'error';
@@ -680,6 +732,18 @@ include __DIR__ . '/../includes/admin-layout.php';
                            <?php echo !empty($features['analytics_advanced']) ? 'checked' : ''; ?>>
                     <label for="feature_analytics_advanced">Advanced Analytics</label>
                 </div>
+
+                <div class="checkbox-item">
+                    <input type="checkbox" id="feature_food_ordering" name="feature_food_ordering"
+                           <?php echo !empty($features['food_ordering']) ? 'checked' : ''; ?>>
+                    <label for="feature_food_ordering">Food Ordering</label>
+                </div>
+
+                <div class="checkbox-item">
+                    <input type="checkbox" id="feature_table_reservations" name="feature_table_reservations"
+                           <?php echo !empty($features['table_reservations']) ? 'checked' : ''; ?>>
+                    <label for="feature_table_reservations">Table Reservations</label>
+                </div>
             </div>
         </div>
         
@@ -775,6 +839,12 @@ include __DIR__ . '/../includes/admin-layout.php';
                 </span>
                 <span class="feature-badge <?php echo !empty($features['analytics_advanced']) ? 'feature-enabled' : 'feature-disabled'; ?>">
                     <?php echo !empty($features['analytics_advanced']) ? '✓' : '✗'; ?> Advanced Analytics
+                </span>
+                <span class="feature-badge <?php echo !empty($features['food_ordering']) ? 'feature-enabled' : 'feature-disabled'; ?>">
+                    <?php echo !empty($features['food_ordering']) ? '✓' : '✗'; ?> Food Ordering
+                </span>
+                <span class="feature-badge <?php echo !empty($features['table_reservations']) ? 'feature-enabled' : 'feature-disabled'; ?>">
+                    <?php echo !empty($features['table_reservations']) ? '✓' : '✗'; ?> Reservations
                 </span>
             </div>
             

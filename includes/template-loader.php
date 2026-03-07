@@ -5,6 +5,7 @@
  */
 
 require_once __DIR__ . '/functions.php';
+require_once __DIR__ . '/subscription.php';
 
 /**
  * Check if template supports ordering (Add to bag / cart)
@@ -125,13 +126,23 @@ function loadTemplate($restaurant, $categories, $customization, $headerMenuItems
     }
     
     // Make variables available to template
+    // Note: Preview mode should show full template capabilities (no subscription gating).
     $supportsOrdering = templateSupportsOrdering($templateId);
+    $supportsReservations = ((int)$templateId) === 4;
+
+    if (!$isTemplatePreview) {
+        $restaurantId = (int)($restaurant['id'] ?? 0);
+        // Feature gating: templates may support ordering/reservations, but only enabled plans should expose them.
+        $supportsOrdering = $supportsOrdering && hasFeatureAccess($restaurantId, 'food_ordering');
+        $supportsReservations = $supportsReservations && hasFeatureAccess($restaurantId, 'table_reservations');
+    }
     extract([
         'restaurant' => $restaurant,
         'categories' => $categories,
         'customization' => $customization,
         'headerMenuItems' => $headerMenuItems,
         'supportsOrdering' => $supportsOrdering,
+        'supportsReservations' => $supportsReservations,
         'isTemplatePreview' => $isTemplatePreview
     ], EXTR_SKIP);
     

@@ -196,6 +196,7 @@ function t4_formatPrice($price, $symbol = '₦') {
 .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
@@ -230,7 +231,9 @@ function t4_formatPrice($price, $symbol = '₦') {
         </button>
         <nav class="flex flex-col gap-4">
             <a class="text-white/80 hover:text-white font-medium py-2" href="#menu" onclick="toggleMenu()">Menu</a>
-            <a class="text-white/80 hover:text-white font-medium py-2" href="<?php echo htmlspecialchars($reservationUrl); ?>" onclick="toggleMenu()">Reserve Table</a>
+            <?php if (!empty($supportsReservations)): ?>
+                <a class="text-white/80 hover:text-white font-medium py-2" href="<?php echo htmlspecialchars($reservationUrl); ?>" onclick="toggleMenu()">Reserve Table</a>
+            <?php endif; ?>
             <?php foreach ($activeCategories as $cat): ?>
                 <a class="text-white/80 hover:text-white font-medium py-2" href="#<?php echo htmlspecialchars($cat['slug']); ?>-section" onclick="toggleMenu()"><?php echo htmlspecialchars($cat['name']); ?></a>
             <?php endforeach; ?>
@@ -259,9 +262,11 @@ function t4_formatPrice($price, $symbol = '₦') {
             <a href="#menu" class="w-full sm:w-auto bg-primary hover:bg-charcoal text-white text-lg font-bold px-10 py-4 rounded-xl transition-all transform hover:scale-105">
                 VIEW MENU
             </a>
-            <a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="w-full sm:w-auto bg-transparent border-2 border-white/20 hover:border-white text-white text-lg font-bold px-10 py-4 rounded-xl transition-all">
-                RESERVE TABLE
-            </a>
+            <?php if (!empty($supportsReservations)): ?>
+                <a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="w-full sm:w-auto bg-transparent border-2 border-white/20 hover:border-white text-white text-lg font-bold px-10 py-4 rounded-xl transition-all">
+                    RESERVE TABLE
+                </a>
+            <?php endif; ?>
         </div>
     </div>
     <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">

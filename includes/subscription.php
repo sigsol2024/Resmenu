@@ -549,6 +549,16 @@ function hasFeatureAccess($restaurantId, $feature, $currentCount = null) {
     if (isset($subscription['plan_features'][$feature])) {
         return (bool)$subscription['plan_features'][$feature];
     }
+
+    // Backward-compatible defaults for new feature flags (older plans may not have these keys yet).
+    // This prevents accidental lockouts until the plans are updated in Admin > Subscription Plans.
+    $planSlug = strtolower((string)($subscription['plan_slug'] ?? ''));
+    if ($feature === 'food_ordering') {
+        return in_array($planSlug, ['professional', 'enterprise'], true);
+    }
+    if ($feature === 'table_reservations') {
+        return $planSlug === 'enterprise';
+    }
     
     return false;
 }

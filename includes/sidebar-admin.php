@@ -151,18 +151,16 @@ $userInitials = strtoupper(substr($username, 0, 2));
 
         <!-- Logout Button -->
         <div class="sidebar-logout">
-            <a
-                href="/admin/logout.php"
-                class="logout-btn"
-                title="Logout"
-            >
-                <div class="nav-icon-wrapper">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="nav-icon logout-icon">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9l5.5-5.5m0 0l-5.5-5.5m5.5 5.5H3.75" />
-                    </svg>
-                </div>
-                <span class="nav-text">Logout</span>
-            </a>
+            <form action="/admin/logout.php" method="post">
+                <button type="submit" class="logout-btn" title="Logout">
+                    <div class="nav-icon-wrapper" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="nav-icon logout-icon">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 2v10m6.364-6.364a9 9 0 1 1-12.728 0" />
+                        </svg>
+                    </div>
+                    <span class="nav-text">Logout</span>
+                </button>
+            </form>
         </div>
     </div>
 </aside>

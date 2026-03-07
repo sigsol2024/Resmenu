@@ -7,6 +7,7 @@
 require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/includes/template-loader.php';
 require_once __DIR__ . '/config/config.php';
+require_once __DIR__ . '/includes/subscription-middleware.php';
 
 // Get restaurant slug from URL
 $restaurantSlug = $_GET['slug'] ?? '';
@@ -25,6 +26,13 @@ if ($restaurant && $templateOverride !== null && $templateOverride > 0) {
 if (!$restaurant) {
     http_response_code(404);
     die('Restaurant not found.');
+}
+
+// Block public menu access when subscription is not valid (expired/trial ended/no subscription).
+$subscriptionAccess = checkSubscriptionAccess((int)$restaurant['id']);
+if (!$subscriptionAccess['valid']) {
+    renderPublicSubscriptionBlockedPage($restaurant, $subscriptionAccess, 'Menu');
+    exit;
 }
 
 // Parse header menu items from JSON

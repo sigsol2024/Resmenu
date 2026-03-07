@@ -41,16 +41,11 @@ if (isLoggedIn() && isManager()) {
             }
         }
 
-        // Enforce subscription access globally for manager pages, while allowing billing flow pages.
+        // Load subscription helpers for pages that want to show status banners / enforce limits.
+        // Do NOT hard-block manager pages when expired: owners should still access dashboard/settings
+        // and only public pages (menu/checkout/reservation) should be blocked.
         require_once __DIR__ . '/subscription-middleware.php';
-        $currentPage = basename($_SERVER['PHP_SELF'] ?? '');
-        $billingAllowlist = ['billing.php', 'checkout.php', 'process-payment.php', 'payment-callback.php'];
         $subscriptionAccess = checkSubscriptionAccess($restaurantId);
-        if (!$subscriptionAccess['valid'] && !in_array($currentPage, $billingAllowlist, true)) {
-            $reason = urlencode($subscriptionAccess['lockout_reason'] ?? 'upgrade_required');
-            header('Location: /manager/billing.php?upgrade_required=1&reason=' . $reason);
-            exit;
-        }
     }
 }
 ?>
@@ -503,6 +498,9 @@ body{
   padding:10px 12px;
   border-radius:6px;
   text-decoration:none;
+  border:none;
+  background:transparent;
+  cursor:pointer;
   transition:all 0.2s;
   color:#dc2626;
   font-size:14px;

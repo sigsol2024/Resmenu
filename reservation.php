@@ -6,6 +6,8 @@
 
 require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/config/config.php';
+require_once __DIR__ . '/includes/subscription.php';
+require_once __DIR__ . '/includes/subscription-middleware.php';
 
 $slug = trim($_GET['slug'] ?? $_POST['slug'] ?? '');
 if (empty($slug)) {
@@ -24,6 +26,23 @@ $templateId = (int) ($restaurant['template_id'] ?? 1);
 if ($templateId !== 4) {
     http_response_code(404);
     die('Reservations are not available for this restaurant.');
+}
+
+// Subscription + feature gating (public): reservation page must be blocked when subscription is invalid
+// OR when the plan does not include table reservations.
+$subscriptionAccess = checkSubscriptionAccess((int)$restaurant['id']);
+if (!$subscriptionAccess['valid']) {
+    renderPublicSubscriptionBlockedPage($restaurant, $subscriptionAccess, 'Table reservations');
+    exit;
+}
+if (!hasFeatureAccess((int)$restaurant['id'], 'table_reservations')) {
+    renderPublicSubscriptionBlockedPage(
+        $restaurant,
+        ['lockout_reason' => 'feature_not_in_plan', 'message' => 'Table reservations are not included on this plan.', 'subscription' => getRestaurantSubscription((int)$restaurant['id'])],
+        'Table reservations',
+        403
+    );
+    exit;
 }
 
 $pdo = getDBConnection();

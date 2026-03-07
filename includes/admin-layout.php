@@ -447,6 +447,9 @@ body{
   padding:10px 12px;
   border-radius:6px;
   text-decoration:none;
+  border:none;
+  background:transparent;
+  cursor:pointer;
   transition:all 0.2s;
   color:#dc2626;
   font-size:14px;
