@@ -689,7 +689,7 @@ function createSubscription($restaurantId, $planId, $billingCycle = 'monthly', $
  * @param PDO|null $pdoOverride
  * @return array ['success' => bool, 'message' => string, 'subscription_id' => int|null]
  */
-function createSubscriptionByPlanSlug($restaurantId, $planSlug = 'professional', $billingCycle = 'monthly', $isTrial = true, $trialDays = 7, $pdoOverride = null) {
+function createSubscriptionByPlanSlug($restaurantId, $planSlug = 'enterprise', $billingCycle = 'monthly', $isTrial = true, $trialDays = 7, $pdoOverride = null) {
     $pdo = $pdoOverride instanceof PDO ? $pdoOverride : getSubscriptionPdo();
     if (!$pdo) {
         return ['success' => false, 'message' => 'Database connection failed', 'subscription_id' => null];

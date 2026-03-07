@@ -149,7 +149,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 [],
                                 [
                                     'default_template_id' => 1,
-                                    'trial_plan_slug' => 'professional',
+                                    'trial_plan_slug' => 'enterprise',
                                     'trial_days' => 7,
                                 ]
                             );

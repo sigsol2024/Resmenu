@@ -260,7 +260,7 @@ function createRestaurantWithManager(PDO $pdo, array $input, array $files = [], 
     if ($defaultTemplateId < 1) {
         $defaultTemplateId = 1;
     }
-    $trialPlanSlug = sanitize($options['trial_plan_slug'] ?? 'professional');
+    $trialPlanSlug = sanitize($options['trial_plan_slug'] ?? 'enterprise');
     $trialDays = max(1, (int)($options['trial_days'] ?? 7));
 
     try {
