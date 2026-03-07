@@ -390,3 +390,16 @@ CREATE TABLE IF NOT EXISTS `login_attempts` (
 -- 30. Yearly discount % for subscription plans (annual = monthly*12*(1 - discount/100))
 ALTER TABLE `subscription_plans` ADD COLUMN IF NOT EXISTS `yearly_discount_percent` decimal(5,2) NOT NULL DEFAULT 20.00 COMMENT 'Discount % applied to yearly plan (annual price = monthly*12*(1 - this/100))' AFTER `annual_price`;
 UPDATE `subscription_plans` SET `annual_price` = `monthly_price` * 12 * (1 - COALESCE(`yearly_discount_percent`, 20) / 100) WHERE `monthly_price` > 0;
+
+-- 31. Admins table for admin registration (create if not exists; used by temporary register-admin.php)
+CREATE TABLE IF NOT EXISTS `admins` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `username` varchar(100) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `password_hash` varchar(255) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `admins_username` (`username`),
+  UNIQUE KEY `admins_email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
