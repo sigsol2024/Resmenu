@@ -40,6 +40,17 @@ if (isLoggedIn() && isManager()) {
                 }
             }
         }
+
+        // Enforce subscription access globally for manager pages, while allowing billing flow pages.
+        require_once __DIR__ . '/subscription-middleware.php';
+        $currentPage = basename($_SERVER['PHP_SELF'] ?? '');
+        $billingAllowlist = ['billing.php', 'checkout.php', 'process-payment.php', 'payment-callback.php'];
+        $subscriptionAccess = checkSubscriptionAccess($restaurantId);
+        if (!$subscriptionAccess['valid'] && !in_array($currentPage, $billingAllowlist, true)) {
+            $reason = urlencode($subscriptionAccess['lockout_reason'] ?? 'upgrade_required');
+            header('Location: /manager/billing.php?upgrade_required=1&reason=' . $reason);
+            exit;
+        }
     }
 }
 ?>

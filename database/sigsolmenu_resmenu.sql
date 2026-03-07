@@ -690,6 +690,18 @@ CREATE TABLE `site_settings` (
   `site_name` varchar(255) NOT NULL DEFAULT 'Resmenu',
   `site_logo` varchar(255) DEFAULT NULL,
   `favicon` varchar(255) DEFAULT NULL,
+  `contact_sales_email` varchar(255) DEFAULT NULL,
+  `contact_sales_phone` varchar(50) DEFAULT NULL,
+  `contact_support_email` varchar(255) DEFAULT NULL,
+  `contact_support_phone` varchar(50) DEFAULT NULL,
+  `contact_partners_email` varchar(255) DEFAULT NULL,
+  `contact_form_recipient` varchar(255) DEFAULT NULL,
+  `contact_hq_title` varchar(255) DEFAULT NULL,
+  `contact_hq_address` text DEFAULT NULL,
+  `contact_map_embed` text DEFAULT NULL,
+  `contact_social_facebook` varchar(255) DEFAULT NULL,
+  `contact_social_twitter` varchar(255) DEFAULT NULL,
+  `contact_social_instagram` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -698,8 +710,8 @@ CREATE TABLE `site_settings` (
 -- Dumping data for table `site_settings`
 --
 
-INSERT INTO `site_settings` (`id`, `site_name`, `site_logo`, `favicon`, `created_at`, `updated_at`) VALUES
-(1, 'Resmenu', NULL, NULL, '2026-02-12 23:18:09', '2026-02-12 23:18:09');
+INSERT INTO `site_settings` (`id`, `site_name`, `site_logo`, `favicon`, `contact_sales_email`, `contact_sales_phone`, `contact_support_email`, `contact_support_phone`, `contact_partners_email`, `contact_form_recipient`, `contact_hq_title`, `contact_hq_address`, `contact_map_embed`, `contact_social_facebook`, `contact_social_twitter`, `contact_social_instagram`, `created_at`, `updated_at`) VALUES
+(1, 'Resmenu', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-02-12 23:18:09', '2026-02-12 23:18:09');
 
 -- --------------------------------------------------------
 
@@ -741,6 +753,29 @@ CREATE TABLE `subscription_emails` (
   `email_type` varchar(50) NOT NULL COMMENT 'trial_ending, payment_reminder, payment_success, expired',
   `days_before` int(11) DEFAULT NULL COMMENT '30, 15, 7, 3, 1 for reminders',
   `sent_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `subscription_change_requests`
+--
+
+CREATE TABLE `subscription_change_requests` (
+  `id` int(11) NOT NULL,
+  `restaurant_id` int(11) NOT NULL,
+  `subscription_id` int(11) NOT NULL,
+  `from_plan_id` int(11) NOT NULL,
+  `to_plan_id` int(11) NOT NULL,
+  `from_billing_cycle` varchar(20) NOT NULL,
+  `to_billing_cycle` varchar(20) NOT NULL,
+  `change_type` varchar(50) NOT NULL,
+  `effective_at` datetime NOT NULL,
+  `status` varchar(20) NOT NULL DEFAULT 'pending',
+  `requested_by` varchar(20) DEFAULT 'manager',
+  `applied_at` datetime DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -852,6 +887,7 @@ CREATE TABLE `templates` (
   `name` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
   `preview_image` varchar(255) DEFAULT NULL,
+  `listing_image` varchar(255) DEFAULT NULL,
   `is_active` tinyint(1) DEFAULT 1,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
@@ -861,11 +897,11 @@ CREATE TABLE `templates` (
 -- Dumping data for table `templates`
 --
 
-INSERT INTO `templates` (`id`, `name`, `description`, `preview_image`, `is_active`, `created_at`, `updated_at`) VALUES
-(1, 'Framer Design', 'Clean, modern design with rounded corners and elegant typography', NULL, 1, '2025-12-19 18:43:07', '2025-12-19 18:43:07'),
-(2, 'Salt and Social', 'Modern restaurant template with Tailwind CSS, featuring hero sections and featured items', NULL, 1, '2025-12-19 18:43:07', '2025-12-19 18:43:07'),
-(3, 'Dark Navy Gradient', 'Dark navy blue gradient background template with red gradient category text and white cards', NULL, 1, '2025-12-19 18:43:07', '2025-12-19 18:43:07'),
-(4, 'The Gourmet Grill', 'Premium dark-themed design with Epilogue font, herb pattern, and flame-grilled aesthetic', NULL, 1, '2026-02-09 12:24:42', '2026-02-13 09:24:58');
+INSERT INTO `templates` (`id`, `name`, `description`, `preview_image`, `listing_image`, `is_active`, `created_at`, `updated_at`) VALUES
+(1, 'Framer Design', 'Clean, modern design with rounded corners and elegant typography', NULL, NULL, 1, '2025-12-19 18:43:07', '2025-12-19 18:43:07'),
+(2, 'Salt and Social', 'Modern restaurant template with Tailwind CSS, featuring hero sections and featured items', NULL, NULL, 1, '2025-12-19 18:43:07', '2025-12-19 18:43:07'),
+(3, 'Dark Navy Gradient', 'Dark navy blue gradient background template with red gradient category text and white cards', NULL, NULL, 1, '2025-12-19 18:43:07', '2025-12-19 18:43:07'),
+(4, 'The Gourmet Grill', 'Premium dark-themed design with Epilogue font, herb pattern, and flame-grilled aesthetic', NULL, NULL, 1, '2026-02-09 12:24:42', '2026-02-13 09:24:58');
 
 -- --------------------------------------------------------
 
@@ -1078,6 +1114,15 @@ ALTER TABLE `subscription_emails`
   ADD KEY `subscription_id` (`subscription_id`);
 
 --
+-- Indexes for table `subscription_change_requests`
+--
+ALTER TABLE `subscription_change_requests`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_subscription_pending` (`subscription_id`,`status`),
+  ADD KEY `idx_effective_pending` (`effective_at`,`status`),
+  ADD KEY `idx_restaurant_pending` (`restaurant_id`,`status`);
+
+--
 -- Indexes for table `subscription_plans`
 --
 ALTER TABLE `subscription_plans`
@@ -1241,6 +1286,12 @@ ALTER TABLE `subscription_emails`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `subscription_change_requests`
+--
+ALTER TABLE `subscription_change_requests`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `subscription_plans`
 --
 ALTER TABLE `subscription_plans`
@@ -1374,6 +1425,15 @@ ALTER TABLE `subscriptions`
 --
 ALTER TABLE `subscription_emails`
   ADD CONSTRAINT `subscription_emails_ibfk_1` FOREIGN KEY (`subscription_id`) REFERENCES `subscriptions` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `subscription_change_requests`
+--
+ALTER TABLE `subscription_change_requests`
+  ADD CONSTRAINT `subscription_change_requests_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `subscription_change_requests_ibfk_2` FOREIGN KEY (`subscription_id`) REFERENCES `subscriptions` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `subscription_change_requests_ibfk_3` FOREIGN KEY (`from_plan_id`) REFERENCES `subscription_plans` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `subscription_change_requests_ibfk_4` FOREIGN KEY (`to_plan_id`) REFERENCES `subscription_plans` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `table_inventory_daily`

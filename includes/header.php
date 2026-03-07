@@ -21,7 +21,7 @@
                 <li><a href="/templates.php">Templates</a></li>
                 <li><a href="/faq.php">FAQ</a></li>
                 <li><a href="/contact.php">Contact</a></li>
-                <li><a href="/admin/login.php" class="btn-nav">Get Started</a></li>
+                <li><a href="/register.php" class="btn-nav">Get Started</a></li>
             </ul>
         </div>
     </nav>

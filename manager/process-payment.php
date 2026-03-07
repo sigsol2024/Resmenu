@@ -19,6 +19,12 @@ if (!$restaurantId || $_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+if (!validateCSRFToken($_POST['csrf_token'] ?? '')) {
+    $_SESSION['error'] = 'Invalid security token. Please refresh and try again.';
+    header('Location: checkout.php');
+    exit;
+}
+
 // Get form data
 $planId = intval($_POST['plan_id'] ?? 0);
 $billingCycle = $_POST['billing_cycle'] ?? 'monthly';
@@ -50,11 +56,38 @@ if (!$subscription) {
         exit;
     }
 } else {
+    $decision = getSubscriptionChangeDecision($subscription, $plan, $billingCycle);
+
+    if ($decision['mode'] === 'none') {
+        $_SESSION['info'] = 'You are already on that plan and billing cycle.';
+        header('Location: billing.php');
+        exit;
+    }
+
+    if ($decision['mode'] === 'scheduled') {
+        $effectiveAt = $subscription['current_period_end'] ?? $subscription['trial_ends_at'] ?? date('Y-m-d H:i:s');
+        $scheduled = createOrUpdateScheduledSubscriptionChange(
+            $restaurantId,
+            (int)$subscription['id'],
+            (int)$plan['id'],
+            $billingCycle,
+            $effectiveAt,
+            $decision['type']
+        );
+
+        if ($scheduled) {
+            $_SESSION['success'] = 'Plan change has been scheduled and will take effect at the end of your current billing period.';
+        } else {
+            $_SESSION['error'] = 'Failed to schedule the plan change. Please try again.';
+        }
+        header('Location: billing.php');
+        exit;
+    }
+
     $subscriptionId = $subscription['id'];
-    
-    // Update subscription with new plan and cycle
-    $stmt = $pdo->prepare("UPDATE subscriptions SET plan_id = ?, billing_cycle = ?, status = 'pending' WHERE id = ?");
-    $stmt->execute([$planId, $billingCycle, $subscriptionId]);
+
+    // Immediate change flow: keep current subscription active until payment is confirmed.
+    cancelScheduledSubscriptionChange((int)$subscriptionId);
 }
 
 // Calculate amount
@@ -64,11 +97,21 @@ $amount = $billingCycle === 'annual' ? $plan['annual_price'] : $plan['monthly_pr
 $stmt = $pdo->prepare("SELECT email FROM managers WHERE id = ?");
 $stmt->execute([getCurrentUserId()]);
 $manager = $stmt->fetch();
+if (!$manager || empty($manager['email'])) {
+    $_SESSION['error'] = 'Unable to resolve manager email for payment.';
+    header('Location: checkout.php');
+    exit;
+}
 
 // Get restaurant name
 $stmt = $pdo->prepare("SELECT name FROM restaurants WHERE id = ?");
 $stmt->execute([$restaurantId]);
 $restaurant = $stmt->fetch();
+if (!$restaurant || empty($restaurant['name'])) {
+    $_SESSION['error'] = 'Unable to resolve restaurant details for payment.';
+    header('Location: checkout.php');
+    exit;
+}
 
 // Create payment record
 $paymentId = createPayment([

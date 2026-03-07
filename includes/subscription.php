@@ -7,6 +7,19 @@
 
 require_once __DIR__ . '/functions.php';
 
+/**
+ * Get PDO for subscription helpers.
+ *
+ * @return PDO|null
+ */
+function getSubscriptionPdo() {
+    global $pdo;
+    if ($pdo instanceof PDO) {
+        return $pdo;
+    }
+    return getDBConnection();
+}
+
 // Encryption key for API keys - should be stored in config in production
 define('ENCRYPTION_KEY', 'your-32-character-secret-key-here');
 define('ENCRYPTION_METHOD', 'AES-256-CBC');
@@ -18,14 +31,18 @@ define('ENCRYPTION_METHOD', 'AES-256-CBC');
  * @return array|null Subscription data with plan details or null
  */
 function getRestaurantSubscription($restaurantId) {
-    global $pdo;
-    
+    $pdo = getSubscriptionPdo();
+
     if (!$pdo) return null;
-    
+
     try {
+        // Apply any due scheduled plan changes before loading the current subscription.
+        applyDueSubscriptionChangeRequests((int)$restaurantId, $pdo);
+
         $stmt = $pdo->prepare("
             SELECT s.*, p.name as plan_name, p.slug as plan_slug, 
                    p.monthly_price, p.annual_price,
+                   p.display_order,
                    p.max_categories, p.max_menu_items, p.max_qr_styles, p.max_templates,
                    p.features as plan_features
             FROM subscriptions s
@@ -89,7 +106,7 @@ function getSubscriptionPlans($activeOnly = true) {
  * @return array|null
  */
 function getSubscriptionPlan($identifier) {
-    global $pdo;
+    $pdo = getSubscriptionPdo();
     
     if (!$pdo) return null;
     
@@ -107,6 +124,318 @@ function getSubscriptionPlan($identifier) {
     } catch (PDOException $e) {
         error_log("Error getting plan: " . $e->getMessage());
         return null;
+    }
+}
+
+/**
+ * Ensure scheduled subscription change table exists.
+ *
+ * @param PDO $pdo
+ * @return void
+ */
+function ensureSubscriptionChangeRequestsTable(PDO $pdo) {
+    static $ensured = false;
+    static $available = true;
+    if ($ensured) {
+        return $available;
+    }
+
+    try {
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS subscription_change_requests (
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                restaurant_id INT NOT NULL,
+                subscription_id INT NOT NULL,
+                from_plan_id INT NOT NULL,
+                to_plan_id INT NOT NULL,
+                from_billing_cycle VARCHAR(20) NOT NULL,
+                to_billing_cycle VARCHAR(20) NOT NULL,
+                change_type VARCHAR(50) NOT NULL,
+                effective_at DATETIME NOT NULL,
+                status VARCHAR(20) NOT NULL DEFAULT 'pending',
+                requested_by VARCHAR(20) DEFAULT 'manager',
+                applied_at DATETIME NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                INDEX idx_subscription_pending (subscription_id, status),
+                INDEX idx_effective_pending (effective_at, status),
+                INDEX idx_restaurant_pending (restaurant_id, status)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        ");
+    } catch (PDOException $e) {
+        // If runtime schema changes are not permitted, keep core subscription flows working.
+        error_log("Unable to ensure subscription_change_requests table: " . $e->getMessage());
+        $available = false;
+    }
+
+    $ensured = true;
+    return $available;
+}
+
+/**
+ * Get relative plan rank. Higher number means higher-tier plan.
+ *
+ * @param array $plan
+ * @return int
+ */
+function getSubscriptionPlanRank(array $plan) {
+    if (isset($plan['display_order'])) {
+        return (int)$plan['display_order'];
+    }
+    return 0;
+}
+
+/**
+ * Decide whether a requested change is immediate or scheduled.
+ *
+ * @param array|null $currentSubscription
+ * @param array $targetPlan
+ * @param string $targetBillingCycle
+ * @return array
+ */
+function getSubscriptionChangeDecision($currentSubscription, array $targetPlan, $targetBillingCycle) {
+    $targetCycle = $targetBillingCycle === 'annual' ? 'annual' : 'monthly';
+    if (!$currentSubscription) {
+        return ['mode' => 'immediate', 'reason' => 'new_subscription', 'type' => 'new'];
+    }
+
+    $currentPlanId = (int)($currentSubscription['plan_id'] ?? 0);
+    $targetPlanId = (int)($targetPlan['id'] ?? 0);
+    $currentCycle = ($currentSubscription['billing_cycle'] ?? 'monthly') === 'annual' ? 'annual' : 'monthly';
+    $status = (string)($currentSubscription['status'] ?? '');
+
+    if ($currentPlanId === $targetPlanId && $currentCycle === $targetCycle) {
+        return ['mode' => 'none', 'reason' => 'already_on_plan', 'type' => 'same'];
+    }
+
+    // Trial and non-active states can switch immediately.
+    if (in_array($status, ['trial', 'pending', 'expired', 'cancelled'], true)) {
+        return ['mode' => 'immediate', 'reason' => 'non_active_or_trial', 'type' => 'change'];
+    }
+
+    $currentRank = getSubscriptionPlanRank($currentSubscription);
+    $targetRank = getSubscriptionPlanRank($targetPlan);
+
+    if ($targetRank > $currentRank) {
+        return ['mode' => 'immediate', 'reason' => 'upgrade', 'type' => 'upgrade'];
+    }
+
+    if ($targetRank < $currentRank) {
+        return ['mode' => 'scheduled', 'reason' => 'downgrade', 'type' => 'downgrade'];
+    }
+
+    // Same tier, different cycle: schedule to preserve current billing commitment.
+    if ($currentCycle !== $targetCycle) {
+        return ['mode' => 'scheduled', 'reason' => 'billing_cycle_change', 'type' => 'cycle_change'];
+    }
+
+    return ['mode' => 'none', 'reason' => 'already_on_plan', 'type' => 'same'];
+}
+
+/**
+ * Create or update a pending scheduled change.
+ *
+ * @param int $restaurantId
+ * @param int $subscriptionId
+ * @param int $toPlanId
+ * @param string $toBillingCycle
+ * @param string $effectiveAt
+ * @param string $changeType
+ * @param string $requestedBy
+ * @param PDO|null $pdoOverride
+ * @return bool
+ */
+function createOrUpdateScheduledSubscriptionChange($restaurantId, $subscriptionId, $toPlanId, $toBillingCycle, $effectiveAt, $changeType = 'cycle_change', $requestedBy = 'manager', $pdoOverride = null) {
+    $pdo = $pdoOverride instanceof PDO ? $pdoOverride : getSubscriptionPdo();
+    if (!$pdo) {
+        return false;
+    }
+
+    try {
+        if (!ensureSubscriptionChangeRequestsTable($pdo)) {
+            return false;
+        }
+
+        $stmt = $pdo->prepare("SELECT plan_id, billing_cycle FROM subscriptions WHERE id = ? LIMIT 1");
+        $stmt->execute([(int)$subscriptionId]);
+        $subscription = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$subscription) {
+            return false;
+        }
+
+        $pendingStmt = $pdo->prepare("SELECT id FROM subscription_change_requests WHERE subscription_id = ? AND status = 'pending' ORDER BY id DESC LIMIT 1");
+        $pendingStmt->execute([(int)$subscriptionId]);
+        $pending = $pendingStmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($pending) {
+            $update = $pdo->prepare("
+                UPDATE subscription_change_requests
+                SET to_plan_id = ?, to_billing_cycle = ?, change_type = ?, effective_at = ?, requested_by = ?
+                WHERE id = ?
+            ");
+            return $update->execute([
+                (int)$toPlanId,
+                $toBillingCycle === 'annual' ? 'annual' : 'monthly',
+                (string)$changeType,
+                $effectiveAt,
+                (string)$requestedBy,
+                (int)$pending['id'],
+            ]);
+        }
+
+        $insert = $pdo->prepare("
+            INSERT INTO subscription_change_requests
+            (restaurant_id, subscription_id, from_plan_id, to_plan_id, from_billing_cycle, to_billing_cycle, change_type, effective_at, status, requested_by)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)
+        ");
+
+        return $insert->execute([
+            (int)$restaurantId,
+            (int)$subscriptionId,
+            (int)$subscription['plan_id'],
+            (int)$toPlanId,
+            (string)$subscription['billing_cycle'],
+            $toBillingCycle === 'annual' ? 'annual' : 'monthly',
+            (string)$changeType,
+            $effectiveAt,
+            (string)$requestedBy,
+        ]);
+    } catch (PDOException $e) {
+        error_log("Error scheduling subscription change: " . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Get pending scheduled change for a subscription.
+ *
+ * @param int $subscriptionId
+ * @param PDO|null $pdoOverride
+ * @return array|null
+ */
+function getScheduledSubscriptionChange($subscriptionId, $pdoOverride = null) {
+    $pdo = $pdoOverride instanceof PDO ? $pdoOverride : getSubscriptionPdo();
+    if (!$pdo) {
+        return null;
+    }
+
+    try {
+        if (!ensureSubscriptionChangeRequestsTable($pdo)) {
+            return null;
+        }
+        $stmt = $pdo->prepare("
+            SELECT r.*, p.name AS to_plan_name, p.slug AS to_plan_slug
+            FROM subscription_change_requests r
+            JOIN subscription_plans p ON p.id = r.to_plan_id
+            WHERE r.subscription_id = ? AND r.status = 'pending'
+            ORDER BY r.id DESC
+            LIMIT 1
+        ");
+        $stmt->execute([(int)$subscriptionId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
+    } catch (PDOException $e) {
+        error_log("Error fetching scheduled subscription change: " . $e->getMessage());
+        return null;
+    }
+}
+
+/**
+ * Cancel a pending scheduled change.
+ *
+ * @param int $subscriptionId
+ * @param PDO|null $pdoOverride
+ * @return bool
+ */
+function cancelScheduledSubscriptionChange($subscriptionId, $pdoOverride = null) {
+    $pdo = $pdoOverride instanceof PDO ? $pdoOverride : getSubscriptionPdo();
+    if (!$pdo) {
+        return false;
+    }
+
+    try {
+        if (!ensureSubscriptionChangeRequestsTable($pdo)) {
+            return false;
+        }
+        $stmt = $pdo->prepare("
+            UPDATE subscription_change_requests
+            SET status = 'cancelled'
+            WHERE subscription_id = ? AND status = 'pending'
+        ");
+        return $stmt->execute([(int)$subscriptionId]);
+    } catch (PDOException $e) {
+        error_log("Error cancelling scheduled subscription change: " . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Apply due scheduled changes when their effective date is reached.
+ *
+ * @param int $restaurantId
+ * @param PDO|null $pdoOverride
+ * @return void
+ */
+function applyDueSubscriptionChangeRequests($restaurantId, $pdoOverride = null) {
+    $pdo = $pdoOverride instanceof PDO ? $pdoOverride : getSubscriptionPdo();
+    if (!$pdo) {
+        return;
+    }
+
+    try {
+        if (!ensureSubscriptionChangeRequestsTable($pdo)) {
+            return;
+        }
+
+        $currentSubscriptionId = 0;
+        $subscriptionRefStmt = $pdo->prepare("SELECT subscription_id FROM restaurants WHERE id = ? LIMIT 1");
+        $subscriptionRefStmt->execute([(int)$restaurantId]);
+        $subscriptionRef = $subscriptionRefStmt->fetch(PDO::FETCH_ASSOC);
+        $currentSubscriptionId = (int)($subscriptionRef['subscription_id'] ?? 0);
+        if ($currentSubscriptionId <= 0) {
+            return;
+        }
+
+        $stmt = $pdo->prepare("
+            SELECT id, subscription_id, to_plan_id, to_billing_cycle
+            FROM subscription_change_requests
+            WHERE restaurant_id = ? AND subscription_id = ? AND status = 'pending' AND effective_at <= NOW()
+            ORDER BY id ASC
+            LIMIT 1
+        ");
+        $stmt->execute([(int)$restaurantId, $currentSubscriptionId]);
+        $change = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$change) {
+            return;
+        }
+
+        $pdo->beginTransaction();
+
+        $updateSub = $pdo->prepare("
+            UPDATE subscriptions
+            SET plan_id = ?, billing_cycle = ?, status = 'pending', trial_ends_at = NULL
+            WHERE id = ?
+        ");
+        $updateSub->execute([
+            (int)$change['to_plan_id'],
+            $change['to_billing_cycle'] === 'annual' ? 'annual' : 'monthly',
+            (int)$change['subscription_id'],
+        ]);
+
+        $markApplied = $pdo->prepare("
+            UPDATE subscription_change_requests
+            SET status = 'applied', applied_at = NOW()
+            WHERE id = ?
+        ");
+        $markApplied->execute([(int)$change['id']]);
+
+        $pdo->commit();
+    } catch (PDOException $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        error_log("Error applying scheduled subscription change: " . $e->getMessage());
     }
 }
 
@@ -309,8 +638,8 @@ function getRemainingUsage($restaurantId, $feature) {
  * @return int|false Subscription ID or false on failure
  */
 function createSubscription($restaurantId, $planId, $billingCycle = 'monthly', $isTrial = true) {
-    global $pdo;
-    
+    $pdo = getSubscriptionPdo();
+
     if (!$pdo) return false;
     
     try {
@@ -333,6 +662,52 @@ function createSubscription($restaurantId, $planId, $billingCycle = 'monthly', $
     } catch (PDOException $e) {
         error_log("Error creating subscription: " . $e->getMessage());
         return false;
+    }
+}
+
+/**
+ * Create a trial/pending subscription by plan slug and attach it to restaurant.
+ *
+ * @param int $restaurantId
+ * @param string $planSlug
+ * @param string $billingCycle
+ * @param bool $isTrial
+ * @param int $trialDays
+ * @param PDO|null $pdoOverride
+ * @return array ['success' => bool, 'message' => string, 'subscription_id' => int|null]
+ */
+function createSubscriptionByPlanSlug($restaurantId, $planSlug = 'professional', $billingCycle = 'monthly', $isTrial = true, $trialDays = 7, $pdoOverride = null) {
+    $pdo = $pdoOverride instanceof PDO ? $pdoOverride : getSubscriptionPdo();
+    if (!$pdo) {
+        return ['success' => false, 'message' => 'Database connection failed', 'subscription_id' => null];
+    }
+
+    try {
+        $stmt = $pdo->prepare("SELECT id FROM subscription_plans WHERE slug = ? AND is_active = 1 LIMIT 1");
+        $stmt->execute([$planSlug]);
+        $plan = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$plan) {
+            return ['success' => false, 'message' => "Required subscription plan '{$planSlug}' is missing or inactive.", 'subscription_id' => null];
+        }
+
+        $status = $isTrial ? 'trial' : 'pending';
+        $trialEndsAt = $isTrial ? date('Y-m-d H:i:s', strtotime('+' . max(1, (int)$trialDays) . ' days')) : null;
+
+        $stmt = $pdo->prepare("
+            INSERT INTO subscriptions (restaurant_id, plan_id, billing_cycle, status, trial_ends_at)
+            VALUES (?, ?, ?, ?, ?)
+        ");
+        $stmt->execute([$restaurantId, $plan['id'], $billingCycle, $status, $trialEndsAt]);
+        $subscriptionId = (int)$pdo->lastInsertId();
+
+        $stmt = $pdo->prepare("UPDATE restaurants SET subscription_id = ? WHERE id = ?");
+        $stmt->execute([$subscriptionId, $restaurantId]);
+
+        return ['success' => true, 'message' => 'Subscription created', 'subscription_id' => $subscriptionId];
+    } catch (PDOException $e) {
+        error_log("Error creating subscription by plan slug: " . $e->getMessage());
+        return ['success' => false, 'message' => 'Failed to create subscription', 'subscription_id' => null];
     }
 }
 

@@ -27,17 +27,33 @@ $plans = getSubscriptionPlans(true);
 $activeGateways = getActivePaymentGateways();
 
 // Get selected plan
-$selectedPlanId = intval($_GET['plan'] ?? 0);
+$planQuery = trim((string)($_GET['plan'] ?? ''));
+$selectedPlanId = ctype_digit($planQuery) ? (int)$planQuery : 0;
 $selectedPlan = null;
+$requestedCycle = strtolower(trim((string)($_GET['cycle'] ?? 'monthly')));
+if ($requestedCycle === 'yearly') {
+    $requestedCycle = 'annual';
+}
+if (!in_array($requestedCycle, ['monthly', 'annual'], true)) {
+    $requestedCycle = 'monthly';
+}
 
 if ($selectedPlanId > 0) {
     $selectedPlan = getSubscriptionPlan($selectedPlanId);
+} elseif ($planQuery !== '') {
+    $selectedPlan = getSubscriptionPlan($planQuery);
 }
 
 // Default to professional if no plan selected
-if (!$selectedPlan && count($plans) > 1) {
-    $selectedPlan = $plans[1]; // Professional is usually second
-} elseif (!$selectedPlan && count($plans) > 0) {
+if (!$selectedPlan) {
+    foreach ($plans as $candidatePlan) {
+        if (($candidatePlan['slug'] ?? '') === 'professional') {
+            $selectedPlan = $candidatePlan;
+            break;
+        }
+    }
+}
+if (!$selectedPlan && count($plans) > 0) {
     $selectedPlan = $plans[0];
 }
 
@@ -541,6 +557,7 @@ include __DIR__ . '/../includes/manager-layout.php';
     </div>
     
     <form id="checkoutForm" method="POST" action="process-payment.php">
+        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
         <div class="checkout-grid">
             <!-- Left Column - Plan Selection -->
             <div>
@@ -577,14 +594,14 @@ include __DIR__ . '/../includes/manager-layout.php';
                     <!-- Billing Cycle Toggle -->
                     <h2 class="section-title">Billing Cycle</h2>
                     <div class="billing-toggle">
-                        <button type="button" class="billing-option active" data-cycle="monthly">
+                        <button type="button" class="billing-option <?php echo $requestedCycle === 'monthly' ? 'active' : ''; ?>" data-cycle="monthly">
                             Monthly
                         </button>
-                        <button type="button" class="billing-option" data-cycle="annual">
+                        <button type="button" class="billing-option <?php echo $requestedCycle === 'annual' ? 'active' : ''; ?>" data-cycle="annual">
                             Annual <span class="save-badge">Save 20%</span>
                         </button>
                     </div>
-                    <input type="hidden" name="billing_cycle" id="billing_cycle" value="monthly">
+                    <input type="hidden" name="billing_cycle" id="billing_cycle" value="<?php echo htmlspecialchars($requestedCycle); ?>">
                     
                     <!-- Payment Methods -->
                     <div class="payment-methods">
@@ -636,7 +653,13 @@ include __DIR__ . '/../includes/manager-layout.php';
                     <div class="summary-total">
                         <span class="summary-label">Total</span>
                         <span class="summary-value" id="summary-total">
-                            <?php echo formatSubscriptionPrice($selectedPlan['monthly_price'] ?? 0); ?>
+                            <?php
+                            $defaultAmount = 0;
+                            if ($selectedPlan) {
+                                $defaultAmount = $requestedCycle === 'annual' ? (float)$selectedPlan['annual_price'] : (float)$selectedPlan['monthly_price'];
+                            }
+                            echo formatSubscriptionPrice($defaultAmount);
+                            ?>
                         </span>
                     </div>
                     
@@ -760,6 +783,7 @@ document.querySelectorAll('input[name="plan_id"]').forEach(radio => {
 });
 
 // Initial update
+updatePrices(document.getElementById('billing_cycle').value || 'monthly');
 updateSummary();
 </script>
 

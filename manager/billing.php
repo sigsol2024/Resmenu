@@ -18,6 +18,75 @@ if (!$restaurantId) {
     die('No restaurant associated with your account.');
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? '';
+    if (!validateCSRFToken($_POST['csrf_token'] ?? '')) {
+        $_SESSION['error'] = 'Invalid security token. Please refresh and try again.';
+        header('Location: billing.php');
+        exit;
+    }
+
+    $currentSubscription = getRestaurantSubscription($restaurantId);
+    if (!$currentSubscription) {
+        $_SESSION['error'] = 'No active subscription found to update.';
+        header('Location: billing.php');
+        exit;
+    }
+
+    if ($action === 'schedule_change') {
+        $targetPlanId = (int)($_POST['target_plan_id'] ?? 0);
+        $targetCycleRaw = strtolower(trim((string)($_POST['target_cycle'] ?? 'monthly')));
+        $targetCycle = $targetCycleRaw === 'annual' ? 'annual' : 'monthly';
+        $targetPlan = getSubscriptionPlan($targetPlanId);
+
+        if (!$targetPlan) {
+            $_SESSION['error'] = 'Selected plan could not be found.';
+            header('Location: billing.php');
+            exit;
+        }
+
+        $decision = getSubscriptionChangeDecision($currentSubscription, $targetPlan, $targetCycle);
+        if ($decision['mode'] === 'immediate') {
+            header('Location: checkout.php?plan=' . urlencode($targetPlan['slug']) . '&cycle=' . urlencode($targetCycle));
+            exit;
+        }
+        if ($decision['mode'] === 'none') {
+            $_SESSION['info'] = 'You are already on that plan and billing cycle.';
+            header('Location: billing.php');
+            exit;
+        }
+
+        $effectiveAt = $currentSubscription['current_period_end'] ?? $currentSubscription['trial_ends_at'] ?? date('Y-m-d H:i:s');
+        $scheduled = createOrUpdateScheduledSubscriptionChange(
+            $restaurantId,
+            (int)$currentSubscription['id'],
+            (int)$targetPlan['id'],
+            $targetCycle,
+            $effectiveAt,
+            $decision['type']
+        );
+
+        if ($scheduled) {
+            $_SESSION['success'] = 'Plan change scheduled successfully. It will take effect at the end of your current billing period.';
+        } else {
+            $_SESSION['error'] = 'Unable to schedule the change. Please try again.';
+        }
+        header('Location: billing.php');
+        exit;
+    }
+
+    if ($action === 'cancel_scheduled_change') {
+        $cancelled = cancelScheduledSubscriptionChange((int)$currentSubscription['id']);
+        if ($cancelled) {
+            $_SESSION['success'] = 'Scheduled change cancelled.';
+        } else {
+            $_SESSION['error'] = 'Unable to cancel scheduled change.';
+        }
+        header('Location: billing.php');
+        exit;
+    }
+}
+
 // Handle payment callback messages from URL (in case session expired)
 if (isset($_GET['payment_success']) && $_GET['payment_success'] == '1') {
     $reference = $_GET['reference'] ?? '';
@@ -50,6 +119,14 @@ if (isset($_GET['payment_error']) && $_GET['payment_error'] == '1') {
     exit;
 }
 
+if (isset($_GET['welcome']) && $_GET['welcome'] == '1') {
+    $_SESSION['success'] = 'Welcome! Your 7-day Professional trial is active. Choose a paid plan anytime from this page.';
+}
+
+if (isset($_GET['upgrade_required']) && $_GET['upgrade_required'] == '1') {
+    $_SESSION['error'] = 'Your trial or subscription is no longer active. Please choose a plan to continue using manager features.';
+}
+
 // Convert session messages to variables for display in layout
 $message = $_SESSION['success'] ?? $_SESSION['info'] ?? '';
 $error = $_SESSION['error'] ?? '';
@@ -66,6 +143,7 @@ $plans = getSubscriptionPlans(true);
 $usage = getUsageSummary($restaurantId);
 $paymentHistory = getPaymentHistory($restaurantId, 3);
 $activeGateways = getActivePaymentGateways();
+$scheduledChange = $subscription ? getScheduledSubscriptionChange((int)$subscription['id']) : null;
 
 // Get restaurant info
 $restaurant = null;
@@ -765,6 +843,22 @@ include __DIR__ . '/../includes/manager-layout.php';
             <?php endif; ?>
         </div>
     </div>
+
+    <?php if ($scheduledChange): ?>
+        <div class="alert alert-success" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+            <div>
+                <strong>Scheduled change:</strong>
+                Switch to <?php echo htmlspecialchars($scheduledChange['to_plan_name']); ?>
+                (<?php echo htmlspecialchars(ucfirst($scheduledChange['to_billing_cycle'])); ?>)
+                on <?php echo date('M j, Y', strtotime($scheduledChange['effective_at'])); ?>.
+            </div>
+            <form method="post" action="billing.php" style="margin:0;">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
+                <input type="hidden" name="action" value="cancel_scheduled_change">
+                <button type="submit" class="btn btn-secondary btn-small">Cancel</button>
+            </form>
+        </div>
+    <?php endif; ?>
     
     <!-- Usage & Payment Grid -->
     <div class="billing-grid">
@@ -843,6 +937,8 @@ include __DIR__ . '/../includes/manager-layout.php';
             <?php 
             $isCurrent = $subscription && $subscription['plan_id'] == $plan['id'];
             $isPopular = $plan['slug'] === 'professional';
+            $monthlyDecision = $subscription ? getSubscriptionChangeDecision($subscription, $plan, 'monthly') : ['mode' => 'immediate', 'type' => 'new'];
+            $annualDecision = $subscription ? getSubscriptionChangeDecision($subscription, $plan, 'annual') : ['mode' => 'immediate', 'type' => 'new'];
             ?>
             <div class="plan-option <?php echo $isCurrent ? 'current' : ''; ?> <?php echo $isPopular ? 'popular' : ''; ?>">
                 <?php if ($isPopular): ?>
@@ -879,14 +975,48 @@ include __DIR__ . '/../includes/manager-layout.php';
                         <?php echo $plan['max_templates'] == -1 ? 'All' : $plan['max_templates']; ?> Templates
                     </li>
                 </ul>
-                
-                <?php if ($isCurrent): ?>
-                    <span class="btn-select-plan current">Current Plan</span>
-                <?php else: ?>
-                    <a href="checkout.php?plan=<?php echo $plan['id']; ?>" class="btn-select-plan primary">
-                        <?php echo $subscription ? 'Switch to ' . $plan['name'] : 'Select ' . $plan['name']; ?>
-                    </a>
-                <?php endif; ?>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+                    <?php if ($monthlyDecision['mode'] === 'none'): ?>
+                        <span class="btn-select-plan current">Monthly Current</span>
+                    <?php elseif ($monthlyDecision['mode'] === 'immediate'): ?>
+                        <a href="checkout.php?plan=<?php echo urlencode($plan['slug']); ?>&cycle=monthly" class="btn-select-plan primary">Choose Monthly</a>
+                    <?php else: ?>
+                        <form method="post" action="billing.php" style="margin:0;">
+                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
+                            <input type="hidden" name="action" value="schedule_change">
+                            <input type="hidden" name="target_plan_id" value="<?php echo (int)$plan['id']; ?>">
+                            <input type="hidden" name="target_cycle" value="monthly">
+                            <button type="submit" class="btn-select-plan secondary" style="border:none;">Schedule Monthly</button>
+                        </form>
+                    <?php endif; ?>
+
+                    <?php if ($annualDecision['mode'] === 'none'): ?>
+                        <span class="btn-select-plan current">Yearly Current</span>
+                    <?php elseif ($annualDecision['mode'] === 'immediate'): ?>
+                        <a href="checkout.php?plan=<?php echo urlencode($plan['slug']); ?>&cycle=annual" class="btn-select-plan primary">Choose Yearly</a>
+                    <?php else: ?>
+                        <form method="post" action="billing.php" style="margin:0;">
+                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
+                            <input type="hidden" name="action" value="schedule_change">
+                            <input type="hidden" name="target_plan_id" value="<?php echo (int)$plan['id']; ?>">
+                            <input type="hidden" name="target_cycle" value="annual">
+                            <button type="submit" class="btn-select-plan secondary" style="border:none;">Schedule Yearly</button>
+                        </form>
+                    <?php endif; ?>
+                </div>
+
+                <?php
+                $changeHint = '';
+                if ($isCurrent) {
+                    $changeHint = 'Current plan. Upgrades are immediate; downgrades or billing-cycle changes are scheduled.';
+                } elseif ($monthlyDecision['mode'] === 'scheduled' || $annualDecision['mode'] === 'scheduled') {
+                    $changeHint = 'Downgrades and billing-cycle changes are scheduled for your period end.';
+                } else {
+                    $changeHint = 'Upgrade changes are applied immediately after successful payment.';
+                }
+                ?>
+                <p style="font-size:0.78rem;color:#6b7280;margin-top:6px;"><?php echo htmlspecialchars($changeHint); ?></p>
             </div>
         <?php endforeach; ?>
     </div>

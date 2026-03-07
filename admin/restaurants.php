@@ -83,172 +83,100 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $logo = null;
                 $heroImage = null;
-                
-                // Handle logo upload
-                if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
-                    $uploadResult = uploadFile($_FILES['logo'], UPLOAD_PATH . '/logos');
-                    if ($uploadResult['success']) {
-                        $logo = $uploadResult['filename'];
-                        
-                        // Delete old logo if updating
-                        if ($action === 'update' && isset($_POST['id'])) {
+
+                // Update flow handles uploads inline; create flow uploads inside createRestaurantWithManager().
+                if ($action === 'update') {
+                    // Handle logo upload
+                    if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
+                        $uploadResult = uploadFile($_FILES['logo'], UPLOAD_PATH . '/logos');
+                        if ($uploadResult['success']) {
+                            $logo = $uploadResult['filename'];
+
+                            // Delete old logo if updating
+                            if (isset($_POST['id'])) {
+                                $stmt = $pdo->prepare("SELECT logo FROM restaurants WHERE id = ?");
+                                $stmt->execute([$_POST['id']]);
+                                $oldRestaurant = $stmt->fetch();
+                                if ($oldRestaurant && $oldRestaurant['logo']) {
+                                    deleteFile(UPLOAD_PATH . '/logos/' . $oldRestaurant['logo']);
+                                }
+                            }
+                        } else {
+                            $error = $uploadResult['message'];
+                        }
+                    } else {
+                        // Keep existing logo if updating and no new file uploaded
+                        if (isset($_POST['id'])) {
                             $stmt = $pdo->prepare("SELECT logo FROM restaurants WHERE id = ?");
                             $stmt->execute([$_POST['id']]);
                             $oldRestaurant = $stmt->fetch();
-                            if ($oldRestaurant && $oldRestaurant['logo']) {
-                                deleteFile(UPLOAD_PATH . '/logos/' . $oldRestaurant['logo']);
+                            $logo = $oldRestaurant['logo'] ?? null;
+                        }
+                    }
+
+                    // Handle hero image upload
+                    if (isset($_FILES['hero_image']) && $_FILES['hero_image']['error'] === UPLOAD_ERR_OK) {
+                        $uploadResult = uploadFile($_FILES['hero_image'], UPLOAD_PATH . '/heroes');
+                        if ($uploadResult['success']) {
+                            $heroImage = $uploadResult['filename'];
+
+                            // Delete old hero image if updating
+                            if (isset($_POST['id'])) {
+                                $stmt = $pdo->prepare("SELECT hero_image FROM restaurants WHERE id = ?");
+                                $stmt->execute([$_POST['id']]);
+                                $oldRestaurant = $stmt->fetch();
+                                if ($oldRestaurant && $oldRestaurant['hero_image']) {
+                                    deleteFile(UPLOAD_PATH . '/heroes/' . $oldRestaurant['hero_image']);
+                                }
                             }
+                        } else {
+                            $error = $uploadResult['message'];
                         }
                     } else {
-                        $error = $uploadResult['message'];
-                    }
-                } else {
-                    // Keep existing logo if updating and no new file uploaded
-                    if ($action === 'update' && isset($_POST['id'])) {
-                        $stmt = $pdo->prepare("SELECT logo FROM restaurants WHERE id = ?");
-                        $stmt->execute([$_POST['id']]);
-                        $oldRestaurant = $stmt->fetch();
-                        $logo = $oldRestaurant['logo'] ?? null;
-                    }
-                }
-                
-                // Handle hero image upload
-                if (isset($_FILES['hero_image']) && $_FILES['hero_image']['error'] === UPLOAD_ERR_OK) {
-                    $uploadResult = uploadFile($_FILES['hero_image'], UPLOAD_PATH . '/heroes');
-                    if ($uploadResult['success']) {
-                        $heroImage = $uploadResult['filename'];
-                        
-                        // Delete old hero image if updating
-                        if ($action === 'update' && isset($_POST['id'])) {
+                        // Keep existing hero image if updating and no new file uploaded
+                        if (isset($_POST['id'])) {
                             $stmt = $pdo->prepare("SELECT hero_image FROM restaurants WHERE id = ?");
                             $stmt->execute([$_POST['id']]);
                             $oldRestaurant = $stmt->fetch();
-                            if ($oldRestaurant && $oldRestaurant['hero_image']) {
-                                deleteFile(UPLOAD_PATH . '/heroes/' . $oldRestaurant['hero_image']);
-                            }
+                            $heroImage = $oldRestaurant['hero_image'] ?? null;
                         }
-                    } else {
-                        $error = $uploadResult['message'];
-                    }
-                } else {
-                    // Keep existing hero image if updating and no new file uploaded
-                    if ($action === 'update' && isset($_POST['id'])) {
-                        $stmt = $pdo->prepare("SELECT hero_image FROM restaurants WHERE id = ?");
-                        $stmt->execute([$_POST['id']]);
-                        $oldRestaurant = $stmt->fetch();
-                        $heroImage = $oldRestaurant['hero_image'] ?? null;
                     }
                 }
                 
                 if (!$error) {
                     if ($action === 'create') {
-                        // Get manager email and password
-                        $managerEmail = sanitize($_POST['manager_email'] ?? '');
-                        $managerPassword = $_POST['manager_password'] ?? '';
-                        $managerPasswordConfirm = $_POST['manager_password_confirm'] ?? '';
-                        
-                        if (empty($managerEmail) || empty($managerPassword)) {
-                            $error = 'Manager email and password are required';
-                        } elseif ($managerPassword !== $managerPasswordConfirm) {
-                            $error = 'Manager passwords do not match';
-                        } elseif (!isValidEmail($managerEmail)) {
-                            $error = 'Invalid manager email address';
-                        } else {
-                            try {
-                                // Start transaction
-                                $pdo->beginTransaction();
-                                
-                                // Create restaurant
-                                $stmt = $pdo->prepare("INSERT INTO restaurants (name, slug, description, phone, email, address, whatsapp_link, instagram_url, facebook_url, twitter_url, logo, hero_image, manager_email, google_rating, rating_source, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                                $stmt->execute([$name, $slug, $description, $phone, $email, $address, $whatsapp_link, $instagram_url, $facebook_url, $twitter_url, $logo, $heroImage, $managerEmail, $google_rating, $rating_source, $is_active]);
-                                $restaurantId = $pdo->lastInsertId();
-                                
-                                // Create manager user account
-                                require_once __DIR__ . '/../includes/auth.php';
-                                $passwordHash = hashPassword($managerPassword);
-                                $username = strtolower(preg_replace('/[^a-z0-9]/', '', $name)) . '_manager';
-                                
-                                // Ensure username is unique
-                                $originalUsername = $username;
-                                $counter = 1;
-                                $maxIterations = 1000; // Safety limit
-                                
-                                // #region agent log
-                                $logDir = __DIR__ . '/../.cursor';
-                                if (!is_dir($logDir)) {
-                                    @mkdir($logDir, 0755, true);
-                                }
-                                @file_put_contents($logDir . '/debug.log', json_encode(['sessionId'=>'debug-session','runId'=>'run1','hypothesisId'=>'B','location'=>'admin/restaurants.php:94','message'=>'Username generation loop start','data'=>['originalUsername'=>$originalUsername,'counter'=>$counter],'timestamp'=>time()*1000]) . "\n", FILE_APPEND);
-                                // #endregion
-                                
-                                while ($counter <= $maxIterations) {
-                                    $checkStmt = $pdo->prepare("SELECT id FROM managers WHERE username = ?");
-                                    $checkStmt->execute([$username]);
-                                    if (!$checkStmt->fetch()) {
-                                        break;
-                                    }
-                                    $username = $originalUsername . $counter;
-                                    $counter++;
-                                    
-                                    // #region agent log
-                                    $logDir = __DIR__ . '/../.cursor';
-                                    if (!is_dir($logDir)) {
-                                        @mkdir($logDir, 0755, true);
-                                    }
-                                    @file_put_contents($logDir . '/debug.log', json_encode(['sessionId'=>'debug-session','runId'=>'run1','hypothesisId'=>'B','location'=>'admin/restaurants.php:103','message'=>'Username generation loop iteration','data'=>['username'=>$username,'counter'=>$counter,'maxIterations'=>$maxIterations],'timestamp'=>time()*1000]) . "\n", FILE_APPEND);
-                                    // #endregion
-                                }
-                                
-                                // #region agent log
-                                $logDir = __DIR__ . '/../.cursor';
-                                if (!is_dir($logDir)) {
-                                    @mkdir($logDir, 0755, true);
-                                }
-                                @file_put_contents($logDir . '/debug.log', json_encode(['sessionId'=>'debug-session','runId'=>'run1','hypothesisId'=>'B','location'=>'admin/restaurants.php:108','message'=>'Username generation loop end','data'=>['finalUsername'=>$username,'iterations'=>$counter,'maxReached'=>($counter > $maxIterations)],'timestamp'=>time()*1000]) . "\n", FILE_APPEND);
-                                // #endregion
-                                
-                                if ($counter > $maxIterations) {
-                                    throw new Exception('Unable to generate unique username after ' . $maxIterations . ' attempts');
-                                }
-                                
-                                $stmt = $pdo->prepare("INSERT INTO managers (username, email, password_hash, restaurant_id) VALUES (?, ?, ?, ?)");
-                                $stmt->execute([$username, $managerEmail, $passwordHash, $restaurantId]);
-                                
-                                // Create default customization settings (template_id=1 for new restaurants)
-                                $stmt = $pdo->prepare("INSERT INTO customization_settings (restaurant_id, template_id) VALUES (?, 1)");
-                                $stmt->execute([$restaurantId]);
-                                
-                                // Create trial subscription for the new restaurant
-                                // Get the first plan (Basic) for trial
-                                $basicPlan = $pdo->query("SELECT id FROM subscription_plans WHERE is_active = 1 ORDER BY display_order ASC LIMIT 1")->fetch();
-                                if ($basicPlan) {
-                                    $trialPlanId = $basicPlan['id'];
-                                    createSubscription($restaurantId, $trialPlanId, 'monthly', true);
-                                }
-                                
-                                // Commit transaction
-                                $pdo->commit();
-                                
-                                // #region agent log
-                                $logDir = __DIR__ . '/../.cursor';
-                                if (!is_dir($logDir)) {
-                                    @mkdir($logDir, 0755, true);
-                                }
-                                @file_put_contents($logDir . '/debug.log', json_encode(['sessionId'=>'debug-session','runId'=>'run1','hypothesisId'=>'D','location'=>'admin/restaurants.php:115','message'=>'Transaction committed successfully','data'=>['restaurantId'=>$restaurantId,'slug'=>$slug],'timestamp'=>time()*1000]) . "\n", FILE_APPEND);
-                                // #endregion
-                                
-                                // Redirect to prevent form resubmission
-                                header('Location: restaurants.php?success=created');
-                                exit;
-                                
-                                // Redirect to restaurant view page
-                                header('Location: restaurant-view.php?slug=' . urlencode($slug));
-                                exit;
-                            } catch (PDOException $e) {
-                                $pdo->rollBack();
-                                $error = 'Error creating restaurant: ' . $e->getMessage();
-                            }
+                        $createResult = createRestaurantWithManager($pdo, [
+                            'name' => $name,
+                            'slug' => $slug,
+                            'description' => $description,
+                            'phone' => $phone,
+                            'email' => $email,
+                            'address' => $address,
+                            'whatsapp_link' => $whatsapp_link,
+                            'instagram_url' => $instagram_url,
+                            'facebook_url' => $facebook_url,
+                            'twitter_url' => $twitter_url,
+                            'google_rating' => $google_rating,
+                            'rating_source' => $rating_source,
+                            'is_active' => $is_active,
+                            'manager_email' => $_POST['manager_email'] ?? '',
+                            'manager_password' => $_POST['manager_password'] ?? '',
+                            'manager_password_confirm' => $_POST['manager_password_confirm'] ?? '',
+                        ], [
+                            'logo' => $_FILES['logo'] ?? null,
+                            'hero_image' => $_FILES['hero_image'] ?? null,
+                        ], [
+                            'default_template_id' => 1,
+                            'trial_plan_slug' => 'professional',
+                            'trial_days' => 7,
+                        ]);
+
+                        if ($createResult['success']) {
+                            header('Location: restaurants.php?success=created');
+                            exit;
                         }
+
+                        $error = $createResult['message'];
                     } else {
                         $id = $_POST['id'] ?? 0;
                         // Build update query based on what's being updated

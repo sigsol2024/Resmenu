@@ -288,3 +288,29 @@ WHERE r.template_id = 4 AND rrs.restaurant_id IS NULL;
 
 -- 23c. Template listing image (resmenu.net timeline card image; cover stays for template preview page)
 ALTER TABLE `templates` ADD COLUMN IF NOT EXISTS `listing_image` varchar(255) DEFAULT NULL AFTER `preview_image`;
+
+-- 24. Scheduled subscription change requests (for downgrade/cycle change at period end)
+CREATE TABLE IF NOT EXISTS `subscription_change_requests` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `restaurant_id` int(11) NOT NULL,
+  `subscription_id` int(11) NOT NULL,
+  `from_plan_id` int(11) NOT NULL,
+  `to_plan_id` int(11) NOT NULL,
+  `from_billing_cycle` varchar(20) NOT NULL,
+  `to_billing_cycle` varchar(20) NOT NULL,
+  `change_type` varchar(50) NOT NULL,
+  `effective_at` datetime NOT NULL,
+  `status` varchar(20) NOT NULL DEFAULT 'pending',
+  `requested_by` varchar(20) DEFAULT 'manager',
+  `applied_at` datetime DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_subscription_pending` (`subscription_id`, `status`),
+  KEY `idx_effective_pending` (`effective_at`, `status`),
+  KEY `idx_restaurant_pending` (`restaurant_id`, `status`),
+  CONSTRAINT `subscription_change_requests_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `subscription_change_requests_ibfk_2` FOREIGN KEY (`subscription_id`) REFERENCES `subscriptions` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `subscription_change_requests_ibfk_3` FOREIGN KEY (`from_plan_id`) REFERENCES `subscription_plans` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `subscription_change_requests_ibfk_4` FOREIGN KEY (`to_plan_id`) REFERENCES `subscription_plans` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

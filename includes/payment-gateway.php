@@ -268,6 +268,31 @@ function processSuccessfulPayment($paymentId, $verificationData) {
         $subscription = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if (!$subscription) return false;
+
+        // Apply target plan/cycle from gateway metadata only after successful payment.
+        $meta = [];
+        if (isset($verificationData['metadata']) && is_array($verificationData['metadata'])) {
+            $meta = $verificationData['metadata'];
+        } elseif (isset($verificationData['data']['metadata']) && is_array($verificationData['data']['metadata'])) {
+            $meta = $verificationData['data']['metadata'];
+        } elseif (isset($verificationData['data']['meta']) && is_array($verificationData['data']['meta'])) {
+            $meta = $verificationData['data']['meta'];
+        }
+
+        $targetPlanId = (int)($meta['plan_id'] ?? 0);
+        $targetCycleRaw = strtolower((string)($meta['billing_cycle'] ?? ''));
+        $targetCycle = $targetCycleRaw === 'annual' ? 'annual' : ($targetCycleRaw === 'monthly' ? 'monthly' : '');
+
+        if ($targetPlanId > 0 && $targetCycle !== '') {
+            $planStmt = $pdo->prepare("SELECT id FROM subscription_plans WHERE id = ? AND is_active = 1 LIMIT 1");
+            $planStmt->execute([$targetPlanId]);
+            $planExists = $planStmt->fetch(PDO::FETCH_ASSOC);
+            if ($planExists) {
+                $updateTarget = $pdo->prepare("UPDATE subscriptions SET plan_id = ?, billing_cycle = ? WHERE id = ?");
+                $updateTarget->execute([$targetPlanId, $targetCycle, $subscription['id']]);
+                $subscription['billing_cycle'] = $targetCycle;
+            }
+        }
         
         // Activate subscription
         return activateSubscription($subscription['id'], $subscription['billing_cycle']);

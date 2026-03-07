@@ -113,6 +113,213 @@ function deleteFile($filepath) {
 }
 
 /**
+ * Build a unique manager username for a new restaurant manager.
+ *
+ * @param PDO $pdo
+ * @param string $restaurantName
+ * @return string
+ * @throws Exception
+ */
+function generateUniqueManagerUsername(PDO $pdo, $restaurantName) {
+    $base = strtolower(preg_replace('/[^a-z0-9]/', '', (string)$restaurantName));
+    if ($base === '') {
+        $base = 'restaurant';
+    }
+
+    $base .= '_manager';
+    $username = $base;
+    $counter = 1;
+    $maxIterations = 1000;
+
+    while ($counter <= $maxIterations) {
+        $checkStmt = $pdo->prepare("SELECT id FROM managers WHERE username = ? LIMIT 1");
+        $checkStmt->execute([$username]);
+        if (!$checkStmt->fetch(PDO::FETCH_ASSOC)) {
+            return $username;
+        }
+        $username = $base . $counter;
+        $counter++;
+    }
+
+    throw new Exception('Unable to generate a unique manager username.');
+}
+
+/**
+ * Create restaurant + manager + defaults + trial subscription.
+ * Used by both admin flow and public self-registration flow.
+ *
+ * @param PDO $pdo
+ * @param array $input
+ * @param array $files ['logo' => $_FILES entry, 'hero_image' => $_FILES entry]
+ * @param array $options ['default_template_id' => int, 'trial_plan_slug' => string, 'trial_days' => int]
+ * @return array ['success' => bool, 'message' => string, 'restaurant_id' => int|null, 'manager_id' => int|null, 'slug' => string|null]
+ */
+function createRestaurantWithManager(PDO $pdo, array $input, array $files = [], array $options = []) {
+    require_once __DIR__ . '/auth.php';
+    require_once __DIR__ . '/subscription.php';
+
+    $name = sanitize($input['name'] ?? '');
+    $slugInput = sanitize($input['slug'] ?? '');
+    $slug = generateSlug($slugInput !== '' ? $slugInput : $name);
+    $description = sanitize($input['description'] ?? '');
+    $phone = sanitize($input['phone'] ?? '');
+    $email = sanitize($input['email'] ?? '');
+    $address = sanitize($input['address'] ?? '');
+    $whatsappLink = sanitize($input['whatsapp_link'] ?? '');
+    $instagramUrl = sanitize($input['instagram_url'] ?? '');
+    $facebookUrl = sanitize($input['facebook_url'] ?? '');
+    $twitterUrl = sanitize($input['twitter_url'] ?? '');
+    $ratingSource = sanitize($input['rating_source'] ?? 'Google');
+    $googleRatingRaw = $input['google_rating'] ?? '';
+    $managerEmail = sanitize($input['manager_email'] ?? '');
+    $managerPassword = (string)($input['manager_password'] ?? '');
+    $managerPasswordConfirm = (string)($input['manager_password_confirm'] ?? '');
+    // Supports checkbox-style form submit and explicit numeric/boolean value from server callers.
+    $isActive = 0;
+    if (array_key_exists('is_active', $input)) {
+        $rawActive = $input['is_active'];
+        $isActive = in_array((string)$rawActive, ['1', 'true', 'on', 'yes'], true) || $rawActive === 1 || $rawActive === true ? 1 : 0;
+    }
+
+    if ($name === '' || $slug === '') {
+        return ['success' => false, 'message' => 'Restaurant name and slug are required.', 'restaurant_id' => null, 'manager_id' => null, 'slug' => null];
+    }
+    if (!preg_match('/^[a-z0-9-]+$/', $slug)) {
+        return ['success' => false, 'message' => 'Slug can only contain lowercase letters, numbers, and hyphens.', 'restaurant_id' => null, 'manager_id' => null, 'slug' => null];
+    }
+    if ($managerEmail === '' || $managerPassword === '') {
+        return ['success' => false, 'message' => 'Manager email and password are required.', 'restaurant_id' => null, 'manager_id' => null, 'slug' => null];
+    }
+    if (!isValidEmail($managerEmail)) {
+        return ['success' => false, 'message' => 'Invalid manager email address.', 'restaurant_id' => null, 'manager_id' => null, 'slug' => null];
+    }
+    if (strlen($managerPassword) < PASSWORD_MIN_LENGTH) {
+        return ['success' => false, 'message' => 'Manager password is too short.', 'restaurant_id' => null, 'manager_id' => null, 'slug' => null];
+    }
+    if ($managerPassword !== $managerPasswordConfirm) {
+        return ['success' => false, 'message' => 'Manager passwords do not match.', 'restaurant_id' => null, 'manager_id' => null, 'slug' => null];
+    }
+    if ($email !== '' && !isValidEmail($email)) {
+        return ['success' => false, 'message' => 'Invalid restaurant email address.', 'restaurant_id' => null, 'manager_id' => null, 'slug' => null];
+    }
+    foreach (['whatsapp_link' => $whatsappLink, 'instagram_url' => $instagramUrl, 'facebook_url' => $facebookUrl, 'twitter_url' => $twitterUrl] as $label => $url) {
+        if ($url !== '' && filter_var($url, FILTER_VALIDATE_URL) === false) {
+            return ['success' => false, 'message' => "Invalid URL in {$label}.", 'restaurant_id' => null, 'manager_id' => null, 'slug' => null];
+        }
+    }
+
+    $googleRating = null;
+    if ($googleRatingRaw !== '' && $googleRatingRaw !== null) {
+        $googleRating = (float)$googleRatingRaw;
+        if ($googleRating < 0 || $googleRating > 5) {
+            return ['success' => false, 'message' => 'Rating must be between 0 and 5.', 'restaurant_id' => null, 'manager_id' => null, 'slug' => null];
+        }
+    }
+
+    // Pre-check slug/email uniqueness for friendly errors.
+    $stmt = $pdo->prepare("SELECT id FROM restaurants WHERE slug = ? LIMIT 1");
+    $stmt->execute([$slug]);
+    if ($stmt->fetch(PDO::FETCH_ASSOC)) {
+        return ['success' => false, 'message' => 'This restaurant slug is already in use.', 'restaurant_id' => null, 'manager_id' => null, 'slug' => null];
+    }
+    $stmt = $pdo->prepare("SELECT id FROM managers WHERE email = ? LIMIT 1");
+    $stmt->execute([$managerEmail]);
+    if ($stmt->fetch(PDO::FETCH_ASSOC)) {
+        return ['success' => false, 'message' => 'This manager email already exists.', 'restaurant_id' => null, 'manager_id' => null, 'slug' => null];
+    }
+
+    $logo = null;
+    $heroImage = null;
+    $uploadedPaths = [];
+
+    if (isset($files['logo']) && is_array($files['logo']) && ($files['logo']['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK) {
+        $uploadResult = uploadFile($files['logo'], UPLOAD_PATH . '/logos');
+        if (!$uploadResult['success']) {
+            return ['success' => false, 'message' => $uploadResult['message'], 'restaurant_id' => null, 'manager_id' => null, 'slug' => null];
+        }
+        $logo = $uploadResult['filename'];
+        $uploadedPaths[] = UPLOAD_PATH . '/logos/' . $logo;
+    }
+
+    if (isset($files['hero_image']) && is_array($files['hero_image']) && ($files['hero_image']['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK) {
+        $uploadResult = uploadFile($files['hero_image'], UPLOAD_PATH . '/heroes');
+        if (!$uploadResult['success']) {
+            foreach ($uploadedPaths as $path) {
+                deleteFile($path);
+            }
+            return ['success' => false, 'message' => $uploadResult['message'], 'restaurant_id' => null, 'manager_id' => null, 'slug' => null];
+        }
+        $heroImage = $uploadResult['filename'];
+        $uploadedPaths[] = UPLOAD_PATH . '/heroes/' . $heroImage;
+    }
+
+    $defaultTemplateId = (int)($options['default_template_id'] ?? 1);
+    if ($defaultTemplateId < 1) {
+        $defaultTemplateId = 1;
+    }
+    $trialPlanSlug = sanitize($options['trial_plan_slug'] ?? 'professional');
+    $trialDays = max(1, (int)($options['trial_days'] ?? 7));
+
+    try {
+        $pdo->beginTransaction();
+
+        $stmt = $pdo->prepare("
+            INSERT INTO restaurants (
+                name, slug, description, phone, email, address,
+                whatsapp_link, instagram_url, facebook_url, twitter_url,
+                logo, hero_image, manager_email, google_rating, rating_source, is_active
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ");
+        $stmt->execute([
+            $name, $slug, $description, $phone, $email, $address,
+            $whatsappLink, $instagramUrl, $facebookUrl, $twitterUrl,
+            $logo, $heroImage, $managerEmail, $googleRating, $ratingSource, $isActive
+        ]);
+        $restaurantId = (int)$pdo->lastInsertId();
+
+        $passwordHash = hashPassword($managerPassword);
+        $username = generateUniqueManagerUsername($pdo, $name);
+
+        $stmt = $pdo->prepare("INSERT INTO managers (username, email, password_hash, restaurant_id) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$username, $managerEmail, $passwordHash, $restaurantId]);
+        $managerId = (int)$pdo->lastInsertId();
+
+        $stmt = $pdo->prepare("INSERT INTO customization_settings (restaurant_id, template_id) VALUES (?, ?)");
+        $stmt->execute([$restaurantId, $defaultTemplateId]);
+
+        $subscriptionResult = createSubscriptionByPlanSlug($restaurantId, $trialPlanSlug, 'monthly', true, $trialDays, $pdo);
+        if (!$subscriptionResult['success']) {
+            throw new Exception($subscriptionResult['message']);
+        }
+
+        $pdo->commit();
+
+        return [
+            'success' => true,
+            'message' => 'Restaurant created successfully.',
+            'restaurant_id' => $restaurantId,
+            'manager_id' => $managerId,
+            'slug' => $slug
+        ];
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        foreach ($uploadedPaths as $path) {
+            deleteFile($path);
+        }
+        return [
+            'success' => false,
+            'message' => 'Failed to create account: ' . $e->getMessage(),
+            'restaurant_id' => null,
+            'manager_id' => null,
+            'slug' => null
+        ];
+    }
+}
+
+/**
  * Format price
  * @param float $price
  * @param string $currency

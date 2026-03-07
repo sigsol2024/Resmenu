@@ -39,7 +39,7 @@
             <div class="footer-column">
                 <h4>Get Started</h4>
                 <p>Ready to create your digital menu?</p>
-                <a href="/admin/login.php" class="btn btn-primary">Sign Up Free</a>
+                <a href="/register.php" class="btn btn-primary">Sign Up Free</a>
             </div>
         </div>
         

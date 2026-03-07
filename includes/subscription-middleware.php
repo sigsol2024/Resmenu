@@ -14,6 +14,15 @@ require_once __DIR__ . '/subscription.php';
  * @return array ['allowed' => bool, 'message' => string, 'usage' => array]
  */
 function canAddCategory($restaurantId) {
+    $access = checkSubscriptionAccess($restaurantId);
+    if (!$access['valid']) {
+        return [
+            'allowed' => false,
+            'message' => $access['message'],
+            'usage' => ['used' => 0, 'limit' => 0, 'remaining' => 0, 'unlimited' => false]
+        ];
+    }
+
     $usage = getRemainingUsage($restaurantId, 'categories');
     
     if ($usage['unlimited']) {
@@ -46,6 +55,15 @@ function canAddCategory($restaurantId) {
  * @return array ['allowed' => bool, 'message' => string, 'usage' => array]
  */
 function canAddMenuItem($restaurantId) {
+    $access = checkSubscriptionAccess($restaurantId);
+    if (!$access['valid']) {
+        return [
+            'allowed' => false,
+            'message' => $access['message'],
+            'usage' => ['used' => 0, 'limit' => 0, 'remaining' => 0, 'unlimited' => false]
+        ];
+    }
+
     $usage = getRemainingUsage($restaurantId, 'menu_items');
     
     if ($usage['unlimited']) {
