@@ -67,7 +67,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $slug = sanitize($_POST['slug'] ?? '');
         $description = sanitize($_POST['description'] ?? '');
         $phone = sanitize($_POST['phone'] ?? '');
-        $email = sanitize($_POST['email'] ?? '');
+        $managerEmail = sanitize($_POST['manager_email'] ?? '');
+        $email = $managerEmail;
+        if ($action === 'update' && isset($_POST['id'])) {
+            $stmt = $pdo->prepare("SELECT email FROM managers WHERE restaurant_id = ? LIMIT 1");
+            $stmt->execute([(int)$_POST['id']]);
+            $m = $stmt->fetch();
+            if ($m && !empty($m['email'])) {
+                $email = $m['email'];
+            }
+        }
         $address = sanitize($_POST['address'] ?? '');
         $whatsapp_link = sanitize($_POST['whatsapp_link'] ?? '');
         $instagram_url = sanitize($_POST['instagram_url'] ?? '');
@@ -159,7 +168,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             'google_rating' => $google_rating,
                             'rating_source' => $rating_source,
                             'is_active' => $is_active,
-                            'manager_email' => $_POST['manager_email'] ?? '',
+                            'manager_email' => $managerEmail,
                             'manager_password' => $_POST['manager_password'] ?? '',
                             'manager_password_confirm' => $_POST['manager_password_confirm'] ?? '',
                         ], [
@@ -667,12 +676,7 @@ include __DIR__ . '/../includes/admin-layout.php';
                 
                 <div class="form-group">
                     <label class="form-label" for="phone">Phone</label>
-                    <input type="text" id="phone" name="phone" class="form-input" value="<?php echo htmlspecialchars($editRestaurant['phone'] ?? ''); ?>">
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label" for="email">Email</label>
-                    <input type="email" id="email" name="email" class="form-input" value="<?php echo htmlspecialchars($editRestaurant['email'] ?? ''); ?>">
+                    <input type="tel" id="phone" name="phone" class="form-input" value="<?php echo htmlspecialchars($editRestaurant['phone'] ?? ''); ?>">
                 </div>
                 
                 <div class="form-group">

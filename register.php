@@ -4,6 +4,9 @@
  * Creates restaurant + manager + trial subscription.
  */
 
+if (!defined('SITE_URL')) {
+    require_once __DIR__ . '/config/config.php';
+}
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/functions.php';
 
@@ -167,9 +170,8 @@ function oldValue($key, $default = '') {
     <div class="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-primary/10">
         <div class="absolute inset-0 z-10 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
         <?php
-$heroImg = (is_file(__DIR__ . '/assets/images/woman-working-as-professional-chef.jpeg'))
-    ? 'assets/images/woman-working-as-professional-chef.jpeg'
-    : 'https://resmenu.net/assets/images/woman-working-as-professional-chef.jpeg';
+$assetBase = defined('SITE_URL') ? rtrim(SITE_URL, '/') : '';
+$heroImg = $assetBase . '/assets/images/woman-working-as-professional-chef.jpeg';
 ?>
         <img class="absolute inset-0 h-full w-full object-cover object-center" alt="Professional chef at work" src="<?php echo htmlspecialchars($heroImg); ?>"/>
         <div class="relative z-20 flex h-full w-full flex-col justify-between p-12 text-white">
@@ -251,23 +253,14 @@ $heroImg = (is_file(__DIR__ . '/assets/images/woman-working-as-professional-chef
                         <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="name">Restaurant Name *</label>
                         <input class="block w-full rounded-lg border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-primary focus:ring-primary sm:text-sm shadow-sm" id="name" name="name" placeholder="The Tasty Bistro" type="text" value="<?php echo oldValue('name'); ?>" required/>
                     </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="slug">Slug * (URL-friendly name)</label>
-                        <input class="block w-full rounded-lg border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-primary focus:ring-primary sm:text-sm shadow-sm" id="slug" name="slug" placeholder="the-tasty-bistro" type="text" value="<?php echo oldValue('slug'); ?>" required/>
-                    </div>
+                    <input type="hidden" name="slug" id="slug" value="<?php echo oldValue('slug'); ?>">
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="description">Description</label>
                         <textarea class="block w-full rounded-lg border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-primary focus:ring-primary sm:text-sm shadow-sm" id="description" name="description" rows="3"><?php echo oldValue('description'); ?></textarea>
                     </div>
-                    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="phone">Phone</label>
-                            <input class="block w-full rounded-lg border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-primary focus:ring-primary sm:text-sm shadow-sm" id="phone" name="phone" placeholder="+234..." type="text" value="<?php echo oldValue('phone'); ?>"/>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="email">Email</label>
-                            <input class="block w-full rounded-lg border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-primary focus:ring-primary sm:text-sm shadow-sm" id="email" name="email" placeholder="info@restaurant.com" type="email" value="<?php echo oldValue('email'); ?>"/>
-                        </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="phone">Phone</label>
+                        <input class="block w-full rounded-lg border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-primary focus:ring-primary sm:text-sm shadow-sm" id="phone" name="phone" placeholder="+234..." type="tel" value="<?php echo oldValue('phone'); ?>"/>
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="address">Address</label>
@@ -440,13 +433,14 @@ $heroImg = (is_file(__DIR__ . '/assets/images/woman-working-as-professional-chef
     });
 
     if (nameInput && slugInput) {
-        nameInput.addEventListener('input', () => {
-            if (slugInput.value.trim() !== '') return;
+        function syncSlug() {
             slugInput.value = nameInput.value
                 .toLowerCase()
                 .replace(/[^a-z0-9]+/g, '-')
                 .replace(/^-+|-+$/g, '');
-        });
+        }
+        nameInput.addEventListener('input', syncSlug);
+        syncSlug();
     }
 
     document.querySelectorAll('[data-password-toggle]').forEach(function(btn) {

@@ -163,7 +163,8 @@ function createRestaurantWithManager(PDO $pdo, array $input, array $files = [], 
     $slug = generateSlug($slugInput !== '' ? $slugInput : $name);
     $description = sanitize($input['description'] ?? '');
     $phone = sanitize($input['phone'] ?? '');
-    $email = sanitize($input['email'] ?? '');
+    $managerEmail = sanitize($input['manager_email'] ?? '');
+    $email = $managerEmail;
     $address = sanitize($input['address'] ?? '');
     $whatsappLink = sanitize($input['whatsapp_link'] ?? '');
     $instagramUrl = sanitize($input['instagram_url'] ?? '');
@@ -171,7 +172,6 @@ function createRestaurantWithManager(PDO $pdo, array $input, array $files = [], 
     $twitterUrl = sanitize($input['twitter_url'] ?? '');
     $ratingSource = sanitize($input['rating_source'] ?? 'Google');
     $googleRatingRaw = $input['google_rating'] ?? '';
-    $managerEmail = sanitize($input['manager_email'] ?? '');
     $managerPassword = (string)($input['manager_password'] ?? '');
     $managerPasswordConfirm = (string)($input['manager_password_confirm'] ?? '');
     // Supports checkbox-style form submit and explicit numeric/boolean value from server callers.
