@@ -42,12 +42,12 @@ try {
 
 /**
  * Process trial ending reminders
- * Send reminders at 3 days and 1 day before trial ends
+ * Send reminders at 7 days and 1 day before trial ends
  */
 function processTrialReminders($pdo, &$emailsSent, &$errors) {
     echo "Processing trial reminders...\n";
     
-    $reminderDays = [3, 1]; // Days before trial ends to send reminders
+    $reminderDays = [7, 1]; // Days before trial ends to send reminders
     
     foreach ($reminderDays as $days) {
         $targetDate = date('Y-m-d', strtotime("+{$days} days"));

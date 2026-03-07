@@ -314,3 +314,27 @@ CREATE TABLE IF NOT EXISTS `subscription_change_requests` (
   CONSTRAINT `subscription_change_requests_ibfk_3` FOREIGN KEY (`from_plan_id`) REFERENCES `subscription_plans` (`id`) ON DELETE CASCADE,
   CONSTRAINT `subscription_change_requests_ibfk_4` FOREIGN KEY (`to_plan_id`) REFERENCES `subscription_plans` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 25. Password reset tokens (email reset-link flow)
+CREATE TABLE IF NOT EXISTS `password_reset_tokens` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_type` enum('admin','manager') NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `identifier` varchar(191) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `token_hash` char(64) NOT NULL,
+  `expires_at` datetime NOT NULL,
+  `used_at` datetime DEFAULT NULL,
+  `request_ip` varchar(45) DEFAULT NULL,
+  `user_agent` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_token_hash` (`token_hash`),
+  KEY `idx_user_active` (`user_type`, `user_id`, `used_at`, `expires_at`),
+  KEY `idx_identifier_created` (`identifier`, `created_at`),
+  KEY `idx_ip_created` (`request_ip`, `created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 26. Subscription email history index (allow recurring reminders across billing cycles)
+ALTER TABLE `subscription_emails` DROP INDEX IF EXISTS `unique_email`;
+CREATE INDEX IF NOT EXISTS `idx_subscription_email_lookup` ON `subscription_emails` (`subscription_id`, `email_type`, `days_before`, `sent_at`);

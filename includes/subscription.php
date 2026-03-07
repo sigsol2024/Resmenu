@@ -1106,9 +1106,10 @@ function getPaymentHistory($restaurantId, $limit = 10) {
  * @param int $subscriptionId
  * @param string $emailType
  * @param int|null $daysBefore
+ * @param int $hoursWindow
  * @return bool
  */
-function wasEmailSent($subscriptionId, $emailType, $daysBefore = null) {
+function wasEmailSent($subscriptionId, $emailType, $daysBefore = null, $hoursWindow = 23) {
     global $pdo;
     
     if (!$pdo) return false;
@@ -1124,8 +1125,8 @@ function wasEmailSent($subscriptionId, $emailType, $daysBefore = null) {
             $params[] = $daysBefore;
         }
         
-        // Only check today's emails to allow re-sending on different days
-        $sql .= " AND DATE(sent_at) = CURDATE()";
+        $hoursWindow = max(1, (int)$hoursWindow);
+        $sql .= " AND sent_at >= (NOW() - INTERVAL {$hoursWindow} HOUR)";
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);

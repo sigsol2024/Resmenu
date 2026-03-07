@@ -68,7 +68,15 @@ if (isLoggedIn()) {
 }
 
 $siteSettings = getSiteSettings();
-$siteName = htmlspecialchars($siteSettings['site_name'] ?? 'SigSol Resmenu');
+$siteNameRaw = $siteSettings['site_name'] ?? 'SigSol Resmenu';
+$siteName = htmlspecialchars($siteNameRaw, ENT_QUOTES, 'UTF-8');
+$siteLogoUrl = !empty($siteSettings['site_logo']) ? rtrim(UPLOAD_URL, '/') . '/site/' . rawurlencode($siteSettings['site_logo']) : '';
+$marketingHomeUrl = 'https://resmenu.net/';
+$showcaseRestaurantLogos = [
+    'https://our-menu.online/uploads/logos/698ee78360beb.jpg',
+    'https://our-menu.online/uploads/logos/69459eb555362.jpg',
+    'https://our-menu.online/uploads/logos/69a76f2ad31b1.png',
+];
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -154,22 +162,35 @@ function oldValue($key, $default = '') {
     </script>
     <title>Register - <?php echo $siteName; ?></title>
 </head>
-<body class="bg-background-light dark:bg-background-dark font-display antialiased">
-<div class="flex min-h-screen flex-col lg:flex-row">
+<body class="bg-background-light dark:bg-background-dark font-display antialiased min-h-screen lg:h-screen overflow-x-hidden lg:overflow-hidden">
+<div class="flex min-h-screen lg:h-screen flex-col lg:flex-row">
     <div class="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-primary/10">
         <div class="absolute inset-0 z-10 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
         <img class="absolute inset-0 h-full w-full object-cover object-center" alt="Restaurant interior" src="/templates/template4/bg_white.png"/>
         <div class="relative z-20 flex h-full w-full flex-col justify-between p-12 text-white">
-            <div class="flex items-center gap-3">
-                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-                    <span class="material-symbols-outlined text-white">restaurant_menu</span>
-                </div>
+            <a href="<?php echo htmlspecialchars($marketingHomeUrl); ?>" class="inline-flex items-center gap-3 hover:opacity-90 transition-opacity">
+                <?php if ($siteLogoUrl !== ''): ?>
+                    <img src="<?php echo htmlspecialchars($siteLogoUrl); ?>" alt="<?php echo $siteName; ?>" class="h-12 w-auto rounded-lg bg-white p-1.5">
+                <?php else: ?>
+                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
+                        <span class="material-symbols-outlined text-white">restaurant_menu</span>
+                    </div>
+                <?php endif; ?>
                 <span class="text-2xl font-bold tracking-tight font-poppins text-white"><?php echo $siteName; ?></span>
-            </div>
+            </a>
             <div class="max-w-md">
                 <h1 class="text-5xl font-extrabold leading-tight mb-6 font-poppins">Join 1,000+ restaurants worldwide.</h1>
                 <p class="text-xl text-slate-200">Create your restaurant account, start a 7-day Professional trial, and manage everything from one dashboard.</p>
-                <div class="mt-8 text-sm font-medium">Trusted by industry leaders</div>
+                <div class="mt-8">
+                    <div class="flex -space-x-2">
+                        <?php foreach ($showcaseRestaurantLogos as $logo): ?>
+                        <div class="h-10 w-10 rounded-full ring-2 ring-primary/70 bg-white/80 overflow-hidden">
+                            <img src="<?php echo htmlspecialchars($logo); ?>" alt="Restaurant logo" class="h-full w-full object-cover">
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <p class="mt-3 text-sm font-medium">Trusted by industry leaders</p>
+                </div>
             </div>
             <div class="text-sm text-slate-300">
                 © <?php echo date('Y'); ?> <?php echo $siteName; ?>. All rights reserved.
@@ -177,12 +198,20 @@ function oldValue($key, $default = '') {
         </div>
     </div>
 
-    <div class="flex flex-1 flex-col justify-center px-6 py-12 lg:px-20 xl:px-24 bg-background-light">
-        <div class="lg:hidden mb-8 flex items-center gap-2">
-            <div class="flex h-8 w-8 items-center justify-center rounded bg-primary">
-                <span class="material-symbols-outlined text-white text-sm">restaurant_menu</span>
-            </div>
-            <span class="text-xl font-bold font-poppins text-slate-900"><?php echo $siteName; ?></span>
+    <div class="flex flex-1 flex-col justify-center lg:justify-start px-6 py-8 lg:px-16 lg:py-8 xl:px-20 bg-background-light lg:overflow-y-auto">
+        <div class="mb-6 flex items-center justify-between gap-4">
+            <a href="<?php echo htmlspecialchars($marketingHomeUrl); ?>" class="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-primary transition-colors">
+                <span class="material-symbols-outlined text-base">arrow_back</span>
+                Back to Home
+            </a>
+            <a href="<?php echo htmlspecialchars($marketingHomeUrl); ?>" class="inline-flex items-center gap-2 hover:opacity-90 transition-opacity">
+                <?php if ($siteLogoUrl !== ''): ?>
+                    <img src="<?php echo htmlspecialchars($siteLogoUrl); ?>" alt="<?php echo $siteName; ?>" class="h-10 w-auto">
+                <?php else: ?>
+                    <span class="material-symbols-outlined text-primary text-3xl">restaurant_menu</span>
+                <?php endif; ?>
+                <span class="text-lg font-bold font-poppins text-slate-900"><?php echo $siteName; ?></span>
+            </a>
         </div>
 
         <div class="mx-auto w-full max-w-md">
@@ -201,7 +230,7 @@ function oldValue($key, $default = '') {
                 <div class="h-2 w-full rounded-full bg-slate-200 overflow-hidden">
                     <div id="progressFill" class="h-full bg-primary transition-all duration-300" style="width: 33%"></div>
                 </div>
-                <p id="progressText" class="mt-2 text-xs text-slate-500">Step 1 of 3 - Manager Account</p>
+                <p id="progressText" class="mt-2 text-xs text-slate-500">Step 1 of 3 - Restaurant Profile</p>
             </div>
 
             <form id="registerForm" class="space-y-5" method="post" enctype="multipart/form-data">
@@ -210,7 +239,7 @@ function oldValue($key, $default = '') {
                 <input type="hidden" name="cycle" value="<?php echo htmlspecialchars($selectedCycle); ?>">
                 <input type="hidden" name="next" value="<?php echo htmlspecialchars($nextPath); ?>">
 
-                <div class="space-y-5" data-step="1">
+                <div class="space-y-5 hidden" data-step="2">
                     <h3 class="text-lg font-bold text-slate-900">Manager Account</h3>
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="manager_email">Manager Email *</label>
@@ -227,7 +256,7 @@ function oldValue($key, $default = '') {
                     </div>
                 </div>
 
-                <div class="space-y-5 hidden" data-step="2">
+                <div class="space-y-5" data-step="1">
                     <h3 class="text-lg font-bold text-slate-900">Restaurant Profile</h3>
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="name">Restaurant Name *</label>
@@ -341,8 +370,8 @@ function oldValue($key, $default = '') {
     let currentStep = 1;
 
     const labels = {
-        1: 'Step 1 of 3 - Manager Account',
-        2: 'Step 2 of 3 - Restaurant Profile',
+        1: 'Step 1 of 3 - Restaurant Profile',
+        2: 'Step 2 of 3 - Manager Account',
         3: 'Step 3 of 3 - Social, Ratings, and Media'
     };
 
@@ -367,7 +396,7 @@ function oldValue($key, $default = '') {
                 return false;
             }
         }
-        if (currentStep === 1) {
+        if (currentStep === 2) {
             const pw = document.getElementById('manager_password');
             const cpw = document.getElementById('manager_password_confirm');
             if (pw && cpw && pw.value !== cpw.value) {

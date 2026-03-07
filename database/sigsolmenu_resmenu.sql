@@ -781,6 +781,26 @@ CREATE TABLE `subscription_change_requests` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `password_reset_tokens`
+--
+
+CREATE TABLE `password_reset_tokens` (
+  `id` int(11) NOT NULL,
+  `user_type` enum('admin','manager') NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `identifier` varchar(191) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `token_hash` char(64) NOT NULL,
+  `expires_at` datetime NOT NULL,
+  `used_at` datetime DEFAULT NULL,
+  `request_ip` varchar(45) DEFAULT NULL,
+  `user_agent` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `subscription_plans`
 --
 
@@ -1110,7 +1130,7 @@ ALTER TABLE `subscriptions`
 --
 ALTER TABLE `subscription_emails`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `unique_email` (`subscription_id`,`email_type`,`days_before`),
+  ADD KEY `idx_subscription_email_lookup` (`subscription_id`,`email_type`,`days_before`,`sent_at`),
   ADD KEY `subscription_id` (`subscription_id`);
 
 --
@@ -1121,6 +1141,16 @@ ALTER TABLE `subscription_change_requests`
   ADD KEY `idx_subscription_pending` (`subscription_id`,`status`),
   ADD KEY `idx_effective_pending` (`effective_at`,`status`),
   ADD KEY `idx_restaurant_pending` (`restaurant_id`,`status`);
+
+--
+-- Indexes for table `password_reset_tokens`
+--
+ALTER TABLE `password_reset_tokens`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uniq_token_hash` (`token_hash`),
+  ADD KEY `idx_user_active` (`user_type`,`user_id`,`used_at`,`expires_at`),
+  ADD KEY `idx_identifier_created` (`identifier`,`created_at`),
+  ADD KEY `idx_ip_created` (`request_ip`,`created_at`);
 
 --
 -- Indexes for table `subscription_plans`
@@ -1289,6 +1319,12 @@ ALTER TABLE `subscription_emails`
 -- AUTO_INCREMENT for table `subscription_change_requests`
 --
 ALTER TABLE `subscription_change_requests`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `password_reset_tokens`
+--
+ALTER TABLE `password_reset_tokens`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --

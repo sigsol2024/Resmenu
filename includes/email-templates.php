@@ -254,6 +254,32 @@ function getSubscriptionExpiredEmail($restaurant) {
 }
 
 /**
+ * Password Reset Email
+ *
+ * @param string $siteName
+ * @param string $recipientName
+ * @param string $resetUrl
+ * @param int $validMinutes
+ * @return string
+ */
+function getPasswordResetEmail($siteName, $recipientName, $resetUrl, $validMinutes = 60) {
+    $displayName = trim((string)$recipientName) !== '' ? $recipientName : 'there';
+    $safeResetUrl = htmlspecialchars((string)$resetUrl, ENT_QUOTES, 'UTF-8');
+    $minutes = max(1, (int)$validMinutes);
+
+    $body = '<h2 style="margin:0 0 16px;font-size:22px;font-weight:700;color:#111827;">Reset Your Password</h2>
+        <p>Hi ' . htmlspecialchars($displayName, ENT_QUOTES, 'UTF-8') . ',</p>
+        <p>We received a request to reset your password for ' . htmlspecialchars((string)$siteName, ENT_QUOTES, 'UTF-8') . '.</p>
+        <p style="margin:24px 0;text-align:center;">
+            <a href="' . $safeResetUrl . '" style="display:inline-block;background:#f97415;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;">Reset Password</a>
+        </p>
+        <p>This link expires in ' . $minutes . ' minutes and can only be used once.</p>
+        <p>If you did not request this, you can ignore this email.</p>';
+
+    return getSiteEmailTemplate('Password Reset Request', $body);
+}
+
+/**
  * Admin Notification - New Payment (uses site template with site name/logo)
  */
 function getAdminPaymentNotificationEmail($restaurant, $payment, $subscription) {
