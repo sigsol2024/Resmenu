@@ -344,6 +344,7 @@ CREATE INDEX IF NOT EXISTS `idx_subscription_email_lookup` ON `subscription_emai
 -- - Basic: food_ordering=false, table_reservations=false
 -- - Professional: food_ordering=true, table_reservations=false
 -- - Enterprise: food_ordering=true, table_reservations=true
+-- Uses JSON_EXTRACT from literal JSON to avoid CAST(... AS JSON) syntax issues on older MariaDB/MySQL.
 UPDATE `subscription_plans`
 SET `features` =
   CASE
@@ -360,10 +361,10 @@ SET `features` =
         JSON_SET(
           `features`,
           '$.food_ordering',
-          COALESCE(JSON_EXTRACT(`features`, '$.food_ordering'), CAST(IF(`slug` IN ('professional','enterprise'), 'true', 'false') AS JSON))
+          COALESCE(JSON_EXTRACT(`features`, '$.food_ordering'), JSON_EXTRACT(CASE WHEN `slug` IN ('professional','enterprise') THEN '{"f":true}' ELSE '{"f":false}' END, '$.f'))
         ),
         '$.table_reservations',
-        COALESCE(JSON_EXTRACT(`features`, '$.table_reservations'), CAST(IF(`slug` = 'enterprise', 'true', 'false') AS JSON))
+        COALESCE(JSON_EXTRACT(`features`, '$.table_reservations'), JSON_EXTRACT(CASE WHEN `slug` = 'enterprise' THEN '{"f":true}' ELSE '{"f":false}' END, '$.f'))
       )
   END
 WHERE `slug` IN ('basic','professional','enterprise');

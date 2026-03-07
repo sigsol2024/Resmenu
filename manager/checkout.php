@@ -78,20 +78,20 @@ include __DIR__ . '/../includes/manager-layout.php';
 ?>
 
 <style>
-/* Clean Button and Icon Styles */
+/* Align with manager layout: use var(--primary), var(--primary-dark), var(--card), var(--radius), var(--bg) */
 .btn {
     display: inline-flex;
     align-items: center;
     gap: 8px;
     padding: 10px 20px;
-    border-radius: 6px;
+    border-radius: var(--radius);
     font-weight: 500;
     font-size: 0.875rem;
     border: none;
     cursor: pointer;
     transition: all 0.2s;
     text-decoration: none;
-    background: #111827;
+    background: var(--primary);
     color: #fff;
 }
 
@@ -102,21 +102,21 @@ include __DIR__ . '/../includes/manager-layout.php';
 }
 
 .btn-primary {
-    background: #111827;
+    background: var(--primary);
     color: #fff;
 }
 
 .btn-primary:hover {
-    background: #374151;
+    background: var(--primary-dark);
 }
 
 .btn-secondary {
-    background: #f3f4f6;
-    color: #111827;
+    background: var(--bg);
+    color: var(--text);
 }
 
 .btn-secondary:hover {
-    background: #e5e7eb;
+    background: var(--border-light);
 }
 
 .btn-pay {
@@ -125,10 +125,10 @@ include __DIR__ . '/../includes/manager-layout.php';
     gap: 8px;
     width: 100%;
     padding: 14px 24px;
-    background: #111827;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
     color: #fff;
     border: none;
-    border-radius: 8px;
+    border-radius: var(--radius);
     font-weight: 600;
     font-size: 1rem;
     cursor: pointer;
@@ -142,13 +142,15 @@ include __DIR__ . '/../includes/manager-layout.php';
     flex-shrink: 0;
 }
 
-.btn-pay:hover {
-    background: #374151;
+.btn-pay:hover:not(:disabled) {
+    filter: brightness(1.08);
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.25);
 }
 
 .btn-pay:disabled {
-    background: #9ca3af;
+    background: var(--muted);
     cursor: not-allowed;
+    filter: none;
 }
 
 /* Checkout Page Styles */
@@ -167,8 +169,8 @@ include __DIR__ . '/../includes/manager-layout.php';
 .btn-back {
     width: 40px;
     height: 40px;
-    border-radius: 10px;
-    background: #f3f4f6;
+    border-radius: var(--radius);
+    background: var(--bg);
     border: none;
     display: flex;
     align-items: center;
@@ -179,7 +181,7 @@ include __DIR__ . '/../includes/manager-layout.php';
 }
 
 .btn-back:hover {
-    background: #e5e7eb;
+    background: var(--border-light);
     color: var(--text);
 }
 
@@ -204,8 +206,8 @@ include __DIR__ . '/../includes/manager-layout.php';
 
 /* Plan Selection */
 .plan-selection {
-    background: #fff;
-    border-radius: 16px;
+    background: var(--card);
+    border-radius: var(--radius);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     padding: 24px;
 }
@@ -233,26 +235,26 @@ include __DIR__ . '/../includes/manager-layout.php';
     align-items: center;
     gap: 16px;
     padding: 16px 20px;
-    border: 2px solid #e5e7eb;
-    border-radius: 12px;
+    border: 2px solid var(--border-light);
+    border-radius: var(--radius);
     cursor: pointer;
     transition: all 0.2s;
 }
 
 .plan-label:hover {
-    border-color: #c7d2fe;
-    background: #f9fafb;
+    border-color: var(--primary);
+    background: var(--bg);
 }
 
 .plan-radio:checked + .plan-label {
     border-color: var(--primary);
-    background: #eef2ff;
+    background: rgba(30, 58, 95, 0.08);
 }
 
 .plan-radio-circle {
     width: 20px;
     height: 20px;
-    border: 2px solid #d1d5db;
+    border: 2px solid var(--border-light);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -305,8 +307,8 @@ include __DIR__ . '/../includes/manager-layout.php';
 /* Billing Cycle Toggle */
 .billing-toggle {
     display: flex;
-    background: #f3f4f6;
-    border-radius: 10px;
+    background: var(--bg);
+    border-radius: var(--radius);
     padding: 4px;
     margin-bottom: 24px;
 }
@@ -326,7 +328,7 @@ include __DIR__ . '/../includes/manager-layout.php';
 }
 
 .billing-option.active {
-    background: #fff;
+    background: var(--card);
     color: var(--text);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
@@ -346,7 +348,7 @@ include __DIR__ . '/../includes/manager-layout.php';
 .payment-methods {
     margin-top: 24px;
     padding-top: 24px;
-    border-top: 1px solid #e5e7eb;
+    border-top: 1px solid var(--border-light);
 }
 
 .gateway-options {
@@ -364,19 +366,19 @@ include __DIR__ . '/../includes/manager-layout.php';
     align-items: center;
     gap: 16px;
     padding: 16px 20px;
-    border: 2px solid #e5e7eb;
-    border-radius: 12px;
+    border: 2px solid var(--border-light);
+    border-radius: var(--radius);
     cursor: pointer;
     transition: all 0.2s;
 }
 
 .gateway-label:hover {
-    border-color: #c7d2fe;
+    border-color: var(--primary);
 }
 
 .gateway-radio:checked + .gateway-label {
     border-color: var(--primary);
-    background: #eef2ff;
+    background: rgba(30, 58, 95, 0.08);
 }
 
 .gateway-logo {
@@ -415,8 +417,8 @@ include __DIR__ . '/../includes/manager-layout.php';
 
 /* Order Summary */
 .order-summary {
-    background: #fff;
-    border-radius: 16px;
+    background: var(--card);
+    border-radius: var(--radius);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     padding: 24px;
     position: sticky;
@@ -434,11 +436,11 @@ include __DIR__ . '/../includes/manager-layout.php';
     display: flex;
     justify-content: space-between;
     padding: 12px 0;
-    border-bottom: 1px solid #f3f4f6;
+    border-bottom: 1px solid var(--bg);
 }
 
 .summary-item:last-of-type {
-    border-bottom: 2px solid #e5e7eb;
+    border-bottom: 2px solid var(--border-light);
 }
 
 .summary-label {
@@ -470,27 +472,10 @@ include __DIR__ . '/../includes/manager-layout.php';
     color: var(--primary);
 }
 
-.btn-pay {
+.order-summary .btn-pay {
     width: 100%;
     padding: 16px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: #fff;
-    border: none;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.btn-pay:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-}
-
-.btn-pay:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+    margin-top: 0;
 }
 
 .security-note {
@@ -511,7 +496,7 @@ include __DIR__ . '/../includes/manager-layout.php';
 .features-list {
     margin-top: 24px;
     padding-top: 24px;
-    border-top: 1px solid #e5e7eb;
+    border-top: 1px solid var(--border-light);
 }
 
 .features-title {
