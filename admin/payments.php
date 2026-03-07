@@ -16,6 +16,7 @@ $messageType = '';
 
 // Handle status update
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    requireCSRFToken();
     $action = $_POST['action'] ?? '';
     
     if ($action === 'update_status') {
@@ -818,6 +819,7 @@ include __DIR__ . '/../includes/admin-layout.php';
                                 <?php foreach (['pending', 'success', 'failed', 'refunded'] as $status): ?>
                                     <?php if ($status !== $payment['status']): ?>
                                         <form method="POST" style="display: contents;">
+                                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                                             <input type="hidden" name="action" value="update_status">
                                             <input type="hidden" name="payment_id" value="<?php echo $payment['id']; ?>">
                                             <input type="hidden" name="new_status" value="<?php echo $status; ?>">
@@ -849,7 +851,7 @@ include __DIR__ . '/../includes/admin-layout.php';
                 ?>
                 
                 <?php if ($page > 1): ?>
-                    <a href="?page=<?php echo $page - 1; ?>&<?php echo $queryString; ?>">← Prev</a>
+                    <a href="?page=<?php echo (int)($page - 1); ?>&<?php echo htmlspecialchars($queryString, ENT_QUOTES, 'UTF-8'); ?>">← Prev</a>
                 <?php else: ?>
                     <span class="disabled">← Prev</span>
                 <?php endif; ?>
@@ -858,12 +860,12 @@ include __DIR__ . '/../includes/admin-layout.php';
                     <?php if ($i === $page): ?>
                         <span class="current"><?php echo $i; ?></span>
                     <?php else: ?>
-                        <a href="?page=<?php echo $i; ?>&<?php echo $queryString; ?>"><?php echo $i; ?></a>
+                        <a href="?page=<?php echo $i; ?>&<?php echo htmlspecialchars($queryString, ENT_QUOTES, 'UTF-8'); ?>"><?php echo $i; ?></a>
                     <?php endif; ?>
                 <?php endfor; ?>
                 
                 <?php if ($page < $totalPages): ?>
-                    <a href="?page=<?php echo $page + 1; ?>&<?php echo $queryString; ?>">Next →</a>
+                    <a href="?page=<?php echo (int)($page + 1); ?>&<?php echo htmlspecialchars($queryString, ENT_QUOTES, 'UTF-8'); ?>">Next →</a>
                 <?php else: ?>
                     <span class="disabled">Next →</span>
                 <?php endif; ?>
@@ -877,6 +879,7 @@ include __DIR__ . '/../includes/admin-layout.php';
     <div class="modal">
         <h3 class="modal-title">Record Manual Payment</h3>
         <form method="POST" action="">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
             <input type="hidden" name="action" value="create_manual">
             <div class="modal-body">
                 <div class="form-group">

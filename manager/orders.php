@@ -219,6 +219,7 @@ $statusColors = ['pending' => '#f59e0b', 'confirmed' => '#3b82f6', 'on_hold' => 
                             <?php foreach ($statuses as $s): ?>
                             <?php if (($o['status'] ?? 'pending') !== $s): ?>
                             <form method="post" action="../api/update-order-status.php" style="display:contents;">
+                                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>"/>
                                 <input type="hidden" name="order_id" value="<?php echo (int)$o['id']; ?>"/>
                                 <input type="hidden" name="slug" value="<?php echo htmlspecialchars($restaurantSlug); ?>"/>
                                 <input type="hidden" name="status" value="<?php echo htmlspecialchars($s); ?>"/>

@@ -5,6 +5,7 @@
  */
 
 require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/csrf.php';
 requireSuperAdmin();
 
 require_once __DIR__ . '/../includes/functions.php';
@@ -16,6 +17,7 @@ $messageType = '';
 
 // Handle status update
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    requireCSRFToken();
     $action = $_POST['action'] ?? '';
     
     if ($action === 'update_status') {
@@ -743,6 +745,7 @@ include __DIR__ . '/../includes/admin-layout.php';
                                 <?php foreach (['trial', 'active', 'expired', 'cancelled', 'pending'] as $status): ?>
                                     <?php if ($status !== $sub['status']): ?>
                                         <form method="POST" style="display: contents;">
+                                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                                             <input type="hidden" name="action" value="update_status">
                                             <input type="hidden" name="subscription_id" value="<?php echo $sub['id']; ?>">
                                             <input type="hidden" name="new_status" value="<?php echo $status; ?>">
@@ -770,6 +773,7 @@ include __DIR__ . '/../includes/admin-layout.php';
                                 <div class="actions-dropdown-title">Extend Period</div>
                                 <?php foreach ([7, 30, 90, 365] as $days): ?>
                                     <form method="POST" style="display: contents;">
+                                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                                         <input type="hidden" name="action" value="extend_period">
                                         <input type="hidden" name="subscription_id" value="<?php echo $sub['id']; ?>">
                                         <input type="hidden" name="days" value="<?php echo $days; ?>">

@@ -111,8 +111,11 @@ function getSubscriptionPlan($identifier) {
     if (!$pdo) return null;
     
     try {
-        $column = is_numeric($identifier) ? 'id' : 'slug';
-        $stmt = $pdo->prepare("SELECT * FROM subscription_plans WHERE {$column} = ?");
+        if (is_numeric($identifier)) {
+            $stmt = $pdo->prepare("SELECT * FROM subscription_plans WHERE id = ?");
+        } else {
+            $stmt = $pdo->prepare("SELECT * FROM subscription_plans WHERE slug = ?");
+        }
         $stmt->execute([$identifier]);
         $plan = $stmt->fetch(PDO::FETCH_ASSOC);
         

@@ -122,13 +122,13 @@ function loginUser($username, $password) {
         $stmt->execute([$username, $username]);
         $user = $stmt->fetch();
         
-        if ($user && ($user['password_hash'] === $password || password_verify($password, $user['password_hash']))) {
+        if ($user && password_verify($password, $user['password_hash'])) {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_role'] = 'super_admin';
             $_SESSION['username'] = $user['username'];
             $user['role'] = 'super_admin';
             $user['restaurant_id'] = null;
-            
+            session_regenerate_id(true);
             return ['success' => true, 'message' => 'Login successful', 'user' => $user];
         }
         
@@ -137,16 +137,17 @@ function loginUser($username, $password) {
         $stmt->execute([$username, $username]);
         $user = $stmt->fetch();
         
-        if ($user && ($user['password_hash'] === $password || password_verify($password, $user['password_hash']))) {
+        if ($user && password_verify($password, $user['password_hash'])) {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_role'] = 'manager';
             $_SESSION['username'] = $user['username'];
             $_SESSION['restaurant_id'] = $user['restaurant_id'];
             $user['role'] = 'manager';
-            
+            session_regenerate_id(true);
             return ['success' => true, 'message' => 'Login successful', 'user' => $user];
         }
         
+        recordLoginAttempt($pdo, getClientIpAddress(), $username);
         return ['success' => false, 'message' => 'Invalid username or password', 'user' => null];
     } catch (PDOException $e) {
         error_log("Login error: " . $e->getMessage());
@@ -217,6 +218,41 @@ function getClientIpAddress() {
     }
 
     return '0.0.0.0';
+}
+
+/**
+ * Check if login is rate limited for this IP (max 10 attempts per 15 minutes).
+ *
+ * @param PDO $pdo
+ * @param string $ipAddress
+ * @return bool true if rate limited
+ */
+function isLoginRateLimited(PDO $pdo, $ipAddress) {
+    $ipAddress = trim((string)$ipAddress);
+    $stmt = $pdo->prepare("
+        SELECT COUNT(*) FROM login_attempts
+        WHERE ip_address = ?
+        AND attempted_at >= (NOW() - INTERVAL 15 MINUTE)
+    ");
+    $stmt->execute([$ipAddress]);
+    return (int)$stmt->fetchColumn() >= 10;
+}
+
+/**
+ * Record a failed login attempt and optionally purge old rows.
+ *
+ * @param PDO $pdo
+ * @param string $ipAddress
+ * @param string $identifier username/email attempted
+ * @return void
+ */
+function recordLoginAttempt(PDO $pdo, $ipAddress, $identifier = '') {
+    $ipAddress = trim((string)$ipAddress);
+    $identifier = mb_substr(trim((string)$identifier), 0, 255, 'UTF-8');
+    $stmt = $pdo->prepare("INSERT INTO login_attempts (ip_address, identifier, attempted_at) VALUES (?, ?, NOW())");
+    $stmt->execute([$ipAddress, $identifier]);
+    // Cleanup rows older than 1 hour to avoid table bloat
+    $pdo->exec("DELETE FROM login_attempts WHERE attempted_at < (NOW() - INTERVAL 1 HOUR)");
 }
 
 /**

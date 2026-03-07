@@ -186,6 +186,7 @@ $statusColors = ['pending' => '#f59e0b', 'confirmed' => '#10b981', 'rejected' =>
                             <?php foreach (['confirmed', 'rejected'] as $s): ?>
                             <?php if (($r['status'] ?? 'pending') !== $s): ?>
                             <form method="post" action="../api/update-reservation-status.php" style="display:contents;">
+                                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>"/>
                                 <input type="hidden" name="reservation_id" value="<?php echo (int)$r['id']; ?>"/>
                                 <input type="hidden" name="slug" value="<?php echo htmlspecialchars($restaurantSlug); ?>"/>
                                 <input type="hidden" name="status" value="<?php echo htmlspecialchars($s); ?>"/>
@@ -244,6 +245,7 @@ $statusColors = ['pending' => '#f59e0b', 'confirmed' => '#10b981', 'rejected' =>
                         <?php foreach (['confirmed', 'rejected'] as $s): ?>
                             <?php if (($r['status'] ?? 'pending') !== $s): ?>
                                 <form method="post" action="../api/update-reservation-status.php">
+                                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>"/>
                                     <input type="hidden" name="reservation_id" value="<?php echo (int)$r['id']; ?>"/>
                                     <input type="hidden" name="slug" value="<?php echo htmlspecialchars($restaurantSlug); ?>"/>
                                     <input type="hidden" name="status" value="<?php echo htmlspecialchars($s); ?>"/>

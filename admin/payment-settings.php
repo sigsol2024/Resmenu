@@ -31,6 +31,7 @@ $messageType = '';
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    requireCSRFToken();
     $gateway = $_POST['gateway'] ?? '';
     
     if (in_array($gateway, ['paystack', 'flutterwave'])) {
@@ -582,6 +583,7 @@ input:checked + .toggle-slider:before {
     <!-- Paystack Tab -->
     <div id="tab-paystack" class="tab-content active">
         <form method="POST" action="">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
             <input type="hidden" name="gateway" value="paystack">
             
             <div class="settings-card">
@@ -702,6 +704,7 @@ input:checked + .toggle-slider:before {
     <!-- Flutterwave Tab -->
     <div id="tab-flutterwave" class="tab-content">
         <form method="POST" action="">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
             <input type="hidden" name="gateway" value="flutterwave">
             
             <div class="settings-card">

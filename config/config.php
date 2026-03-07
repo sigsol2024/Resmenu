@@ -1,7 +1,12 @@
 <?php
 /**
  * Application Configuration
+ * Secrets: set via environment variables or config.local.php (gitignored).
  */
+
+if (file_exists(__DIR__ . '/config.local.php')) {
+    require __DIR__ . '/config.local.php';
+}
 
 // Site URL - Dynamically detect protocol and domain
 $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
@@ -40,13 +45,13 @@ date_default_timezone_set('UTC');
 
 // Email (SMTP) - set MAIL_ENABLED to false to use PHP mail() fallback
 define('MAIL_ENABLED', true);
-define('MAIL_FROM_EMAIL', 'services@our-menu.online');
-define('MAIL_FROM_NAME', 'Resmenu');
-define('SMTP_HOST', 'server1.signaturewebhosting.space');   // e.g. smtp.gmail.com, smtp.sendgrid.net
-define('SMTP_PORT', 465);
-define('SMTP_SECURE', 'ssl');               // ssl for port 465; if Gmail shows "not encrypted" try port 587 with tls
-define('SMTP_USERNAME', '');
-define('SMTP_PASSWORD', 'Sigsol1234!//@');
+if (!defined('MAIL_FROM_EMAIL')) define('MAIL_FROM_EMAIL', getenv('MAIL_FROM_EMAIL') ?: 'services@our-menu.online');
+if (!defined('MAIL_FROM_NAME')) define('MAIL_FROM_NAME', getenv('MAIL_FROM_NAME') ?: 'Resmenu');
+if (!defined('SMTP_HOST')) define('SMTP_HOST', getenv('SMTP_HOST') ?: '');
+if (!defined('SMTP_PORT')) define('SMTP_PORT', getenv('SMTP_PORT') ?: '465');
+if (!defined('SMTP_SECURE')) define('SMTP_SECURE', getenv('SMTP_SECURE') ?: 'ssl');
+if (!defined('SMTP_USERNAME')) define('SMTP_USERNAME', getenv('SMTP_USERNAME') ?: '');
+if (!defined('SMTP_PASSWORD')) define('SMTP_PASSWORD', getenv('SMTP_PASSWORD') ?: '');
 
 // Error reporting (set to 0 in production)
 // IMPORTANT: Set these to 0 in production!
@@ -55,12 +60,12 @@ ini_set('display_errors', 0); // Changed to 0 for security
 ini_set('log_errors', 1);
 ini_set('error_log', BASE_PATH . '/logs/php_errors.log');
 
-// Database Configuration
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'sigsolmenu_resmenu');
-define('DB_USER', 'sigsolmenu_resmenu');
-define('DB_PASS', 'Secretpass0931//');
-define('DB_CHARSET', 'utf8mb4');
+// Database Configuration (use env or config.local.php; empty = connection will fail)
+if (!defined('DB_HOST')) define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
+if (!defined('DB_NAME')) define('DB_NAME', getenv('DB_NAME') ?: 'sigsolmenu_resmenu');
+if (!defined('DB_USER')) define('DB_USER', getenv('DB_USER') ?: '');
+if (!defined('DB_PASS')) define('DB_PASS', getenv('DB_PASS') ?: '');
+if (!defined('DB_CHARSET')) define('DB_CHARSET', getenv('DB_CHARSET') ?: 'utf8mb4');
 
 /**
  * Get database connection
@@ -87,3 +92,5 @@ function getDBConnection() {
     
     return $pdo;
 }
+
+require_once __DIR__ . '/../includes/security-headers.php';

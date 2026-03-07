@@ -17,6 +17,7 @@ $error = '';
 
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    requireCSRFToken();
     $action = $_POST['action'] ?? '';
     
     // Update template name
@@ -407,6 +408,7 @@ include __DIR__ . '/../includes/admin-layout.php';
                                 <h3 class="card-title">Template Name</h3>
                             </div>
                             <form method="POST" action="">
+                                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                                 <input type="hidden" name="action" value="update_template_name">
                                 <input type="hidden" name="template_id" value="<?php echo $template['id']; ?>">
                                 <div class="form-group">
@@ -429,6 +431,7 @@ include __DIR__ . '/../includes/admin-layout.php';
                             </div>
                             <p style="margin-bottom: 16px; color: #6b7280; font-size: 0.875rem;">Description is shown on resmenu.net. Cover image is used on the actual template preview page. Listing image is used on the resmenu.net templates page (timeline card).</p>
                             <form method="POST" action="" enctype="multipart/form-data">
+                                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                                 <input type="hidden" name="action" value="update_template_marketing">
                                 <input type="hidden" name="template_id" value="<?php echo $template['id']; ?>">
                                 <div class="form-group">
@@ -476,6 +479,7 @@ include __DIR__ . '/../includes/admin-layout.php';
                             <p style="margin-bottom: 20px; color: var(--muted);">These are the default design settings for this template. Restaurants using this template will start with these settings.</p>
                             
                             <form method="POST" action="">
+                                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                                 <input type="hidden" name="action" value="update_template_customization">
                                 <input type="hidden" name="template_id" value="<?php echo $template['id']; ?>">
                                 

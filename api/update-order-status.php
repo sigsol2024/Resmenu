@@ -6,6 +6,16 @@
 require_once __DIR__ . '/../includes/auth.php';
 requireManager();
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $token = $_POST['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+    if (!validateCSRFToken($token)) {
+        http_response_code(403);
+        header('Content-Type: text/plain');
+        echo 'Invalid security token. Please refresh and try again.';
+        exit;
+    }
+}
+
 $orderId = (int) ($_POST['order_id'] ?? 0);
 $status = trim($_POST['status'] ?? '');
 $slug = trim($_POST['slug'] ?? $_GET['slug'] ?? '');

@@ -331,7 +331,7 @@ function validateFlutterwaveWebhook($signature) {
     $keys = getGatewayKeys('flutterwave');
     
     if (empty($keys['webhook_secret'])) {
-        return true; // If no secret configured, skip validation
+        return false; // Reject when secret not configured to avoid accepting forged webhooks
     }
     
     return hash_equals($keys['webhook_secret'], $signature);

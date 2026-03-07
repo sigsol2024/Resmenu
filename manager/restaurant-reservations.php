@@ -157,6 +157,7 @@ include __DIR__ . '/../includes/manager-layout.php';
     const slug = <?php echo json_encode($restaurantSlug); ?>;
     const symbol = <?php echo json_encode($currencySymbol); ?>;
     const statusColors = <?php echo json_encode($statusColors); ?>;
+    const csrfToken = <?php echo json_encode(getCSRFToken()); ?>;
 
     function esc(s) {
         if (s == null || s === '') return '';
@@ -200,8 +201,8 @@ include __DIR__ . '/../includes/manager-layout.php';
                 const dateStr = r.reservation_date ? new Date(r.reservation_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '-';
                 const timeStr = formatTime(r.reservation_time);
                 const depositPaid = r.deposit_paid ? ' <span style="color:#10b981;">(Paid)</span>' : '';
-                const approveReject = st !== 'confirmed' ? '<form method="post" action="../api/update-reservation-status.php" style="display:contents;"><input type="hidden" name="reservation_id" value="' + id + '"><input type="hidden" name="slug" value="' + esc(slug) + '"><input type="hidden" name="return_to" value="restaurant-reservations"><input type="hidden" name="status" value="confirmed"><button type="submit" class="actions-dropdown-item">Approve</button></form>' : '';
-                const rejectForm = st !== 'rejected' ? '<form method="post" action="../api/update-reservation-status.php" style="display:contents;"><input type="hidden" name="reservation_id" value="' + id + '"><input type="hidden" name="slug" value="' + esc(slug) + '"><input type="hidden" name="return_to" value="restaurant-reservations"><input type="hidden" name="status" value="rejected"><button type="submit" class="actions-dropdown-item">Reject</button></form>' : '';
+                const approveReject = st !== 'confirmed' ? '<form method="post" action="../api/update-reservation-status.php" style="display:contents;"><input type="hidden" name="csrf_token" value="' + esc(csrfToken) + '"><input type="hidden" name="reservation_id" value="' + id + '"><input type="hidden" name="slug" value="' + esc(slug) + '"><input type="hidden" name="return_to" value="restaurant-reservations"><input type="hidden" name="status" value="confirmed"><button type="submit" class="actions-dropdown-item">Approve</button></form>' : '';
+                const rejectForm = st !== 'rejected' ? '<form method="post" action="../api/update-reservation-status.php" style="display:contents;"><input type="hidden" name="csrf_token" value="' + esc(csrfToken) + '"><input type="hidden" name="reservation_id" value="' + id + '"><input type="hidden" name="slug" value="' + esc(slug) + '"><input type="hidden" name="return_to" value="restaurant-reservations"><input type="hidden" name="status" value="rejected"><button type="submit" class="actions-dropdown-item">Reject</button></form>' : '';
                 return '<tr style="border-bottom:1px solid #f3f4f6;">' +
                     '<td style="padding:12px 16px;font-size:0.875rem;font-weight:600;">#' + esc(resNum) + '</td>' +
                     '<td style="padding:12px 16px;font-size:0.875rem;">' + dateStr + ' ' + timeStr + '</td>' +
@@ -230,10 +231,10 @@ include __DIR__ . '/../includes/manager-layout.php';
                     const party = (parseInt(r.party_size,10)||0);
                     const deposit = symbol + parseFloat(r.deposit_amount||0).toFixed(2) + (r.deposit_paid ? ' (Paid)' : '');
                     const approveBtn = st !== 'confirmed'
-                        ? '<form method="post" action="../api/update-reservation-status.php"><input type="hidden" name="reservation_id" value=\"' + id + '\"><input type=\"hidden\" name=\"slug\" value=\"' + esc(slug) + '\"><input type=\"hidden\" name=\"return_to\" value=\"restaurant-reservations\"><input type=\"hidden\" name=\"status\" value=\"confirmed\"><button type=\"submit\" class=\"btn btn-primary\">Approve</button></form>'
+                        ? '<form method="post" action="../api/update-reservation-status.php"><input type="hidden" name="csrf_token" value="' + esc(csrfToken) + '"><input type="hidden" name="reservation_id" value="' + id + '"><input type="hidden" name="slug" value="' + esc(slug) + '"><input type="hidden" name="return_to" value="restaurant-reservations"><input type="hidden" name="status" value="confirmed"><button type="submit" class="btn btn-primary">Approve</button></form>'
                         : '';
                     const rejectBtn = st !== 'rejected'
-                        ? '<form method=\"post\" action=\"../api/update-reservation-status.php\"><input type=\"hidden\" name=\"reservation_id\" value=\"' + id + '\"><input type=\"hidden\" name=\"slug\" value=\"' + esc(slug) + '\"><input type=\"hidden\" name=\"return_to\" value=\"restaurant-reservations\"><input type=\"hidden\" name=\"status\" value=\"rejected\"><button type=\"submit\" class=\"btn btn-danger\">Reject</button></form>'
+                        ? '<form method="post" action="../api/update-reservation-status.php"><input type="hidden" name="csrf_token" value="' + esc(csrfToken) + '"><input type="hidden" name="reservation_id" value="' + id + '"><input type="hidden" name="slug" value="' + esc(slug) + '"><input type="hidden" name="return_to" value="restaurant-reservations"><input type="hidden" name="status" value="rejected"><button type="submit" class="btn btn-danger">Reject</button></form>'
                         : '';
                     return '' +
                         '<details class=\"res-card\">' +

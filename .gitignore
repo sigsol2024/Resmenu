@@ -23,9 +23,9 @@ uploads/menu-items/*
 Thumbs.db
 desktop.ini
 
-# Config (if sensitive)
-# config/database.php
-# config/config.php
+# Config (sensitive - use config.local.php or env)
+.env
+config/config.local.php
 
 # Temporary files
 *.tmp

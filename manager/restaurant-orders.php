@@ -114,6 +114,7 @@ include __DIR__ . '/../includes/manager-layout.php';
     const slug = <?php echo json_encode($restaurantSlug); ?>;
     const symbol = <?php echo json_encode($currencySymbol); ?>;
     const statusColors = <?php echo json_encode($statusColors); ?>;
+    const csrfToken = <?php echo json_encode(getCSRFToken()); ?>;
 
     function esc(s) {
         if (s == null || s === '') return '';
@@ -147,7 +148,7 @@ include __DIR__ . '/../includes/manager-layout.php';
                 const dispNum = esc(o.order_display_number || orderId);
                 const statusOpts = ['pending','confirmed','on_hold','cancelled','completed'];
                 const statusForms = statusOpts.filter(function(s){ return s !== st; }).map(function(s){
-                    return '<form method="post" action="../api/update-order-status.php" style="display:contents;"><input type="hidden" name="order_id" value="' + orderId + '"><input type="hidden" name="slug" value="' + esc(slug) + '"><input type="hidden" name="return_to" value="restaurant-orders"><input type="hidden" name="status" value="' + s + '"><button type="submit" class="actions-dropdown-item">Set to ' + (s.charAt(0).toUpperCase() + s.slice(1)).replace('_',' ') + '</button></form>';
+                    return '<form method="post" action="../api/update-order-status.php" style="display:contents;"><input type="hidden" name="csrf_token" value="' + esc(csrfToken) + '"><input type="hidden" name="order_id" value="' + orderId + '"><input type="hidden" name="slug" value="' + esc(slug) + '"><input type="hidden" name="return_to" value="restaurant-orders"><input type="hidden" name="status" value="' + s + '"><button type="submit" class="actions-dropdown-item">Set to ' + (s.charAt(0).toUpperCase() + s.slice(1)).replace('_',' ') + '</button></form>';
                 }).join('');
                 return '<tr style="border-bottom:1px solid #f3f4f6;">' +
                     '<td style="padding:12px 16px;font-size:0.875rem;">#' + dispNum + '</td>' +

@@ -32,6 +32,7 @@ $restaurantId = $restaurant['id'];
 
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    requireCSRFToken();
     // #region agent log
     $logDir = __DIR__ . '/../.cursor';
     if (!is_dir($logDir)) {
@@ -1036,6 +1037,7 @@ include __DIR__ . '/../includes/admin-layout.php';
                     </div>
                     <p style="margin-bottom: 20px; color: var(--muted);">Choose a design template for this restaurant's menu page.</p>
                     <form method="POST" action="" style="margin-bottom: 20px;">
+                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                         <input type="hidden" name="action" value="save_template">
                         <div class="form-group">
                             <label class="form-label">Select Template</label>
@@ -1070,6 +1072,7 @@ include __DIR__ . '/../includes/admin-layout.php';
                 </div>
                 
                 <form method="POST" action="" style="margin-top: 24px;">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                     <input type="hidden" name="action" value="save_customization">
                     <input type="hidden" name="template_id" value="<?php echo (int)($restaurant['template_id'] ?? 1); ?>">
                     
@@ -1208,6 +1211,7 @@ include __DIR__ . '/../includes/admin-layout.php';
                 </div>
                 
                 <form method="POST" action="">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                     <input type="hidden" name="action" value="save_header_footer">
                     
                     <div class="card" style="margin-bottom: 24px;">
@@ -1289,6 +1293,7 @@ include __DIR__ . '/../includes/admin-layout.php';
                 </div>
                 <div class="modal-body">
                     <form method="POST" action="" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                         <input type="hidden" name="action" value="<?php echo $editMenuItem ? 'update_menu_item' : 'create_menu_item'; ?>">
                         <?php if ($editMenuItem): ?>
                             <input type="hidden" name="id" value="<?php echo $editMenuItem['id']; ?>">
@@ -1375,6 +1380,7 @@ include __DIR__ . '/../includes/admin-layout.php';
                     <p style="margin-bottom: 20px; font-size: 16px;" id="deleteMenuItemText">Are you sure you want to delete this menu item?</p>
                     <p style="margin-bottom: 20px; color: var(--danger); font-weight: 600;">This action cannot be undone.</p>
                     <form method="POST" action="" id="deleteMenuItemForm">
+                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                         <input type="hidden" name="action" value="delete_menu_item">
                         <input type="hidden" name="id" id="deleteMenuItemId" value="">
                         <div class="modal-footer">
@@ -1401,6 +1407,7 @@ include __DIR__ . '/../includes/admin-layout.php';
                 </div>
                 <div class="modal-body">
                     <form method="POST" action="" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                         <input type="hidden" name="action" value="<?php echo $editCategory ? 'update_category' : 'create_category'; ?>">
                         <?php if ($editCategory): ?>
                             <input type="hidden" name="id" value="<?php echo $editCategory['id']; ?>">
@@ -1475,6 +1482,7 @@ include __DIR__ . '/../includes/admin-layout.php';
                         <li>The category image</li>
                     </ul>
                     <form method="POST" action="" id="deleteCategoryForm">
+                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                         <input type="hidden" name="action" value="delete_category">
                         <input type="hidden" name="id" id="deleteCategoryId" value="">
                         <div class="modal-footer">

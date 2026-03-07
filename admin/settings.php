@@ -35,6 +35,7 @@ if (!is_dir($siteUploadPath)) {
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    requireCSRFToken();
     $action = $_POST['action'] ?? '';
 
     if ($action === 'test_email') {
@@ -258,6 +259,7 @@ include __DIR__ . '/../includes/admin-layout.php';
             <div class="card-body">
                 <p style="margin: 0 0 16px; color: #6b7280; font-size: 0.875rem;">Send a test email to verify your SMTP configuration. Current: <?php echo defined('SMTP_HOST') && SMTP_HOST && SMTP_HOST !== 'smtp.example.com' ? 'SMTP (' . htmlspecialchars(SMTP_HOST) . ')' : 'PHP mail()'; ?></p>
                 <form method="POST">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                     <input type="hidden" name="action" value="test_email">
                     <div class="form-group">
                         <label class="form-label" for="test_email">Email address to send test to</label>
@@ -275,6 +277,7 @@ include __DIR__ . '/../includes/admin-layout.php';
             </div>
             <div class="card-body">
                 <form method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                     <input type="hidden" name="action" value="update_site">
                     <div class="form-group">
                         <label class="form-label" for="site_name">Site Name</label>
@@ -309,6 +312,7 @@ include __DIR__ . '/../includes/admin-layout.php';
             </div>
             <div class="card-body">
                 <form method="POST">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                     <input type="hidden" name="action" value="update_contact">
                     <div class="form-group">
                         <label class="form-label" for="contact_sales_email">Sales email</label>
@@ -395,6 +399,7 @@ include __DIR__ . '/../includes/admin-layout.php';
             </div>
             <div class="card-body">
                 <form method="POST">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                     <input type="hidden" name="action" value="update_profile">
                     <div class="form-group">
                         <label class="form-label" for="username">Username *</label>
@@ -415,6 +420,7 @@ include __DIR__ . '/../includes/admin-layout.php';
             </div>
             <div class="card-body">
                 <form method="POST">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                     <input type="hidden" name="action" value="update_password">
                     <div class="form-group">
                         <label class="form-label" for="current_password">Current Password *</label>

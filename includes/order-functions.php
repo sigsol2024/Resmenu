@@ -269,11 +269,27 @@ function createOrder($restaurantId, $cart, $customer, $deliveryFee = 0, $taxRate
         return ['success' => false, 'order_id' => null, 'errors' => $errors];
     }
 
+    // Server-side price lookup: ignore client-supplied price/name to prevent tampering
+    $stmt = $pdo->prepare("SELECT id, name, price FROM menu_items WHERE restaurant_id = ? AND is_available = 1");
+    $stmt->execute([$restaurantId]);
+    $menuPrices = [];
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $menuPrices[(int)$row['id']] = ['name' => $row['name'], 'price' => (float)$row['price']];
+    }
+
     $subtotal = 0;
+    $validCartItems = [];
     foreach ($cart as $item) {
-        $price = (float) ($item['price'] ?? 0);
-        $qty = max(1, (int) ($item['quantity'] ?? 1));
-        $subtotal += $price * $qty;
+        $menuItemId = (int) ($item['id'] ?? 0);
+        $quantity = min(max(1, (int) ($item['quantity'] ?? 1)), 99);
+        if (!$menuItemId || !isset($menuPrices[$menuItemId])) {
+            $errors[] = 'Invalid or inactive menu item.';
+            return ['success' => false, 'order_id' => null, 'errors' => $errors];
+        }
+        $price = $menuPrices[$menuItemId]['price'];
+        $name = $menuPrices[$menuItemId]['name'];
+        $subtotal += $price * $quantity;
+        $validCartItems[] = ['menu_item_id' => $menuItemId, 'name' => $name, 'price' => $price, 'quantity' => $quantity];
     }
     $tax = $subtotal * (float) $taxRate;
     $total = $subtotal + (float) $deliveryFee + $tax;
@@ -296,14 +312,8 @@ function createOrder($restaurantId, $cart, $customer, $deliveryFee = 0, $taxRate
         $orderId = (int) $pdo->lastInsertId();
 
         $itemStmt = $pdo->prepare("INSERT INTO order_items (order_id, menu_item_id, name, price, quantity) VALUES (?, ?, ?, ?, ?)");
-        foreach ($cart as $item) {
-            $menuItemId = (int) ($item['id'] ?? 0);
-            $name = trim($item['name'] ?? '');
-            $price = (float) ($item['price'] ?? 0);
-            $quantity = max(1, (int) ($item['quantity'] ?? 1));
-            if ($menuItemId && $name && $price > 0) {
-                $itemStmt->execute([$orderId, $menuItemId, $name, $price, $quantity]);
-            }
+        foreach ($validCartItems as $item) {
+            $itemStmt->execute([$orderId, $item['menu_item_id'], $item['name'], $item['price'], $item['quantity']]);
         }
 
         $pdo->commit();

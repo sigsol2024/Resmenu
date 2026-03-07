@@ -4,6 +4,7 @@
  */
 
 require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/csrf.php';
 requireSuperAdmin();
 
 require_once __DIR__ . '/../includes/functions.php';
@@ -15,6 +16,7 @@ $error = '';
 
 // Handle delete action
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete') {
+    requireCSRFToken();
     $id = intval($_POST['id'] ?? 0);
     if ($id > 0) {
         try {
@@ -60,6 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    requireCSRFToken();
     $action = $_POST['action'] ?? '';
     
     if ($action === 'create' || $action === 'update') {
@@ -836,6 +839,7 @@ include __DIR__ . '/../includes/admin-layout.php';
                         <li>All uploaded images (logo, hero image, category images, menu item images)</li>
                     </ul>
                     <form method="POST" action="" id="deleteForm">
+                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                         <input type="hidden" name="action" value="delete">
                         <input type="hidden" name="id" id="deleteRestaurantId" value="">
                         <div class="modal-footer">

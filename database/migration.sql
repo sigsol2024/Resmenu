@@ -374,3 +374,14 @@ UPDATE `templates` SET `description` = 'Elegant and sophisticated fine dining st
 UPDATE `templates` SET `description` = 'Modern restaurant template with hero sections and featured items. Ideal for casual dining, cafes, and bars. Tailwind-based design with a fresh, approachable look.' WHERE `id` = 2;
 UPDATE `templates` SET `description` = 'Dark navy gradient background with bold typography and white cards. Great for lounges, cocktail bars, and upscale venues that want a striking, premium feel.' WHERE `id` = 3;
 UPDATE `templates` SET `description` = 'Premium dark-themed design with warm accents and rustic charm. Ideal for steakhouses, grills, and traditional pubs. Features reservation integration and a distinctive atmosphere.' WHERE `id` = 4;
+
+-- 29. Login rate limiting (security audit)
+CREATE TABLE IF NOT EXISTS `login_attempts` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `ip_address` varchar(45) NOT NULL,
+  `identifier` varchar(255) NOT NULL DEFAULT '',
+  `attempted_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_login_attempts_ip_time` (`ip_address`, `attempted_at`),
+  KEY `idx_login_attempts_identifier_time` (`identifier`(191), `attempted_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -5,6 +5,7 @@
  */
 
 require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/csrf.php';
 requireSuperAdmin();
 
 require_once __DIR__ . '/../includes/functions.php';
@@ -40,6 +41,7 @@ if (isset($_GET['error'])) {
 
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    requireCSRFToken();
     $action = $_POST['action'] ?? '';
     
     if ($action === 'create' || $action === 'update') {
@@ -863,6 +865,7 @@ include __DIR__ . '/../includes/admin-layout.php';
                     </form>
                     <div class="actions-dropdown-divider"></div>
                     <form method="POST" style="display:contents;" onsubmit="return confirm('Are you sure you want to delete this plan?');">
+                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                         <input type="hidden" name="action" value="delete">
                         <input type="hidden" name="plan_id" value="<?php echo $plan['id']; ?>">
                         <button type="submit" class="actions-dropdown-item danger">Delete</button>
