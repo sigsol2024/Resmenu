@@ -329,7 +329,8 @@ include __DIR__ . '/../includes/admin-layout.php';
     background: #fff;
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
+    /* Allow actions dropdown to render outside the card */
+    overflow: visible;
     position: relative;
     border: 1px solid #e5e7eb;
 }
