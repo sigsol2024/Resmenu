@@ -586,6 +586,8 @@ textarea::placeholder {
     z-index: 99999 !important;
     right: auto !important;
     margin-right: 0 !important;
+    max-height: calc(100vh - 24px) !important;
+    overflow-y: auto !important;
 }
 
 .actions-dropdown-item {

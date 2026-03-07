@@ -13,13 +13,38 @@
 
   function positionPortal(trigger, dropdown) {
     var rect = trigger.getBoundingClientRect();
+    var viewportH = window.innerHeight;
+    var viewportW = window.innerWidth;
+    var dropdownW = dropdown.offsetWidth;
+    var dropdownH = dropdown.offsetHeight;
+    var gap = 4;
+
     dropdown.classList.add(PORTAL_CLASS);
     dropdown.style.position = 'fixed';
     dropdown.style.zIndex = '99999';
-    dropdown.style.left = (rect.left - dropdown.offsetWidth - 4) + 'px';
-    dropdown.style.top = rect.top + 'px';
     dropdown.style.right = 'auto';
     dropdown.style.marginRight = '0';
+
+    // Horizontal: prefer left of button; if not enough space, show to the right
+    var left = rect.left - dropdownW - gap;
+    if (left < 8) left = rect.right + gap;
+    if (left + dropdownW > viewportW - 8) left = viewportW - dropdownW - 8;
+    if (left < 8) left = 8;
+    dropdown.style.left = left + 'px';
+
+    // Vertical: keep entire dropdown in viewport; prefer below button, else above
+    var top = rect.top;
+    if (top + dropdownH > viewportH - 8) {
+      // Would overflow bottom: place above button or clamp to viewport
+      var topAbove = rect.top - dropdownH - gap;
+      if (topAbove >= 8) {
+        top = topAbove;
+      } else {
+        top = Math.max(8, viewportH - dropdownH - 8);
+      }
+    }
+    if (top < 8) top = 8;
+    dropdown.style.top = top + 'px';
   }
 
   function openDropdown(trigger) {
