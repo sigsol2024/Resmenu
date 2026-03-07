@@ -157,6 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body class="bg-background-light dark:bg-background-dark font-display antialiased min-h-screen lg:h-screen overflow-x-hidden lg:overflow-hidden">
 <div class="flex min-h-screen lg:h-screen flex-col lg:flex-row">
     <div class="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-primary">
+        <div class="absolute inset-0 opacity-10" style="background-image: url('https://resmenu.net/assets/images/bh_pattern-black.png'); background-repeat: repeat; background-size: 280px 280px;"></div>
         <div class="absolute inset-0 z-10 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
         <div class="relative z-20 flex h-full w-full flex-col justify-between p-12 text-white">
             <a href="<?php echo htmlspecialchars($marketingHomeUrl); ?>" class="inline-flex items-center gap-3 hover:opacity-90 transition-opacity">
@@ -195,7 +196,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <span class="material-symbols-outlined text-base">arrow_back</span>
                 Back to Home
             </a>
-            <a href="<?php echo htmlspecialchars($marketingHomeUrl); ?>" class="inline-flex items-center gap-2 hover:opacity-90 transition-opacity">
+            <a href="<?php echo htmlspecialchars($marketingHomeUrl); ?>" class="inline-flex items-center gap-2 hover:opacity-90 transition-opacity lg:hidden">
                 <?php if ($siteLogoUrl !== ''): ?>
                     <img src="<?php echo htmlspecialchars($siteLogoUrl); ?>" alt="<?php echo $siteName; ?>" class="h-10 w-auto">
                 <?php else: ?>
