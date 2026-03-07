@@ -247,8 +247,8 @@ include __DIR__ . '/../includes/manager-layout.php';
 
 /* Current Plan Card */
 .plan-card-current {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 20px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    border-radius: var(--radius);
     padding: 32px;
     color: #fff;
     margin-bottom: 30px;
@@ -342,11 +342,11 @@ include __DIR__ . '/../includes/manager-layout.php';
 }
 
 .btn-upgrade {
-    background: #fff;
-    color: #667eea;
+    background: var(--card);
+    color: var(--primary);
     border: none;
     padding: 12px 24px;
-    border-radius: 10px;
+    border-radius: var(--radius);
     font-weight: 600;
     cursor: pointer;
     text-decoration: none;
@@ -355,7 +355,7 @@ include __DIR__ . '/../includes/manager-layout.php';
 
 .btn-upgrade:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
 }
 
 .btn-manage {
@@ -363,7 +363,7 @@ include __DIR__ . '/../includes/manager-layout.php';
     color: #fff;
     border: none;
     padding: 12px 24px;
-    border-radius: 10px;
+    border-radius: var(--radius);
     font-weight: 600;
     cursor: pointer;
     text-decoration: none;
@@ -371,8 +371,8 @@ include __DIR__ . '/../includes/manager-layout.php';
 
 /* Trial Banner */
 .trial-banner {
-    background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
-    border-radius: 16px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    border-radius: var(--radius);
     padding: 24px;
     margin-bottom: 30px;
     display: flex;
@@ -412,8 +412,8 @@ include __DIR__ . '/../includes/manager-layout.php';
 }
 
 .trial-action .btn-upgrade {
-    background: #fff;
-    color: #f97316;
+    background: var(--card);
+    color: var(--primary);
 }
 
 /* Grid Layout */
@@ -426,9 +426,9 @@ include __DIR__ . '/../includes/manager-layout.php';
 
 /* Usage Card */
 .usage-card {
-    background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
     padding: 24px;
 }
 
@@ -486,21 +486,21 @@ include __DIR__ . '/../includes/manager-layout.php';
     transition: width 0.5s ease;
 }
 
-.usage-fill.success { background: linear-gradient(90deg, #10b981, #34d399); }
-.usage-fill.warning { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
-.usage-fill.danger { background: linear-gradient(90deg, #ef4444, #f87171); }
+.usage-fill.success { background: var(--primary); }
+.usage-fill.warning { background: #b45309; }
+.usage-fill.danger { background: var(--danger); }
 
 /* Payment History */
 .payment-card {
-    background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
     overflow: hidden;
 }
 
 .payment-header {
     padding: 20px 24px;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid var(--bg);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -516,12 +516,12 @@ include __DIR__ . '/../includes/manager-layout.php';
     justify-content: space-between;
     align-items: center;
     padding: 16px 24px;
-    border-bottom: 1px solid #f3f4f6;
+    border-bottom: 1px solid var(--bg);
     transition: background 0.2s;
 }
 
 .payment-item:hover {
-    background: #f9fafb;
+    background: var(--bg);
 }
 
 .payment-item:last-child {
@@ -564,7 +564,7 @@ include __DIR__ . '/../includes/manager-layout.php';
 }
 
 .payment-status.success { background: #d1fae5; color: #065f46; }
-.payment-status.pending { background: #f3f4f6; color: #4b5563; }
+.payment-status.pending { background: var(--bg); color: var(--muted); }
 .payment-status.failed { background: #fee2e2; color: #991b1b; }
 
 .empty-payments {
@@ -663,14 +663,33 @@ include __DIR__ . '/../includes/manager-layout.php';
 }
 
 .plan-features li svg {
-    color: #10b981;
+    color: var(--primary);
     flex-shrink: 0;
+}
+
+.billing-cycle-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+
+.plan-cycle-select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--bg);
+    border-radius: 8px;
+    font-size: 0.875rem;
+    color: var(--text);
+    background: var(--card);
 }
 
 .btn-select-plan {
     width: 100%;
     padding: 12px;
-    border-radius: 10px;
+    border-radius: var(--radius);
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
@@ -686,26 +705,26 @@ include __DIR__ . '/../includes/manager-layout.php';
 }
 
 .btn-select-plan.primary:hover {
-    background: #4338ca;
+    background: var(--primary-dark);
 }
 
 .btn-select-plan.secondary {
-    background: #f3f4f6;
+    background: var(--bg);
     color: var(--text);
     border: none;
 }
 
 .btn-select-plan.current {
-    background: #d1fae5;
-    color: #065f46;
+    background: var(--bg);
+    color: var(--muted);
     cursor: default;
 }
 
 /* No Subscription State */
 .no-subscription {
-    background: #fff;
-    border-radius: 20px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
     padding: 60px 40px;
     text-align: center;
     margin-bottom: 40px;
@@ -714,8 +733,8 @@ include __DIR__ . '/../includes/manager-layout.php';
 .no-subscription-icon {
     width: 80px;
     height: 80px;
-    background: #f3f4f6;
-    border-radius: 20px;
+    background: var(--bg);
+    border-radius: var(--radius);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -976,35 +995,31 @@ include __DIR__ . '/../includes/manager-layout.php';
                     </li>
                 </ul>
 
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
-                    <?php if ($monthlyDecision['mode'] === 'none'): ?>
-                        <span class="btn-select-plan current">Monthly Current</span>
-                    <?php elseif ($monthlyDecision['mode'] === 'immediate'): ?>
-                        <a href="checkout.php?plan=<?php echo urlencode($plan['slug']); ?>&cycle=monthly" class="btn-select-plan primary">Choose Monthly</a>
-                    <?php else: ?>
-                        <form method="post" action="billing.php" style="margin:0;">
-                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
-                            <input type="hidden" name="action" value="schedule_change">
-                            <input type="hidden" name="target_plan_id" value="<?php echo (int)$plan['id']; ?>">
-                            <input type="hidden" name="target_cycle" value="monthly">
-                            <button type="submit" class="btn-select-plan secondary" style="border:none;">Schedule Monthly</button>
-                        </form>
-                    <?php endif; ?>
-
-                    <?php if ($annualDecision['mode'] === 'none'): ?>
-                        <span class="btn-select-plan current">Yearly Current</span>
-                    <?php elseif ($annualDecision['mode'] === 'immediate'): ?>
-                        <a href="checkout.php?plan=<?php echo urlencode($plan['slug']); ?>&cycle=annual" class="btn-select-plan primary">Choose Yearly</a>
-                    <?php else: ?>
-                        <form method="post" action="billing.php" style="margin:0;">
-                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
-                            <input type="hidden" name="action" value="schedule_change">
-                            <input type="hidden" name="target_plan_id" value="<?php echo (int)$plan['id']; ?>">
-                            <input type="hidden" name="target_cycle" value="annual">
-                            <button type="submit" class="btn-select-plan secondary" style="border:none;">Schedule Yearly</button>
-                        </form>
-                    <?php endif; ?>
-                </div>
+                <?php
+                $currentCycle = $subscription && $isCurrent ? ($subscription['billing_cycle'] ?? 'monthly') : 'monthly';
+                $defaultCycle = ($currentCycle === 'annual' ? 'annual' : 'monthly');
+                ?>
+                <form method="post" action="billing.php" class="plan-select-form" style="margin:0;" data-monthly-mode="<?php echo htmlspecialchars($monthlyDecision['mode']); ?>" data-annual-mode="<?php echo htmlspecialchars($annualDecision['mode']); ?>">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
+                    <input type="hidden" name="action" value="schedule_change">
+                    <input type="hidden" name="target_plan_id" value="<?php echo (int)$plan['id']; ?>">
+                    <label class="billing-cycle-label">Billing</label>
+                    <select name="target_cycle" class="plan-cycle-select" required>
+                        <option value="monthly" <?php echo $defaultCycle === 'monthly' ? 'selected' : ''; ?>>Monthly</option>
+                        <option value="annual" <?php echo $defaultCycle === 'annual' ? 'selected' : ''; ?>>Yearly</option>
+                    </select>
+                    <div class="plan-action-wrap" style="margin-top:8px;">
+                        <?php
+                        $decisionForDefault = $defaultCycle === 'annual' ? $annualDecision : $monthlyDecision;
+                        if ($decisionForDefault['mode'] === 'none'): ?>
+                            <span class="btn-select-plan current plan-action-current" style="display:inline-block;width:100%;text-align:center;">Current plan</span>
+                            <button type="submit" class="btn-select-plan primary plan-action-btn" style="width:100%;border:none;cursor:pointer;display:none;">Subscribe</button>
+                        <?php else: ?>
+                            <span class="btn-select-plan current plan-action-current" style="display:none;width:100%;text-align:center;">Current plan</span>
+                            <button type="submit" class="btn-select-plan primary plan-action-btn" style="width:100%;border:none;cursor:pointer;"><?php echo $decisionForDefault['mode'] === 'scheduled' ? 'Schedule for period end' : 'Subscribe'; ?></button>
+                        <?php endif; ?>
+                    </div>
+                </form>
 
                 <?php
                 $changeHint = '';
@@ -1016,11 +1031,39 @@ include __DIR__ . '/../includes/manager-layout.php';
                     $changeHint = 'Upgrade changes are applied immediately after successful payment.';
                 }
                 ?>
-                <p style="font-size:0.78rem;color:#6b7280;margin-top:6px;"><?php echo htmlspecialchars($changeHint); ?></p>
+                <p style="font-size:0.78rem;color:var(--muted);margin-top:8px;"><?php echo htmlspecialchars($changeHint); ?></p>
             </div>
         <?php endforeach; ?>
     </div>
 </div>
+
+<script>
+(function() {
+    function updatePlanAction(form) {
+        var sel = form.querySelector('.plan-cycle-select');
+        var wrap = form.querySelector('.plan-action-wrap');
+        if (!sel || !wrap) return;
+        var mode = sel.value === 'annual' ? form.getAttribute('data-annual-mode') : form.getAttribute('data-monthly-mode');
+        var currentSpan = wrap.querySelector('.plan-action-current');
+        var btn = wrap.querySelector('.plan-action-btn');
+        if (mode === 'none') {
+            if (currentSpan) currentSpan.style.display = 'inline-block';
+            if (btn) { btn.style.display = 'none'; btn.disabled = true; }
+        } else {
+            if (currentSpan) currentSpan.style.display = 'none';
+            if (btn) {
+                btn.style.display = 'block';
+                btn.disabled = false;
+                btn.textContent = mode === 'scheduled' ? 'Schedule for period end' : 'Subscribe';
+            }
+        }
+    }
+    document.querySelectorAll('.plan-select-form').forEach(function(form) {
+        var sel = form.querySelector('.plan-cycle-select');
+        if (sel) sel.addEventListener('change', function() { updatePlanAction(form); });
+    });
+})();
+</script>
 
 <?php include __DIR__ . '/../includes/admin-footer.php'; ?>
 

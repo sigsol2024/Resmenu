@@ -166,7 +166,7 @@ function oldValue($key, $default = '') {
 <div class="flex min-h-screen lg:h-screen flex-col lg:flex-row">
     <div class="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-primary/10">
         <div class="absolute inset-0 z-10 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
-        <img class="absolute inset-0 h-full w-full object-cover object-center" alt="Restaurant interior" src="/templates/template4/bg_white.png"/>
+        <img class="absolute inset-0 h-full w-full object-cover object-center" alt="Professional chef at work" src="/assets/woman-working-as-professional-chef.jpg"/>
         <div class="relative z-20 flex h-full w-full flex-col justify-between p-12 text-white">
             <a href="<?php echo htmlspecialchars($marketingHomeUrl); ?>" class="inline-flex items-center gap-3 hover:opacity-90 transition-opacity">
                 <?php if ($siteLogoUrl !== ''): ?>
@@ -175,8 +175,8 @@ function oldValue($key, $default = '') {
                     <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
                         <span class="material-symbols-outlined text-white">restaurant_menu</span>
                     </div>
+                    <span class="text-2xl font-bold tracking-tight font-poppins text-white"><?php echo $siteName; ?></span>
                 <?php endif; ?>
-                <span class="text-2xl font-bold tracking-tight font-poppins text-white"><?php echo $siteName; ?></span>
             </a>
             <div class="max-w-md">
                 <h1 class="text-5xl font-extrabold leading-tight mb-6 font-poppins">Join 1,000+ restaurants worldwide.</h1>
@@ -209,8 +209,8 @@ function oldValue($key, $default = '') {
                     <img src="<?php echo htmlspecialchars($siteLogoUrl); ?>" alt="<?php echo $siteName; ?>" class="h-10 w-auto">
                 <?php else: ?>
                     <span class="material-symbols-outlined text-primary text-3xl">restaurant_menu</span>
+                    <span class="text-lg font-bold font-poppins text-slate-900"><?php echo $siteName; ?></span>
                 <?php endif; ?>
-                <span class="text-lg font-bold font-poppins text-slate-900"><?php echo $siteName; ?></span>
             </a>
         </div>
 
