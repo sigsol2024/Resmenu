@@ -168,7 +168,7 @@ function oldValue($key, $default = '') {
         <div class="absolute inset-0 z-10 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
         <?php
 $assetBase = defined('SITE_URL') ? rtrim(SITE_URL, '/') : '';
-$heroImg = $assetBase . '/assets/images/woman-working-as-professional-chef.jpg';
+$heroImg = $assetBase . '/assets/images/woman_work.jpg';
 ?>
         <img class="absolute inset-0 h-full w-full object-cover object-center" alt="Professional chef at work" src="<?php echo htmlspecialchars($heroImg); ?>"/>
         <div class="relative z-20 flex h-full w-full flex-col justify-between p-12 text-white">
