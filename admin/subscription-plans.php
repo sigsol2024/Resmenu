@@ -49,7 +49,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $slug = trim($_POST['slug'] ?? '');
         $description = trim($_POST['description'] ?? '');
         $monthlyPrice = floatval($_POST['monthly_price'] ?? 0);
-        $annualPrice = floatval($_POST['annual_price'] ?? 0);
+        $yearlyDiscountPercent = max(0, min(100, floatval($_POST['yearly_discount_percent'] ?? 20)));
+        $annualPrice = $monthlyPrice > 0 ? round($monthlyPrice * 12 * (1 - $yearlyDiscountPercent / 100), 2) : 0;
         $maxCategories = intval($_POST['max_categories'] ?? 5);
         $maxMenuItems = intval($_POST['max_menu_items'] ?? 50);
         $maxQrStyles = intval($_POST['max_qr_styles'] ?? 3);
@@ -80,11 +81,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($action === 'create') {
                     $stmt = $pdo->prepare("
                         INSERT INTO subscription_plans 
-                        (name, slug, description, monthly_price, annual_price, max_categories, max_menu_items, max_qr_styles, max_templates, features, is_active, display_order)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        (name, slug, description, monthly_price, annual_price, yearly_discount_percent, max_categories, max_menu_items, max_qr_styles, max_templates, features, is_active, display_order)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ");
                     $stmt->execute([
-                        $name, $slug, $description, $monthlyPrice, $annualPrice,
+                        $name, $slug, $description, $monthlyPrice, $annualPrice, $yearlyDiscountPercent,
                         $maxCategories, $maxMenuItems, $maxQrStyles, $maxTemplates,
                         json_encode($features), $isActive, $displayOrder
                     ]);
@@ -96,13 +97,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $planId = intval($_POST['plan_id'] ?? 0);
                     $stmt = $pdo->prepare("
                         UPDATE subscription_plans SET
-                        name = ?, slug = ?, description = ?, monthly_price = ?, annual_price = ?,
+                        name = ?, slug = ?, description = ?, monthly_price = ?, annual_price = ?, yearly_discount_percent = ?,
                         max_categories = ?, max_menu_items = ?, max_qr_styles = ?, max_templates = ?,
                         features = ?, is_active = ?, display_order = ?
                         WHERE id = ?
                     ");
                     $stmt->execute([
-                        $name, $slug, $description, $monthlyPrice, $annualPrice,
+                        $name, $slug, $description, $monthlyPrice, $annualPrice, $yearlyDiscountPercent,
                         $maxCategories, $maxMenuItems, $maxQrStyles, $maxTemplates,
                         json_encode($features), $isActive, $displayOrder, $planId
                     ]);
@@ -668,13 +669,23 @@ include __DIR__ . '/../includes/admin-layout.php';
                 <label for="monthly_price">Monthly Price (₦)</label>
                 <input type="number" id="monthly_price" name="monthly_price" min="0" step="0.01"
                        value="<?php echo $editPlan['monthly_price'] ?? '10000'; ?>">
+                <div class="form-hint">Base price; yearly is calculated from this and the discount % below.</div>
             </div>
             
             <div class="form-group">
-                <label for="annual_price">Annual Price (₦)</label>
-                <input type="number" id="annual_price" name="annual_price" min="0" step="0.01"
-                       value="<?php echo $editPlan['annual_price'] ?? '96000'; ?>">
-                <div class="form-hint">Typically 20% off monthly × 12</div>
+                <label for="yearly_discount_percent">Yearly discount (%)</label>
+                <input type="number" id="yearly_discount_percent" name="yearly_discount_percent" min="0" max="100" step="0.5"
+                       value="<?php echo htmlspecialchars($editPlan['yearly_discount_percent'] ?? '20'); ?>">
+                <div class="form-hint">Annual price = monthly × 12 × (1 − this %). e.g. 20% → Save 20% off.</div>
+            </div>
+            
+            <div class="form-group">
+                <label>Annual price (calculated)</label>
+                <div id="annual_price_display" class="form-readonly"><?php
+                    $m = (float)($editPlan['monthly_price'] ?? 10000);
+                    $d = (float)($editPlan['yearly_discount_percent'] ?? 20);
+                    echo '₦' . number_format(round($m * 12 * (1 - $d / 100), 2), 2);
+                ?></div>
             </div>
         </div>
         
@@ -803,6 +814,9 @@ include __DIR__ . '/../includes/admin-layout.php';
                     <span class="price-label">Annually</span>
                     <span class="price-value"><?php echo formatSubscriptionPrice($plan['annual_price']); ?></span>
                 </div>
+                <?php $discountPct = (int)($plan['yearly_discount_percent'] ?? 20); if ($discountPct > 0): ?>
+                <div class="price-row price-hint" style="font-size:0.85em;color:#6b7280;">Save <?php echo $discountPct; ?>% off</div>
+                <?php endif; ?>
             </div>
             
             <div class="plan-limits">
@@ -884,6 +898,20 @@ include __DIR__ . '/../includes/admin-layout.php';
 <?php endif; ?>
 
 <script>
+(function() {
+    var monthly = document.getElementById('monthly_price');
+    var discount = document.getElementById('yearly_discount_percent');
+    var display = document.getElementById('annual_price_display');
+    if (!monthly || !discount || !display) return;
+    function updateAnnual() {
+        var m = parseFloat(monthly.value) || 0;
+        var d = Math.max(0, Math.min(100, parseFloat(discount.value) || 20));
+        var annual = m * 12 * (1 - d / 100);
+        display.textContent = '₦' + (annual > 0 ? annual.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00');
+    }
+    monthly.addEventListener('input', updateAnnual);
+    discount.addEventListener('input', updateAnnual);
+})();
 </script>
 
 <?php include __DIR__ . '/../includes/admin-footer.php'; ?>

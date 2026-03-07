@@ -967,6 +967,9 @@ include __DIR__ . '/../includes/manager-layout.php';
                 <div class="plan-option-name"><?php echo htmlspecialchars($plan['name']); ?></div>
                 <div class="plan-option-price"><?php echo formatSubscriptionPrice($plan['monthly_price']); ?></div>
                 <div class="plan-option-period">per month (<?php echo formatSubscriptionPrice($plan['annual_price']); ?>/year)</div>
+                <?php $billingDiscountPct = (int)($plan['yearly_discount_percent'] ?? 20); if ($billingDiscountPct > 0): ?>
+                <div class="plan-option-save" style="font-size:0.85em;color:var(--muted);margin-top:2px;">Save <?php echo $billingDiscountPct; ?>% off</div>
+                <?php endif; ?>
                 
                 <ul class="plan-features">
                     <li>

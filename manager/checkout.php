@@ -53,6 +53,7 @@ if (!$selectedPlan) {
         }
     }
 }
+$checkoutDiscountPct = !empty($plans) ? (int)(reset($plans)['yearly_discount_percent'] ?? 20) : 20;
 if (!$selectedPlan && count($plans) > 0) {
     $selectedPlan = $plans[0];
 }
@@ -736,15 +737,18 @@ function updatePrices(cycle) {
     const monthlyPrices = document.querySelectorAll('.monthly-price');
     const annualPrices = document.querySelectorAll('.annual-price');
     const periods = document.querySelectorAll('.plan-label-period');
+    const saveLabels = document.querySelectorAll('.plan-label-save');
     
     if (cycle === 'annual') {
         monthlyPrices.forEach(el => el.style.display = 'none');
         annualPrices.forEach(el => el.style.display = 'block');
         periods.forEach(el => el.textContent = '/year');
+        saveLabels.forEach(el => el.style.display = 'block');
     } else {
         monthlyPrices.forEach(el => el.style.display = 'block');
         annualPrices.forEach(el => el.style.display = 'none');
         periods.forEach(el => el.textContent = '/month');
+        saveLabels.forEach(el => el.style.display = 'none');
     }
 }
 

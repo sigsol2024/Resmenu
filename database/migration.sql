@@ -386,3 +386,7 @@ CREATE TABLE IF NOT EXISTS `login_attempts` (
   KEY `idx_login_attempts_ip_time` (`ip_address`, `attempted_at`),
   KEY `idx_login_attempts_identifier_time` (`identifier`(191), `attempted_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 30. Yearly discount % for subscription plans (annual = monthly*12*(1 - discount/100))
+ALTER TABLE `subscription_plans` ADD COLUMN IF NOT EXISTS `yearly_discount_percent` decimal(5,2) NOT NULL DEFAULT 20.00 COMMENT 'Discount % applied to yearly plan (annual price = monthly*12*(1 - this/100))' AFTER `annual_price`;
+UPDATE `subscription_plans` SET `annual_price` = `monthly_price` * 12 * (1 - COALESCE(`yearly_discount_percent`, 20) / 100) WHERE `monthly_price` > 0;
