@@ -403,3 +403,24 @@ CREATE TABLE IF NOT EXISTS `admins` (
   UNIQUE KEY `admins_username` (`username`),
   UNIQUE KEY `admins_email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 32. Template plan assignment and private restaurant assignment
+ALTER TABLE `templates` ADD COLUMN IF NOT EXISTS `is_private` tinyint(1) NOT NULL DEFAULT 0 AFTER `is_active`;
+
+CREATE TABLE IF NOT EXISTS `template_plans` (
+  `template_id` int(11) NOT NULL,
+  `plan_id` int(11) NOT NULL,
+  PRIMARY KEY (`template_id`, `plan_id`),
+  KEY `plan_id` (`plan_id`),
+  CONSTRAINT `template_plans_ibfk_1` FOREIGN KEY (`template_id`) REFERENCES `templates` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `template_plans_ibfk_2` FOREIGN KEY (`plan_id`) REFERENCES `subscription_plans` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `template_restaurants` (
+  `template_id` int(11) NOT NULL,
+  `restaurant_id` int(11) NOT NULL,
+  PRIMARY KEY (`template_id`, `restaurant_id`),
+  KEY `restaurant_id` (`restaurant_id`),
+  CONSTRAINT `template_restaurants_ibfk_1` FOREIGN KEY (`template_id`) REFERENCES `templates` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `template_restaurants_ibfk_2` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

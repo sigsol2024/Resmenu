@@ -108,6 +108,75 @@ function getAvailableTemplates() {
 }
 
 /**
+ * Get templates visible and usable for a restaurant (plan + private assignment).
+ * Returns templates the restaurant can see; can_use indicates if they can select/use it (plan in template_plans).
+ * If they see only via private assignment and can_use is false, they must upgrade to use.
+ *
+ * @param int $restaurantId
+ * @return array List of template records with id, name, description, preview_image, listing_image, path, can_use, can_see
+ */
+function getTemplatesAvailableForRestaurant($restaurantId) {
+    $restaurantId = (int) $restaurantId;
+    $templatesDir = __DIR__ . '/../templates';
+    if (!is_dir($templatesDir)) {
+        return [];
+    }
+
+    $subscription = getRestaurantSubscription($restaurantId);
+    $planId = $subscription ? (int) ($subscription['plan_id'] ?? 0) : null;
+
+    $pdo = getDBConnection();
+    if (!$pdo) {
+        return [];
+    }
+
+    try {
+        $stmt = $pdo->prepare("
+            SELECT t.id, t.name, t.description, t.preview_image, t.listing_image,
+                EXISTS (SELECT 1 FROM template_plans tp WHERE tp.template_id = t.id AND tp.plan_id = ?) AS can_use
+            FROM templates t
+            WHERE t.is_active = 1
+            AND (
+                EXISTS (SELECT 1 FROM template_plans tp WHERE tp.template_id = t.id)
+                OR (t.is_private = 1 AND EXISTS (SELECT 1 FROM template_restaurants tr WHERE tr.template_id = t.id AND tr.restaurant_id = ?))
+            )
+            ORDER BY t.id ASC
+        ");
+        $stmt->execute([$planId ?: 0, $restaurantId]);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("getTemplatesAvailableForRestaurant: " . $e->getMessage());
+        // Fallback when template_plans/template_restaurants don't exist yet
+        $all = getAvailableTemplates();
+        foreach ($all as &$t) {
+            $t['can_use'] = true;
+            $t['can_see'] = true;
+        }
+        return $all;
+    }
+
+    $templates = [];
+    foreach ($rows as $row) {
+        $templateId = (int) $row['id'];
+        $templatePath = __DIR__ . "/../templates/template{$templateId}/index.php";
+        if (!file_exists($templatePath)) {
+            continue;
+        }
+        $templates[] = [
+            'id' => $templateId,
+            'name' => $row['name'],
+            'description' => $row['description'] ?? null,
+            'preview_image' => $row['preview_image'] ?? null,
+            'listing_image' => $row['listing_image'] ?? null,
+            'path' => $templatePath,
+            'can_use' => (bool) ($row['can_use'] ?? false),
+            'can_see' => true,
+        ];
+    }
+    return $templates;
+}
+
+/**
  * Load template with restaurant data
  * @param array $restaurant Restaurant data
  * @param array $categories Categories array

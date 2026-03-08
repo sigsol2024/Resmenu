@@ -57,20 +57,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($templateId < 1) {
             $error = 'Please select a valid template.';
         } else {
-            try {
-                $stmt = $pdo->prepare("UPDATE restaurants SET template_id = ? WHERE id = ?");
-                $stmt->execute([$templateId, $restaurantId]);
-                
-                // Redirect to avoid form resubmission and ensure page shows fresh data (rowCount can be 0 if value unchanged)
-                $redirectUrl = '/manager/customization.php';
-                if (!empty($restaurant['slug'])) {
-                    $redirectUrl .= '?slug=' . urlencode($restaurant['slug']);
+            require_once __DIR__ . '/../includes/template-loader.php';
+            $availableForRestaurant = getTemplatesAvailableForRestaurant($restaurantId);
+            $canUseIds = array_column(array_filter($availableForRestaurant, function ($t) { return !empty($t['can_use']); }), 'id');
+            if (!in_array($templateId, $canUseIds)) {
+                $error = 'This template is assigned to you but requires a higher plan to use. Please upgrade your subscription to use it.';
+            } else {
+                try {
+                    $stmt = $pdo->prepare("UPDATE restaurants SET template_id = ? WHERE id = ?");
+                    $stmt->execute([$templateId, $restaurantId]);
+                    
+                    $redirectUrl = '/manager/customization.php';
+                    if (!empty($restaurant['slug'])) {
+                        $redirectUrl .= '?slug=' . urlencode($restaurant['slug']);
+                    }
+                    $redirectUrl .= (strpos($redirectUrl, '?') !== false ? '&' : '?') . 'message=template_updated';
+                    header('Location: ' . $redirectUrl);
+                    exit;
+                } catch (PDOException $e) {
+                    $error = 'Error updating template: ' . $e->getMessage();
                 }
-                $redirectUrl .= (strpos($redirectUrl, '?') !== false ? '&' : '?') . 'message=template_updated';
-                header('Location: ' . $redirectUrl);
-                exit;
-            } catch (PDOException $e) {
-                $error = 'Error updating template: ' . $e->getMessage();
             }
         }
     }
@@ -147,7 +153,9 @@ $pageTitle = 'Template Selection';
 include __DIR__ . '/../includes/manager-layout.php';
 
 require_once __DIR__ . '/../includes/template-loader.php';
-$availableTemplates = getAvailableTemplates();
+$availableTemplates = getTemplatesAvailableForRestaurant($restaurantId);
+$templatesCanUse = array_filter($availableTemplates, function ($t) { return !empty($t['can_use']); });
+$templatesUpgradeRequired = array_filter($availableTemplates, function ($t) { return !empty($t['can_see']) && empty($t['can_use']); });
 $customization = getCustomizationSettings($restaurantId, $currentTemplateId);
 ?>
 
@@ -180,14 +188,22 @@ $customization = getCustomizationSettings($restaurantId, $currentTemplateId);
                 <div class="form-group">
                     <label class="form-label">Select Template</label>
                     <select name="template_id" class="form-select">
-                        <?php foreach ($availableTemplates as $template): ?>
-                            <option value="<?php echo $template['id']; ?>" <?php echo $currentTemplateId == $template['id'] ? 'selected' : ''; ?>>
+                        <?php
+                        $currentInCanUse = in_array($currentTemplateId, array_column($templatesCanUse, 'id'));
+                        foreach ($templatesCanUse as $template): ?>
+                            <option value="<?php echo $template['id']; ?>" <?php echo ($currentTemplateId == $template['id'] && $currentInCanUse) ? 'selected' : ''; ?>>
                                 <?php echo htmlspecialchars($template['name']); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
+                    <?php if (empty($templatesCanUse)): ?>
+                        <p style="margin-top: 8px; color: var(--muted); font-size: 0.875rem;">No templates available for your plan. Contact support or upgrade to access more templates.</p>
+                    <?php endif; ?>
                 </div>
-                <button type="submit" class="btn btn-primary">
+                <?php if (!empty($templatesUpgradeRequired)): ?>
+                    <p style="margin-bottom: 16px; color: #6b7280; font-size: 0.875rem;">Templates assigned to you (upgrade required to use): <?php echo htmlspecialchars(implode(', ', array_column($templatesUpgradeRequired, 'name'))); ?> — <a href="/manager/billing.php<?php echo !empty($restaurant['slug']) ? '?slug=' . urlencode($restaurant['slug']) : ''; ?>">Upgrade plan</a></p>
+                <?php endif; ?>
+                <button type="submit" class="btn btn-primary" <?php echo empty($templatesCanUse) ? ' disabled' : ''; ?>>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                     </svg>
