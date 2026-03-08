@@ -549,7 +549,7 @@ include __DIR__ . '/../includes/admin-layout.php';
                 <div class="card" style="margin-bottom: 24px;">
                     <div class="card-header" style="cursor: pointer;" onclick="toggleTemplate(<?php echo $template['id']; ?>)">
                         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-                            <h2 class="card-title" style="margin: 0;">Template <?php echo $template['id']; ?>: <?php echo htmlspecialchars($template['name']); ?></h2>
+                            <h2 class="card-title" style="margin: 0;"><?php echo htmlspecialchars($template['name']); ?></h2>
                             <div style="display: flex; align-items: center; gap: 8px;">
                                 <a href="<?php echo htmlspecialchars($previewUrl); ?>" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="margin: 0;" onclick="event.stopPropagation();">Preview</a>
                                 <span id="toggle-<?php echo $template['id']; ?>" style="font-size: 20px;"><?php echo $isExpanded ? '▼' : '▶'; ?></span>

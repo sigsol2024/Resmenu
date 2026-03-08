@@ -17,6 +17,29 @@ function templateSupportsOrdering($templateId) {
 }
 
 /**
+ * Resolve template directory name from id (and optional slug from DB)
+ * @param int $templateId
+ * @return string Directory name under templates/ (e.g. template1 or the_prime_cut)
+ */
+function getTemplateDirName($templateId) {
+    $templateId = intval($templateId);
+    $pdo = getDBConnection();
+    if ($pdo) {
+        try {
+            $stmt = $pdo->prepare("SELECT slug FROM templates WHERE id = ?");
+            $stmt->execute([$templateId]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($row && !empty($row['slug'])) {
+                return $row['slug'];
+            }
+        } catch (PDOException $e) {
+            // ignore
+        }
+    }
+    return 'template' . $templateId;
+}
+
+/**
  * Get template path for a given template ID
  * @param int $templateId
  * @return string|null
@@ -27,7 +50,8 @@ function getTemplatePath($templateId) {
         $templateId = 1; // Default to template 1
     }
     
-    $templatePath = __DIR__ . "/../templates/template{$templateId}/index.php";
+    $dirName = getTemplateDirName($templateId);
+    $templatePath = __DIR__ . "/../templates/{$dirName}/index.php";
     
     if (file_exists($templatePath)) {
         return $templatePath;
@@ -65,7 +89,8 @@ function getAvailableTemplates() {
             
             foreach ($dbTemplates as $dbTemplate) {
                 $templateId = $dbTemplate['id'];
-                $templatePath = __DIR__ . "/../templates/template{$templateId}/index.php";
+                $dirName = !empty($dbTemplate['slug']) ? $dbTemplate['slug'] : ('template' . $templateId);
+                $templatePath = __DIR__ . "/../templates/{$dirName}/index.php";
                 
                 if (file_exists($templatePath)) {
                     $templates[] = [
@@ -132,7 +157,7 @@ function getTemplatesAvailableForRestaurant($restaurantId) {
 
     try {
         $stmt = $pdo->prepare("
-            SELECT t.id, t.name, t.description, t.preview_image, t.listing_image,
+            SELECT t.id, t.name, t.slug, t.description, t.preview_image, t.listing_image,
                 EXISTS (SELECT 1 FROM template_plans tp WHERE tp.template_id = t.id AND tp.plan_id = ?) AS can_use
             FROM templates t
             WHERE t.is_active = 1
@@ -158,7 +183,8 @@ function getTemplatesAvailableForRestaurant($restaurantId) {
     $templates = [];
     foreach ($rows as $row) {
         $templateId = (int) $row['id'];
-        $templatePath = __DIR__ . "/../templates/template{$templateId}/index.php";
+        $dirName = !empty($row['slug']) ? $row['slug'] : ('template' . $templateId);
+        $templatePath = __DIR__ . "/../templates/{$dirName}/index.php";
         if (!file_exists($templatePath)) {
             continue;
         }

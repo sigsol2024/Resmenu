@@ -424,3 +424,28 @@ CREATE TABLE IF NOT EXISTS `template_restaurants` (
   CONSTRAINT `template_restaurants_ibfk_1` FOREIGN KEY (`template_id`) REFERENCES `templates` (`id`) ON DELETE CASCADE,
   CONSTRAINT `template_restaurants_ibfk_2` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 33. Template slug and 14 new named templates (real names, slug = folder name)
+ALTER TABLE `templates` ADD COLUMN IF NOT EXISTS `slug` varchar(100) DEFAULT NULL AFTER `name`;
+
+UPDATE `templates` SET `slug` = 'template1' WHERE `id` = 1;
+UPDATE `templates` SET `slug` = 'template2' WHERE `id` = 2;
+UPDATE `templates` SET `slug` = 'template3' WHERE `id` = 3;
+UPDATE `templates` SET `slug` = 'template4' WHERE `id` = 4;
+
+INSERT INTO `templates` (`id`, `name`, `slug`, `description`, `preview_image`, `listing_image`, `is_active`, `created_at`, `updated_at`) VALUES
+(5, 'The Prime Cut', 'the_prime_cut', 'Premium steakhouse menu design with burgundy and gold.', NULL, NULL, 1, NOW(), NOW()),
+(6, 'The Garden Bistro', 'the_garden_bistro', 'Garden bistro style menu template.', NULL, NULL, 1, NOW(), NOW()),
+(7, 'The Art Fusion', 'the_art_fusion', 'Art fusion restaurant menu design.', NULL, NULL, 1, NOW(), NOW()),
+(8, 'Sweet Delight', 'sweet_delight', 'Playful dessert parlour style menu.', NULL, NULL, 1, NOW(), NOW()),
+(9, 'Street Food Hub', 'street_food_hub', 'Street food hub menu template.', NULL, NULL, 1, NOW(), NOW()),
+(10, 'Salt N Socials White', 'salt_n_socials_white', 'Salt N Socials white variant.', NULL, NULL, 1, NOW(), NOW()),
+(11, 'Salt N Socials Colored', 'salt_n_socials_colored', 'Salt N Socials colored variant.', NULL, NULL, 1, NOW(), NOW()),
+(12, 'Mediterranean Fresh', 'mediterranean_fresh', 'Mediterranean fresh menu design.', NULL, NULL, 1, NOW(), NOW()),
+(13, 'Forged In Spirit', 'forged_in_spirit', 'Forged In Spirit design.', NULL, NULL, 1, NOW(), NOW()),
+(14, 'Eart Kitchen', 'eart_kitchen', 'Eart Kitchen menu template.', NULL, NULL, 1, NOW(), NOW()),
+(15, 'Bold Flavours', 'bold_flavours', 'Bold flavours menu design.', NULL, NULL, 1, NOW(), NOW()),
+(16, 'Neo Mex Cantina', 'neo_mex_cantina', 'Neo Mex Cantina style menu.', NULL, NULL, 1, NOW(), NOW()),
+(17, 'Nostalgia Front Page', 'nostalgia_front_page', 'Nostalgia front page design.', NULL, NULL, 1, NOW(), NOW()),
+(18, 'Nostalgia Food Menu', 'nostalgia_food_menu', 'Nostalgia food menu design.', NULL, NULL, 1, NOW(), NOW())
+ON DUPLICATE KEY UPDATE `name` = VALUES(`name`), `slug` = VALUES(`slug`), `description` = VALUES(`description`), `is_active` = 1, `updated_at` = NOW();
