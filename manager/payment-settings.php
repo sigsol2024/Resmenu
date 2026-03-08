@@ -6,6 +6,7 @@
  */
 
 require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/csrf.php';
 requireManager();
 
 require_once __DIR__ . '/../includes/functions.php';
@@ -32,6 +33,7 @@ $messageType = '';
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    requireCSRFToken();
     $gateway = $_POST['gateway'] ?? '';
 
     if (in_array($gateway, ['paystack', 'flutterwave'])) {
@@ -175,6 +177,7 @@ input:checked + .toggle-slider:before { transform: translateX(20px); }
     <!-- Paystack Tab -->
     <div id="tab-paystack" class="tab-content active">
         <form method="POST" action="">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
             <input type="hidden" name="gateway" value="paystack">
             <div class="settings-card">
                 <div class="section-header">
@@ -219,6 +222,7 @@ input:checked + .toggle-slider:before { transform: translateX(20px); }
     <!-- Flutterwave Tab -->
     <div id="tab-flutterwave" class="tab-content">
         <form method="POST" action="">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
             <input type="hidden" name="gateway" value="flutterwave">
             <div class="settings-card">
                 <div class="section-header">
@@ -263,6 +267,7 @@ input:checked + .toggle-slider:before { transform: translateX(20px); }
     <!-- Bank Transfer Tab -->
     <div id="tab-bank_transfer" class="tab-content">
         <form method="POST" action="">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
             <input type="hidden" name="gateway" value="bank_transfer">
             <div class="settings-card">
                 <div class="section-header">

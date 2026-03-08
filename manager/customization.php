@@ -5,6 +5,7 @@
  */
 
 require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/csrf.php';
 requireManager();
 
 require_once __DIR__ . '/../includes/functions.php';
@@ -44,6 +45,7 @@ if (empty($restaurant['slug']) || !isset($restaurant['slug'])) {
 
 // Handle form submission (POST-Redirect-GET to prevent form resubmission and ensure fresh data)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    requireCSRFToken();
     $action = $_POST['action'] ?? '';
     
     // Handle template selection
@@ -173,6 +175,7 @@ $customization = getCustomizationSettings($restaurantId, $currentTemplateId);
             </div>
             <p style="margin-bottom: 20px; color: var(--muted); font-size: 0.875rem;">Choose a design template for your restaurant's menu page.</p>
             <form method="POST" action="/manager/customization.php<?php echo !empty($restaurant['slug']) ? '?slug=' . htmlspecialchars(urlencode($restaurant['slug'])) : ''; ?>">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                 <input type="hidden" name="action" value="save_template">
                 <div class="form-group">
                     <label class="form-label">Select Template</label>
@@ -210,6 +213,7 @@ $customization = getCustomizationSettings($restaurantId, $currentTemplateId);
             </div>
             <p style="margin-bottom: 20px; color: var(--muted); font-size: 0.875rem;">Customize all colors and styles for the selected template. Each template remembers its own settings when you switch between them.</p>
             <form method="POST" action="/manager/customization.php<?php echo !empty($restaurant['slug']) ? '?slug=' . htmlspecialchars(urlencode($restaurant['slug'])) : ''; ?>">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                 <input type="hidden" name="action" value="save_customization">
                 <input type="hidden" name="template_id" value="<?php echo $currentTemplateId; ?>">
                 

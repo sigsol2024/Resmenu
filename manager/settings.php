@@ -6,6 +6,7 @@
  */
 
 require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/csrf.php';
 requireManager();
 
 require_once __DIR__ . '/../includes/functions.php';
@@ -47,6 +48,7 @@ if (!$manager) {
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    requireCSRFToken();
     $action = $_POST['action'] ?? '';
     
     if ($action === 'update_profile') {
@@ -231,6 +233,7 @@ include __DIR__ . '/../includes/manager-layout.php';
                 <div><label class="form-label">Account Created</label><div class="info-value"><?php echo !empty($manager['created_at']) ? date('F j, Y g:i A', strtotime($manager['created_at'])) : 'N/A'; ?></div></div>
             </div>
             <form method="POST" action="">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                 <input type="hidden" name="tab" value="account">
                 <input type="hidden" name="action" value="update_profile">
                 <div class="form-group">
@@ -323,6 +326,7 @@ include __DIR__ . '/../includes/manager-layout.php';
                 <h2 class="section-title">Change Password</h2>
             </div>
             <form method="POST" action="">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                 <input type="hidden" name="tab" value="password">
                 <input type="hidden" name="action" value="update_password">
                 <div class="form-group">

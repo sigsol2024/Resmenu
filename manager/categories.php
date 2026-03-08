@@ -4,6 +4,7 @@
  */
 
 require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/csrf.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/subscription-middleware.php';
 
@@ -74,6 +75,7 @@ if (!$restaurantId) {
 
 // Handle delete action
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete') {
+    requireCSRFToken();
     $id = intval($_POST['id'] ?? 0);
     if ($id > 0 && $restaurantId) {
         try {
@@ -113,6 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    requireCSRFToken();
     // Validate restaurant_id before processing
     if (!$restaurantId) {
         $error = 'No restaurant associated with your account. Please contact administrator.';
@@ -268,6 +271,7 @@ include __DIR__ . '/../includes/manager-layout.php';
                 </div>
                 <div class="modal-body">
                     <form method="POST" action="" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                 <input type="hidden" name="action" value="<?php echo $editCategory ? 'update' : 'create'; ?>">
                 <?php if ($editCategory): ?>
                     <input type="hidden" name="id" value="<?php echo $editCategory['id']; ?>">
@@ -342,6 +346,7 @@ include __DIR__ . '/../includes/manager-layout.php';
                         <li>The category image</li>
                     </ul>
                     <form method="POST" action="" id="deleteForm">
+                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                         <input type="hidden" name="action" value="delete">
                         <input type="hidden" name="id" id="deleteCategoryId" value="">
                         <div class="modal-footer">

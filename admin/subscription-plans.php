@@ -632,6 +632,7 @@ include __DIR__ . '/../includes/admin-layout.php';
     <h2 class="form-title"><?php echo $editPlan ? 'Edit Plan: ' . htmlspecialchars($editPlan['name']) : 'Create New Plan'; ?></h2>
     
     <form method="POST" action="">
+        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
         <input type="hidden" name="action" value="<?php echo $editPlan ? 'update' : 'create'; ?>">
         <?php if ($editPlan): ?>
             <input type="hidden" name="plan_id" value="<?php echo $editPlan['id']; ?>">
@@ -873,6 +874,7 @@ include __DIR__ . '/../includes/admin-layout.php';
                 <div class="actions-dropdown">
                     <a href="?edit=<?php echo $plan['id']; ?>" class="actions-dropdown-item">Edit</a>
                     <form method="POST" style="display:contents;">
+                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                         <input type="hidden" name="action" value="toggle_status">
                         <input type="hidden" name="plan_id" value="<?php echo $plan['id']; ?>">
                         <button type="submit" class="actions-dropdown-item"><?php echo $plan['is_active'] ? 'Deactivate' : 'Activate'; ?></button>

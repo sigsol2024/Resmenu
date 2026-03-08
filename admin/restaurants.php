@@ -657,6 +657,7 @@ include __DIR__ . '/../includes/admin-layout.php';
                 </div>
                 <div class="modal-body">
                     <form method="POST" action="" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                 <input type="hidden" name="action" value="<?php echo $editRestaurant ? 'update' : 'create'; ?>">
                 <?php if ($editRestaurant): ?>
                     <input type="hidden" name="id" value="<?php echo $editRestaurant['id']; ?>">

@@ -760,6 +760,7 @@ include __DIR__ . '/../includes/admin-layout.php';
                                 <?php foreach ($allPlans as $plan): ?>
                                     <?php if ($plan['id'] != $sub['plan_id']): ?>
                                         <form method="POST" style="display: contents;" onsubmit="return confirm('Change subscription plan to <?php echo htmlspecialchars($plan['name']); ?>?')">
+                                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                                             <input type="hidden" name="action" value="change_plan">
                                             <input type="hidden" name="subscription_id" value="<?php echo $sub['id']; ?>">
                                             <input type="hidden" name="new_plan_id" value="<?php echo $plan['id']; ?>">

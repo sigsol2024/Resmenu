@@ -4,6 +4,7 @@
  */
 
 require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/csrf.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/subscription-middleware.php';
 
@@ -127,6 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    requireCSRFToken();
     // Validate restaurant_id before processing
     if (!$restaurantId) {
         $error = 'No restaurant associated with your account. Please contact administrator.';
@@ -517,6 +519,7 @@ include __DIR__ . '/../includes/manager-layout.php';
                         <li>The menu item image</li>
                     </ul>
                     <form method="POST" action="" id="deleteForm">
+                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                         <input type="hidden" name="action" value="delete">
                         <input type="hidden" name="id" id="deleteMenuItemId" value="">
                         <?php if (isSuperAdmin() && $restaurantId): ?>
