@@ -29,6 +29,7 @@ if (!empty($categories) && is_array($categories)) {
 <div class="flex min-h-screen">
 <aside class="w-1/4 lg:w-1/5 h-screen sticky top-0 border-r border-white/10 bg-black flex flex-col justify-between p-8">
 <div>
+<?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?><div class="mb-6"><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="h-14 w-auto object-contain"/></div><?php endif; ?>
 <h1 class="text-3xl font-black tracking-tighter italic text-neonPink mb-12"><?php echo htmlspecialchars(mb_substr($restaurant['name'], 0, 12)); ?><br/><span class="text-neonBlue"><?php echo htmlspecialchars(mb_substr($restaurant['name'], 12, 20) ?: 'Menu'); ?></span></h1>
 <nav class="space-y-6">
 <?php foreach ($activeCategories as $i => $cat): $s = isset($cat['slug']) ? $cat['slug'] : ('section-'.$i); ?>
@@ -36,7 +37,7 @@ if (!empty($categories) && is_array($categories)) {
 <?php endforeach; ?>
 </nav>
 </div>
-<div class="text-xs text-gray-500 uppercase tracking-widest"><?php echo htmlspecialchars($restaurant['address'] ?? ''); ?></div>
+<div class="text-xs text-gray-500 uppercase tracking-widest"><?php echo htmlspecialchars(!empty($restaurant['footer_content']) ? $restaurant['footer_content'] : ($restaurant['address'] ?? '')); ?></div>
 </aside>
 <main class="flex-1 p-8 lg:p-16 overflow-y-auto">
 <header class="mb-24">
@@ -53,6 +54,7 @@ if (!empty($categories) && is_array($categories)) {
 <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
 <?php foreach ($items as $item): ?>
 <div class="neon-border-pink p-6 rounded-lg hover:bg-white/5 transition-colors">
+<?php if (!empty($item['image'])): ?><img src="<?php echo $uploadBaseUrl . '/menu-items/' . htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="w-full h-40 object-cover rounded mb-4"/><?php endif; ?>
 <div class="flex justify-between items-baseline mb-2">
 <h4 class="text-xl font-bold"><?php echo htmlspecialchars($item['name']); ?></h4>
 <span class="text-neonBlue font-mono"><?php echo bf_price($item['price']); ?></span>

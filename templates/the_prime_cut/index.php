@@ -91,6 +91,7 @@ $ornateSymbols = ['❦', '✧', '⚜', '🍷'];
 <body class="min-h-screen py-12 px-4 flex justify-center items-start">
 <main class="menu-page max-w-4xl w-full text-cream p-8 md:p-16 gold-border relative">
 <header class="text-center mb-16" data-purpose="main-header">
+<?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?><div class="mb-4"><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="h-20 w-auto object-contain mx-auto"/></div><?php endif; ?>
 <div class="mb-4">
 <span class="text-gold tracking-[0.3em] uppercase text-sm font-sans"><?php echo !empty($restaurant['description']) ? htmlspecialchars(mb_substr($restaurant['description'], 0, 60)) : 'Established'; ?></span>
 </div>
@@ -138,6 +139,7 @@ $ornateSymbols = ['❦', '✧', '⚜', '🍷'];
 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
 <?php foreach ($items as $item): ?>
 <div class="flex flex-col text-center md:text-left">
+<?php if (!empty($item['image'])): ?><div class="mb-3"><img src="<?php echo $uploadBaseUrl . '/menu-items/' . htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="w-full max-h-40 object-cover rounded border border-gold/30"/></div><?php endif; ?>
 <div class="flex justify-between items-baseline mb-1">
 <h3 class="font-serif text-xl font-bold"><?php echo htmlspecialchars($item['name']); ?></h3>
 <span class="text-gold font-serif"><?php echo the_prime_cut_price($item['price']); ?></span>

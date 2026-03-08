@@ -28,7 +28,9 @@ if (!empty($categories) && is_array($categories)) {
 <body class="bg-cantina-dark text-slate-100 font-sans selection:bg-orange-500/30">
 <div class="flex min-h-screen">
 <nav class="fixed h-screen w-20 md:w-32 flex flex-col items-center py-8 border-r border-white/10 bg-black/40 backdrop-blur-md z-50">
-<div class="mb-12"><div class="w-12 h-12 brand-gradient rounded-xl flex items-center justify-center font-black text-2xl transform rotate-12"><?php echo strtoupper(substr($restaurant['name'], 0, 1)); ?></div></div>
+<div class="mb-12">
+<?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="w-12 h-12 object-contain rounded-xl"/><?php else: ?><div class="w-12 h-12 brand-gradient rounded-xl flex items-center justify-center font-black text-2xl transform rotate-12"><?php echo strtoupper(substr($restaurant['name'], 0, 1)); ?></div><?php endif; ?>
+</div>
 <div class="flex flex-col space-y-12 flex-grow justify-center">
 <?php foreach ($activeCategories as $i => $cat): $s = isset($cat['slug']) ? $cat['slug'] : ('section-'.$i); ?>
 <a class="group flex flex-col items-center" href="#<?php echo htmlspecialchars($s); ?>"><span class="text-[10px] uppercase tracking-widest font-bold opacity-40 group-hover:opacity-100 group-hover:text-orange-500 transition-all origin-center -rotate-90"><?php echo htmlspecialchars($cat['name']); ?></span></a>
@@ -49,17 +51,22 @@ if (!empty($categories) && is_array($categories)) {
 <h2 class="text-2xl font-bold text-orange-500 mb-8"><?php echo htmlspecialchars($category['name']); ?></h2>
 <div class="space-y-6">
 <?php foreach ($items as $item): ?>
-<div class="flex justify-between items-baseline border-b border-white/10 pb-4">
-<div>
+<div class="flex gap-4 items-start border-b border-white/10 pb-4">
+<?php if (!empty($item['image'])): ?><img src="<?php echo $uploadBaseUrl . '/menu-items/' . htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="w-20 h-20 flex-shrink-0 object-cover rounded"/><?php endif; ?>
+<div class="flex-1 min-w-0">
 <h3 class="text-lg font-semibold"><?php echo htmlspecialchars($item['name']); ?></h3>
 <p class="text-sm text-slate-400"><?php echo htmlspecialchars($item['description'] ?? ''); ?></p>
 </div>
-<span class="font-mono text-purple-400"><?php echo nmc_price($item['price']); ?></span>
+<span class="font-mono text-purple-400 flex-shrink-0"><?php echo nmc_price($item['price']); ?></span>
 </div>
 <?php endforeach; ?>
 </div>
 </section>
 <?php endforeach; ?>
+<footer class="mt-16 pt-8 border-t border-white/10 text-center text-slate-500 text-sm">
+<?php if (!empty($restaurant['footer_content'])): ?><p class="mb-4"><?php echo nl2br(htmlspecialchars($restaurant['footer_content'])); ?></p><?php endif; ?>
+<?php if (!empty($restaurant['address'])): ?><p><?php echo htmlspecialchars($restaurant['address']); ?></p><?php endif; ?>
+</footer>
 </main>
 </div>
 </body></html>

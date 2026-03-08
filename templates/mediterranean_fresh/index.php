@@ -28,6 +28,7 @@ if (!empty($categories) && is_array($categories)) {
 <body class="tile-pattern text-slate-800 min-h-screen">
 <header class="w-full py-12 px-6 text-center bg-white/80 backdrop-blur-sm border-b-4 border-medBlue">
 <div class="max-w-4xl mx-auto">
+<?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?><div class="mb-4"><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="h-20 w-auto object-contain mx-auto"/></div><?php endif; ?>
 <span class="text-lemonYellow text-4xl">☀</span>
 <h1 class="text-5xl md:text-6xl text-medBlue font-bold mb-2"><?php echo htmlspecialchars($restaurant['name']); ?></h1>
 <p class="italic text-lg text-slate-500 font-serif"><?php echo htmlspecialchars($restaurant['description'] ?? 'A Taste of the Sun-Drenched Coast'); ?></p>
@@ -46,6 +47,7 @@ if (!empty($categories) && is_array($categories)) {
 <div class="space-y-8">
 <?php foreach ($items as $item): ?>
 <div class="group">
+<?php if (!empty($item['image'])): ?><img src="<?php echo $uploadBaseUrl . '/menu-items/' . htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="w-full max-h-36 object-cover rounded border border-lemonYellow/30 mb-2"/><?php endif; ?>
 <div class="flex justify-between items-baseline mb-1">
 <h3 class="text-xl font-bold text-medBlue group-hover:text-lemonYellow transition-colors"><?php echo htmlspecialchars($item['name']); ?></h3>
 <span class="font-bold text-medBlue"><?php echo mf_price($item['price']); ?></span>

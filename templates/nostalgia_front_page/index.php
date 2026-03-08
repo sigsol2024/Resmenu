@@ -69,9 +69,12 @@ foreach ($activeCategories as $catIndex => $category):
 <h2 class="text-2xl font-serif text-brandGold uppercase tracking-widest mb-6"><?php echo htmlspecialchars($category['name']); ?></h2>
 <div class="space-y-4">
 <?php foreach ($items as $item): ?>
-<div class="flex justify-between items-baseline border-b border-gray-700 pb-3">
+<div class="flex gap-4 items-start border-b border-gray-700 pb-3">
+<?php if (!empty($item['image'])): ?><img src="<?php echo $uploadBaseUrl . '/menu-items/' . htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="w-16 h-16 flex-shrink-0 object-cover rounded"/><?php endif; ?>
+<div class="flex-1 min-w-0 flex justify-between items-baseline">
 <div><h3 class="text-lg font-semibold"><?php echo htmlspecialchars($item['name']); ?></h3><p class="text-sm text-gray-400"><?php echo htmlspecialchars($item['description'] ?? ''); ?></p></div>
 <span class="text-brandGold font-serif"><?php echo nfp_price($item['price']); ?></span>
+</div>
 </div>
 <?php endforeach; ?>
 </div>
@@ -79,5 +82,5 @@ foreach ($activeCategories as $catIndex => $category):
 <?php endforeach; ?>
 </div>
 </main>
-<footer class="py-8 text-center text-gray-500 text-sm"><?php echo htmlspecialchars($restaurant['address'] ?? ''); ?></footer>
+<footer class="py-8 text-center text-gray-500 text-sm"><?php echo htmlspecialchars($restaurant['footer_content'] ?? $restaurant['address'] ?? ''); ?></footer>
 </body></html>

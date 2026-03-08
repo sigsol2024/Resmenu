@@ -25,7 +25,10 @@ if (!empty($categories) && is_array($categories)) {
 <body class="antialiased">
 <header class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-sm border-b border-gray-100">
 <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-<div class="flex-shrink-0"><h1 class="text-2xl font-bold tracking-[0.3em] uppercase"><?php echo htmlspecialchars(mb_substr($restaurant['name'], 0, 20)); ?></h1></div>
+<div class="flex-shrink-0 flex items-center gap-3">
+<?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="h-10 w-auto object-contain"/><?php endif; ?>
+<h1 class="text-2xl font-bold tracking-[0.3em] uppercase"><?php echo htmlspecialchars(mb_substr($restaurant['name'], 0, 20)); ?></h1>
+</div>
 <nav class="flex overflow-x-auto hide-scrollbar space-x-8 text-sm uppercase tracking-widest font-medium">
 <?php foreach ($activeCategories as $i => $cat): $s = isset($cat['slug']) ? $cat['slug'] : ('section-'.$i); ?>
 <a class="hover:text-[#bc002d] transition-colors whitespace-nowrap py-2 border-b-2 border-transparent hover:border-[#bc002d]" href="#<?php echo htmlspecialchars($s); ?>"><?php echo htmlspecialchars($cat['name']); ?></a>
@@ -54,12 +57,13 @@ if (!empty($categories) && is_array($categories)) {
 <section class="menu-section py-24 max-w-7xl mx-auto px-6" id="<?php echo htmlspecialchars($slug); ?>">
 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-20 gap-y-12">
 <?php foreach ($items as $item): ?>
-<div class="flex justify-between border-b border-gray-100 pb-4">
-<div>
+<div class="flex gap-4 justify-between border-b border-gray-100 pb-4 items-start">
+<?php if (!empty($item['image'])): ?><img src="<?php echo $uploadBaseUrl . '/menu-items/' . htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="w-20 h-20 flex-shrink-0 object-cover rounded"/><?php endif; ?>
+<div class="flex-1 min-w-0">
 <h4 class="text-lg uppercase tracking-wider mb-1"><?php echo htmlspecialchars($item['name']); ?></h4>
 <p class="text-sm text-gray-400 italic"><?php echo htmlspecialchars($item['description'] ?? ''); ?></p>
 </div>
-<span class="font-medium"><?php echo taf_price($item['price']); ?></span>
+<span class="font-medium flex-shrink-0"><?php echo taf_price($item['price']); ?></span>
 </div>
 <?php endforeach; ?>
 </div>
@@ -70,6 +74,7 @@ if (!empty($categories) && is_array($categories)) {
 <footer class="bg-white py-20 border-t border-gray-100">
 <div class="max-w-7xl mx-auto px-6 flex flex-col items-center text-center">
 <h2 class="text-2xl font-bold tracking-[0.5em] uppercase mb-8"><?php echo htmlspecialchars($restaurant['name']); ?></h2>
+<?php if (!empty($restaurant['footer_content'])): ?><p class="text-sm text-gray-500 max-w-sm mb-4"><?php echo nl2br(htmlspecialchars($restaurant['footer_content'])); ?></p><?php endif; ?>
 <p class="text-sm text-gray-400 max-w-sm mb-12"><?php echo nl2br(htmlspecialchars($restaurant['address'] ?? '123 Minimalist Way')); ?><br/><?php echo htmlspecialchars($restaurant['opening_hours'] ?? 'Mon – Sun'); ?></p>
 <div class="flex space-x-12 text-xs uppercase tracking-widest border-t border-gray-100 pt-12 w-full justify-center">
 <?php if (!empty($restaurant['instagram_url'])): ?><a class="hover:text-[#bc002d]" href="<?php echo htmlspecialchars($restaurant['instagram_url']); ?>">Instagram</a><?php endif; ?>

@@ -30,6 +30,7 @@ if (!empty($categories) && is_array($categories)) {
 <body class="min-h-screen p-4 md:p-12 lg:p-24">
 <main class="max-w-6xl mx-auto bg-white shadow-sm border border-stone-100 p-8 md:p-16" data-purpose="menu-wrapper">
 <header class="text-center mb-20" data-purpose="main-header">
+<?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?><div class="mb-6"><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="h-24 w-auto object-contain mx-auto"/></div><?php endif; ?>
 <h1 class="text-5xl md:text-7xl font-light mb-4 tracking-tight"><?php echo htmlspecialchars($restaurant['name']); ?></h1>
 <p class="uppercase tracking-[0.2em] text-sm text-stone-500 font-medium"><?php echo htmlspecialchars($restaurant['description'] ?? 'Elevated Brunch &amp; Artisan Coffee'); ?></p>
 <div class="divider max-w-xs mx-auto mt-8 bg-stone-200"></div>
@@ -48,10 +49,10 @@ if (!empty($categories) && is_array($categories)) {
 </div>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
 <?php foreach ($items as $item): 
-    $imgSrc = !empty($item['image']) ? $uploadBaseUrl . '/menu/' . htmlspecialchars($item['image']) : 'https://lh3.googleusercontent.com/aida-public/AB6AXuBb2sw5hzdtwBywtdfrYpfXiAaDVvQaSzO7eDvxKigKSadnu7qrhJQPfgB4Ex_tMlvCnhDk3-zyMtoduQtC7is9wieoR-DXsrpCqPyYzOrsaGH7qH6LYsWt8C6cDuChY-jjvjfhnOapidzU9EPyvZ-8aANRCzEPYC5bynnXYARs5fqU_Rx7C4AVLHzS1vzJ1jBDgwElbe5jmokFeCVSSrFUWA4hNf2M0auGF8ft7VkYp_UbPlVQb8rpkppwopzLS1CCaeZ7gaiRX1FE';
+    $imgSrc = !empty($item['image']) ? $uploadBaseUrl . '/menu-items/' . htmlspecialchars($item['image']) : '';
 ?>
 <div class="flex gap-6 items-center" data-purpose="menu-item">
-<img alt="<?php echo htmlspecialchars($item['name']); ?>" class="circular-image w-24 h-24 flex-shrink-0" src="<?php echo $imgSrc; ?>"/>
+<?php if ($imgSrc): ?><img alt="<?php echo htmlspecialchars($item['name']); ?>" class="circular-image w-24 h-24 flex-shrink-0 object-cover" src="<?php echo $imgSrc; ?>"/><?php endif; ?>
 <div>
 <div class="flex justify-between items-baseline mb-1">
 <h3 class="text-xl font-semibold"><?php echo htmlspecialchars($item['name']); ?></h3>
@@ -65,6 +66,8 @@ if (!empty($categories) && is_array($categories)) {
 </section>
 <?php endforeach; ?>
 <footer class="mt-24 pt-12 border-t border-stone-100 text-center" data-purpose="menu-footer">
+<?php if (!empty($restaurant['footer_content'])): ?><p class="text-stone-600 text-sm mb-4"><?php echo nl2br(htmlspecialchars($restaurant['footer_content'])); ?></p><?php endif; ?>
+<?php if (!empty($restaurant['address'])): ?><p class="text-stone-500 text-sm mb-4"><?php echo htmlspecialchars($restaurant['address']); ?></p><?php endif; ?>
 <p class="text-stone-400 text-xs tracking-widest uppercase mb-4">Please inform your server of any allergies.</p>
 <div class="flex justify-center space-x-6 text-stone-300">
 <?php if (!empty($restaurant['instagram_url'])): ?><a href="<?php echo htmlspecialchars($restaurant['instagram_url']); ?>" class="hover:text-stone-500">Instagram</a><span>•</span><?php endif; ?>

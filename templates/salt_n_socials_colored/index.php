@@ -29,6 +29,7 @@ if (!empty($categories) && is_array($categories)) {
 <body class="min-h-screen p-6 md:p-12 text-gray-800">
 <main class="max-w-4xl mx-auto bg-white/90 backdrop-blur shadow-xl p-8 md:p-16 rounded-lg border border-gold/30">
 <header class="text-center mb-16">
+<?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?><div class="mb-4"><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="h-20 w-auto object-contain mx-auto"/></div><?php endif; ?>
 <h1 class="text-4xl md:text-6xl font-raleway font-semibold text-accent mb-2"><?php echo htmlspecialchars($restaurant['name']); ?></h1>
 <p class="text-sm uppercase tracking-widest text-gold"><?php echo htmlspecialchars($restaurant['description'] ?? 'Menu'); ?></p>
 </header>
@@ -41,6 +42,7 @@ if (!empty($categories) && is_array($categories)) {
 <h2 class="text-2xl font-raleway border-b-4 border-accent pb-2 mb-6 inline-block"><?php echo htmlspecialchars($category['name']); ?></h2>
 <div class="space-y-2">
 <?php foreach ($items as $item): ?>
+<?php if (!empty($item['image'])): ?><div class="mb-2"><img src="<?php echo $uploadBaseUrl . '/menu-items/' . htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="max-h-24 w-auto object-cover rounded"/></div><?php endif; ?>
 <div class="item-row">
 <span class="font-bold"><?php echo htmlspecialchars($item['name']); ?></span>
 <span class="item-dots"></span>
@@ -51,6 +53,6 @@ if (!empty($categories) && is_array($categories)) {
 </div>
 </section>
 <?php endforeach; ?>
-<footer class="mt-16 pt-8 border-t border-gray-200 text-center text-sm text-gray-500"><?php echo htmlspecialchars($restaurant['footer_content'] ?? ''); ?></footer>
+<footer class="mt-16 pt-8 border-t border-gray-200 text-center text-sm text-gray-500"><?php echo htmlspecialchars($restaurant['footer_content'] ?? $restaurant['address'] ?? ''); ?></footer>
 </main>
 </body></html>

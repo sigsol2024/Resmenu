@@ -29,6 +29,7 @@ if (!empty($categories) && is_array($categories)) {
 <body class="min-h-screen p-6 md:p-12">
 <main class="max-w-4xl mx-auto bg-white shadow-lg p-8 md:p-16">
 <header class="text-center mb-16">
+<?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?><div class="mb-4"><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="h-20 w-auto object-contain mx-auto"/></div><?php endif; ?>
 <h1 class="text-4xl md:text-6xl font-raleway font-light text-menu-text mb-2"><?php echo htmlspecialchars($restaurant['name']); ?></h1>
 <p class="text-sm uppercase tracking-widest text-gray-500"><?php echo htmlspecialchars($restaurant['description'] ?? 'Food &amp; Drinks'); ?></p>
 </header>
@@ -41,6 +42,7 @@ if (!empty($categories) && is_array($categories)) {
 <h2 class="section-header text-2xl text-menu-text"><?php echo htmlspecialchars($category['name']); ?></h2>
 <div class="space-y-4">
 <?php foreach ($items as $item): ?>
+<?php if (!empty($item['image'])): ?><div class="mb-2"><img src="<?php echo $uploadBaseUrl . '/menu-items/' . htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="max-h-24 w-auto object-cover rounded"/></div><?php endif; ?>
 <div class="menu-item-row">
 <span class="item-name"><?php echo htmlspecialchars($item['name']); ?></span>
 <span class="item-dots"></span>

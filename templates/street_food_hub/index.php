@@ -29,6 +29,7 @@ $masonryClasses = ['masonry-item-sm', 'masonry-item-md', 'masonry-item-lg'];
 </head>
 <body class="bg-brandYellow text-brandBlack font-sans antialiased p-4 md:p-8">
 <header class="max-w-7xl mx-auto mb-12 text-center" data-purpose="page-header">
+<?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?><div class="mb-4"><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="h-20 w-auto object-contain mx-auto"/></div><?php endif; ?>
 <div class="inline-block bg-brandBlack text-white p-6 comic-border shadow-brutal -rotate-2 mb-6">
 <h1 class="font-chunky text-5xl md:text-7xl uppercase tracking-tighter"><?php echo htmlspecialchars($restaurant['name']); ?></h1>
 </div>
@@ -47,7 +48,7 @@ $masonryClasses = ['masonry-item-sm', 'masonry-item-md', 'masonry-item-lg'];
     if (empty($items)) continue;
     foreach ($items as $itemIndex => $item): 
         $masonry = $masonryClasses[$itemIndex % 3];
-        $imgUrl = !empty($item['image']) ? $uploadBaseUrl . '/menu/' . htmlspecialchars($item['image']) : '';
+        $imgUrl = !empty($item['image']) ? $uploadBaseUrl . '/menu-items/' . htmlspecialchars($item['image']) : '';
 ?>
 <article class="<?php echo $masonry; ?> bg-white comic-border p-6 shadow-brutal flex flex-col relative overflow-hidden group" data-purpose="menu-item" id="<?php echo $itemIndex === 0 ? $slug : ''; ?>">
 <div class="absolute -top-2 -right-2 bg-brandBlack text-white px-4 py-2 font-chunky text-xl comic-border z-10 <?php echo $itemIndex === 0 ? 'animate-wiggle' : ''; ?>"><?php echo sfh_price($item['price']); ?></div>
@@ -62,6 +63,7 @@ $masonryClasses = ['masonry-item-sm', 'masonry-item-md', 'masonry-item-lg'];
 <footer class="max-w-7xl mx-auto mt-20 mb-10 text-center" data-purpose="footer">
 <div class="bg-brandBlack text-white p-8 comic-border shadow-brutal">
 <h2 class="font-chunky text-3xl mb-4"><?php echo htmlspecialchars($restaurant['name']); ?></h2>
+<?php if (!empty($restaurant['footer_content'])): ?><p class="font-bold mb-4"><?php echo nl2br(htmlspecialchars($restaurant['footer_content'])); ?></p><?php endif; ?>
 <p class="font-bold mb-6"><?php echo htmlspecialchars($restaurant['address'] ?? 'Find us'); ?></p>
 <div class="flex justify-center gap-6">
 <?php if (!empty($restaurant['instagram_url'])): ?><a class="comic-border p-2 bg-brandYellow text-brandBlack font-black cursor-pointer hover:bg-white transition-colors" href="<?php echo htmlspecialchars($restaurant['instagram_url']); ?>">INSTA</a><?php endif; ?>

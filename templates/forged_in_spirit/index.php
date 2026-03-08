@@ -28,6 +28,7 @@ if (!empty($categories) && is_array($categories)) {
 <body class="min-h-screen p-6 md:p-12">
 <main class="max-w-4xl mx-auto">
 <header class="text-center mb-16 deco-border">
+<?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?><div class="mb-4"><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="h-20 w-auto object-contain mx-auto"/></div><?php endif; ?>
 <h1 class="text-4xl md:text-6xl font-art-deco text-amber-glow mb-2"><?php echo htmlspecialchars($restaurant['name']); ?></h1>
 <p class="uppercase tracking-widest text-sm text-copper-light"><?php echo htmlspecialchars($restaurant['description'] ?? 'Industrial Cocktail Bar &amp; Lounge'); ?></p>
 </header>
@@ -41,12 +42,13 @@ if (!empty($categories) && is_array($categories)) {
 <h2 class="text-2xl font-art-deco text-copper-light uppercase tracking-widest mb-8"><?php echo htmlspecialchars($category['name']); ?></h2>
 <div class="space-y-6">
 <?php foreach ($items as $item): ?>
-<div class="flex justify-between items-baseline border-b border-copper/30 pb-4">
-<div>
+<div class="flex gap-4 items-start border-b border-copper/30 pb-4">
+<?php if (!empty($item['image'])): ?><img src="<?php echo $uploadBaseUrl . '/menu-items/' . htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="w-20 h-20 flex-shrink-0 object-cover rounded"/><?php endif; ?>
+<div class="flex-1 min-w-0">
 <h3 class="text-xl font-semibold text-white"><?php echo htmlspecialchars($item['name']); ?></h3>
 <p class="text-sm text-gray-400 italic"><?php echo htmlspecialchars($item['description'] ?? ''); ?></p>
 </div>
-<span class="text-amber-glow font-art-deco"><?php echo fis_price($item['price']); ?></span>
+<span class="text-amber-glow font-art-deco flex-shrink-0"><?php echo fis_price($item['price']); ?></span>
 </div>
 <?php endforeach; ?>
 </div>

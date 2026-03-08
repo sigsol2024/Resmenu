@@ -29,10 +29,10 @@ if (!empty($categories) && is_array($categories)) {
 <body class="paper-texture text-earth font-sans min-h-screen p-4 md:p-12">
 <div class="max-w-5xl mx-auto border-[12px] border-sage/20 p-6 md:p-16 relative overflow-hidden bg-white/40 shadow-xl">
 <header class="text-center mb-16 relative z-10">
-<h1 class="font-serif italic text-sage text-2xl tracking-widest uppercase mb-2"><?php echo htmlspecialchars($restaurant['description'] ?? 'Sustainable &amp; Sourced'); ?></h1>
-<h2 class="font-serif text-5xl md:text-7xl font-bold text-earth mb-4"><?php echo htmlspecialchars($restaurant['name']); ?></h2>
+<?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?><div class="mb-4"><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="h-20 w-auto object-contain mx-auto"/></div><?php endif; ?>
+<h1 class="font-serif text-5xl md:text-7xl font-bold text-earth mb-2"><?php echo htmlspecialchars($restaurant['name']); ?></h1>
+<p class="font-serif italic text-sage text-xl tracking-widest uppercase mb-4"><?php echo htmlspecialchars($restaurant['description'] ?? 'Sustainable &amp; Sourced'); ?></p>
 <div class="hand-drawn-line w-1/3 mx-auto"></div>
-<p class="max-w-md mx-auto italic text-earth/70 font-serif"><?php echo htmlspecialchars($restaurant['footer_content'] ?? 'A seasonal menu crafted from our local organic partners.'); ?></p>
 </header>
 <?php foreach ($activeCategories as $catIndex => $category): 
     $slug = isset($category['slug']) ? $category['slug'] : ('section-'.$catIndex);
@@ -44,6 +44,7 @@ if (!empty($categories) && is_array($categories)) {
 <div class="space-y-8">
 <?php foreach ($items as $item): ?>
 <div>
+<?php if (!empty($item['image'])): ?><img src="<?php echo $uploadBaseUrl . '/menu-items/' . htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="w-full max-h-36 object-cover rounded border border-terracotta/30 mb-2"/><?php endif; ?>
 <div class="flex justify-between items-baseline mb-1">
 <h3 class="text-xl font-semibold text-earth menu-item-title"><?php echo htmlspecialchars($item['name']); ?></h3>
 <span class="price-tag font-serif"><?php echo ek_price($item['price']); ?></span>
@@ -54,6 +55,6 @@ if (!empty($categories) && is_array($categories)) {
 </div>
 </section>
 <?php endforeach; ?>
-<footer class="mt-16 pt-8 border-t border-sage/30 text-center text-earth/60 text-sm"><?php echo htmlspecialchars($restaurant['address'] ?? ''); ?></footer>
+<footer class="mt-16 pt-8 border-t border-sage/30 text-center text-earth/60 text-sm"><?php if (!empty($restaurant['footer_content'])): ?><p class="mb-4"><?php echo nl2br(htmlspecialchars($restaurant['footer_content'])); ?></p><?php endif; ?><?php echo htmlspecialchars($restaurant['address'] ?? ''); ?></footer>
 </div>
 </body></html>
