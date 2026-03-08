@@ -76,7 +76,7 @@ body {
   object-fit: contain;
 }
 
-/* Menu Toggle Button (shown when > 5 categories or on mobile) */
+/* Menu Toggle Button - always visible (desktop, tablet, mobile) */
 .mobile-menu-toggle {
   display: flex;
   flex-direction: column;
@@ -191,7 +191,7 @@ body {
   transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
-.category-sidebar.active ~ .sidebar-overlay {
+.sidebar-overlay.active {
   opacity: 1;
   visibility: visible;
 }
@@ -267,6 +267,17 @@ body {
 .sidebar-nav-link:hover {
   background: var(--light-cream);
   border-color: var(--border);
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.sidebar-footer .btn {
+  width: 100%;
+  text-align: center;
 }
 
 /* Hero Section - Clean white background */
@@ -384,19 +395,19 @@ body {
   margin-top: 12px;
 }
 
-/* Menu Sections - Alternating layout */
+/* Menu Sections - Alternating layout (reduced spacing between categories) */
 .menu-section {
-  padding: 0 0 80px; /* Remove top padding - spacing handled by margin */
+  padding: 0 0 40px;
   position: relative;
   background: transparent;
   overflow: visible;
   z-index: 2;
-  margin-top: 160px; /* Spacing between sections */
+  margin-top: 56px;
   margin-bottom: 0;
 }
 
 .menu-section:first-of-type {
-  margin-top: 60px; /* Less spacing for first section after hero */
+  margin-top: 40px;
 }
 
 /* Animation Keyframes */
@@ -968,7 +979,7 @@ body {
   }
   
   .menu-section {
-    padding: 80px 0 60px;
+    padding: 40px 0 36px;
   }
   
   
@@ -1111,7 +1122,7 @@ body {
   }
   
   .menu-section {
-    padding: 60px 0 40px;
+    padding: 32px 0 28px;
   }
   
 }

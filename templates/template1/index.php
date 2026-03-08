@@ -4,33 +4,7 @@
  * Modern restaurant menu template with alternating layout sections
  */
 
-// Note: $restaurant, $categories, $customization, and $headerMenuItems are already provided by the template loader
-
-// Parse header menu items
-$navLinks = [];
-if (!empty($headerMenuItems)) {
-    if (is_string($headerMenuItems)) {
-        $decoded = json_decode($headerMenuItems, true);
-        if (is_array($decoded)) {
-            $navLinks = $decoded;
-        }
-    } elseif (is_array($headerMenuItems)) {
-        $navLinks = $headerMenuItems;
-    }
-}
-
-// Count active categories with menu items
-$activeCategoryCount = 0;
-if (!empty($categories) && is_array($categories)) {
-    foreach ($categories as $category) {
-        if (!empty($category['menu_items']) && is_array($category['menu_items']) && $category['is_active']) {
-            $activeCategoryCount++;
-        }
-    }
-}
-
-// Use toggle menu if more than 5 categories
-$useToggleMenu = $activeCategoryCount > 5;
+// Note: $restaurant, $categories, $customization from template loader. Navigation uses sidebar + toggle on all devices (categories only).
 
 // Get the correct base URL dynamically
 $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
@@ -51,7 +25,7 @@ $uploadBaseUrl = $baseUrl . '/uploads';
 
 <body>
 
-<!-- Header -->
+<!-- Header: logo + sidebar toggle (no header nav; categories in sidebar) -->
 <header class="header">
   <div class="container">
     <nav class="nav">
@@ -64,35 +38,16 @@ $uploadBaseUrl = $baseUrl . '/uploads';
           <?php echo htmlspecialchars($restaurant['name']); ?>
         <?php endif; ?>
       </div>
-      <?php if ($useToggleMenu): ?>
-        <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle menu">
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-      <?php else: ?>
-        <div class="nav-links" id="navLinks">
-          <?php 
-          // Show active categories as navigation links
-          if (!empty($categories) && is_array($categories)):
-            foreach ($categories as $category): 
-              if (!empty($category['menu_items']) && is_array($category['menu_items']) && $category['is_active']):
-          ?>
-            <a href="#<?php echo htmlspecialchars($category['slug']); ?>-section" class="category-nav-link"><?php echo htmlspecialchars($category['name']); ?></a>
-          <?php 
-              endif;
-            endforeach;
-          endif;
-          ?>
-          <button class="btn btn-primary" onclick="scrollToFirstMenu()">View Menu</button>
-        </div>
-      <?php endif; ?>
+      <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
     </nav>
   </div>
 </header>
 
-<!-- Sidebar for category menu (when toggle is used) -->
-<?php if ($useToggleMenu): ?>
+<!-- Sidebar: category menu (desktop, tablet, mobile) -->
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 <div class="category-sidebar" id="categorySidebar">
   <div class="sidebar-content">
@@ -107,7 +62,7 @@ $uploadBaseUrl = $baseUrl . '/uploads';
       <?php 
       if (!empty($categories) && is_array($categories)):
         foreach ($categories as $category): 
-          if (!empty($category['menu_items']) && is_array($category['menu_items']) && $category['is_active']):
+          if (!empty($category['menu_items']) && is_array($category['menu_items']) && !empty($category['is_active'])):
       ?>
         <a href="#<?php echo htmlspecialchars($category['slug']); ?>-section" class="sidebar-nav-link"><?php echo htmlspecialchars($category['name']); ?></a>
       <?php 
@@ -116,99 +71,70 @@ $uploadBaseUrl = $baseUrl . '/uploads';
       endif;
       ?>
     </nav>
+    <div class="sidebar-footer">
+      <button class="btn btn-primary" onclick="scrollToFirstMenu(); document.getElementById('sidebarClose').click();">View Menu</button>
+    </div>
   </div>
 </div>
-<?php endif; ?>
 
 <script>
-// Menu toggle and sidebar functionality
+// Sidebar + toggle on all devices (desktop, tablet, mobile)
 document.addEventListener('DOMContentLoaded', function() {
   const mobileMenuToggle = document.getElementById('mobileMenuToggle');
-  const navLinks = document.getElementById('navLinks');
   const categorySidebar = document.getElementById('categorySidebar');
   const sidebarOverlay = document.getElementById('sidebarOverlay');
   const sidebarClose = document.getElementById('sidebarClose');
   
-  // Handle toggle menu (for > 5 categories)
-  if (mobileMenuToggle && categorySidebar) {
-    function openSidebar() {
+  function openSidebar() {
+    if (categorySidebar) {
       categorySidebar.classList.add('active');
-      if (sidebarOverlay) {
-        sidebarOverlay.classList.add('active');
-      }
+      if (sidebarOverlay) sidebarOverlay.classList.add('active');
       document.body.style.overflow = 'hidden';
     }
-    
-    function closeSidebar() {
+  }
+  
+  function closeSidebar() {
+    if (categorySidebar) {
       categorySidebar.classList.remove('active');
-      if (sidebarOverlay) {
-        sidebarOverlay.classList.remove('active');
-      }
+      if (sidebarOverlay) sidebarOverlay.classList.remove('active');
       document.body.style.overflow = '';
     }
-    
-    mobileMenuToggle.addEventListener('click', function() {
-      openSidebar();
-    });
-    
-    if (sidebarOverlay) {
-      sidebarOverlay.addEventListener('click', closeSidebar);
+  }
+  
+  if (mobileMenuToggle) {
+    mobileMenuToggle.addEventListener('click', openSidebar);
+  }
+  if (sidebarOverlay) {
+    sidebarOverlay.addEventListener('click', closeSidebar);
+  }
+  if (sidebarClose) {
+    sidebarClose.addEventListener('click', closeSidebar);
+  }
+  
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && categorySidebar && categorySidebar.classList.contains('active')) {
+      closeSidebar();
     }
-    
-    if (sidebarClose) {
-      sidebarClose.addEventListener('click', closeSidebar);
-    }
-    
-    // Close sidebar on Escape key
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape' && categorySidebar.classList.contains('active')) {
-        closeSidebar();
-      }
-    });
-    
-    // Close sidebar when clicking on a category link
-    const sidebarLinks = categorySidebar.querySelectorAll('.sidebar-nav-link');
-    sidebarLinks.forEach(function(link) {
+  });
+  
+  if (categorySidebar) {
+    categorySidebar.querySelectorAll('.sidebar-nav-link').forEach(function(link) {
       link.addEventListener('click', function(e) {
         e.preventDefault();
-        const targetId = this.getAttribute('href');
+        var targetId = this.getAttribute('href');
         closeSidebar();
-        // Scroll to section
         setTimeout(function() {
-          const targetSection = document.querySelector(targetId);
-          if (targetSection) {
-            targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }
-        }, 300); // Wait for sidebar to close
+          var targetSection = document.querySelector(targetId);
+          if (targetSection) targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 300);
       });
     });
   }
   
-  // Handle inline nav links (for <= 5 categories)
-  if (navLinks) {
-    const navLinksItems = navLinks.querySelectorAll('a.category-nav-link');
-    navLinksItems.forEach(function(link) {
-      link.addEventListener('click', function(e) {
-        e.preventDefault();
-        const targetId = this.getAttribute('href');
-        // Scroll to section
-        const targetSection = document.querySelector(targetId);
-        if (targetSection) {
-          targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      });
-    });
-  }
-  
-  // Function to scroll to first menu section
   function scrollToFirstMenu() {
-    const firstSection = document.querySelector('.menu-section');
-    if (firstSection) {
-      firstSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    var firstSection = document.querySelector('.menu-section');
+    if (firstSection) firstSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
-  
-  // Make scrollToFirstMenu available globally
   window.scrollToFirstMenu = scrollToFirstMenu;
   
   // Adjust container height to accommodate card content (desktop only)
