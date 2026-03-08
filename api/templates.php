@@ -23,7 +23,7 @@ try {
     }
 
     // Only list non-private templates for public marketing page (resmenu.net)
-    $stmt = $pdo->query("SELECT id, name, description, preview_image, listing_image FROM templates WHERE is_active = 1 AND COALESCE(is_private, 0) = 0 ORDER BY id DESC LIMIT 10");
+    $stmt = $pdo->query("SELECT id, name, description, preview_image, listing_image FROM templates WHERE is_active = 1 AND COALESCE(is_private, 0) = 0 ORDER BY id DESC LIMIT 20");
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $list = [];
