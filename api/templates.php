@@ -22,8 +22,13 @@ try {
         exit;
     }
 
-    // Only list non-private templates for public marketing page (resmenu.net)
-    $stmt = $pdo->query("SELECT id, name, description, preview_image, listing_image FROM templates WHERE is_active = 1 AND COALESCE(is_private, 0) = 0 ORDER BY id DESC LIMIT 20");
+    // Only list non-private templates for public marketing page (resmenu.net). Default 20, max 100.
+    $limit = 20;
+    if (isset($_GET['limit']) && is_numeric($_GET['limit'])) {
+        $limit = min(100, max(1, (int) $_GET['limit']));
+    }
+    $stmt = $pdo->prepare("SELECT id, name, description, preview_image, listing_image FROM templates WHERE is_active = 1 AND COALESCE(is_private, 0) = 0 ORDER BY id DESC LIMIT ?");
+    $stmt->execute([$limit]);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $list = [];
