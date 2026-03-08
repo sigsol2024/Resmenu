@@ -23,8 +23,19 @@ if (!$event || !isset($event['event'])) {
 }
 
 $metadata = $event['data']['metadata'] ?? [];
+$dataRef = $event['data']['reference'] ?? '';
+$reference = $dataRef ?: ($metadata['reference'] ?? '');
 $restaurantId = (int)($metadata['restaurant_id'] ?? 0);
-$reference = $metadata['reference'] ?? '';
+
+// Resolve restaurant_id from pending payment if not in metadata
+if (!$restaurantId && $reference && $pdo = getDBConnection()) {
+    $stmt = $pdo->prepare("SELECT restaurant_id FROM pending_online_payments WHERE reference = ? AND gateway = 'paystack'");
+    $stmt->execute([$reference]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($row) {
+        $restaurantId = (int)$row['restaurant_id'];
+    }
+}
 
 $valid = false;
 if ($restaurantId) {

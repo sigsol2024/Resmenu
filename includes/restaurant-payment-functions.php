@@ -170,6 +170,11 @@ function initializeRestaurantPaystackPayment($restaurantId, $data) {
     }
 
     $baseUrl = defined('SITE_URL') ? rtrim(SITE_URL, '/') : '';
+    if ($baseUrl === '') {
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        $baseUrl = $protocol . $host;
+    }
     $meta = $data['metadata'] ?? [];
     $ref = $meta['reference'] ?? ('POP_' . time() . '_' . bin2hex(random_bytes(8)));
     $callbackUrl = $baseUrl . '/order-payment-callback.php?gateway=paystack&slug=' . urlencode($meta['slug'] ?? '');
@@ -227,6 +232,11 @@ function initializeRestaurantFlutterwavePayment($restaurantId, $data) {
     }
 
     $baseUrl = defined('SITE_URL') ? rtrim(SITE_URL, '/') : '';
+    if ($baseUrl === '') {
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        $baseUrl = $protocol . $host;
+    }
     $meta = $data['metadata'] ?? [];
     $reference = $meta['reference'] ?? ('POP_' . time() . '_' . bin2hex(random_bytes(8)));
     $redirectUrl = $baseUrl . '/order-payment-callback.php?gateway=flutterwave&slug=' . urlencode($meta['slug'] ?? '');

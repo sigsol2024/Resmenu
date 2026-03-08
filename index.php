@@ -69,6 +69,30 @@ $showcaseRestaurantLogos = [
     'https://our-menu.online/uploads/logos/69a76f2ad31b1.png',
 ];
 
+// If Paystack/Flutterwave redirected to root (e.g. dashboard callback URL set to domain), forward to correct callback
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    $ref = trim((string)($_GET['reference'] ?? $_GET['trxref'] ?? $_GET['tx_ref'] ?? ''));
+    if ($ref !== '') {
+        $pdo = getDBConnection();
+        if ($pdo) {
+            $stmt = $pdo->prepare("SELECT restaurant_id, gateway FROM pending_online_payments WHERE reference = ? AND gateway IN ('paystack','flutterwave') LIMIT 1");
+            $stmt->execute([$ref]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($row) {
+                $stmt2 = $pdo->prepare("SELECT slug FROM restaurants WHERE id = ? LIMIT 1");
+                $stmt2->execute([(int)$row['restaurant_id']]);
+                $r2 = $stmt2->fetch(PDO::FETCH_ASSOC);
+                $slug = $r2 ? (string)$r2['slug'] : '';
+                $gateway = (string)($row['gateway'] ?? 'paystack');
+                header('Location: /order-payment-callback.php?gateway=' . urlencode($gateway) . '&reference=' . urlencode($ref) . ($slug !== '' ? '&slug=' . urlencode($slug) : ''));
+                exit;
+            }
+        }
+        header('Location: /manager/payment-callback.php?gateway=paystack&reference=' . urlencode($ref));
+        exit;
+    }
+}
+
 // If already logged in, redirect to dashboard
 if (isLoggedIn()) {
     if (isSuperAdmin()) {

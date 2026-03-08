@@ -128,11 +128,21 @@ if (!$paymentId) {
     exit;
 }
 
+// Build full callback URL so Paystack/Flutterwave always redirect back here (not dashboard default)
+$baseUrl = defined('SITE_URL') ? rtrim(SITE_URL, '/') : '';
+if ($baseUrl === '') {
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $baseUrl = $protocol . $host;
+}
+$callbackUrl = $baseUrl . '/manager/payment-callback.php?gateway=' . urlencode($gateway);
+
 // Prepare payment data
 $paymentData = [
     'amount' => $amount,
     'email' => $manager['email'],
     'name' => $restaurant['name'],
+    'callback_url' => $callbackUrl,
     'metadata' => [
         'payment_id' => $paymentId,
         'subscription_id' => $subscriptionId,

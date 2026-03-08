@@ -12,6 +12,11 @@ require_once __DIR__ . '/config/config.php';
 
 $gateway = trim($_GET['gateway'] ?? '');
 $baseUrl = defined('SITE_URL') ? rtrim(SITE_URL, '/') : '';
+if ($baseUrl === '') {
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $baseUrl = $protocol . $host;
+}
 $slug = trim($_GET['slug'] ?? '');
 
 if (!in_array($gateway, ['paystack', 'flutterwave'])) {
@@ -20,7 +25,7 @@ if (!in_array($gateway, ['paystack', 'flutterwave'])) {
 }
 
 if ($gateway === 'paystack') {
-    $reference = trim($_GET['reference'] ?? '');
+    $reference = trim($_GET['reference'] ?? $_GET['trxref'] ?? '');
 
     if (empty($reference)) {
         header('Location: ' . $baseUrl . '/payment-failed.php?slug=' . urlencode($slug) . '&reason=cancelled');
@@ -42,6 +47,12 @@ if ($gateway === 'paystack') {
     }
 
     $restaurantId = (int)$row['restaurant_id'];
+    if ($slug === '') {
+        $stmtSlug = $pdo->prepare("SELECT slug FROM restaurants WHERE id = ? LIMIT 1");
+        $stmtSlug->execute([$restaurantId]);
+        $slugRow = $stmtSlug->fetch(PDO::FETCH_ASSOC);
+        if ($slugRow) $slug = (string)$slugRow['slug'];
+    }
     $verify = verifyRestaurantPaystackPayment($restaurantId, $reference);
 
     if ($verify && $verify['success']) {
@@ -85,6 +96,12 @@ if ($gateway === 'flutterwave') {
     }
 
     $restaurantId = (int)$row['restaurant_id'];
+    if ($slug === '') {
+        $stmtSlug = $pdo->prepare("SELECT slug FROM restaurants WHERE id = ? LIMIT 1");
+        $stmtSlug->execute([$restaurantId]);
+        $slugRow = $stmtSlug->fetch(PDO::FETCH_ASSOC);
+        if ($slugRow) $slug = (string)$slugRow['slug'];
+    }
     $verify = verifyRestaurantFlutterwavePayment($restaurantId, $transactionId);
 
     if ($verify && $verify['success']) {

@@ -40,16 +40,10 @@ if ($gateway === 'paystack') {
                 $stmt->execute([$reference]);
                 $payment = $stmt->fetch();
                 $paymentId = $payment ? $payment['id'] : 0;
-                
-                // If payment found but user not logged in, redirect with reference
-                if ($paymentId && !isLoggedIn()) {
-                    $redirectUrl = 'billing.php?payment_success=1&reference=' . urlencode($reference);
-                    header('Location: ' . $redirectUrl);
-                    exit;
-                }
             }
             
             if ($paymentId) {
+                // Always process payment when verification succeeded (subscription activation)
                 $success = processSuccessfulPayment($paymentId, $result);
                 $message = $success ? 'Payment successful! Your subscription is now active.' : 'Payment verified but activation failed. Please contact support.';
             } else {
@@ -88,16 +82,10 @@ if ($gateway === 'paystack') {
                 $stmt->execute([$txRef]);
                 $payment = $stmt->fetch();
                 $paymentId = $payment ? $payment['id'] : 0;
-                
-                // If payment found but user not logged in, redirect with reference
-                if ($paymentId && !isLoggedIn()) {
-                    $redirectUrl = 'billing.php?payment_success=1&reference=' . urlencode($txRef);
-                    header('Location: ' . $redirectUrl);
-                    exit;
-                }
             }
             
             if ($paymentId) {
+                // Always process payment when verification succeeded (subscription activation)
                 $success = processSuccessfulPayment($paymentId, $result);
                 $message = $success ? 'Payment successful! Your subscription is now active.' : 'Payment verified but activation failed. Please contact support.';
             } else {
