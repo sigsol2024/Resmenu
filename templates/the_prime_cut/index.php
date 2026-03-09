@@ -133,6 +133,7 @@ $ornateSymbols = ['❦', '✧', '⚜', '🍷'];
 <h3 class="font-serif text-3xl font-bold mb-2"><?php echo htmlspecialchars($feat['name']); ?></h3>
 <p class="max-w-xl text-sm font-sans italic opacity-80 mb-4"><?php echo htmlspecialchars($feat['description'] ?? ''); ?></p>
 <span class="text-gold font-serif text-2xl"><?php echo the_prime_cut_price($feat['price']); ?></span>
+<?php if (!empty($supportsOrdering) && !empty($feat['is_available'])): ?><button type="button" class="add-to-bag-btn mt-3 font-sans text-sm tracking-widest uppercase text-gold border border-gold/60 px-4 py-2 hover:bg-gold/20 transition-colors" data-item-id="<?php echo (int)$feat['id']; ?>" data-item-name="<?php echo htmlspecialchars($feat['name']); ?>" data-item-price="<?php echo htmlspecialchars($feat['price']); ?>" data-item-image="<?php echo !empty($feat['image']) ? htmlspecialchars($feat['image']) : ''; ?>">Add to bag</button><?php endif; ?>
 </div>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
 <?php for ($i = 1; $i < count($items); $i++): $item = $items[$i]; ?>
@@ -142,6 +143,7 @@ $ornateSymbols = ['❦', '✧', '⚜', '🍷'];
 <span class="text-gold font-serif"><?php echo the_prime_cut_price($item['price']); ?></span>
 </div>
 <p class="text-sm font-sans italic opacity-75"><?php echo htmlspecialchars($item['description'] ?? ''); ?></p>
+<?php if (!empty($supportsOrdering) && !empty($item['is_available'])): ?><button type="button" class="add-to-bag-btn mt-2 font-sans text-xs tracking-widest uppercase text-gold border border-gold/60 px-3 py-1.5 hover:bg-gold/20 transition-colors" data-item-id="<?php echo (int)$item['id']; ?>" data-item-name="<?php echo htmlspecialchars($item['name']); ?>" data-item-price="<?php echo htmlspecialchars($item['price']); ?>" data-item-image="<?php echo !empty($item['image']) ? htmlspecialchars($item['image']) : ''; ?>">Add to bag</button><?php endif; ?>
 </div>
 <?php endfor; ?>
 </div>
@@ -170,4 +172,26 @@ $ornateSymbols = ['❦', '✧', '⚜', '🍷'];
 </div>
 </footer>
 </main>
+<?php if (!empty($supportsOrdering)): ?>
+<div id="resmenu-cart-widget" class="fixed bottom-6 left-6 z-50 hidden"></div>
+<script src="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : $baseUrl, '/'); ?>/assets/js/cart.js"></script>
+<script src="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : $baseUrl, '/'); ?>/assets/js/cart-widget.js"></script>
+<script src="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : $baseUrl, '/'); ?>/assets/js/cart-modal.js"></script>
+<script>
+(function() {
+    var baseUrl = <?php echo json_encode(defined('SITE_URL') ? rtrim(SITE_URL, '/') : $baseUrl); ?>;
+    var slug = <?php echo json_encode($restaurant['slug'] ?? ''); ?>;
+    var config = { restaurantSlug: slug, currencySymbol: <?php echo json_encode($currencySymbol); ?>, uploadBaseUrl: <?php echo json_encode($uploadBaseUrl ?? ''); ?>, checkoutUrl: baseUrl + '/restaurant/' + slug + '/checkout', primaryColor: <?php echo json_encode($primaryColor ?? '#D4AF37'); ?>, deliveryFee: 0, taxRate: 0 };
+    window.RESMENU_CART_CONFIG = config;
+    if (window.RESMENU_CART_MODAL) window.RESMENU_CART_MODAL.init(config);
+    if (window.RESMENU_CART_WIDGET) window.RESMENU_CART_WIDGET.init(config);
+    document.querySelectorAll('.add-to-bag-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var id = this.getAttribute('data-item-id'), name = this.getAttribute('data-item-name'), price = this.getAttribute('data-item-price'), image = this.getAttribute('data-item-image') || '';
+            if (window.RESMENU_CART) window.RESMENU_CART.addItem(slug, { id: id, name: name, price: price, image: image }, 1);
+        });
+    });
+})();
+</script>
+<?php endif; ?>
 </body></html>

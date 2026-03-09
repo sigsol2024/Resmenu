@@ -60,6 +60,7 @@ $masonryClasses = ['masonry-item-sm', 'masonry-item-md', 'masonry-item-lg'];
 <?php if ($imgUrl): ?><img alt="<?php echo htmlspecialchars($item['name']); ?>" class="w-full h-48 object-cover comic-border mb-4 grayscale group-hover:grayscale-0 transition-all duration-300" src="<?php echo $imgUrl; ?>"/><?php endif; ?>
 <h3 class="font-chunky text-2xl mb-2"><?php echo htmlspecialchars($item['name']); ?></h3>
 <p class="text-sm font-bold flex-grow"><?php echo htmlspecialchars($item['description'] ?? ''); ?></p>
+<?php if (!empty($supportsOrdering) && !empty($item['is_available'])): ?><button type="button" class="add-to-bag-btn mt-3 comic-border px-4 py-2 font-chunky bg-brandBlack text-white hover:bg-white hover:text-brandBlack transition-colors" data-item-id="<?php echo (int)$item['id']; ?>" data-item-name="<?php echo htmlspecialchars($item['name']); ?>" data-item-price="<?php echo htmlspecialchars($item['price']); ?>" data-item-image="<?php echo !empty($item['image']) ? htmlspecialchars($item['image']) : ''; ?>">Add to bag</button><?php endif; ?>
 <div class="mt-4 border-t-2 border-brandBlack pt-2 italic text-xs uppercase font-black"><?php echo htmlspecialchars($category['name']); ?></div>
 </article>
 <?php endforeach; endforeach; ?>

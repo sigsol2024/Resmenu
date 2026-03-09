@@ -574,6 +574,14 @@ body {
   color: var(--dark);
 }
 
+/* Add to bag button - compact, left-aligned */
+.menu-item .add-to-bag-btn {
+  align-self: flex-start;
+  padding: 8px 16px;
+  font-size: 14px;
+  border-radius: 999px;
+}
+
 .coming-soon {
   background: var(--dark);
   color: white;
@@ -851,10 +859,12 @@ body {
   }
   
   .hero-image-container {
-    order: -1;
+    /* On tablet/mobile, show after text section */
+    order: 1;
   }
   
   .hero-left {
+    /* Text/content first on smaller screens */
     order: 0;
     padding-right: 0;
   }
@@ -926,6 +936,15 @@ body {
   
   .hero {
     padding: 40px 0 60px; /* Reduced since body has padding-top */
+  }
+  
+  /* On small screens, hide the large hero image and keep only the overlay card */
+  .hero-main-image {
+    display: none;
+  }
+  
+  .hero-image-container {
+    height: auto;
   }
   
   .hero h1 {

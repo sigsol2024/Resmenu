@@ -309,9 +309,7 @@ foreach ($categories as $category):
           <?php endforeach; ?>
         </div>
         
-        <div class="order-btn-container">
-          <button class="btn btn-primary" onclick="scrollToFirstMenu()">View Menu</button>
-        </div>
+        
       </div>
     </div>
   </div>
@@ -339,7 +337,22 @@ endif;
           </iframe>
         </div>
       <?php else: ?>
-        <div class="visit-image"></div>
+        <?php
+          $visitImageUrl = '';
+          if (!empty($restaurant['hero_image_url'])) {
+              $visitImageUrl = $restaurant['hero_image_url'];
+          } elseif (!empty($restaurant['hero_image'])) {
+              $visitImageUrl = $uploadBaseUrl . '/heroes/' . $restaurant['hero_image'];
+          } elseif (!empty($restaurant['logo'])) {
+              $visitImageUrl = $uploadBaseUrl . '/logos/' . $restaurant['logo'];
+          }
+        ?>
+        <div
+          class="visit-image"
+          <?php if (!empty($visitImageUrl)): ?>
+            style="background-image: url('<?php echo htmlspecialchars($visitImageUrl); ?>'); background-size: cover; background-position: center; border-radius: var(--radius-xl);"
+          <?php endif; ?>
+        ></div>
       <?php endif; ?>
       <div class="visit-card-content">
         <h2>Visit Us or Place an Order</h2>
