@@ -20,7 +20,10 @@
     }
 
     function open() {
-        if (!overlay || !modalEl) return;
+        if (!overlay || !modalEl) {
+            if (window.RESMENU_CART_CONFIG) init(window.RESMENU_CART_CONFIG);
+            if (!overlay || !modalEl) return;
+        }
         overlay.classList.remove('hidden');
         modalEl.classList.remove('hidden');
         document.body.style.overflow = 'hidden';

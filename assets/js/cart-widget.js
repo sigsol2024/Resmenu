@@ -39,12 +39,17 @@
 
         const btn = container.querySelector('#resmenu-cart-widget-btn');
         if (btn) {
-            btn.addEventListener('click', function () {
-                if (typeof config.onOpenModal === 'function') {
-                    config.onOpenModal();
-                } else if (window.RESMENU_CART_MODAL && typeof window.RESMENU_CART_MODAL.open === 'function') {
-                    window.RESMENU_CART_MODAL.open();
-                }
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var doOpen = function () {
+                    if (typeof config.onOpenModal === 'function') {
+                        config.onOpenModal();
+                    } else if (window.RESMENU_CART_MODAL && typeof window.RESMENU_CART_MODAL.open === 'function') {
+                        window.RESMENU_CART_MODAL.open();
+                    }
+                };
+                setTimeout(doOpen, 0);
             });
         }
     }
