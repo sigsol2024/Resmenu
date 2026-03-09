@@ -473,14 +473,15 @@ endif;
 </footer>
 
 <?php if (!empty($supportsOrdering)): ?>
+<?php $cartScriptBase = rtrim(defined('SITE_URL') ? SITE_URL : $baseUrl, '/'); ?>
 <div id="resmenu-cart-widget" class="fixed bottom-6 left-6 z-50 hidden"></div>
-<script src="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : '', '/'); ?>/assets/js/cart.js"></script>
-<script src="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : '', '/'); ?>/assets/js/cart-widget.js"></script>
-<script src="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : '', '/'); ?>/assets/js/cart-modal.js"></script>
+<script src="<?php echo htmlspecialchars($cartScriptBase); ?>/assets/js/cart.js"></script>
+<script src="<?php echo htmlspecialchars($cartScriptBase); ?>/assets/js/cart-widget.js"></script>
+<script src="<?php echo htmlspecialchars($cartScriptBase); ?>/assets/js/cart-modal.js"></script>
 <script>
 (function() {
     var baseUrl = <?php echo json_encode(defined('SITE_URL') ? rtrim(SITE_URL, '/') : $baseUrl); ?>;
-    var slug = <?php echo json_encode($restaurant['slug'] ?? ''); ?>;
+    var slug = <?php echo json_encode(isset($restaurant['slug']) ? (string)$restaurant['slug'] : ''); ?>;
     var config = {
         restaurantSlug: slug,
         currencySymbol: <?php echo json_encode($currencySymbol); ?>,
@@ -493,17 +494,29 @@ endif;
     window.RESMENU_CART_CONFIG = config;
     if (window.RESMENU_CART_MODAL) window.RESMENU_CART_MODAL.init(config);
     if (window.RESMENU_CART_WIDGET) window.RESMENU_CART_WIDGET.init(config);
-    document.querySelectorAll('.add-to-bag-btn').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            var id = this.getAttribute('data-item-id');
-            var name = this.getAttribute('data-item-name');
-            var price = this.getAttribute('data-item-price');
-            var image = this.getAttribute('data-item-image') || '';
-            if (window.RESMENU_CART) {
-                window.RESMENU_CART.addItem(slug, { id: id, name: name, price: price, image: image }, 1);
-            }
+    function bindAddToBag() {
+        document.querySelectorAll('.add-to-bag-btn').forEach(function(btn) {
+            if (btn._resmenuBound) return;
+            btn._resmenuBound = true;
+            btn.addEventListener('click', function() {
+                var id = this.getAttribute('data-item-id');
+                var name = this.getAttribute('data-item-name');
+                var price = this.getAttribute('data-item-price');
+                var image = this.getAttribute('data-item-image') || '';
+                if (window.RESMENU_CART && slug) {
+                    window.RESMENU_CART.addItem(slug, { id: id, name: name, price: price, image: image }, 1);
+                    if (window.RESMENU_CART_WIDGET && window.RESMENU_CART_WIDGET.render) {
+                        window.RESMENU_CART_WIDGET.render();
+                    }
+                }
+            });
         });
-    });
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bindAddToBag);
+    } else {
+        bindAddToBag();
+    }
 })();
 </script>
 <?php endif; ?>

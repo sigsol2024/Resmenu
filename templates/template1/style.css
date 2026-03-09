@@ -855,16 +855,33 @@ body {
   .hero-content {
     display: flex;
     flex-direction: column;
-    gap: 60px;
+    gap: 48px;
+    align-items: stretch;
   }
   
+  /* Column 1 on mobile/tablet: image block (main image + overlay card) first */
   .hero-image-container {
-    /* On tablet/mobile, show after text section */
-    order: 1;
+    order: -1;
+    width: 100%;
+    height: 320px;
+    min-height: 280px;
+    margin-bottom: 60px; /* space so overlay card doesn't overlap hero-left */
   }
   
+  .hero-main-image {
+    display: block;
+    border-radius: var(--radius-xl);
+  }
+  
+  .hero-overlay-card {
+    bottom: -24px;
+    right: -24px;
+    width: 220px;
+    height: 220px;
+  }
+  
+  /* Column 2: text block below */
   .hero-left {
-    /* Text/content first on smaller screens */
     order: 0;
     padding-right: 0;
   }
@@ -938,13 +955,30 @@ body {
     padding: 40px 0 60px; /* Reduced since body has padding-top */
   }
   
-  /* On small screens, hide the large hero image and keep only the overlay card */
-  .hero-main-image {
-    display: none;
+  .hero-content {
+    gap: 40px;
   }
   
   .hero-image-container {
-    height: auto;
+    height: 280px;
+    min-height: 240px;
+    margin-bottom: 50px;
+  }
+  
+  .hero-overlay-card {
+    width: 180px;
+    height: 180px;
+    bottom: -16px;
+    right: -16px;
+    padding: 16px;
+  }
+  
+  .overlay-title {
+    font-size: 16px;
+  }
+  
+  .overlay-stars {
+    font-size: 18px;
   }
   
   .hero h1 {
