@@ -491,7 +491,7 @@ endif;
         currencySymbol: <?php echo json_encode($currencySymbol); ?>,
         uploadBaseUrl: <?php echo json_encode($uploadBaseUrl ?? ''); ?>,
         checkoutUrl: baseUrl + '/restaurant/' + slug + '/checkout',
-        primaryColor: <?php echo json_encode($primaryColor); ?>,
+        primaryColor: <?php echo json_encode('#f97415'); ?>,
         deliveryFee: 0,
         taxRate: 0
     };
