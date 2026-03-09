@@ -13,7 +13,7 @@ require_once __DIR__ . '/subscription.php';
  * @return bool
  */
 function templateSupportsOrdering($templateId) {
-    return in_array(intval($templateId), [2, 3, 4]);
+    return true;
 }
 
 /**
@@ -223,7 +223,7 @@ function loadTemplate($restaurant, $categories, $customization, $headerMenuItems
     // Make variables available to template
     // Note: Preview mode should show full template capabilities (no subscription gating).
     $supportsOrdering = templateSupportsOrdering($templateId);
-    $supportsReservations = ((int)$templateId) === 4;
+    $supportsReservations = true;
 
     if (!$isTemplatePreview) {
         $restaurantId = (int)($restaurant['id'] ?? 0);

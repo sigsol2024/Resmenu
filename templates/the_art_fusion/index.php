@@ -6,6 +6,10 @@ if (defined('UPLOAD_URL')) { $uploadBaseUrl = rtrim(UPLOAD_URL, '/'); } else {
     $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
     $uploadBaseUrl = $protocol . ($_SERVER['HTTP_HOST'] ?? 'localhost') . (dirname(dirname(dirname($_SERVER['SCRIPT_NAME'] ?? ''))) ?: '') . '/uploads';
 }
+$baseUrl = defined('SITE_URL') ? rtrim(SITE_URL, '/') : '';
+$reservationUrl = $baseUrl . '/restaurant/' . ($restaurant['slug'] ?? '') . '/reservation';
+$currencySymbol = '₦';
+$primaryColor = isset($customization['primary_color']) ? $customization['primary_color'] : '#bc002d';
 function taf_price($p, $s = '₦') { return $s . number_format((float)$p, 2); }
 $activeCategories = [];
 if (!empty($categories) && is_array($categories)) {
@@ -30,6 +34,7 @@ if (!empty($categories) && is_array($categories)) {
 <h1 class="text-2xl font-bold tracking-[0.3em] uppercase"><?php echo htmlspecialchars(mb_substr($restaurant['name'], 0, 20)); ?></h1>
 </div>
 <nav class="flex overflow-x-auto hide-scrollbar space-x-8 text-sm uppercase tracking-widest font-medium">
+<?php if (!empty($supportsReservations)): ?><a class="hover:text-[#bc002d] transition-colors whitespace-nowrap py-2 border-b-2 border-transparent hover:border-[#bc002d]" href="<?php echo htmlspecialchars($reservationUrl); ?>">Reserve Table</a><?php endif; ?>
 <?php foreach ($activeCategories as $i => $cat): $s = isset($cat['slug']) ? $cat['slug'] : ('section-'.$i); ?>
 <a class="hover:text-[#bc002d] transition-colors whitespace-nowrap py-2 border-b-2 border-transparent hover:border-[#bc002d]" href="#<?php echo htmlspecialchars($s); ?>"><?php echo htmlspecialchars($cat['name']); ?></a>
 <?php endforeach; ?>
@@ -62,6 +67,7 @@ if (!empty($categories) && is_array($categories)) {
 <div class="flex-1 min-w-0">
 <h4 class="text-lg uppercase tracking-wider mb-1"><?php echo htmlspecialchars($item['name']); ?></h4>
 <p class="text-sm text-gray-400 italic"><?php echo htmlspecialchars($item['description'] ?? ''); ?></p>
+<?php if (!empty($supportsOrdering) && !empty($item['is_available'])): ?><button type="button" class="add-to-bag-btn mt-2 text-xs uppercase tracking-wider text-[#bc002d] border border-[#bc002d] px-3 py-1.5 hover:bg-[#bc002d] hover:text-white" data-item-id="<?php echo (int)$item['id']; ?>" data-item-name="<?php echo htmlspecialchars($item['name']); ?>" data-item-price="<?php echo htmlspecialchars($item['price']); ?>" data-item-image="<?php echo !empty($item['image']) ? htmlspecialchars($item['image']) : ''; ?>">Add to bag</button><?php endif; ?>
 </div>
 <span class="font-medium flex-shrink-0"><?php echo taf_price($item['price']); ?></span>
 </div>
@@ -82,4 +88,13 @@ if (!empty($categories) && is_array($categories)) {
 </div>
 </div>
 </footer>
+<?php if (!empty($supportsOrdering)): ?>
+<div id="resmenu-cart-widget" class="fixed bottom-6 left-6 z-50 hidden"></div>
+<script src="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : '', '/'); ?>/assets/js/cart.js"></script>
+<script src="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : '', '/'); ?>/assets/js/cart-widget.js"></script>
+<script src="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : '', '/'); ?>/assets/js/cart-modal.js"></script>
+<script>
+(function(){var baseUrl=<?php echo json_encode($baseUrl); ?>;var slug=<?php echo json_encode($restaurant['slug']??''); ?>;var config={restaurantSlug:slug,currencySymbol:<?php echo json_encode($currencySymbol); ?>,uploadBaseUrl:<?php echo json_encode($uploadBaseUrl??''); ?>,checkoutUrl:baseUrl+'/restaurant/'+slug+'/checkout',primaryColor:<?php echo json_encode($primaryColor); ?>,deliveryFee:0,taxRate:0};window.RESMENU_CART_CONFIG=config;if(window.RESMENU_CART_MODAL)window.RESMENU_CART_MODAL.init(config);if(window.RESMENU_CART_WIDGET)window.RESMENU_CART_WIDGET.init(config);document.querySelectorAll('.add-to-bag-btn').forEach(function(btn){btn.addEventListener('click',function(){var id=this.getAttribute('data-item-id'),name=this.getAttribute('data-item-name'),price=this.getAttribute('data-item-price'),image=this.getAttribute('data-item-image')||'';if(window.RESMENU_CART)window.RESMENU_CART.addItem(slug,{id:id,name:name,price:price,image:image},1);});});})();
+</script>
+<?php endif; ?>
 </body></html>

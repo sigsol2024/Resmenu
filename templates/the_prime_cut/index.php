@@ -6,13 +6,23 @@
 $currencySymbol = '₦';
 if (defined('UPLOAD_URL')) {
     $uploadBaseUrl = rtrim(UPLOAD_URL, '/');
+    $baseUrl = defined('SITE_URL') ? rtrim(SITE_URL, '/') : '';
+    if ($baseUrl === '') {
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        $baseDir = dirname(dirname(dirname($_SERVER['SCRIPT_NAME'] ?? '/index.php')));
+        $baseUrl = $protocol . $host . $baseDir;
+    }
 } else {
     $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
     $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
     $scriptPath = $_SERVER['SCRIPT_NAME'] ?? '/index.php';
     $baseDir = dirname(dirname(dirname($scriptPath)));
     $uploadBaseUrl = $protocol . $host . $baseDir . '/uploads';
+    $baseUrl = defined('SITE_URL') ? rtrim(SITE_URL, '/') : ($protocol . $host . $baseDir);
 }
+$reservationUrl = $baseUrl . '/restaurant/' . ($restaurant['slug'] ?? '') . '/reservation';
+$primaryColor = isset($customization['primary_color']) ? $customization['primary_color'] : '#D4AF37';
 function the_prime_cut_price($price, $symbol = '₦') {
     return $symbol . number_format((float)$price, 2);
 }
@@ -97,6 +107,7 @@ $ornateSymbols = ['❦', '✧', '⚜', '🍷'];
 </div>
 <h1 class="font-serif text-6xl md:text-7xl text-gold italic mb-2"><?php echo htmlspecialchars($restaurant['name']); ?></h1>
 <p class="font-sans text-lg tracking-widest uppercase opacity-80"><?php echo !empty($restaurant['description']) ? htmlspecialchars(mb_substr($restaurant['description'], 0, 80)) : 'Premium Artisanal'; ?></p>
+<?php if (!empty($supportsReservations)): ?><div class="mt-4"><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="font-sans text-sm tracking-widest uppercase text-gold border border-gold/60 px-6 py-2 hover:bg-gold/20 transition-colors">Reserve Table</a></div><?php endif; ?>
 <div class="ornate-divider">
 <span class="ornate-symbol">❦</span>
 </div>

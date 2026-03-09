@@ -13,6 +13,10 @@ $currentDir = dirname($_SERVER['SCRIPT_NAME'] ?? '/');
 $currentDir = ($currentDir === '/' || $currentDir === '\\') ? '' : rtrim($currentDir, '/');
 $baseUrl = $protocol . $host . $currentDir;
 $uploadBaseUrl = $baseUrl . '/uploads';
+$template1BaseUrl = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : $baseUrl) . '/templates/template1';
+$reservationUrl = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : $baseUrl) . '/restaurant/' . ($restaurant['slug'] ?? '') . '/reservation';
+$currencySymbol = '₦';
+$primaryColor = isset($customization['primary_color']) ? $customization['primary_color'] : '#f20d0d';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -21,6 +25,21 @@ $uploadBaseUrl = $baseUrl . '/uploads';
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title><?php echo htmlspecialchars($restaurant['name']); ?></title>
 <link rel="stylesheet" href="<?php echo $baseUrl . '/templates/template1/style.css'; ?>">
+<style>
+section.hero { position: relative; }
+section.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: url('<?php echo $template1BaseUrl; ?>/bg_black.png');
+  background-repeat: repeat;
+  background-size: 280px 280px;
+  opacity: 0.12;
+}
+section.hero .container { position: relative; z-index: 1; }
+</style>
 </head>
 
 <body>
@@ -71,9 +90,6 @@ $uploadBaseUrl = $baseUrl . '/uploads';
       endif;
       ?>
     </nav>
-    <div class="sidebar-footer">
-      <button class="btn btn-primary" onclick="scrollToFirstMenu(); document.getElementById('sidebarClose').click();">View Menu</button>
-    </div>
   </div>
 </div>
 
@@ -214,6 +230,9 @@ document.addEventListener('DOMContentLoaded', function() {
         <p class="hero-text"><?php echo htmlspecialchars($restaurant['description'] ?? 'Welcome to our restaurant, where every experience is a step closer to happiness.'); ?></p>
         <div class="hero-buttons">
           <button class="btn btn-primary" onclick="scrollToFirstMenu()">View Menu</button>
+          <?php if (!empty($supportsReservations)): ?>
+          <a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="btn btn-outline">Reserve Table</a>
+          <?php endif; ?>
         </div>
       </div>
       
@@ -276,6 +295,13 @@ foreach ($categories as $category):
                   <div class="item-price"><?php echo 'N' . number_format($item['price'], 0, '.', ','); ?></div>
                   <?php if ($item['description']): ?>
                     <div class="item-description"><?php echo htmlspecialchars($item['description']); ?></div>
+                  <?php endif; ?>
+                  <?php if (!empty($supportsOrdering) && !empty($item['is_available'])): ?>
+                  <button type="button" class="add-to-bag-btn btn btn-primary" style="margin-top:8px;"
+                    data-item-id="<?php echo (int)$item['id']; ?>"
+                    data-item-name="<?php echo htmlspecialchars($item['name']); ?>"
+                    data-item-price="<?php echo htmlspecialchars($item['price']); ?>"
+                    data-item-image="<?php echo !empty($item['image']) ? htmlspecialchars($item['image']) : ''; ?>">Add to bag</button>
                   <?php endif; ?>
                 </div>
               </div>
@@ -433,5 +459,40 @@ endif;
   </div>
 </footer>
 
+<?php if (!empty($supportsOrdering)): ?>
+<div id="resmenu-cart-widget" class="fixed bottom-6 left-6 z-50 hidden"></div>
+<script src="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : '', '/'); ?>/assets/js/cart.js"></script>
+<script src="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : '', '/'); ?>/assets/js/cart-widget.js"></script>
+<script src="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : '', '/'); ?>/assets/js/cart-modal.js"></script>
+<script>
+(function() {
+    var baseUrl = <?php echo json_encode(defined('SITE_URL') ? rtrim(SITE_URL, '/') : $baseUrl); ?>;
+    var slug = <?php echo json_encode($restaurant['slug'] ?? ''); ?>;
+    var config = {
+        restaurantSlug: slug,
+        currencySymbol: <?php echo json_encode($currencySymbol); ?>,
+        uploadBaseUrl: <?php echo json_encode($uploadBaseUrl ?? ''); ?>,
+        checkoutUrl: baseUrl + '/restaurant/' + slug + '/checkout',
+        primaryColor: <?php echo json_encode($primaryColor); ?>,
+        deliveryFee: 0,
+        taxRate: 0
+    };
+    window.RESMENU_CART_CONFIG = config;
+    if (window.RESMENU_CART_MODAL) window.RESMENU_CART_MODAL.init(config);
+    if (window.RESMENU_CART_WIDGET) window.RESMENU_CART_WIDGET.init(config);
+    document.querySelectorAll('.add-to-bag-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var id = this.getAttribute('data-item-id');
+            var name = this.getAttribute('data-item-name');
+            var price = this.getAttribute('data-item-price');
+            var image = this.getAttribute('data-item-image') || '';
+            if (window.RESMENU_CART) {
+                window.RESMENU_CART.addItem(slug, { id: id, name: name, price: price, image: image }, 1);
+            }
+        });
+    });
+})();
+</script>
+<?php endif; ?>
 </body>
 </html>

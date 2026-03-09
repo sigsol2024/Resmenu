@@ -6,6 +6,10 @@ if (defined('UPLOAD_URL')) { $uploadBaseUrl = rtrim(UPLOAD_URL, '/'); } else {
     $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
     $uploadBaseUrl = $protocol . ($_SERVER['HTTP_HOST'] ?? 'localhost') . (dirname(dirname(dirname($_SERVER['SCRIPT_NAME'] ?? ''))) ?: '') . '/uploads';
 }
+$baseUrl = defined('SITE_URL') ? rtrim(SITE_URL, '/') : '';
+$reservationUrl = $baseUrl . '/restaurant/' . ($restaurant['slug'] ?? '') . '/reservation';
+$currencySymbol = '₦';
+$primaryColor = isset($customization['primary_color']) ? $customization['primary_color'] : '#FFD700';
 function sfh_price($p, $s = '₦') { return $s . number_format((float)$p, 2); }
 $activeCategories = [];
 if (!empty($categories) && is_array($categories)) {
@@ -36,6 +40,7 @@ $masonryClasses = ['masonry-item-sm', 'masonry-item-md', 'masonry-item-lg'];
 <p class="font-bold text-xl md:text-2xl uppercase italic"><?php echo htmlspecialchars($restaurant['description'] ?? 'Vibrant. Loud. Delicious.'); ?></p>
 </header>
 <nav class="max-w-7xl mx-auto mb-16 flex flex-wrap justify-center gap-4" data-purpose="category-navigation">
+<?php if (!empty($supportsReservations)): ?><a class="bg-white comic-border px-6 py-2 font-chunky hover:bg-brandBlack hover:text-white transition-colors shadow-brutal-sm" href="<?php echo htmlspecialchars($reservationUrl); ?>">Reserve Table</a><?php endif; ?>
 <?php foreach ($activeCategories as $i => $cat): $s = isset($cat['slug']) ? $cat['slug'] : ('section-'.$i); ?>
 <a class="bg-white comic-border px-6 py-2 font-chunky hover:bg-brandBlack hover:text-white transition-colors shadow-brutal-sm" href="#<?php echo htmlspecialchars($s); ?>"><?php echo htmlspecialchars($cat['name']); ?></a>
 <?php endforeach; ?>
@@ -71,4 +76,13 @@ $masonryClasses = ['masonry-item-sm', 'masonry-item-md', 'masonry-item-lg'];
 </div>
 </div>
 </footer>
+<?php if (!empty($supportsOrdering)): ?>
+<div id="resmenu-cart-widget" class="fixed bottom-6 left-6 z-50 hidden"></div>
+<script src="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : '', '/'); ?>/assets/js/cart.js"></script>
+<script src="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : '', '/'); ?>/assets/js/cart-widget.js"></script>
+<script src="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : '', '/'); ?>/assets/js/cart-modal.js"></script>
+<script>
+(function(){var baseUrl=<?php echo json_encode($baseUrl); ?>;var slug=<?php echo json_encode($restaurant['slug']??''); ?>;var config={restaurantSlug:slug,currencySymbol:<?php echo json_encode($currencySymbol); ?>,uploadBaseUrl:<?php echo json_encode($uploadBaseUrl??''); ?>,checkoutUrl:baseUrl+'/restaurant/'+slug+'/checkout',primaryColor:<?php echo json_encode($primaryColor); ?>,deliveryFee:0,taxRate:0};window.RESMENU_CART_CONFIG=config;if(window.RESMENU_CART_MODAL)window.RESMENU_CART_MODAL.init(config);if(window.RESMENU_CART_WIDGET)window.RESMENU_CART_WIDGET.init(config);document.querySelectorAll('.add-to-bag-btn').forEach(function(btn){btn.addEventListener('click',function(){var id=this.getAttribute('data-item-id'),name=this.getAttribute('data-item-name'),price=this.getAttribute('data-item-price'),image=this.getAttribute('data-item-image')||'';if(window.RESMENU_CART)window.RESMENU_CART.addItem(slug,{id:id,name:name,price:price,image:image},1);});});})();
+</script>
+<?php endif; ?>
 </body></html>

@@ -37,6 +37,7 @@ $currentDir = dirname($_SERVER['SCRIPT_NAME'] ?? '/');
 $currentDir = ($currentDir === '/' || $currentDir === '\\') ? '' : rtrim($currentDir, '/');
 $baseUrl = $protocol . $host . $currentDir;
 $uploadBaseUrl = $baseUrl . '/uploads';
+$reservationUrl = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : $baseUrl) . '/restaurant/' . ($restaurant['slug'] ?? '') . '/reservation';
 
 // Get hero image (hero_image_url for template preview cover, else hero_image in heroes/, else fallback)
 $heroImage = '';
@@ -113,6 +114,9 @@ function formatPriceTemplate2($price, $currency = '$') {
 <h2 class="text-lg font-bold leading-tight tracking-[-0.015em]"><?php echo htmlspecialchars($restaurant['name'] ?? 'Restaurant'); ?></h2>
 </div>
 <div class="flex items-center gap-8 hidden md:flex">
+<?php if (!empty($supportsReservations)): ?>
+    <a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="text-[#1b0e0e] dark:text-gray-200 text-sm font-medium hover:text-primary transition-colors">Reserve Table</a>
+<?php endif; ?>
 <?php if ($useToggleMenu): ?>
     <button class="flex items-center gap-2 text-[#1b0e0e] dark:text-gray-200 text-sm font-medium hover:text-primary transition-colors" onclick="toggleCategoryMenu()">
         <span class="material-symbols-outlined">menu</span>
@@ -190,6 +194,11 @@ endif;
 <a href="#menu" class="flex min-w-[140px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-12 px-8 bg-primary text-white text-base font-bold shadow-lg shadow-primary/40 transition-all hover:bg-red-600 hover:scale-105">
 <span class="truncate">View Menu</span>
 </a>
+<?php if (!empty($supportsReservations)): ?>
+<a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="flex min-w-[140px] items-center justify-center overflow-hidden rounded-full h-12 px-8 border-2 border-white/80 text-white text-base font-bold transition-all hover:bg-white/20 hover:scale-105">
+<span class="truncate">Reserve Table</span>
+</a>
+<?php endif; ?>
 </div>
 </div>
 </div>

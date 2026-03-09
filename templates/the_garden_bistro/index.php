@@ -6,6 +6,10 @@ if (defined('UPLOAD_URL')) { $uploadBaseUrl = rtrim(UPLOAD_URL, '/'); } else {
     $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
     $uploadBaseUrl = $protocol . ($_SERVER['HTTP_HOST'] ?? 'localhost') . (dirname(dirname(dirname($_SERVER['SCRIPT_NAME'] ?? ''))) ?: '') . '/uploads';
 }
+$baseUrl = defined('SITE_URL') ? rtrim(SITE_URL, '/') : '';
+$reservationUrl = $baseUrl . '/restaurant/' . ($restaurant['slug'] ?? '') . '/reservation';
+$currencySymbol = '₦';
+$primaryColor = isset($customization['primary_color']) ? $customization['primary_color'] : '#333333';
 function tgb_price($p, $s = '₦') { return $s . number_format((float)$p, 2); }
 $activeCategories = [];
 if (!empty($categories) && is_array($categories)) {
@@ -33,6 +37,7 @@ if (!empty($categories) && is_array($categories)) {
 <?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?><div class="mb-6"><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="h-24 w-auto object-contain mx-auto"/></div><?php endif; ?>
 <h1 class="text-5xl md:text-7xl font-light mb-4 tracking-tight"><?php echo htmlspecialchars($restaurant['name']); ?></h1>
 <p class="uppercase tracking-[0.2em] text-sm text-stone-500 font-medium"><?php echo htmlspecialchars($restaurant['description'] ?? 'Elevated Brunch &amp; Artisan Coffee'); ?></p>
+<?php if (!empty($supportsReservations)): ?><p class="mt-4"><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="text-stone-600 hover:text-charcoal underline">Reserve Table</a></p><?php endif; ?>
 <div class="divider max-w-xs mx-auto mt-8 bg-stone-200"></div>
 </header>
 <?php foreach ($activeCategories as $catIndex => $category): 
@@ -59,6 +64,7 @@ if (!empty($categories) && is_array($categories)) {
 <span class="menu-item-price font-medium"><?php echo number_format((float)$item['price'], 2); ?></span>
 </div>
 <p class="text-stone-500 text-sm leading-relaxed"><?php echo htmlspecialchars($item['description'] ?? ''); ?></p>
+<?php if (!empty($supportsOrdering) && !empty($item['is_available'])): ?><button type="button" class="add-to-bag-btn mt-2 text-sm font-medium text-charcoal border border-stone-300 px-4 py-2 rounded hover:bg-stone-100" data-item-id="<?php echo (int)$item['id']; ?>" data-item-name="<?php echo htmlspecialchars($item['name']); ?>" data-item-price="<?php echo htmlspecialchars($item['price']); ?>" data-item-image="<?php echo !empty($item['image']) ? htmlspecialchars($item['image']) : ''; ?>">Add to bag</button><?php endif; ?>
 </div>
 </div>
 <?php endforeach; ?>
@@ -75,4 +81,13 @@ if (!empty($categories) && is_array($categories)) {
 </div>
 </footer>
 </main>
+<?php if (!empty($supportsOrdering)): ?>
+<div id="resmenu-cart-widget" class="fixed bottom-6 left-6 z-50 hidden"></div>
+<script src="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : '', '/'); ?>/assets/js/cart.js"></script>
+<script src="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : '', '/'); ?>/assets/js/cart-widget.js"></script>
+<script src="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : '', '/'); ?>/assets/js/cart-modal.js"></script>
+<script>
+(function(){var baseUrl=<?php echo json_encode($baseUrl); ?>;var slug=<?php echo json_encode($restaurant['slug']??''); ?>;var config={restaurantSlug:slug,currencySymbol:<?php echo json_encode($currencySymbol); ?>,uploadBaseUrl:<?php echo json_encode($uploadBaseUrl??''); ?>,checkoutUrl:baseUrl+'/restaurant/'+slug+'/checkout',primaryColor:<?php echo json_encode($primaryColor); ?>,deliveryFee:0,taxRate:0};window.RESMENU_CART_CONFIG=config;if(window.RESMENU_CART_MODAL)window.RESMENU_CART_MODAL.init(config);if(window.RESMENU_CART_WIDGET)window.RESMENU_CART_WIDGET.init(config);document.querySelectorAll('.add-to-bag-btn').forEach(function(btn){btn.addEventListener('click',function(){var id=this.getAttribute('data-item-id'),name=this.getAttribute('data-item-name'),price=this.getAttribute('data-item-price'),image=this.getAttribute('data-item-image')||'';if(window.RESMENU_CART)window.RESMENU_CART.addItem(slug,{id:id,name:name,price:price,image:image},1);});});})();
+</script>
+<?php endif; ?>
 </body></html>

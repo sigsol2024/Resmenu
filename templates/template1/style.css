@@ -269,17 +269,6 @@ body {
   border-color: var(--border);
 }
 
-.sidebar-footer {
-  margin-top: auto;
-  padding-top: 20px;
-  border-top: 1px solid var(--border);
-}
-
-.sidebar-footer .btn {
-  width: 100%;
-  text-align: center;
-}
-
 /* Hero Section - Clean white background */
 .hero {
   background: white;
@@ -397,17 +386,17 @@ body {
 
 /* Menu Sections - Alternating layout (reduced spacing between categories) */
 .menu-section {
-  padding: 0 0 40px;
+  padding: 0 0 32px;
   position: relative;
   background: transparent;
   overflow: visible;
   z-index: 2;
-  margin-top: 56px;
+  margin-top: 44px;
   margin-bottom: 0;
 }
 
 .menu-section:first-of-type {
-  margin-top: 40px;
+  margin-top: 32px;
 }
 
 /* Animation Keyframes */
@@ -856,11 +845,17 @@ body {
   }
   
   .hero-content {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
     gap: 60px;
   }
   
+  .hero-image-container {
+    order: -1;
+  }
+  
   .hero-left {
+    order: 0;
     padding-right: 0;
   }
   
@@ -979,7 +974,7 @@ body {
   }
   
   .menu-section {
-    padding: 40px 0 36px;
+    padding: 32px 0 28px;
   }
   
   
@@ -1122,7 +1117,7 @@ body {
   }
   
   .menu-section {
-    padding: 32px 0 28px;
+    padding: 24px 0 20px;
   }
   
 }
