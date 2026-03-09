@@ -111,7 +111,7 @@
                     </div>
                     <div class="flex gap-3 items-stretch">
                         <button type="button" id="resmenu-cart-continue" class="flex-1 flex items-center justify-center px-4 py-3 rounded-lg border border-gray-200 text-gray-700 font-bold hover:bg-gray-100 transition-colors text-center">
-                            Continue Shopping
+                            Close cart
                         </button>
                         <a href="${checkoutUrl}" id="resmenu-cart-checkout" class="flex-1 flex items-center justify-center px-4 py-3 rounded-lg text-white font-bold text-center transition-colors" style="background-color:${primaryColor}" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
                             Checkout
