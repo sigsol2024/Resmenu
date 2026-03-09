@@ -49,20 +49,23 @@
         }
     }
 
+    function ensureWidgetStyles() {
+        if (document.getElementById('resmenu-cart-widget-styles')) return;
+        const style = document.createElement('style');
+        style.id = 'resmenu-cart-widget-styles';
+        style.textContent = '#resmenu-cart-widget{z-index:9999!important}.resmenu-cart-widget-btn:hover{background-color:#121212!important}';
+        document.head.appendChild(style);
+    }
+
     function init(config) {
         if (!config || !config.restaurantSlug) return;
 
+        ensureWidgetStyles();
         container = document.getElementById('resmenu-cart-widget');
         if (!container) {
-            if (!document.getElementById('resmenu-cart-widget-styles')) {
-                const style = document.createElement('style');
-                style.id = 'resmenu-cart-widget-styles';
-                style.textContent = '.resmenu-cart-widget-btn:hover{background-color:#121212!important}';
-                document.head.appendChild(style);
-            }
             container = document.createElement('div');
             container.id = 'resmenu-cart-widget';
-            container.className = 'fixed bottom-6 left-6 z-50';
+            container.className = 'fixed bottom-6 left-6 z-50 hidden';
             document.body.appendChild(container);
         }
 

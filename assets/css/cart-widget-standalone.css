@@ -1,0 +1,60 @@
+/**
+ * Cart widget styles for templates that do NOT use Tailwind CSS.
+ * Include this file when the template has ordering support but does not load Tailwind,
+ * so the floating cart widget (fixed bottom-left, hidden when empty) displays correctly.
+ * Templates using Tailwind get these from utility classes (fixed, bottom-6, left-6, z-50, hidden).
+ */
+
+#resmenu-cart-widget {
+  position: fixed !important;
+  bottom: 1.5rem !important;
+  left: 1.5rem !important;
+  z-index: 9999 !important;
+}
+
+#resmenu-cart-widget.hidden {
+  display: none !important;
+}
+
+.resmenu-cart-widget-btn {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+  padding: 0.75rem 1rem !important;
+  border-radius: 9999px !important;
+  border: none !important;
+  cursor: pointer !important;
+  font-family: inherit !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+  transition: transform 0.2s, box-shadow 0.2s !important;
+}
+
+.resmenu-cart-widget-btn:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2) !important;
+}
+
+.resmenu-cart-widget-btn .material-symbols-outlined,
+.resmenu-cart-widget-btn [class*="text-2xl"] {
+  font-size: 1.5rem !important;
+  font-family: 'Material Symbols Outlined', sans-serif !important;
+}
+
+.resmenu-cart-widget-btn span span {
+  display: block !important;
+  text-align: left !important;
+  line-height: 1.3 !important;
+}
+
+.resmenu-cart-widget-btn span span:first-child {
+  font-size: 0.65rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  opacity: 0.9 !important;
+}
+
+.resmenu-cart-widget-btn span span:last-child {
+  font-size: 0.875rem !important;
+  font-weight: 700 !important;
+}
