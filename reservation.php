@@ -1,7 +1,7 @@
 <?php
 /**
  * Table Reservation Page
- * Template 4 only - unique per restaurant
+ * Available for any template; access gated by plan (table_reservations feature).
  */
 
 require_once __DIR__ . '/includes/functions.php';
@@ -19,13 +19,6 @@ $restaurant = getRestaurantBySlug($slug);
 if (!$restaurant) {
     http_response_code(404);
     die('Restaurant not found.');
-}
-
-// Template 4 only
-$templateId = (int) ($restaurant['template_id'] ?? 1);
-if ($templateId !== 4) {
-    http_response_code(404);
-    die('Reservations are not available for this restaurant.');
 }
 
 // Subscription + feature gating (public): reservation page must be blocked when subscription is invalid
