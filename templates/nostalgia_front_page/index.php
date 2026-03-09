@@ -89,6 +89,7 @@ foreach ($activeCategories as $catIndex => $category):
 </main>
 <footer class="py-8 text-center text-gray-500 text-sm"><?php echo htmlspecialchars($restaurant['footer_content'] ?? $restaurant['address'] ?? ''); ?></footer>
 <?php if (!empty($supportsOrdering)): ?>
+<link rel="stylesheet" href="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : '', '/'); ?>/assets/css/cart-modal.css">
 <div id="resmenu-cart-widget" class="fixed bottom-6 left-6 z-50 hidden"></div>
 <script src="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : '', '/'); ?>/assets/js/cart.js"></script>
 <script src="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : '', '/'); ?>/assets/js/cart-widget.js"></script>

@@ -78,6 +78,7 @@ $masonryClasses = ['masonry-item-sm', 'masonry-item-md', 'masonry-item-lg'];
 </div>
 </footer>
 <?php if (!empty($supportsOrdering)): ?>
+<link rel="stylesheet" href="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : '', '/'); ?>/assets/css/cart-modal.css">
 <div id="resmenu-cart-widget" class="fixed bottom-6 left-6 z-50 hidden"></div>
 <script src="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : '', '/'); ?>/assets/js/cart.js"></script>
 <script src="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : '', '/'); ?>/assets/js/cart-widget.js"></script>

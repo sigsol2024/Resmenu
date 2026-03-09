@@ -26,6 +26,7 @@ $primaryColor = isset($customization['primary_color']) ? $customization['primary
 <title><?php echo htmlspecialchars($restaurant['name']); ?></title>
 <link rel="stylesheet" href="<?php echo $baseUrl . '/templates/template1/style.css'; ?>">
 <?php if (!empty($supportsOrdering)): ?>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&amp;display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : $baseUrl, '/'); ?>/assets/css/cart-widget-standalone.css">
 <?php endif; ?>
@@ -478,6 +479,7 @@ endif;
 
 <?php if (!empty($supportsOrdering)): ?>
 <?php $cartScriptBase = rtrim(defined('SITE_URL') ? SITE_URL : $baseUrl, '/'); ?>
+<link rel="stylesheet" href="<?php echo htmlspecialchars($cartScriptBase); ?>/assets/css/cart-modal.css">
 <div id="resmenu-cart-widget" class="fixed bottom-6 left-6 z-50 hidden"></div>
 <script src="<?php echo htmlspecialchars($cartScriptBase); ?>/assets/js/cart.js"></script>
 <script src="<?php echo htmlspecialchars($cartScriptBase); ?>/assets/js/cart-widget.js"></script>
@@ -491,7 +493,7 @@ endif;
         currencySymbol: <?php echo json_encode($currencySymbol); ?>,
         uploadBaseUrl: <?php echo json_encode($uploadBaseUrl ?? ''); ?>,
         checkoutUrl: baseUrl + '/restaurant/' + slug + '/checkout',
-        primaryColor: <?php echo json_encode('#f97415'); ?>,
+        primaryColor: <?php echo json_encode('#000000'); ?>,
         deliveryFee: 0,
         taxRate: 0
     };

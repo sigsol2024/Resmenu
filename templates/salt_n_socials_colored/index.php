@@ -62,6 +62,7 @@ if (!empty($categories) && is_array($categories)) {
 <footer class="mt-16 pt-8 border-t border-gray-200 text-center text-sm text-gray-500"><?php echo htmlspecialchars($restaurant['footer_content'] ?? $restaurant['address'] ?? ''); ?></footer>
 </main>
 <?php if (!empty($supportsOrdering)): ?>
+<link rel="stylesheet" href="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : '', '/'); ?>/assets/css/cart-modal.css">
 <div id="resmenu-cart-widget" class="fixed bottom-6 left-6 z-50 hidden"></div>
 <script src="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : '', '/'); ?>/assets/js/cart.js"></script>
 <script src="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : '', '/'); ?>/assets/js/cart-widget.js"></script>

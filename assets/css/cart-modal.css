@@ -1,0 +1,250 @@
+/**
+ * Shared cart modal styles – same look on every template.
+ * Load this whenever the cart (ordering) is enabled so the modal is consistent.
+ */
+
+/* Overlay */
+#resmenu-cart-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(0, 0, 0, 0.5) !important;
+  z-index: 10000 !important;
+  cursor: pointer !important;
+}
+#resmenu-cart-overlay.hidden {
+  display: none !important;
+}
+
+/* Modal box */
+#resmenu-cart-modal {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: calc(100% - 2rem) !important;
+  max-width: 32rem !important;
+  max-height: 90vh !important;
+  background: #fff !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+  z-index: 10001 !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+#resmenu-cart-modal.hidden {
+  display: none !important;
+}
+
+#resmenu-cart-modal-content {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+/* Inner wrapper from JS */
+#resmenu-cart-modal-content > div {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  max-height: 85vh !important;
+}
+
+/* Header */
+#resmenu-cart-modal-content .flex.items-center.justify-between.p-6.border-b {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 1.5rem !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  flex-shrink: 0 !important;
+}
+#resmenu-cart-modal-content h3 {
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  color: #111827 !important;
+  margin: 0 !important;
+}
+#resmenu-cart-modal-close {
+  padding: 0.5rem !important;
+  color: #6b7280 !important;
+  cursor: pointer !important;
+  border: none !important;
+  background: none !important;
+  border-radius: 0.375rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+#resmenu-cart-modal-close:hover {
+  color: #111827 !important;
+}
+#resmenu-cart-modal .material-symbols-outlined {
+  font-family: 'Material Symbols Outlined', sans-serif !important;
+}
+
+/* Scrollable items area */
+#resmenu-cart-modal-content .flex-1.overflow-y-auto {
+  flex: 1 1 0% !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  padding: 1.5rem !important;
+}
+
+/* Item row */
+#resmenu-cart-modal-content [data-item-id] {
+  display: flex !important;
+  gap: 1rem !important;
+  padding-top: 1rem !important;
+  padding-bottom: 1rem !important;
+  border-bottom: 1px solid #e5e7eb !important;
+}
+#resmenu-cart-modal-content [data-item-id]:last-child {
+  border-bottom: none !important;
+}
+
+/* Item image – ensure it shows properly in every template */
+#resmenu-cart-modal-content [data-item-id] > div:first-child {
+  width: 4rem !important;
+  min-width: 4rem !important;
+  height: 4rem !important;
+  border-radius: 0.5rem !important;
+  background-color: #f3f4f6 !important;
+  background-size: cover !important;
+  background-position: center !important;
+  overflow: hidden !important;
+  flex-shrink: 0 !important;
+}
+
+/* Item details */
+#resmenu-cart-modal-content [data-item-id] > div:last-child {
+  flex: 1 !important;
+  min-width: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+}
+#resmenu-cart-modal-content [data-item-id] p {
+  font-size: 0.875rem !important;
+  font-weight: 700 !important;
+  color: #111827 !important;
+  margin: 0 !important;
+}
+#resmenu-cart-modal-content [data-item-id] p.truncate {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+#resmenu-cart-modal-content [data-item-id] .flex.items-center.gap-3 {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+  margin-top: 0.25rem !important;
+}
+#resmenu-cart-modal-content .cart-qty-minus,
+#resmenu-cart-modal-content .cart-qty-plus {
+  padding: 0.25rem !important;
+  color: #6b7280 !important;
+  cursor: pointer !important;
+  border: none !important;
+  background: none !important;
+  display: inline-flex !important;
+}
+#resmenu-cart-modal-content .cart-qty-minus:hover,
+#resmenu-cart-modal-content .cart-qty-plus:hover {
+  color: #111827 !important;
+}
+#resmenu-cart-modal-content [data-item-id] span.text-xs.font-medium {
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  color: #111827 !important;
+  min-width: 1.5rem !important;
+  text-align: center !important;
+}
+
+/* Empty state */
+#resmenu-cart-modal-content p.text-gray-600 {
+  color: #4b5563 !important;
+  padding: 2rem 0 !important;
+  text-align: center !important;
+  margin: 0 !important;
+}
+
+/* Footer */
+#resmenu-cart-modal-content .border-t.border-gray-200.bg-white {
+  padding: 1.5rem !important;
+  border-top: 1px solid #e5e7eb !important;
+  background: #fff !important;
+  flex-shrink: 0 !important;
+}
+#resmenu-cart-modal-content .flex.flex-col.gap-2.mb-4 > div {
+  display: flex !important;
+  justify-content: space-between !important;
+  font-size: 0.875rem !important;
+}
+#resmenu-cart-modal-content .flex.flex-col.gap-2.mb-4 span:first-child {
+  color: #4b5563 !important;
+}
+#resmenu-cart-modal-content .flex.flex-col.gap-2.mb-4 span.font-medium {
+  font-weight: 500 !important;
+  color: #111827 !important;
+}
+#resmenu-cart-modal-content .pt-4.border-t.border-dashed {
+  padding-top: 1rem !important;
+  border-top: 1px dashed #e5e7eb !important;
+  margin-bottom: 1rem !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-end !important;
+}
+#resmenu-cart-modal-content .pt-4.border-t.border-dashed span.text-base {
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  color: #111827 !important;
+}
+#resmenu-cart-modal-content .pt-4.border-t.border-dashed span.text-2xl {
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+}
+
+/* Footer buttons */
+#resmenu-cart-modal-content .flex.gap-3.items-stretch {
+  display: flex !important;
+  gap: 0.75rem !important;
+  align-items: stretch !important;
+}
+#resmenu-cart-continue {
+  flex: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0.75rem 1rem !important;
+  border-radius: 0.5rem !important;
+  border: 1px solid #e5e7eb !important;
+  color: #374151 !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  background: #fff !important;
+  font-size: inherit !important;
+  text-align: center !important;
+}
+#resmenu-cart-continue:hover {
+  background: #f3f4f6 !important;
+}
+#resmenu-cart-checkout {
+  flex: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0.75rem 1rem !important;
+  border-radius: 0.5rem !important;
+  color: #fff !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  text-align: center !important;
+  text-decoration: none !important;
+}
+#resmenu-cart-checkout:hover {
+  opacity: 0.9 !important;
+}
