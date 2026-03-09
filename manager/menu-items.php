@@ -422,6 +422,7 @@ include __DIR__ . '/../includes/manager-layout.php';
                         }
                         echo $formAction;
                     ?>" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                 <?php if (isSuperAdmin() && $restaurantId): ?>
                     <input type="hidden" name="restaurant_id" value="<?php echo htmlspecialchars($restaurantId); ?>">
                     <?php if ($returnTo === 'admin' && !empty($returnSlug)): ?>
