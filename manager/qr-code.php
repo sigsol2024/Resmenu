@@ -284,9 +284,7 @@ include __DIR__ . '/../includes/manager-layout.php';
                             
                             <div style="width: 100%; height: 100px; background: #f9fafb; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 8px;">
                                 <?php
-                                $previewSrc = !empty($template['preview_image'])
-                                    ? (rtrim(SITE_URL, '/') . '/uploads/qr-templates/' . htmlspecialchars($template['preview_image']))
-                                    : (SITE_URL . '/api/qr-template-preview.php?template_id=' . (int)$template['id'] . '&size=100');
+                                $previewSrc = rtrim(SITE_URL, '/') . '/api/qr-template-preview-image.php?template_id=' . (int)$template['id'] . '&size=100';
                                 ?>
                                 <img src="<?php echo htmlspecialchars($previewSrc); ?>"
                                      alt="<?php echo htmlspecialchars($template['name']); ?>"
