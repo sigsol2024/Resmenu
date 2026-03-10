@@ -139,6 +139,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Invalid template ID';
         } else {
             try {
+                // Remove preview image file if it exists
+                $dir = defined('UPLOAD_PATH') ? (UPLOAD_PATH . '/qr-templates') : (dirname(__DIR__) . '/uploads/qr-templates');
+                foreach (['png', 'svg'] as $ext) {
+                    $path = $dir . '/' . $templateId . '.' . $ext;
+                    if (file_exists($path)) {
+                        @unlink($path);
+                    }
+                }
                 // Allow deletion even if template is in use
                 // Restaurants using this template will need to select a new template
                 $stmt = $pdo->prepare("DELETE FROM qr_templates WHERE id = ?");
@@ -153,6 +161,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = 'Error deleting template: ' . $e->getMessage();
             }
         }
+    }
+
+    // Regenerate preview images for all templates (backfill existing templates)
+    if ($action === 'regenerate_all_previews') {
+        $stmt = $pdo->prepare("SELECT id FROM qr_templates ORDER BY id");
+        $stmt->execute();
+        $ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        $done = 0;
+        foreach ($ids as $id) {
+            if (generateTemplatePreview((int)$id)) {
+                $done++;
+            }
+        }
+        $message = "Preview images generated for {$done} of " . count($ids) . " template(s). Restaurants will now see these previews on the QR Code page.";
     }
 }
 
@@ -183,20 +205,45 @@ if (isset($_GET['edit'])) {
 }
 
 /**
- * Generate preview image for a template
+ * Generate preview image for a template (snapshot when admin saves).
+ * Saves PNG or SVG to uploads/qr-templates/{id}.png|.svg and updates qr_templates.preview_image.
  * @param int $templateId
- * @return string|null Preview filename
+ * @return string|null Preview filename (e.g. 17.png) or null on failure
  */
 function generateTemplatePreview($templateId) {
-    // Preview generation will be handled by the API endpoint for live previews
-    // Static preview images can be generated here if needed
-    // For now, we'll rely on the API endpoint for previews
-    // This function is a placeholder for future static preview generation
-    
-    // TODO: Generate static preview PNG and save to uploads/qr-templates/
-    // For MVP, live previews via API are sufficient
-    
-    return null;
+    $pdo = getDBConnection();
+    if (!$pdo) return null;
+    $stmt = $pdo->prepare("SELECT config_json FROM qr_templates WHERE id = ?");
+    $stmt->execute([$templateId]);
+    $row = $stmt->fetch();
+    if (!$row || empty($row['config_json'])) return null;
+    $config = is_string($row['config_json']) ? json_decode($row['config_json'], true) : $row['config_json'];
+    if (!$config || !is_array($config)) return null;
+
+    $result = generateQRImageFromConfig($config, 'https://menu.example.com/preview', 200, 'png');
+    if (!$result) return null;
+
+    $dir = defined('UPLOAD_PATH') ? (UPLOAD_PATH . '/qr-templates') : (dirname(__DIR__) . '/uploads/qr-templates');
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0755, true);
+    }
+    // Remove old preview file(s) so we don't leave .png when switching to .svg or vice versa
+    foreach (['png', 'svg'] as $oldExt) {
+        $oldPath = $dir . '/' . $templateId . '.' . $oldExt;
+        if (file_exists($oldPath)) {
+            @unlink($oldPath);
+        }
+    }
+    $ext = $result['format'] === 'png' ? 'png' : 'svg';
+    $filename = $templateId . '.' . $ext;
+    $path = $dir . '/' . $filename;
+    if (@file_put_contents($path, $result['data']) === false) {
+        error_log("QR template preview: failed to write {$path}");
+        return null;
+    }
+    $stmt = $pdo->prepare("UPDATE qr_templates SET preview_image = ? WHERE id = ?");
+    $stmt->execute([$filename, $templateId]);
+    return $filename;
 }
 
 $pageTitle = 'QR Templates';
@@ -382,12 +429,22 @@ include __DIR__ . '/../includes/admin-layout.php';
 <div class="card">
     <div class="card-header">
         <h2 class="card-title">QR Code Templates</h2>
-        <button type="button" class="btn btn-primary" onclick="openCreateTemplateModal()">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            Create New Template
-        </button>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <form method="post" style="display: inline;" onsubmit="return confirm('Generate preview images for all templates? This updates existing previews and creates previews for templates that don\'t have one yet.');">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
+                <input type="hidden" name="action" value="regenerate_all_previews">
+                <button type="submit" class="btn btn-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                    Regenerate all previews
+                </button>
+            </form>
+            <button type="button" class="btn btn-primary" onclick="openCreateTemplateModal()">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Create New Template
+            </button>
+        </div>
     </div>
     <div style="overflow-x: auto;">
         <table class="table">

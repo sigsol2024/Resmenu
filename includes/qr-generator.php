@@ -758,6 +758,64 @@ function convertSVGToImage($svgContent, $format = 'png') {
 }
 
 /**
+ * Generate QR image from config only (no restaurant) - for template preview snapshots.
+ * @param array $config Template config (pattern, eyes, frame, colors; no logo applied)
+ * @param string $url URL to encode in QR (e.g. https://menu.example.com/preview)
+ * @param int $size Pixel size
+ * @param string $format 'png' or 'svg'
+ * @return array|null ['data' => string, 'format' => 'png'|'svg'] or null on failure
+ */
+function generateQRImageFromConfig($config, $url, $size = 200, $format = 'png') {
+    global $qrCodeAvailable;
+    if (!$qrCodeAvailable || !$config || !is_array($config)) {
+        return null;
+    }
+    $colors = isset($config['colors']) && is_array($config['colors']) ? $config['colors'] : [];
+    $foreground = (isset($colors['foreground']) && preg_match('/^#[0-9A-Fa-f]{6}$/', $colors['foreground'])) ? $colors['foreground'] : '#000000';
+    $background = (isset($colors['background']) && preg_match('/^#[0-9A-Fa-f]{6}$/', $colors['background'])) ? $colors['background'] : '#FFFFFF';
+    try {
+        $qrColor = new \Endroid\QrCode\Color\Color(hexdec(substr($foreground, 1, 2)), hexdec(substr($foreground, 3, 2)), hexdec(substr($foreground, 5, 2)));
+        $bgColor = new \Endroid\QrCode\Color\Color(hexdec(substr($background, 1, 2)), hexdec(substr($background, 3, 2)), hexdec(substr($background, 5, 2)));
+        $qrCode = \Endroid\QrCode\QrCode::create($url)
+            ->setEncoding(new \Endroid\QrCode\Encoding\Encoding('UTF-8'))
+            ->setErrorCorrectionLevel(\Endroid\QrCode\ErrorCorrectionLevel::Medium)
+            ->setSize($size)
+            ->setMargin(10)
+            ->setForegroundColor($qrColor)
+            ->setBackgroundColor($bgColor)
+            ->setRoundBlockSizeMode(\Endroid\QrCode\RoundBlockSizeMode::Margin);
+        $svgWriter = new \Endroid\QrCode\Writer\SvgWriter();
+        $svgContent = $svgWriter->write($qrCode)->getString();
+        if (isset($config['pattern']) && is_string($config['pattern'])) {
+            $svgContent = applyPatternStyle($svgContent, $config['pattern']);
+        }
+        if (isset($config['eyes'])) {
+            $svgContent = applyEyeShape($svgContent, $config['eyes']);
+        }
+        $frame = isset($config['frame']) && is_array($config['frame']) ? $config['frame'] : [];
+        $frameType = isset($frame['type']) ? $frame['type'] : 'none';
+        if ($frameType !== 'none' && $frameType !== '') {
+            $svgContent = applyFrame($svgContent, $frame);
+        }
+        if (!empty($frame['text'])) {
+            $svgContent = addFrameTextToSVG($svgContent, $frame, $size);
+        }
+        $svgContent = preg_replace('/^\s*<\?xml[^?]*\?>\s*/', '', $svgContent);
+        if ($format === 'svg') {
+            return ['data' => $svgContent, 'format' => 'svg'];
+        }
+        $imageData = convertSVGToImage($svgContent, 'png');
+        if (strpos($imageData, '<svg') !== false) {
+            return ['data' => $imageData, 'format' => 'svg'];
+        }
+        return ['data' => $imageData, 'format' => 'png'];
+    } catch (Throwable $e) {
+        error_log("generateQRImageFromConfig: " . $e->getMessage());
+        return null;
+    }
+}
+
+/**
  * Generate QR code image using library or API fallback
  * Now uses template configs and SVG manipulation
  * @param int $restaurantId

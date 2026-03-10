@@ -283,8 +283,13 @@ include __DIR__ . '/../includes/manager-layout.php';
                             </div>
                             
                             <div style="width: 100%; height: 100px; background: #f9fafb; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 8px;">
-                                <img src="<?php echo SITE_URL; ?>/api/qr-template-preview.php?template_id=<?php echo $template['id']; ?>&size=100" 
-                                     alt="<?php echo htmlspecialchars($template['name']); ?>" 
+                                <?php
+                                $previewSrc = !empty($template['preview_image'])
+                                    ? (rtrim(SITE_URL, '/') . '/uploads/qr-templates/' . htmlspecialchars($template['preview_image']))
+                                    : (SITE_URL . '/api/qr-template-preview.php?template_id=' . (int)$template['id'] . '&size=100');
+                                ?>
+                                <img src="<?php echo htmlspecialchars($previewSrc); ?>"
+                                     alt="<?php echo htmlspecialchars($template['name']); ?>"
                                      style="max-width: 90%; max-height: 90%; object-fit: contain;"
                                      onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\'color: var(--muted); font-size: 0.75rem;\'>Preview</span>'">
                             </div>
