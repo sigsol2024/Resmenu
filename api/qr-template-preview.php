@@ -4,6 +4,7 @@
  * Generates preview QR code based on template config
  * Works for both admin (POST with config) and manager/public (GET with template_id)
  */
+ob_start();
 
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/qr-generator.php';
@@ -40,11 +41,11 @@ if (!$config && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $config = $input['config'] ?? null;
 }
 
-// Set content type for SVG
-header('Content-Type: image/svg+xml');
-header('Cache-Control: public, max-age=300'); // Cache for 5 minutes
-
+// Headers sent only after ob_end_clean() so response starts with our SVG (no leading output)
 if (!$config || !is_array($config)) {
+    ob_end_clean();
+    header('Content-Type: image/svg+xml');
+    header('Cache-Control: public, max-age=300');
     echo '<svg width="' . $size . '" height="' . $size . '" xmlns="http://www.w3.org/2000/svg">
         <rect width="100%" height="100%" fill="#f9fafb"/>
         <text x="50%" y="50%" text-anchor="middle" fill="#6b7280" font-size="12" font-family="sans-serif">No preview available</text>
@@ -60,6 +61,9 @@ if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
 }
 
 if (!$qrCodeAvailable) {
+    ob_end_clean();
+    header('Content-Type: image/svg+xml');
+    header('Cache-Control: public, max-age=300');
     echo '<svg width="' . $size . '" height="' . $size . '" xmlns="http://www.w3.org/2000/svg">
         <rect width="100%" height="100%" fill="#fef2f2"/>
         <text x="50%" y="50%" text-anchor="middle" fill="#991b1b" font-size="11" font-family="sans-serif">QR library not available</text>
@@ -116,10 +120,19 @@ try {
         $svgContent = addFrameTextToSVG($svgContent, $frame, $size);
     }
 
+    // Strip XML declaration so output starts with <svg> (avoids "declaration allowed only at start" when buffered output is discarded)
+    $svgContent = preg_replace('/^\s*<\?xml[^?]*\?>\s*/', '', $svgContent);
+
+    ob_end_clean();
+    header('Content-Type: image/svg+xml');
+    header('Cache-Control: public, max-age=300');
     echo $svgContent;
 
 } catch (Throwable $e) {
     error_log("QR Preview generation error: " . $e->getMessage());
+    ob_end_clean();
+    header('Content-Type: image/svg+xml');
+    header('Cache-Control: public, max-age=300');
     echo '<svg width="' . $size . '" height="' . $size . '" xmlns="http://www.w3.org/2000/svg">
         <rect width="100%" height="100%" fill="#fef2f2"/>
         <text x="50%" y="50%" text-anchor="middle" fill="#991b1b" font-size="10" font-family="sans-serif">Error generating preview</text>
