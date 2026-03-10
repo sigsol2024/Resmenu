@@ -44,8 +44,7 @@ if (!$config && $_SERVER['REQUEST_METHOD'] === 'POST') {
 header('Content-Type: image/svg+xml');
 header('Cache-Control: public, max-age=300'); // Cache for 5 minutes
 
-if (!$config) {
-    // Return error SVG
+if (!$config || !is_array($config)) {
     echo '<svg width="' . $size . '" height="' . $size . '" xmlns="http://www.w3.org/2000/svg">
         <rect width="100%" height="100%" fill="#f9fafb"/>
         <text x="50%" y="50%" text-anchor="middle" fill="#6b7280" font-size="12" font-family="sans-serif">No preview available</text>
@@ -68,14 +67,16 @@ if (!$qrCodeAvailable) {
     exit;
 }
 
-// Use test data for preview
+// Normalize config with safe defaults so preview never throws on missing keys
+$colors = isset($config['colors']) && is_array($config['colors']) ? $config['colors'] : [];
+$foregroundColor = isset($colors['foreground']) && is_string($colors['foreground']) && preg_match('/^#[0-9A-Fa-f]{6}$/', $colors['foreground'])
+    ? $colors['foreground'] : '#000000';
+$backgroundColor = isset($colors['background']) && is_string($colors['background']) && preg_match('/^#[0-9A-Fa-f]{6}$/', $colors['background'])
+    ? $colors['background'] : '#FFFFFF';
+
 $testURL = 'https://menu.example.com/preview';
 
 try {
-    // Get colors from config
-    $foregroundColor = $config['colors']['foreground'] ?? '#000000';
-    $backgroundColor = $config['colors']['background'] ?? '#FFFFFF';
-    
     $qrColor = new \Endroid\QrCode\Color\Color(
         hexdec(substr($foregroundColor, 1, 2)),
         hexdec(substr($foregroundColor, 3, 2)),
@@ -86,8 +87,7 @@ try {
         hexdec(substr($backgroundColor, 3, 2)),
         hexdec(substr($backgroundColor, 5, 2))
     );
-    
-    // Generate base QR code as SVG
+
     $qrCode = \Endroid\QrCode\QrCode::create($testURL)
         ->setEncoding(new \Endroid\QrCode\Encoding\Encoding('UTF-8'))
         ->setErrorCorrectionLevel(\Endroid\QrCode\ErrorCorrectionLevel::Medium)
@@ -96,32 +96,29 @@ try {
         ->setForegroundColor($qrColor)
         ->setBackgroundColor($bgColor)
         ->setRoundBlockSizeMode(\Endroid\QrCode\RoundBlockSizeMode::Margin);
-    
+
     $svgWriter = new \Endroid\QrCode\Writer\SvgWriter();
     $result = $svgWriter->write($qrCode);
     $svgContent = $result->getString();
-    
-    // Apply template config customizations
-    if (isset($config['pattern']) && function_exists('applyPatternStyle')) {
+
+    if (isset($config['pattern']) && is_string($config['pattern']) && function_exists('applyPatternStyle')) {
         $svgContent = applyPatternStyle($svgContent, $config['pattern']);
     }
-    
     if (isset($config['eyes']) && function_exists('applyEyeShape')) {
         $svgContent = applyEyeShape($svgContent, $config['eyes']);
     }
-    
-    if (isset($config['frame']) && $config['frame']['type'] !== 'none' && function_exists('applyFrame')) {
-        $svgContent = applyFrame($svgContent, $config['frame']);
+    $frame = isset($config['frame']) && is_array($config['frame']) ? $config['frame'] : [];
+    $frameType = isset($frame['type']) ? $frame['type'] : 'none';
+    if ($frameType !== 'none' && $frameType !== '' && function_exists('applyFrame')) {
+        $svgContent = applyFrame($svgContent, $frame);
     }
-    
-    // Add frame text if present
-    if (isset($config['frame']) && !empty($config['frame']['text']) && function_exists('addFrameTextToSVG')) {
-        $svgContent = addFrameTextToSVG($svgContent, $config['frame'], $size);
+    if (!empty($frame['text']) && function_exists('addFrameTextToSVG')) {
+        $svgContent = addFrameTextToSVG($svgContent, $frame, $size);
     }
-    
+
     echo $svgContent;
-    
-} catch (Exception $e) {
+
+} catch (Throwable $e) {
     error_log("QR Preview generation error: " . $e->getMessage());
     echo '<svg width="' . $size . '" height="' . $size . '" xmlns="http://www.w3.org/2000/svg">
         <rect width="100%" height="100%" fill="#fef2f2"/>

@@ -23,18 +23,6 @@ if (!defined('SITE_URL')) {
     define('SITE_URL', $protocol . $host . $basePath);
 }
 
-// #region agent log
-@file_put_contents(__DIR__ . '/../../debug-fef746.log', json_encode([
-    'sessionId' => 'fef746',
-    'runId' => 'pre-fix-qr',
-    'hypothesisId' => 'H1',
-    'location' => 'manager/qr-code.php:line20',
-    'message' => 'QR manager entry',
-    'data' => ['request_uri' => $_SERVER['REQUEST_URI'] ?? null],
-    'timestamp' => round(microtime(true) * 1000)
-]) . PHP_EOL, FILE_APPEND);
-// #endregion agent log
-
 $restaurantId = getCurrentUserRestaurantId();
 $pdo = getDBConnection();
 $message = '';
@@ -47,18 +35,6 @@ $restaurantSlug = $_GET['slug'] ?? '';
 $stmt = $pdo->prepare("SELECT * FROM restaurants WHERE id = ?");
 $stmt->execute([$restaurantId]);
 $restaurant = $stmt->fetch();
-
-// #region agent log
-@file_put_contents(__DIR__ . '/../../debug-fef746.log', json_encode([
-    'sessionId' => 'fef746',
-    'runId' => 'pre-fix-qr',
-    'hypothesisId' => 'H2',
-    'location' => 'manager/qr-code.php:line31',
-    'message' => 'Restaurant fetch result',
-    'data' => ['restaurantId' => $restaurantId, 'hasRestaurant' => (bool)$restaurant],
-    'timestamp' => round(microtime(true) * 1000)
-]) . PHP_EOL, FILE_APPEND);
-// #endregion agent log
 
 if (!$restaurant) {
     die('Restaurant not found.');
@@ -79,18 +55,6 @@ if (empty($restaurant['slug'])) {
 }
 
 // Get QR code settings (wrap in try/catch so missing table or query error does not 500 the page)
-// #region agent log
-@file_put_contents(__DIR__ . '/../../debug-fef746.log', json_encode([
-    'sessionId' => 'fef746',
-    'runId' => 'pre-fix-qr',
-    'hypothesisId' => 'H3',
-    'location' => 'manager/qr-code.php:line47',
-    'message' => 'About to load QR settings',
-    'data' => ['restaurantId' => $restaurantId],
-    'timestamp' => round(microtime(true) * 1000)
-]) . PHP_EOL, FILE_APPEND);
-// #endregion agent log
-
 try {
     $qrSettings = getRestaurantQRCodeSettings($restaurantId);
     if (!$qrSettings) {
@@ -101,18 +65,6 @@ try {
     error_log('QR settings load error (manager/qr-code.php): ' . $e->getMessage());
     $qrSettings = ['qr_template_id' => null, 'restaurant_id' => $restaurantId];
 }
-
-// #region agent log
-@file_put_contents(__DIR__ . '/../../debug-fef746.log', json_encode([
-    'sessionId' => 'fef746',
-    'runId' => 'pre-fix-qr',
-    'hypothesisId' => 'H3',
-    'location' => 'manager/qr-code.php:line55',
-    'message' => 'QR settings loaded',
-    'data' => ['hasQrSettings' => (bool)$qrSettings],
-    'timestamp' => round(microtime(true) * 1000)
-]) . PHP_EOL, FILE_APPEND);
-// #endregion agent log
 
 // Get available templates
 try {
@@ -144,11 +96,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!$template) {
                 $error = 'Selected template is not available.';
             } else {
+                // Ensure a row exists (INSERT or no-op if already exists)
+                createDefaultQRCodeSettings($restaurantId);
+
                 // Save template selection and copy template config as final config
-                $templateConfig = is_string($template['config_json']) 
-                    ? $template['config_json'] 
+                $templateConfig = is_string($template['config_json'])
+                    ? $template['config_json']
                     : json_encode($template['config_json']);
-                
+
                 $stmt = $pdo->prepare("
                     UPDATE restaurant_qr_codes SET
                         qr_template_id = ?,
@@ -156,10 +111,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         updated_at = CURRENT_TIMESTAMP
                     WHERE restaurant_id = ?
                 ");
-                
-                if ($stmt->execute([$templateId, $templateConfig, $restaurantId])) {
+
+                if ($stmt->execute([$templateId, $templateConfig, $restaurantId]) && $stmt->rowCount() >= 0) {
                     $message = 'Template selected successfully! You can now download your QR code.';
-                    $qrSettings = getRestaurantQRCodeSettings($restaurantId);
+                    try {
+                        $qrSettings = getRestaurantQRCodeSettings($restaurantId);
+                    } catch (Throwable $e) {
+                        $qrSettings = ['qr_template_id' => $templateId, 'restaurant_id' => $restaurantId];
+                    }
+                    if (!$qrSettings) {
+                        $qrSettings = ['qr_template_id' => $templateId, 'restaurant_id' => $restaurantId];
+                    }
                 } else {
                     $error = 'Failed to save template selection.';
                 }
