@@ -23,6 +23,18 @@ if (!defined('SITE_URL')) {
     define('SITE_URL', $protocol . $host . $basePath);
 }
 
+// #region agent log
+@file_put_contents(__DIR__ . '/../../debug-fef746.log', json_encode([
+    'sessionId' => 'fef746',
+    'runId' => 'pre-fix-qr',
+    'hypothesisId' => 'H1',
+    'location' => 'manager/qr-code.php:line20',
+    'message' => 'QR manager entry',
+    'data' => ['request_uri' => $_SERVER['REQUEST_URI'] ?? null],
+    'timestamp' => round(microtime(true) * 1000)
+]) . PHP_EOL, FILE_APPEND);
+// #endregion agent log
+
 $restaurantId = getCurrentUserRestaurantId();
 $pdo = getDBConnection();
 $message = '';
@@ -35,6 +47,18 @@ $restaurantSlug = $_GET['slug'] ?? '';
 $stmt = $pdo->prepare("SELECT * FROM restaurants WHERE id = ?");
 $stmt->execute([$restaurantId]);
 $restaurant = $stmt->fetch();
+
+// #region agent log
+@file_put_contents(__DIR__ . '/../../debug-fef746.log', json_encode([
+    'sessionId' => 'fef746',
+    'runId' => 'pre-fix-qr',
+    'hypothesisId' => 'H2',
+    'location' => 'manager/qr-code.php:line31',
+    'message' => 'Restaurant fetch result',
+    'data' => ['restaurantId' => $restaurantId, 'hasRestaurant' => (bool)$restaurant],
+    'timestamp' => round(microtime(true) * 1000)
+]) . PHP_EOL, FILE_APPEND);
+// #endregion agent log
 
 if (!$restaurant) {
     die('Restaurant not found.');
@@ -55,11 +79,35 @@ if (empty($restaurant['slug'])) {
 }
 
 // Get QR code settings
+// #region agent log
+@file_put_contents(__DIR__ . '/../../debug-fef746.log', json_encode([
+    'sessionId' => 'fef746',
+    'runId' => 'pre-fix-qr',
+    'hypothesisId' => 'H3',
+    'location' => 'manager/qr-code.php:line47',
+    'message' => 'About to load QR settings',
+    'data' => ['restaurantId' => $restaurantId],
+    'timestamp' => round(microtime(true) * 1000)
+]) . PHP_EOL, FILE_APPEND);
+// #endregion agent log
+
 $qrSettings = getRestaurantQRCodeSettings($restaurantId);
 if (!$qrSettings) {
     createDefaultQRCodeSettings($restaurantId);
     $qrSettings = getRestaurantQRCodeSettings($restaurantId);
 }
+
+// #region agent log
+@file_put_contents(__DIR__ . '/../../debug-fef746.log', json_encode([
+    'sessionId' => 'fef746',
+    'runId' => 'pre-fix-qr',
+    'hypothesisId' => 'H3',
+    'location' => 'manager/qr-code.php:line55',
+    'message' => 'QR settings loaded',
+    'data' => ['hasQrSettings' => (bool)$qrSettings],
+    'timestamp' => round(microtime(true) * 1000)
+]) . PHP_EOL, FILE_APPEND);
+// #endregion agent log
 
 // Get available templates
 $stmt = $pdo->prepare("SELECT * FROM qr_templates WHERE is_active = 1 ORDER BY name");
