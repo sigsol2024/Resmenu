@@ -78,7 +78,7 @@ if (empty($restaurant['slug'])) {
     }
 }
 
-// Get QR code settings
+// Get QR code settings (wrap in try/catch so missing table or query error does not 500 the page)
 // #region agent log
 @file_put_contents(__DIR__ . '/../../debug-fef746.log', json_encode([
     'sessionId' => 'fef746',
@@ -91,10 +91,15 @@ if (empty($restaurant['slug'])) {
 ]) . PHP_EOL, FILE_APPEND);
 // #endregion agent log
 
-$qrSettings = getRestaurantQRCodeSettings($restaurantId);
-if (!$qrSettings) {
-    createDefaultQRCodeSettings($restaurantId);
+try {
     $qrSettings = getRestaurantQRCodeSettings($restaurantId);
+    if (!$qrSettings) {
+        createDefaultQRCodeSettings($restaurantId);
+        $qrSettings = getRestaurantQRCodeSettings($restaurantId);
+    }
+} catch (Throwable $e) {
+    error_log('QR settings load error (manager/qr-code.php): ' . $e->getMessage());
+    $qrSettings = ['qr_template_id' => null, 'restaurant_id' => $restaurantId];
 }
 
 // #region agent log
@@ -110,9 +115,14 @@ if (!$qrSettings) {
 // #endregion agent log
 
 // Get available templates
-$stmt = $pdo->prepare("SELECT * FROM qr_templates WHERE is_active = 1 ORDER BY name");
-$stmt->execute();
-$templates = $stmt->fetchAll();
+try {
+    $stmt = $pdo->prepare("SELECT * FROM qr_templates WHERE is_active = 1 ORDER BY name");
+    $stmt->execute();
+    $templates = $stmt->fetchAll();
+} catch (Throwable $e) {
+    error_log('QR templates load error (manager/qr-code.php): ' . $e->getMessage());
+    $templates = [];
+}
 
 // Handle form submission - ONLY template selection
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
