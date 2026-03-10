@@ -23,24 +23,20 @@ $restaurant = $stmt->fetch();
 if (!$restaurant) die('Restaurant not found.');
 if (empty($restaurantSlug)) $restaurantSlug = $restaurant['slug'];
 
-$templateId = (int)($restaurant['template_id'] ?? 1);
 $slugParam = $restaurantSlug ? '?slug=' . urlencode($restaurantSlug) : '';
 
-// Reservations are Template 4 only
-if ($templateId !== 4) {
-    $pageTitle = 'Reservations - ' . htmlspecialchars($restaurant['name']);
-    include __DIR__ . '/../includes/manager-layout.php';
-    ?>
-    <div class="page-header">
-        <h1 class="page-title">Reservations</h1>
-        <p class="page-subtitle">Table reservations are only available for restaurants using Template 4 (The Gourmet Grill).</p>
-    </div>
-    <div class="settings-card" style="padding:24px;">
-        <p style="color:#6b7280;">Your restaurant is using Template <?php echo $templateId; ?>. To enable table reservations, switch to Template 4 in the Templates / Customization section.</p>
-    </div>
-    <?php include __DIR__ . '/../includes/admin-footer.php'; ?>
-    <?php
-    exit;
+require_once __DIR__ . '/../includes/subscription.php';
+$showManagerUpgradeOverlay = false;
+$managerUpgradePlans = [];
+$managerUpgradeBillingUrl = (defined('SITE_URL') && SITE_URL !== '') ? rtrim(SITE_URL, '/') . '/manager/billing.php' : '/manager/billing.php';
+if (!hasFeatureAccess($restaurantId, 'table_reservations')) {
+    $showManagerUpgradeOverlay = true;
+    $managerUpgradeFeature = 'table_reservations';
+    $allPlans = getSubscriptionPlans(true);
+    foreach ($allPlans as $p) {
+        $slug = strtolower((string)($p['slug'] ?? ''));
+        if ($slug === 'enterprise') $managerUpgradePlans[] = $p;
+    }
 }
 
 $reservationSettings = getReservationSettings($restaurantId);
@@ -70,7 +66,7 @@ $currencySymbol = '₦';
 $pageTitle = 'Reservations - ' . htmlspecialchars($restaurant['name']);
 include __DIR__ . '/../includes/manager-layout.php';
 ?>
-
+<div class="resmenu-manager-content-wrap <?php echo $showManagerUpgradeOverlay ? 'resmenu-manager-blurred' : ''; ?>">
 <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;">
     <div>
         <h1 class="page-title">Reservations</h1>
@@ -511,4 +507,10 @@ $statusColors = ['pending' => '#f59e0b', 'confirmed' => '#10b981', 'rejected' =>
     });
 })();
 </script>
-<?php include __DIR__ . '/../includes/admin-footer.php'; ?>
+</div>
+<?php
+if (!empty($showManagerUpgradeOverlay)) {
+    include __DIR__ . '/../includes/manager-upgrade-overlay.php';
+}
+include __DIR__ . '/../includes/admin-footer.php';
+?>

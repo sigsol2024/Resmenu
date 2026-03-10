@@ -58,10 +58,24 @@ $orders = $stmt->fetchAll();
 
 $currencySymbol = '₦';
 
+require_once __DIR__ . '/../includes/subscription.php';
+$showManagerUpgradeOverlay = false;
+$managerUpgradePlans = [];
+$managerUpgradeBillingUrl = (defined('SITE_URL') && SITE_URL !== '') ? rtrim(SITE_URL, '/') . '/manager/billing.php' : '/manager/billing.php';
+if (!hasFeatureAccess($restaurantId, 'food_ordering')) {
+    $showManagerUpgradeOverlay = true;
+    $managerUpgradeFeature = 'food_ordering';
+    $allPlans = getSubscriptionPlans(true);
+    foreach ($allPlans as $p) {
+        $slug = strtolower((string)($p['slug'] ?? ''));
+        if (in_array($slug, ['professional', 'enterprise'], true)) $managerUpgradePlans[] = $p;
+    }
+}
+
 $pageTitle = 'Orders - ' . htmlspecialchars($restaurant['name']);
 include __DIR__ . '/../includes/manager-layout.php';
 ?>
-
+<div class="resmenu-manager-content-wrap <?php echo $showManagerUpgradeOverlay ? 'resmenu-manager-blurred' : ''; ?>">
 <div class="page-header">
     <h1 class="page-title">Orders</h1>
     <p class="page-subtitle">View revenue and manage orders for <?php echo htmlspecialchars($restaurant['name']); ?></p>
@@ -485,4 +499,10 @@ $statusColors = ['pending' => '#f59e0b', 'confirmed' => '#3b82f6', 'on_hold' => 
 })();
 </script>
 
-<?php include __DIR__ . '/../includes/admin-footer.php'; ?>
+</div>
+<?php
+if (!empty($showManagerUpgradeOverlay)) {
+    include __DIR__ . '/../includes/manager-upgrade-overlay.php';
+}
+include __DIR__ . '/../includes/admin-footer.php';
+?>
