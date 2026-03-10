@@ -285,11 +285,14 @@ include __DIR__ . '/../includes/manager-layout.php';
                             <div style="width: 100%; height: 100px; background: #f9fafb; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 8px;">
                                 <?php
                                 $previewSrc = rtrim(SITE_URL, '/') . '/api/qr-template-preview-image.php?template_id=' . (int)$template['id'] . '&size=100';
+                                $configJson = isset($template['config_json']) ? (is_string($template['config_json']) ? $template['config_json'] : json_encode($template['config_json'])) : '{}';
                                 ?>
-                                <img src="<?php echo htmlspecialchars($previewSrc); ?>"
-                                     alt="<?php echo htmlspecialchars($template['name']); ?>"
-                                     style="max-width: 90%; max-height: 90%; object-fit: contain;"
-                                     onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\'color: var(--muted); font-size: 0.75rem;\'>Preview</span>'">
+                                <div class="qr-preview-container" style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;"
+                                     data-config="<?php echo htmlspecialchars($configJson, ENT_QUOTES, 'UTF-8'); ?>"
+                                     data-fallback-src="<?php echo htmlspecialchars($previewSrc, ENT_QUOTES, 'UTF-8'); ?>"
+                                     data-alt="<?php echo htmlspecialchars($template['name'], ENT_QUOTES, 'UTF-8'); ?>">
+                                    <span style="color: var(--muted); font-size: 0.75rem;">Preview</span>
+                                </div>
                             </div>
                             
                             <?php if ($isSelected): ?>
@@ -468,6 +471,8 @@ include __DIR__ . '/../includes/manager-layout.php';
 }
 </style>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="<?php echo htmlspecialchars(rtrim(SITE_URL, '/') . '/assets/js/qr-preview.js', ENT_QUOTES, 'UTF-8'); ?>"></script>
 <script>
 function selectTemplate(templateId) {
     // Update hidden input
@@ -487,6 +492,49 @@ function selectTemplate(templateId) {
         }
     });
 }
+
+// Live QR preview on template cards (fallback to snapshot API if library fails or times out)
+(function initQRPreviews() {
+    function fallbackToImage(container) {
+        var src = container.getAttribute('data-fallback-src');
+        var alt = container.getAttribute('data-alt') || 'Preview';
+        if (src) {
+            var img = document.createElement('img');
+            img.src = src;
+            img.alt = alt;
+            img.style.cssText = 'max-width:90%;max-height:90%;object-fit:contain;';
+            container.innerHTML = '';
+            container.appendChild(img);
+        }
+    }
+    function runPreviews() {
+        if (typeof generateQRPreview !== 'function') return;
+        var containers = document.querySelectorAll('.qr-preview-container');
+        containers.forEach(function(container) {
+            var configRaw = container.getAttribute('data-config');
+            var config = {};
+            try {
+                config = configRaw ? JSON.parse(configRaw) : {};
+            } catch (e) {
+                fallbackToImage(container);
+                return;
+            }
+            try {
+                generateQRPreview(container, config, null, 100, function() { fallbackToImage(container); });
+            } catch (e) {
+                fallbackToImage(container);
+            }
+            setTimeout(function() {
+                if (!container.querySelector('svg')) fallbackToImage(container);
+            }, 4000);
+        });
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', runPreviews);
+    } else {
+        runPreviews();
+    }
+})();
 </script>
 
 <?php include __DIR__ . '/../includes/admin-footer.php'; ?>
