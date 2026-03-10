@@ -7,6 +7,16 @@ require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/functions.php';
 require_once __DIR__ . '/qr-template-helper.php';
 
+// Ensure SITE_URL is defined to avoid fatal errors when generating QR URLs
+if (!defined('SITE_URL')) {
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $scriptPath = $_SERVER['SCRIPT_NAME'] ?? '/index.php';
+    $scriptDir = dirname(dirname($scriptPath));
+    $basePath = ($scriptDir === '/' || $scriptDir === '\\' || $scriptDir === '.') ? '' : $scriptDir;
+    define('SITE_URL', $protocol . $host . $basePath);
+}
+
 // Check if QR Code library is available
 $qrCodeAvailable = false;
 if (file_exists(__DIR__ . '/../vendor/autoload.php')) {

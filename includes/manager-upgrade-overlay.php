@@ -1,14 +1,22 @@
 <?php
 /**
- * Manager upgrade overlay: shown on Orders / Reservations when plan doesn't include the feature.
- * Expects: $managerUpgradeFeature ('food_ordering'|'table_reservations'), $managerUpgradePlans (array), $managerUpgradeBillingUrl (string).
+ * Manager upgrade overlay: shown on manager pages when plan doesn't include the feature.
+ * Expects: $managerUpgradeFeature ('food_ordering'|'table_reservations'|'payments'), $managerUpgradePlans (array), $managerUpgradeBillingUrl (string).
  */
 if (empty($managerUpgradeFeature) || empty($managerUpgradePlans)) return;
 
-$title = $managerUpgradeFeature === 'food_ordering' ? 'Food ordering' : 'Table reservations';
-$message = $managerUpgradeFeature === 'food_ordering'
-    ? 'Upgrade your plan to accept orders and manage them here.'
-    : 'Upgrade your plan to enable table reservations and manage them here.';
+$title = 'Feature';
+$message = 'Upgrade your plan to unlock this feature.';
+if ($managerUpgradeFeature === 'food_ordering') {
+    $title = 'Food ordering';
+    $message = 'Upgrade your plan to accept orders and manage them here.';
+} elseif ($managerUpgradeFeature === 'table_reservations') {
+    $title = 'Table reservations';
+    $message = 'Upgrade your plan to enable table reservations and manage them here.';
+} elseif ($managerUpgradeFeature === 'payments') {
+    $title = 'Payments';
+    $message = 'Upgrade your plan to enable online payments for orders and reservations.';
+}
 $billingUrl = !empty($managerUpgradeBillingUrl) ? $managerUpgradeBillingUrl : '/manager/billing.php';
 ?>
 <style>

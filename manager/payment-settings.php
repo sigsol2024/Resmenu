@@ -31,6 +31,27 @@ $pdo = getDBConnection();
 $message = '';
 $messageType = '';
 
+// Feature gating: payment settings only for restaurants with ordering or reservations
+require_once __DIR__ . '/../includes/subscription.php';
+$showManagerUpgradeOverlay = false;
+$managerUpgradePlans = [];
+$managerUpgradeBillingUrl = (defined('SITE_URL') && SITE_URL !== '') ? rtrim(SITE_URL, '/') . '/manager/billing.php' : '/manager/billing.php';
+
+$hasOrdering = hasFeatureAccess($restaurantId, 'food_ordering');
+$hasReservations = hasFeatureAccess($restaurantId, 'table_reservations');
+
+if (!$hasOrdering && !$hasReservations) {
+    $showManagerUpgradeOverlay = true;
+    $managerUpgradeFeature = 'payments';
+    $allPlans = getSubscriptionPlans(true);
+    foreach ($allPlans as $p) {
+        $slug = strtolower((string)($p['slug'] ?? ''));
+        if (in_array($slug, ['professional', 'enterprise'], true)) {
+            $managerUpgradePlans[] = $p;
+        }
+    }
+}
+
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     requireCSRFToken();
@@ -79,7 +100,7 @@ $bankTransferSettings = getRestaurantPaymentSettings($restaurantId, 'bank_transf
 $pageTitle = 'Payment Settings';
 include __DIR__ . '/../includes/manager-layout.php';
 ?>
-
+<div class="resmenu-manager-content-wrap <?php echo !empty($showManagerUpgradeOverlay) ? 'resmenu-manager-blurred' : ''; ?>">
 <style>
 .page-header { margin-bottom: 24px; }
 .page-title { font-size: 1.5rem; font-weight: 600; color: var(--text); margin: 0; }
@@ -320,4 +341,14 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<?php include __DIR__ . '/../includes/admin-footer.php'; ?>
+<?php
+// Close blurred content wrapper
+echo '</div>';
+
+// Show upgrade overlay when plan does not include ordering or reservations
+if (!empty($showManagerUpgradeOverlay)) {
+    include __DIR__ . '/../includes/manager-upgrade-overlay.php';
+}
+
+include __DIR__ . '/../includes/admin-footer.php';
+?>
