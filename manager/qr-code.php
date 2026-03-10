@@ -13,6 +13,16 @@ require_once __DIR__ . '/../includes/qr-analytics.php';
 require_once __DIR__ . '/../includes/qr-template-helper.php';
 require_once __DIR__ . '/../includes/csrf.php';
 
+// Ensure SITE_URL is defined (used for previews and download links)
+if (!defined('SITE_URL')) {
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $scriptPath = $_SERVER['SCRIPT_NAME'] ?? '/index.php';
+    $scriptDir = dirname(dirname($scriptPath));
+    $basePath = ($scriptDir === '/' || $scriptDir === '\\' || $scriptDir === '.') ? '' : $scriptDir;
+    define('SITE_URL', $protocol . $host . $basePath);
+}
+
 $restaurantId = getCurrentUserRestaurantId();
 $pdo = getDBConnection();
 $message = '';
@@ -108,8 +118,16 @@ if ($qrSettings && $qrSettings['qr_template_id']) {
     $selectedTemplate = $stmt->fetch();
 }
 
-// Get analytics summary
-$analytics = getQRCodeAnalytics($restaurantId);
+// Get analytics summary (fail gracefully if analytics tables not present)
+try {
+    $analytics = getQRCodeAnalytics($restaurantId);
+} catch (Throwable $e) {
+    error_log('QR analytics error for restaurant ' . $restaurantId . ': ' . $e->getMessage());
+    $analytics = null;
+}
+if (!$analytics || !is_array($analytics)) {
+    $analytics = ['total_scans' => 0];
+}
 $qrCodeURL = getRestaurantQRCodeURL($restaurant['slug']);
 
 $pageTitle = 'QR Code';
