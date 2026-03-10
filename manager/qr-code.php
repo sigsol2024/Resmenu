@@ -96,8 +96,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!$template) {
                 $error = 'Selected template is not available.';
             } else {
-                // Ensure a row exists (INSERT or no-op if already exists)
-                createDefaultQRCodeSettings($restaurantId);
+                // Ensure a row exists (INSERT or no-op if already exists); catch so FK/missing table doesn't 500
+                try {
+                    createDefaultQRCodeSettings($restaurantId);
+                } catch (Throwable $e) {
+                    error_log('QR createDefaultQRCodeSettings: ' . $e->getMessage());
+                }
 
                 // Save template selection and copy template config as final config
                 $templateConfig = is_string($template['config_json'])

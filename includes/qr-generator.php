@@ -83,11 +83,12 @@ function getRestaurantQRCodeURL($restaurantSlug) {
 function createDefaultQRCodeSettings($restaurantId) {
     $pdo = getDBConnection();
     if (!$pdo) return false;
-    
+
+    // Use NULL for qr_template_id so INSERT works even when no template id=1 exists (FK to qr_templates)
     $stmt = $pdo->prepare("
         INSERT INTO restaurant_qr_codes 
         (restaurant_id, qr_template_id, background_color, qr_color, text_content, text_color, text_size, qr_size, margin)
-        VALUES (?, 1, '#FFFFFF', '#000000', 'Scan to view menu', '#000000', 16, 300, 20)
+        VALUES (?, NULL, '#FFFFFF', '#000000', 'Scan to view menu', '#000000', 16, 300, 20)
         ON DUPLICATE KEY UPDATE updated_at = CURRENT_TIMESTAMP
     ");
     return $stmt->execute([$restaurantId]);
