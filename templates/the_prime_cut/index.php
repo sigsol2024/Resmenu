@@ -23,6 +23,7 @@ if (defined('UPLOAD_URL')) {
 }
 $reservationUrl = $baseUrl . '/restaurant/' . ($restaurant['slug'] ?? '') . '/reservation';
 $primaryColor = isset($customization['primary_color']) ? $customization['primary_color'] : '#D4AF37';
+$siteAssetsBase = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : $baseUrl) . '/uploads/site';
 function the_prime_cut_price($price, $symbol = '₦') {
     return $symbol . number_format((float)$price, 2);
 }
@@ -45,6 +46,7 @@ $ornateSymbols = ['❦', '✧', '⚜', '🍷'];
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&amp;family=Montserrat:wght@300;400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <script>
     tailwind.config = {
       theme: {
@@ -63,15 +65,17 @@ $ornateSymbols = ['❦', '✧', '⚜', '🍷'];
       },
     }
   </script>
-<style data-purpose="custom-textures">body {
-    background-color: #1A0F0A;
-    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuBfDohbLB1S59o5A-LDPhD-EWKz6bpJpxo29Aky59qsM2XRmlwqkKi-oIbUg7lvUTBDyYkLAzEL0pmU0nSYnPOe_rkZAH7xQfFd8WVvf6PRa4TgsG01aVlfEAcE_A2lgprCmWm0bUOLWL2m5M7PTbaCC04yFbmqIdSgjHOhxR2UV-G9FEqcqkpdcSQeOJcUKTTiRxVkh3NPXSQnK30MHfnEkO_p9H2hK176s1Py7YCWeMB7DmNQq0ac04D-nI3TsJQzO6F3kboMwglv)
-    }
+<style data-purpose="custom-textures">
+.material-symbols-outlined { font-family: 'Material Symbols Outlined', sans-serif; font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+body.prime-cut-outer { background-color: #0f172a; position: relative; overflow-x: hidden; }
+body.prime-cut-outer .prime-cut-outer-bg { position: absolute; inset: 0; pointer-events: none; background-image: url('<?php echo htmlspecialchars($siteAssetsBase . '/bh_pattern-orange.png'); ?>'); background-repeat: repeat; background-size: 280px 280px; opacity: 0.12; }
 .menu-page {
-    background-color: #4A0404;
-    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuBsIkU6Av4uOchJ6KqHumh9oquAiJsS-PwQnUzbjpR-u-kHo-UVLotmGg1_dKwrbgpMZ868DmTYkWZnlHKGT_BHqFUAKi-3FxzTh004YhT2X-qbN5NBH0Yl4PB5pXOWmezW2kv9csTmWN2sNUYYMf5IGVbfyYKZZR52CRVdVkVSWQ9eNHA1Z5T2KQKeaULDDZ9ciUdFC-mC8PzaZCyM9jBXwnHJR-7i-O-O8ynSK-90ajsQxakWiJGhXELz7S0YXTNeI0ADquwrYZq7);
-    box-shadow: 0 0 50px rgba(0, 0, 0, 0.8)
+    background-color: #000;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
     }
+.menu-page .menu-page-pattern { position: absolute; inset: 0; pointer-events: none; background-image: url('<?php echo htmlspecialchars($siteAssetsBase . '/bg_white.png'); ?>'); background-repeat: repeat; background-size: 280px 280px; opacity: 0.08; }
 .gold-border {
     border: 2px solid #D4AF37;
     outline: 1px solid #D4AF37;
@@ -98,15 +102,41 @@ $ornateSymbols = ['❦', '✧', '⚜', '🍷'];
     font-size: 1.5rem
     }</style>
 </head>
-<body class="min-h-screen py-12 px-4 flex justify-center items-start">
-<main class="menu-page max-w-4xl w-full text-cream p-8 md:p-16 gold-border relative">
-<header class="text-center mb-16" data-purpose="main-header">
-<?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?><div class="mb-4"><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="h-20 w-auto object-contain mx-auto"/></div><?php endif; ?>
-<div class="mb-4">
-<span class="text-gold tracking-[0.3em] uppercase text-sm font-sans"><?php echo !empty($restaurant['description']) ? htmlspecialchars(mb_substr($restaurant['description'], 0, 60)) : 'Established'; ?></span>
+<body class="prime-cut-outer min-h-screen py-12 px-4 flex justify-center items-start">
+<div class="prime-cut-outer-bg" aria-hidden="true"></div>
+<!-- Categories sidebar (desktop + mobile) -->
+<div class="fixed top-4 right-4 z-[60] flex items-center gap-3">
+    <button type="button" id="prime-cut-menu-toggle" class="flex items-center justify-center w-12 h-12 rounded-full border-2 border-gold/60 text-gold hover:bg-gold/20 transition-colors bg-black/40" aria-label="Open menu categories">
+        <span class="material-symbols-outlined text-2xl">menu</span>
+    </button>
 </div>
+<div class="fixed inset-0 z-[45] bg-black/50 opacity-0 invisible pointer-events-none transition-opacity duration-200" id="prime-cut-sidebar-overlay"></div>
+<aside class="fixed top-0 right-0 z-[50] w-72 max-w-[85vw] h-full bg-darkwood border-l-2 border-gold/40 shadow-2xl transform translate-x-full transition-transform duration-300 overflow-y-auto" id="prime-cut-category-sidebar">
+    <div class="p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="font-serif text-xl text-gold uppercase tracking-widest">Categories</h3>
+            <button type="button" id="prime-cut-sidebar-close" class="p-2 text-gold hover:bg-gold/10 rounded-full transition-colors" aria-label="Close">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <nav class="flex flex-col gap-2">
+            <?php foreach ($activeCategories as $cat): $cslug = isset($cat['slug']) ? $cat['slug'] : ('section-' . array_search($cat, $activeCategories)); ?>
+            <a href="#<?php echo htmlspecialchars($cslug); ?>" class="prime-cut-nav-link block py-3 px-4 font-sans text-cream hover:bg-gold/10 hover:text-gold rounded-lg transition-colors"><?php echo htmlspecialchars($cat['name']); ?></a>
+            <?php endforeach; ?>
+        </nav>
+    </div>
+</aside>
+<main class="menu-page max-w-4xl w-full text-cream p-8 md:p-16 gold-border relative z-10">
+<div class="menu-page-pattern" aria-hidden="true"></div>
+<header class="text-center mb-16 relative z-10" data-purpose="main-header">
+<?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?>
+<div class="mb-4"><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="h-24 w-auto object-contain mx-auto"/></div>
+<div class="mb-4"><span class="text-gold tracking-[0.3em] uppercase text-sm font-sans"><?php echo !empty($restaurant['description']) ? htmlspecialchars(mb_substr($restaurant['description'], 0, 60)) : 'Established'; ?></span></div>
+<?php else: ?>
+<div class="mb-4"><span class="text-gold tracking-[0.3em] uppercase text-sm font-sans"><?php echo !empty($restaurant['description']) ? htmlspecialchars(mb_substr($restaurant['description'], 0, 60)) : 'Established'; ?></span></div>
 <h1 class="font-serif text-6xl md:text-7xl text-gold italic mb-2"><?php echo htmlspecialchars($restaurant['name']); ?></h1>
 <p class="font-sans text-lg tracking-widest uppercase opacity-80"><?php echo !empty($restaurant['description']) ? htmlspecialchars(mb_substr($restaurant['description'], 0, 80)) : 'Premium Artisanal'; ?></p>
+<?php endif; ?>
 <?php if (!empty($supportsReservations)): ?><div class="mt-4"><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="font-sans text-sm tracking-widest uppercase text-gold border border-gold/60 px-6 py-2 hover:bg-gold/20 transition-colors">Reserve Table</a></div><?php endif; ?>
 <div class="ornate-divider">
 <span class="ornate-symbol">❦</span>
@@ -164,11 +194,13 @@ $ornateSymbols = ['❦', '✧', '⚜', '🍷'];
 <?php endif; ?>
 </section>
 <?php endforeach; ?>
-<footer class="text-center border-t border-gold/20 pt-10" data-purpose="menu-footer">
-<p class="font-serif italic text-gold text-lg mb-2"><?php echo !empty($restaurant['footer_content']) ? htmlspecialchars($restaurant['footer_content']) : '"Quality is never an accident."'; ?></p>
-<div class="flex justify-center gap-6 mt-4 text-xs font-sans uppercase tracking-[0.2em] opacity-60">
-<?php if (!empty($restaurant['address'])): ?><span><?php echo htmlspecialchars($restaurant['address']); ?></span><span>•</span><?php endif; ?>
-<?php if (!empty($restaurant['phone'])): ?><span><?php echo htmlspecialchars($restaurant['phone']); ?></span><?php endif; ?>
+<footer class="text-center border-t border-gold/20 pt-10 relative z-10" data-purpose="menu-footer">
+<?php if (!empty($restaurant['footer_content'])): ?><p class="font-serif italic text-gold text-lg mb-4"><?php echo htmlspecialchars($restaurant['footer_content']); ?></p><?php endif; ?>
+<h3 class="font-serif text-gold text-xl mb-3"><?php echo htmlspecialchars($restaurant['name']); ?></h3>
+<div class="flex flex-wrap justify-center gap-x-4 gap-y-1 text-sm font-sans uppercase tracking-[0.15em] opacity-80 text-cream">
+<?php if (!empty($restaurant['address'])): ?><span><?php echo htmlspecialchars($restaurant['address']); ?></span><?php endif; ?>
+<?php if (!empty($restaurant['phone'])): ?><span><?php if (!empty($restaurant['address'])): ?> • <?php endif; ?><a href="tel:<?php echo htmlspecialchars(preg_replace('/\s+/', '', $restaurant['phone'])); ?>" class="text-gold hover:underline"><?php echo htmlspecialchars($restaurant['phone']); ?></a></span><?php endif; ?>
+<?php if (!empty($restaurant['email'])): ?><span><?php if (!empty($restaurant['address']) || !empty($restaurant['phone'])): ?> • <?php endif; ?><a href="mailto:<?php echo htmlspecialchars($restaurant['email']); ?>" class="text-gold hover:underline"><?php echo htmlspecialchars($restaurant['email']); ?></a></span><?php endif; ?>
 </div>
 </footer>
 </main>
@@ -195,6 +227,31 @@ $ornateSymbols = ['❦', '✧', '⚜', '🍷'];
 })();
 </script>
 <?php endif; ?>
+<script>
+(function() {
+    var toggle = document.getElementById('prime-cut-menu-toggle');
+    var sidebar = document.getElementById('prime-cut-category-sidebar');
+    var overlay = document.getElementById('prime-cut-sidebar-overlay');
+    var closeBtn = document.getElementById('prime-cut-sidebar-close');
+    function openSidebar() {
+        if (sidebar) { sidebar.classList.remove('translate-x-full'); }
+        if (overlay) { overlay.classList.remove('opacity-0', 'invisible', 'pointer-events-none'); overlay.classList.add('opacity-100'); overlay.style.pointerEvents = 'auto'; }
+        document.body.style.overflow = 'hidden';
+    }
+    function closeSidebar() {
+        if (sidebar) { sidebar.classList.add('translate-x-full'); }
+        if (overlay) { overlay.classList.add('opacity-0', 'invisible', 'pointer-events-none'); overlay.classList.remove('opacity-100'); overlay.style.pointerEvents = 'none'; }
+        document.body.style.overflow = '';
+    }
+    if (toggle) toggle.addEventListener('click', openSidebar);
+    if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+    if (overlay) overlay.addEventListener('click', closeSidebar);
+    document.querySelectorAll('.prime-cut-nav-link').forEach(function(link) {
+        link.addEventListener('click', closeSidebar);
+    });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeSidebar(); });
+})();
+</script>
 <!-- Back to top -->
 <a id="scrollToTop" href="#" aria-label="Scroll to top" style="position:fixed;bottom:24px;right:24px;z-index:30;width:48px;height:48px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:#111;color:#fff;opacity:0;visibility:hidden;transform:translateY(10px);transition:opacity 0.3s,visibility 0.3s,transform 0.3s;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6"/></svg>
