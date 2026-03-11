@@ -84,7 +84,8 @@ h1, h2, h3, .serif-font { font-family: 'Bodoni Moda', serif; }
 <section class="relative h-[70vh] flex items-center justify-center overflow-hidden bg-gray-50">
 <div class="z-10 text-center px-4">
 <span class="text-xs uppercase tracking-[0.5em] mb-4 block"><?php echo htmlspecialchars($restaurant['description'] ?? 'Crafting Balance'); ?></span>
-<div class="w-12 h-px bg-black mx-auto"></div>
+<div class="w-12 h-px bg-black mx-auto mb-6"></div>
+<?php if (!empty($supportsReservations)): ?><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="inline-block text-sm uppercase tracking-widest font-medium text-gray-700 hover:text-[#bc002d] border border-gray-300 hover:border-[#bc002d] px-6 py-2.5 transition-colors">Reserve Table</a><?php endif; ?>
 </div>
 <?php if (!empty($restaurant['hero_image']) && empty($isTemplatePreview)): ?>
 <img alt="" class="absolute inset-0 w-full h-full object-cover opacity-80" src="<?php echo $uploadBaseUrl . '/heroes/' . htmlspecialchars($restaurant['hero_image']); ?>"/>
