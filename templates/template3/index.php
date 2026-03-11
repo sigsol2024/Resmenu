@@ -234,7 +234,6 @@ endif;
 <?php if (!empty($item['image'])): ?>
 <div class="w-full aspect-[4/3] overflow-hidden rounded-xl bg-gray-100 relative mb-0">
 <div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110" style='background-image: url("<?php echo $uploadBaseUrl . '/menu-items/' . htmlspecialchars($item['image']); ?>");'></div>
-<div class="absolute top-3 right-3 bg-white/90 backdrop-blur rounded-full px-3 py-1 text-xs font-bold text-primary shadow-sm"><?php echo formatPriceTemplate3($item['price']); ?></div>
 <?php if (!$item['is_available']): ?>
 <div class="absolute inset-0 bg-black/60 flex items-center justify-center">
 <span class="text-white font-bold text-lg">Unavailable</span>
@@ -246,9 +245,7 @@ endif;
 <div class="flex flex-col">
 <div class="flex items-center justify-between gap-2 mb-1">
 <h3 class="text-slate-900 text-xl font-bold leading-tight group-hover:text-primary transition-colors"><?php echo htmlspecialchars($item['name']); ?></h3>
-<?php if (empty($item['image'])): ?>
 <span class="text-primary text-lg font-bold whitespace-nowrap"><?php echo formatPriceTemplate3($item['price']); ?></span>
-<?php endif; ?>
 </div>
 <?php if (!empty($item['description'])): ?>
 <p class="text-gray-600 text-sm mt-1 line-clamp-2"><?php echo htmlspecialchars($item['description']); ?></p>
