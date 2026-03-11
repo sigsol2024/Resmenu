@@ -44,12 +44,12 @@ h1, h2, h3 { font-family: 'Fredoka One', cursive; }
 #resmenu-cart-widget .resmenu-cart-widget-btn { background-color: #7BC992 !important; color: #FF85A2 !important; }
 #resmenu-cart-widget .resmenu-cart-widget-btn .material-symbols-outlined { color: #FF85A2 !important; }
 #resmenu-cart-widget .resmenu-cart-widget-btn:hover { background-color: #6ab87e !important; }
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .sd-desktop-nav { display: none; }
   .sd-mobile-toggle-wrap { display: flex !important; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.2s, visibility 0.2s; }
   .sd-mobile-toggle-wrap.sd-toggle-visible { opacity: 1; visibility: visible; pointer-events: auto; }
 }
-@media (min-width: 769px) {
+@media (min-width: 1025px) {
   .sd-mobile-toggle-wrap { display: none !important; }
 }
 .sd-mobile-toggle-wrap.sidebar-open { visibility: hidden; pointer-events: none; }
@@ -171,7 +171,7 @@ h1, h2, h3 { font-family: 'Fredoka One', cursive; }
     document.addEventListener('keydown',function(e){if(e.key==='Escape')closeSidebar();});
     if(heroHeader&&toggleWrap){
         function checkScroll(){
-            if(window.innerWidth>768)return;
+            if(window.innerWidth>1024)return;
             var rect=heroHeader.getBoundingClientRect();
             if(rect.bottom<0)toggleWrap.classList.add('sd-toggle-visible');
             else toggleWrap.classList.remove('sd-toggle-visible');

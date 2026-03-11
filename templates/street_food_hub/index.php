@@ -7,6 +7,11 @@ if (defined('UPLOAD_URL')) { $uploadBaseUrl = rtrim(UPLOAD_URL, '/'); } else {
     $uploadBaseUrl = $protocol . ($_SERVER['HTTP_HOST'] ?? 'localhost') . (dirname(dirname(dirname($_SERVER['SCRIPT_NAME'] ?? ''))) ?: '') . '/uploads';
 }
 $baseUrl = defined('SITE_URL') ? rtrim(SITE_URL, '/') : '';
+if ($baseUrl === '') {
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+    $baseUrl = $protocol . ($_SERVER['HTTP_HOST'] ?? 'localhost') . (dirname(dirname(dirname($_SERVER['SCRIPT_NAME'] ?? '/index.php'))));
+}
+$siteAssetsBase = rtrim($baseUrl, '/') . '/uploads/site';
 $reservationUrl = $baseUrl . '/restaurant/' . ($restaurant['slug'] ?? '') . '/reservation';
 $currencySymbol = '₦';
 $primaryColor = isset($customization['primary_color']) ? $customization['primary_color'] : '#FFD700';
@@ -26,67 +31,129 @@ $masonryClasses = ['masonry-item-sm', 'masonry-item-md', 'masonry-item-lg'];
 <title><?php echo htmlspecialchars($restaurant['name']); ?></title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Bungee&amp;family=Inter:wght@400;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <script>
     tailwind.config = { theme: { extend: { colors: { brandYellow: '#FFD700', brandBlack: '#1A1A1A' }, fontFamily: { chunky: ['Bungee', 'cursive'], sans: ['Inter', 'sans-serif'] }, boxShadow: { brutal: '8px 8px 0px 0px #1A1A1A', 'brutal-sm': '4px 4px 0px 0px #1A1A1A' } } } }
   </script>
-<style>.comic-border { border: 4px solid #1A1A1A; } .masonry-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; } .masonry-item-sm { grid-row-end: span 35; } .masonry-item-md { grid-row-end: span 45; } .masonry-item-lg { grid-row-end: span 55; } @keyframes wiggle { 0%, 100% { transform: rotate(-1deg); } 50% { transform: rotate(1deg); } } .animate-wiggle { animation: wiggle 2s infinite ease-in-out; }</style>
+<style>
+.comic-border { border: 4px solid #1A1A1A; }
+.masonry-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; align-items: start; }
+.masonry-item-sm { grid-row-end: span 18; }
+.masonry-item-md { grid-row-end: span 22; }
+.masonry-item-lg { grid-row-end: span 26; }
+@keyframes wiggle { 0%, 100% { transform: rotate(-1deg); } 50% { transform: rotate(1deg); } }
+.animate-wiggle { animation: wiggle 2s infinite ease-in-out; }
+.material-symbols-outlined { font-family: 'Material Symbols Outlined', sans-serif; font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+body.sfh-body { position: relative; min-height: 100vh; }
+body.sfh-body .sfh-bg { position: absolute; inset: 0; pointer-events: none; background-image: url('<?php echo htmlspecialchars($siteAssetsBase . '/bg_black.png'); ?>'); background-repeat: repeat; background-size: 280px 280px; opacity: 0.06; z-index: 0; }
+</style>
 </head>
-<body class="bg-brandYellow text-brandBlack font-sans antialiased p-4 md:p-8">
-<header class="max-w-7xl mx-auto mb-12 text-center" data-purpose="page-header">
-<?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?><div class="mb-4"><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="h-20 w-auto object-contain mx-auto"/></div><?php endif; ?>
-<div class="inline-block bg-brandBlack text-white p-6 comic-border shadow-brutal -rotate-2 mb-6">
-<h1 class="font-chunky text-5xl md:text-7xl uppercase tracking-tighter"><?php echo htmlspecialchars($restaurant['name']); ?></h1>
+<body class="bg-brandYellow text-brandBlack font-sans antialiased p-4 md:p-8 relative sfh-body">
+<div class="sfh-bg" aria-hidden="true"></div>
+<div class="sfh-toggle-wrap fixed top-4 right-4 z-[60] flex items-center justify-center w-12 h-12 bg-white comic-border shadow-brutal-sm" id="sfh-toggle-wrap">
+<button type="button" id="sfh-menu-toggle" class="flex items-center justify-center w-full h-full text-brandBlack hover:bg-brandBlack hover:text-white transition-colors" aria-label="Open menu">
+<span class="material-symbols-outlined text-2xl">menu</span>
+</button>
 </div>
-<p class="font-bold text-xl md:text-2xl uppercase italic"><?php echo htmlspecialchars($restaurant['description'] ?? 'Vibrant. Loud. Delicious.'); ?></p>
-</header>
-<nav class="max-w-7xl mx-auto mb-16 flex flex-wrap justify-center gap-4" data-purpose="category-navigation">
-<?php if (!empty($supportsReservations)): ?><a class="bg-white comic-border px-6 py-2 font-chunky hover:bg-brandBlack hover:text-white transition-colors shadow-brutal-sm" href="<?php echo htmlspecialchars($reservationUrl); ?>">Reserve Table</a><?php endif; ?>
+<div class="fixed inset-0 z-[45] bg-black/40 opacity-0 invisible pointer-events-none transition-opacity duration-200" id="sfh-sidebar-overlay"></div>
+<aside class="fixed top-0 right-0 z-[50] w-72 max-w-[85vw] h-full bg-brandYellow shadow-brutal border-l-4 border-brandBlack overflow-y-auto transform translate-x-full transition-transform duration-300" id="sfh-sidebar">
+<div class="p-6 sticky top-0 bg-brandYellow z-10 flex items-center justify-between border-b-4 border-brandBlack pb-4 mb-4">
+<h3 class="font-chunky text-xl">Menu</h3>
+<button type="button" id="sfh-sidebar-close" class="flex items-center justify-center w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] text-brandBlack hover:bg-brandBlack hover:text-white comic-border transition-colors" aria-label="Close">
+<span class="material-symbols-outlined text-2xl">close</span>
+</button>
+</div>
+<nav class="flex flex-col gap-2 sfh-nav-links px-6 pb-6">
+<?php if (!empty($supportsReservations)): ?><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="sfh-nav-link block text-center comic-border px-4 py-3 font-chunky bg-white hover:bg-brandBlack hover:text-white transition-colors shadow-brutal-sm">Reserve Table</a><?php endif; ?>
 <?php foreach ($activeCategories as $i => $cat): $s = isset($cat['slug']) ? $cat['slug'] : ('section-'.$i); ?>
-<a class="bg-white comic-border px-6 py-2 font-chunky hover:bg-brandBlack hover:text-white transition-colors shadow-brutal-sm" href="#<?php echo htmlspecialchars($s); ?>"><?php echo htmlspecialchars($cat['name']); ?></a>
+<a href="#<?php echo htmlspecialchars($s); ?>" class="sfh-nav-link block text-center comic-border px-4 py-3 font-chunky bg-white hover:bg-brandBlack hover:text-white transition-colors shadow-brutal-sm"><?php echo htmlspecialchars($cat['name']); ?></a>
 <?php endforeach; ?>
 </nav>
-<main class="max-w-7xl mx-auto">
-<div class="masonry-grid">
+</aside>
+<header class="max-w-7xl mx-auto mb-12 text-center relative z-10" data-purpose="page-header">
+<div class="inline-block bg-brandBlack text-white p-6 comic-border shadow-brutal -rotate-2 mb-6">
+<?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?>
+<img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="h-20 w-auto object-contain mx-auto"/>
+<?php else: ?>
+<h1 class="font-chunky text-5xl md:text-7xl uppercase tracking-tighter"><?php echo htmlspecialchars($restaurant['name']); ?></h1>
+<?php endif; ?>
+</div>
+<p class="font-bold text-xl md:text-2xl uppercase italic"><?php echo htmlspecialchars($restaurant['description'] ?? 'Vibrant. Loud. Delicious.'); ?></p>
+<?php if (!empty($supportsReservations)): ?><p class="mt-4"><a class="inline-block bg-white comic-border px-6 py-2 font-chunky hover:bg-brandBlack hover:text-white transition-colors shadow-brutal-sm" href="<?php echo htmlspecialchars($reservationUrl); ?>">Reserve Table</a></p><?php endif; ?>
+</header>
+<main class="max-w-7xl mx-auto relative z-10">
 <?php foreach ($activeCategories as $catIndex => $category): 
     $slug = isset($category['slug']) ? $category['slug'] : ('section-'.$catIndex);
     $items = $category['menu_items'];
     if (empty($items)) continue;
-    foreach ($items as $itemIndex => $item): 
+?>
+<section class="mb-16" id="<?php echo htmlspecialchars($slug); ?>">
+<h2 class="font-chunky text-3xl md:text-4xl uppercase mb-6 comic-border inline-block bg-white px-6 py-3 shadow-brutal-sm -rotate-1"><?php echo htmlspecialchars($category['name']); ?></h2>
+<div class="masonry-grid">
+<?php foreach ($items as $itemIndex => $item): 
         $masonry = $masonryClasses[$itemIndex % 3];
         $imgUrl = !empty($item['image']) ? $uploadBaseUrl . '/menu-items/' . htmlspecialchars($item['image']) : '';
+        $itemAvailable = !isset($item['is_available']) || $item['is_available'];
 ?>
-<article class="<?php echo $masonry; ?> bg-white comic-border p-6 shadow-brutal flex flex-col relative overflow-hidden group" data-purpose="menu-item" id="<?php echo $itemIndex === 0 ? $slug : ''; ?>">
+<article class="<?php echo $masonry; ?> bg-white comic-border p-6 shadow-brutal flex flex-col relative overflow-hidden group" data-purpose="menu-item">
 <div class="absolute -top-2 -right-2 bg-brandBlack text-white px-4 py-2 font-chunky text-xl comic-border z-10 <?php echo $itemIndex === 0 ? 'animate-wiggle' : ''; ?>"><?php echo sfh_price($item['price']); ?></div>
-<?php if ($imgUrl): ?><img alt="<?php echo htmlspecialchars($item['name']); ?>" class="w-full h-48 object-cover comic-border mb-4 grayscale group-hover:grayscale-0 transition-all duration-300" src="<?php echo $imgUrl; ?>"/><?php endif; ?>
+<?php if ($imgUrl): ?><img alt="<?php echo htmlspecialchars($item['name']); ?>" class="w-full h-48 object-cover comic-border mb-4 group-hover:grayscale transition-all duration-300" src="<?php echo $imgUrl; ?>"/><?php endif; ?>
 <h3 class="font-chunky text-2xl mb-2"><?php echo htmlspecialchars($item['name']); ?></h3>
-<p class="text-sm font-bold flex-grow"><?php echo htmlspecialchars($item['description'] ?? ''); ?></p>
-<?php if (!empty($supportsOrdering) && !empty($item['is_available'])): ?><button type="button" class="add-to-bag-btn mt-3 comic-border px-4 py-2 font-chunky bg-brandBlack text-white hover:bg-white hover:text-brandBlack transition-colors" data-item-id="<?php echo (int)$item['id']; ?>" data-item-name="<?php echo htmlspecialchars($item['name']); ?>" data-item-price="<?php echo htmlspecialchars($item['price']); ?>" data-item-image="<?php echo !empty($item['image']) ? htmlspecialchars($item['image']) : ''; ?>">Add to bag</button><?php endif; ?>
-<div class="mt-4 border-t-2 border-brandBlack pt-2 italic text-xs uppercase font-black"><?php echo htmlspecialchars($category['name']); ?></div>
+<p class="text-sm font-bold flex-grow min-h-0"><?php echo htmlspecialchars($item['description'] ?? ''); ?></p>
+<?php if (!empty($supportsOrdering) && $itemAvailable): ?><button type="button" class="add-to-bag-btn mt-3 comic-border px-4 py-2 font-chunky bg-brandBlack text-white hover:bg-white hover:text-brandBlack transition-colors" data-item-id="<?php echo (int)$item['id']; ?>" data-item-name="<?php echo htmlspecialchars($item['name']); ?>" data-item-price="<?php echo htmlspecialchars($item['price']); ?>" data-item-image="<?php echo !empty($item['image']) ? htmlspecialchars($item['image']) : ''; ?>">Add to bag</button><?php endif; ?>
 </article>
-<?php endforeach; endforeach; ?>
+<?php endforeach; ?>
 </div>
+</section>
+<?php endforeach; ?>
 </main>
-<footer class="max-w-7xl mx-auto mt-20 mb-10 text-center" data-purpose="footer">
+<footer class="max-w-7xl mx-auto mt-20 mb-10 text-center relative z-10" data-purpose="footer">
 <div class="bg-brandBlack text-white p-8 comic-border shadow-brutal">
-<h2 class="font-chunky text-3xl mb-4"><?php echo htmlspecialchars($restaurant['name']); ?></h2>
 <?php if (!empty($restaurant['footer_content'])): ?><p class="font-bold mb-4"><?php echo nl2br(htmlspecialchars($restaurant['footer_content'])); ?></p><?php endif; ?>
-<p class="font-bold mb-6"><?php echo htmlspecialchars($restaurant['address'] ?? 'Find us'); ?></p>
-<div class="flex justify-center gap-6">
-<?php if (!empty($restaurant['instagram_url'])): ?><a class="comic-border p-2 bg-brandYellow text-brandBlack font-black cursor-pointer hover:bg-white transition-colors" href="<?php echo htmlspecialchars($restaurant['instagram_url']); ?>">INSTA</a><?php endif; ?>
-<?php if (!empty($restaurant['website'])): ?><a class="comic-border p-2 bg-brandYellow text-brandBlack font-black cursor-pointer hover:bg-white transition-colors" href="<?php echo htmlspecialchars($restaurant['website']); ?>">WEB</a><?php endif; ?>
+<h2 class="font-chunky text-3xl mb-4"><?php echo htmlspecialchars($restaurant['name']); ?></h2>
+<div class="flex flex-wrap justify-center gap-x-4 gap-y-1 text-sm font-bold mb-4">
+<?php if (!empty($restaurant['address'])): ?><span><?php echo htmlspecialchars($restaurant['address']); ?></span><?php endif; ?>
+<?php if (!empty($restaurant['phone'])): ?><span><?php if (!empty($restaurant['address'])): ?> • <?php endif; ?><a href="tel:<?php echo htmlspecialchars(preg_replace('/\s+/', '', $restaurant['phone'])); ?>" class="text-brandYellow hover:underline"><?php echo htmlspecialchars($restaurant['phone']); ?></a></span><?php endif; ?>
+<?php if (!empty($restaurant['email'])): ?><span><?php if (!empty($restaurant['address']) || !empty($restaurant['phone'])): ?> • <?php endif; ?><a href="mailto:<?php echo htmlspecialchars($restaurant['email']); ?>" class="text-brandYellow hover:underline"><?php echo htmlspecialchars($restaurant['email']); ?></a></span><?php endif; ?>
 </div>
+<?php if (!empty($restaurant['opening_hours'])): ?><p class="text-sm mb-4"><?php echo htmlspecialchars($restaurant['opening_hours']); ?></p><?php endif; ?>
+<p class="text-xs uppercase tracking-widest opacity-80 mb-6">Please inform your server of any allergies.</p>
+<div class="flex justify-center gap-4 flex-wrap">
+<?php if (!empty($restaurant['instagram_url'])): ?><a class="comic-border p-2 bg-brandYellow text-brandBlack font-black hover:bg-white transition-colors" href="<?php echo htmlspecialchars($restaurant['instagram_url']); ?>" target="_blank" rel="noopener">INSTA</a><?php endif; ?>
+<?php if (!empty($restaurant['facebook_url'])): ?><a class="comic-border p-2 bg-brandYellow text-brandBlack font-black hover:bg-white transition-colors" href="<?php echo htmlspecialchars($restaurant['facebook_url']); ?>" target="_blank" rel="noopener">FB</a><?php endif; ?>
+<?php if (!empty($restaurant['website'])): ?><a class="comic-border p-2 bg-brandYellow text-brandBlack font-black hover:bg-white transition-colors" href="<?php echo htmlspecialchars($restaurant['website']); ?>" target="_blank" rel="noopener">WEB</a><?php endif; ?>
+</div>
+<p class="mt-6 pt-4 border-t-2 border-white/20 text-sm">© <?php echo date('Y'); ?> <?php echo htmlspecialchars($restaurant['name']); ?></p>
 </div>
 </footer>
 <?php if (!empty($supportsOrdering)): ?>
-<link rel="stylesheet" href="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : '', '/'); ?>/assets/css/cart-modal.css">
+<link rel="stylesheet" href="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : $baseUrl, '/'); ?>/assets/css/cart-modal.css">
 <div id="resmenu-cart-widget" class="fixed bottom-6 left-6 z-50 hidden"></div>
-<script src="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : '', '/'); ?>/assets/js/cart.js"></script>
-<script src="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : '', '/'); ?>/assets/js/cart-widget.js"></script>
-<script src="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : '', '/'); ?>/assets/js/cart-modal.js"></script>
+<script src="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : $baseUrl, '/'); ?>/assets/js/cart.js"></script>
+<script src="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : $baseUrl, '/'); ?>/assets/js/cart-widget.js"></script>
+<script src="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : $baseUrl, '/'); ?>/assets/js/cart-modal.js"></script>
 <script>
 (function(){var baseUrl=<?php echo json_encode($baseUrl); ?>;var slug=<?php echo json_encode($restaurant['slug']??''); ?>;var config={restaurantSlug:slug,currencySymbol:<?php echo json_encode($currencySymbol); ?>,uploadBaseUrl:<?php echo json_encode($uploadBaseUrl??''); ?>,checkoutUrl:baseUrl+'/restaurant/'+slug+'/checkout',primaryColor:<?php echo json_encode($primaryColor); ?>,deliveryFee:0,taxRate:0};window.RESMENU_CART_CONFIG=config;if(window.RESMENU_CART_MODAL)window.RESMENU_CART_MODAL.init(config);if(window.RESMENU_CART_WIDGET)window.RESMENU_CART_WIDGET.init(config);document.querySelectorAll('.add-to-bag-btn').forEach(function(btn){btn.addEventListener('click',function(){var id=this.getAttribute('data-item-id'),name=this.getAttribute('data-item-name'),price=this.getAttribute('data-item-price'),image=this.getAttribute('data-item-image')||'';if(window.RESMENU_CART)window.RESMENU_CART.addItem(slug,{id:id,name:name,price:price,image:image},1);});});})();
 </script>
 <?php endif; ?>
+<script>
+(function(){
+    var toggle=document.getElementById('sfh-menu-toggle');
+    var sidebar=document.getElementById('sfh-sidebar');
+    var overlay=document.getElementById('sfh-sidebar-overlay');
+    var closeBtn=document.getElementById('sfh-sidebar-close');
+    var toggleWrap=document.getElementById('sfh-toggle-wrap');
+    function openSidebar(){ if(sidebar)sidebar.classList.remove('translate-x-full'); if(overlay){ overlay.classList.remove('opacity-0','invisible','pointer-events-none'); overlay.classList.add('opacity-100'); overlay.style.pointerEvents='auto'; } if(toggleWrap)toggleWrap.classList.add('sidebar-open'); document.body.style.overflow='hidden'; }
+    function closeSidebar(){ if(sidebar)sidebar.classList.add('translate-x-full'); if(overlay){ overlay.classList.add('opacity-0','invisible','pointer-events-none'); overlay.classList.remove('opacity-100'); overlay.style.pointerEvents='none'; } if(toggleWrap)toggleWrap.classList.remove('sidebar-open'); document.body.style.overflow=''; }
+    if(toggle)toggle.addEventListener('click',function(e){e.stopPropagation();openSidebar();});
+    if(closeBtn)closeBtn.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();closeSidebar();});
+    if(overlay)overlay.addEventListener('click',closeSidebar);
+    document.querySelectorAll('.sfh-nav-link').forEach(function(l){l.addEventListener('click',closeSidebar);});
+    document.addEventListener('keydown',function(e){if(e.key==='Escape')closeSidebar();});
+})();
+</script>
+<script>document.querySelectorAll('a[href^="#"]').forEach(function(a){a.addEventListener('click',function(e){var h=this.getAttribute('href');if(h==='#')return;e.preventDefault();var t=document.querySelector(h);if(t)t.scrollIntoView({behavior:'smooth'});});});</script>
+<style>.sfh-toggle-wrap.sidebar-open{visibility:hidden;pointer-events:none;}</style>
 <!-- Back to top -->
 <a id="scrollToTop" href="#" aria-label="Scroll to top" style="position:fixed;bottom:24px;right:24px;z-index:30;width:48px;height:48px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:#111;color:#fff;opacity:0;visibility:hidden;transform:translateY(10px);transition:opacity 0.3s,visibility 0.3s,transform 0.3s;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6"/></svg>
