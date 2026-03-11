@@ -101,12 +101,14 @@ body.prime-cut-outer .prime-cut-outer-bg { position: absolute; inset: 0; pointer
     color: #D4AF37;
     font-size: 1.5rem
     }
-/* Toggle: more scale on mobile, sit in outer area (not touching gold border) */
+/* Mobile: more outer bg visible on sides, toggle, logo size */
 @media (max-width: 768px) {
-    body.prime-cut-outer { padding-left: 0.75rem; padding-right: 0.75rem; }
+    body.prime-cut-outer { padding-left: 1.5rem; padding-right: 1.5rem; }
+    .menu-page.prime-cut-main { max-width: calc(100vw - 3rem); width: 100%; }
     .prime-cut-toggle-wrap { top: 0.75rem !important; right: 1.25rem !important; width: 3.25rem !important; height: 3.25rem !important; min-width: 3.25rem !important; min-height: 3.25rem !important; }
     .prime-cut-toggle-wrap .material-symbols-outlined { font-size: 1.75rem !important; }
     .prime-cut-toggle-wrap.sidebar-open { visibility: hidden; pointer-events: none; }
+    .prime-cut-logo { max-height: 4rem !important; height: auto !important; width: auto !important; }
 }
 </style>
 </head>
@@ -134,11 +136,11 @@ body.prime-cut-outer .prime-cut-outer-bg { position: absolute; inset: 0; pointer
         </nav>
     </div>
 </aside>
-<main class="menu-page max-w-4xl w-full text-cream p-8 md:p-16 gold-border relative z-10">
+<main class="menu-page prime-cut-main max-w-4xl w-full text-cream p-8 md:p-16 gold-border relative z-10">
 <div class="menu-page-pattern" aria-hidden="true"></div>
 <header class="text-center mb-16 relative z-10" data-purpose="main-header">
 <?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?>
-<div class="mb-4"><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="h-24 w-auto object-contain mx-auto"/></div>
+<div class="mb-4"><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="prime-cut-logo h-24 w-auto object-contain mx-auto"/></div>
 <div class="mb-4"><span class="text-gold tracking-[0.3em] uppercase text-sm font-sans"><?php echo !empty($restaurant['description']) ? htmlspecialchars(mb_substr($restaurant['description'], 0, 60)) : 'Established'; ?></span></div>
 <?php else: ?>
 <div class="mb-4"><span class="text-gold tracking-[0.3em] uppercase text-sm font-sans"><?php echo !empty($restaurant['description']) ? htmlspecialchars(mb_substr($restaurant['description'], 0, 60)) : 'Established'; ?></span></div>
