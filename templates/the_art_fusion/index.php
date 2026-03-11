@@ -36,7 +36,10 @@ body { font-family: 'Noto Sans JP', sans-serif; color: #1a1a1a; }
 body.art-fusion-body { background-color: #fafafa; position: relative; overflow-x: hidden; }
 body.art-fusion-body .art-fusion-bg { position: absolute; inset: 0; pointer-events: none; background-image: url('<?php echo htmlspecialchars($siteAssetsBase . '/bh_pattern-orange.png'); ?>'); background-repeat: repeat; background-size: 280px 280px; opacity: 0.08; }
 h1, h2, h3, .serif-font { font-family: 'Bodoni Moda', serif; }
-.zen-divider { height: 3px; background-color: #bc002d; width: 100%; margin: 2rem 0; border-radius: 0; }
+.zen-divider { height: 2px; background-color: #1a1a1a; width: 100%; margin: 2rem 0; border-radius: 0; max-width: 42rem; margin-left: auto; margin-right: auto; }
+@media (max-width: 768px) {
+  .zen-divider { height: 1px; max-width: calc(100% - 2rem); margin-left: 1rem; margin-right: 1rem; }
+}
 .accent-red { color: #bc002d; }
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
