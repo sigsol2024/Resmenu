@@ -257,6 +257,148 @@ $planHasReservations = hasFeatureAccess($restaurantId, 'table_reservations');
             </p>
         </div>
         
+        <!-- Template Colors & Styles (per-template) - Accordion -->
+        <div class="settings-card template-colors-card" style="margin-top: 24px;">
+            <div class="section-header template-colors-toggle" id="template-colors-toggle" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
+                <div>
+                    <h2 class="section-title">Template Colors & Styles</h2>
+                    <p style="margin: 4px 0 0; color: var(--muted); font-size: 0.8rem;">Click to expand and customize colors for this template.</p>
+                </div>
+                <span id="template-colors-chevron" style="font-size: 1rem; color: #6b7280; transition: transform 0.2s;">▼</span>
+            </div>
+            <div class="template-colors-body" id="template-colors-body" style="display: none; margin-top: 16px;">
+                <p style="margin-bottom: 16px; color: var(--muted); font-size: 0.875rem;">Customize all colors and styles for the selected template. Each template remembers its own settings when you switch between them.</p>
+                <form method="POST" action="/manager/customization.php<?php echo !empty($restaurant['slug']) ? '?slug=' . htmlspecialchars(urlencode($restaurant['slug'])) : ''; ?>">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
+                    <input type="hidden" name="action" value="save_customization">
+                    <input type="hidden" name="template_id" value="<?php echo $currentTemplateId; ?>">
+                
+                    <div class="card" style="margin-bottom: 24px;">
+                    <div class="card-header">
+                        <h2 class="card-title">Menu Title</h2>
+                    </div>
+                    <div class="color-input-group">
+                        <div class="form-group">
+                            <label class="form-label">Color</label>
+                            <input type="color" name="menu_title_color" value="<?php echo htmlspecialchars($customization['menu_title_color'] ?? '#000000'); ?>" style="width: 60px; height: 40px; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer;">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Size (px)</label>
+                            <input type="number" name="menu_title_size" class="form-input" value="<?php echo htmlspecialchars($customization['menu_title_size'] ?? 24); ?>" min="12" max="72">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Font</label>
+                            <select name="menu_title_font" class="form-select">
+                                <option value="Inter" <?php echo ($customization['menu_title_font'] ?? 'Inter') === 'Inter' ? 'selected' : ''; ?>>Inter</option>
+                                <option value="Poppins" <?php echo ($customization['menu_title_font'] ?? 'Inter') === 'Poppins' ? 'selected' : ''; ?>>Poppins</option>
+                            </select>
+                        </div>
+                    </div>
+                    </div>
+                
+                    <div class="card" style="margin-bottom: 24px;">
+                    <div class="card-header">
+                        <h2 class="card-title">Price</h2>
+                    </div>
+                    <div class="color-input-group">
+                        <div class="form-group">
+                            <label class="form-label">Color</label>
+                            <input type="color" name="price_color" value="<?php echo htmlspecialchars($customization['price_color'] ?? '#000000'); ?>" style="width: 60px; height: 40px; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer;">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Size (px)</label>
+                            <input type="number" name="price_size" class="form-input" value="<?php echo htmlspecialchars($customization['price_size'] ?? 18); ?>" min="12" max="48">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Font</label>
+                            <select name="price_font" class="form-select">
+                                <option value="Inter" <?php echo ($customization['price_font'] ?? 'Inter') === 'Inter' ? 'selected' : ''; ?>>Inter</option>
+                                <option value="Poppins" <?php echo ($customization['price_font'] ?? 'Inter') === 'Poppins' ? 'selected' : ''; ?>>Poppins</option>
+                            </select>
+                        </div>
+                    </div>
+                    </div>
+                
+                    <div class="card" style="margin-bottom: 24px;">
+                    <div class="card-header">
+                        <h2 class="card-title">Description</h2>
+                    </div>
+                    <div class="color-input-group">
+                        <div class="form-group">
+                            <label class="form-label">Color</label>
+                            <input type="color" name="description_color" value="<?php echo htmlspecialchars($customization['description_color'] ?? '#666666'); ?>" style="width: 60px; height: 40px; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer;">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Size (px)</label>
+                            <input type="number" name="description_size" class="form-input" value="<?php echo htmlspecialchars($customization['description_size'] ?? 14); ?>" min="10" max="24">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Font</label>
+                            <select name="description_font" class="form-select">
+                                <option value="Inter" <?php echo ($customization['description_font'] ?? 'Inter') === 'Inter' ? 'selected' : ''; ?>>Inter</option>
+                                <option value="Poppins" <?php echo ($customization['description_font'] ?? 'Inter') === 'Poppins' ? 'selected' : ''; ?>>Poppins</option>
+                            </select>
+                        </div>
+                    </div>
+                    </div>
+                
+                    <div class="card" style="margin-bottom: 24px;">
+                    <div class="card-header">
+                        <h2 class="card-title">Category Title</h2>
+                    </div>
+                    <div class="color-input-group">
+                        <div class="form-group">
+                            <label class="form-label">Color</label>
+                            <input type="color" name="category_title_color" value="<?php echo htmlspecialchars($customization['category_title_color'] ?? '#000000'); ?>" style="width: 60px; height: 40px; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer;">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Size (px)</label>
+                            <input type="number" name="category_title_size" class="form-input" value="<?php echo htmlspecialchars($customization['category_title_size'] ?? 20); ?>" min="12" max="48">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Font</label>
+                            <select name="category_title_font" class="form-select">
+                                <option value="Inter" <?php echo ($customization['category_title_font'] ?? 'Inter') === 'Inter' ? 'selected' : ''; ?>>Inter</option>
+                                <option value="Poppins" <?php echo ($customization['category_title_font'] ?? 'Inter') === 'Poppins' ? 'selected' : ''; ?>>Poppins</option>
+                            </select>
+                        </div>
+                    </div>
+                    </div>
+                
+                    <div class="card" style="margin-bottom: 24px;">
+                    <div class="card-header">
+                        <h2 class="card-title">Background & Accent Colors</h2>
+                    </div>
+                    <div class="color-input-group">
+                        <div class="form-group">
+                            <label class="form-label">Page Background</label>
+                            <input type="color" name="background_color" value="<?php echo htmlspecialchars($customization['background_color'] ?? '#FFFFFF'); ?>" style="width: 60px; height: 40px; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer;">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Header Background</label>
+                            <input type="color" name="header_background_color" value="<?php echo htmlspecialchars($customization['header_background_color'] ?? '#FFFFFF'); ?>" style="width: 60px; height: 40px; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer;">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Primary Color</label>
+                            <input type="color" name="primary_color" value="<?php echo htmlspecialchars($customization['primary_color'] ?? '#111111'); ?>" style="width: 60px; height: 40px; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer;">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Secondary Color</label>
+                            <input type="color" name="secondary_color" value="<?php echo htmlspecialchars($customization['secondary_color'] ?? '#FFFFFF'); ?>" style="width: 60px; height: 40px; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer;">
+                        </div>
+                    </div>
+                    </div>
+                
+                    <button type="submit" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Save Colors & Styles
+                    </button>
+                </form>
+            </div>
+        </div>
+        
         <!-- Ordering & Reservations (manager-level toggles) -->
         <div class="settings-card" style="margin-top: 24px;">
             <div class="section-header">
@@ -311,180 +453,26 @@ $planHasReservations = hasFeatureAccess($restaurantId, 'table_reservations');
                 </button>
             </form>
         </div>
-        
-        <!-- Template Colors & Styles (per-template) -->
-        <div class="settings-card" style="margin-top: 24px;">
-            <div class="section-header">
-                <h2 class="section-title">Template Colors & Styles</h2>
-            </div>
-            <p style="margin-bottom: 20px; color: var(--muted); font-size: 0.875rem;">Customize all colors and styles for the selected template. Each template remembers its own settings when you switch between them.</p>
-            <form method="POST" action="/manager/customization.php<?php echo !empty($restaurant['slug']) ? '?slug=' . htmlspecialchars(urlencode($restaurant['slug'])) : ''; ?>">
-                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
-                <input type="hidden" name="action" value="save_customization">
-                <input type="hidden" name="template_id" value="<?php echo $currentTemplateId; ?>">
-                
-                <div class="card" style="margin-bottom: 24px;">
-                    <div class="card-header">
-                        <h2 class="card-title">Menu Title</h2>
-                    </div>
-                    <div class="color-input-group">
-                        <div class="form-group">
-                            <label class="form-label">Color</label>
-                            <input type="color" name="menu_title_color" value="<?php echo htmlspecialchars($customization['menu_title_color'] ?? '#000000'); ?>" style="width: 60px; height: 40px; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer;">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Size (px)</label>
-                            <input type="number" name="menu_title_size" class="form-input" value="<?php echo htmlspecialchars($customization['menu_title_size'] ?? 24); ?>" min="12" max="72">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Font</label>
-                            <select name="menu_title_font" class="form-select">
-                                <option value="Inter" <?php echo ($customization['menu_title_font'] ?? 'Inter') === 'Inter' ? 'selected' : ''; ?>>Inter</option>
-                                <option value="Poppins" <?php echo ($customization['menu_title_font'] ?? 'Inter') === 'Poppins' ? 'selected' : ''; ?>>Poppins</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card" style="margin-bottom: 24px;">
-                    <div class="card-header">
-                        <h2 class="card-title">Price</h2>
-                    </div>
-                    <div class="color-input-group">
-                        <div class="form-group">
-                            <label class="form-label">Color</label>
-                            <input type="color" name="price_color" value="<?php echo htmlspecialchars($customization['price_color'] ?? '#000000'); ?>" style="width: 60px; height: 40px; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer;">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Size (px)</label>
-                            <input type="number" name="price_size" class="form-input" value="<?php echo htmlspecialchars($customization['price_size'] ?? 18); ?>" min="12" max="48">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Font</label>
-                            <select name="price_font" class="form-select">
-                                <option value="Inter" <?php echo ($customization['price_font'] ?? 'Inter') === 'Inter' ? 'selected' : ''; ?>>Inter</option>
-                                <option value="Poppins" <?php echo ($customization['price_font'] ?? 'Inter') === 'Poppins' ? 'selected' : ''; ?>>Poppins</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card" style="margin-bottom: 24px;">
-                    <div class="card-header">
-                        <h2 class="card-title">Description</h2>
-                    </div>
-                    <div class="color-input-group">
-                        <div class="form-group">
-                            <label class="form-label">Color</label>
-                            <input type="color" name="description_color" value="<?php echo htmlspecialchars($customization['description_color'] ?? '#666666'); ?>" style="width: 60px; height: 40px; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer;">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Size (px)</label>
-                            <input type="number" name="description_size" class="form-input" value="<?php echo htmlspecialchars($customization['description_size'] ?? 14); ?>" min="10" max="24">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Font</label>
-                            <select name="description_font" class="form-select">
-                                <option value="Inter" <?php echo ($customization['description_font'] ?? 'Inter') === 'Inter' ? 'selected' : ''; ?>>Inter</option>
-                                <option value="Poppins" <?php echo ($customization['description_font'] ?? 'Inter') === 'Poppins' ? 'selected' : ''; ?>>Poppins</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card" style="margin-bottom: 24px;">
-                    <div class="card-header">
-                        <h2 class="card-title">Category Title</h2>
-                    </div>
-                    <div class="color-input-group">
-                        <div class="form-group">
-                            <label class="form-label">Color</label>
-                            <input type="color" name="category_title_color" value="<?php echo htmlspecialchars($customization['category_title_color'] ?? '#000000'); ?>" style="width: 60px; height: 40px; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer;">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Size (px)</label>
-                            <input type="number" name="category_title_size" class="form-input" value="<?php echo htmlspecialchars($customization['category_title_size'] ?? 20); ?>" min="12" max="48">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Font</label>
-                            <select name="category_title_font" class="form-select">
-                                <option value="Inter" <?php echo ($customization['category_title_font'] ?? 'Inter') === 'Inter' ? 'selected' : ''; ?>>Inter</option>
-                                <option value="Poppins" <?php echo ($customization['category_title_font'] ?? 'Inter') === 'Poppins' ? 'selected' : ''; ?>>Poppins</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card" style="margin-bottom: 24px;">
-                    <div class="card-header">
-                        <h2 class="card-title">Background & Accent Colors</h2>
-                    </div>
-                    <div class="color-input-group">
-                        <div class="form-group">
-                            <label class="form-label">Page Background</label>
-                            <input type="color" name="background_color" value="<?php echo htmlspecialchars($customization['background_color'] ?? '#FFFFFF'); ?>" style="width: 60px; height: 40px; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer;">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Header Background</label>
-                            <input type="color" name="header_background_color" value="<?php echo htmlspecialchars($customization['header_background_color'] ?? '#FFFFFF'); ?>" style="width: 60px; height: 40px; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer;">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Primary Color</label>
-                            <input type="color" name="primary_color" value="<?php echo htmlspecialchars($customization['primary_color'] ?? '#111111'); ?>" style="width: 60px; height: 40px; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer;">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Secondary Color</label>
-                            <input type="color" name="secondary_color" value="<?php echo htmlspecialchars($customization['secondary_color'] ?? '#FFFFFF'); ?>" style="width: 60px; height: 40px; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer;">
-                        </div>
-                    </div>
-                </div>
-                
-                <button type="submit" class="btn btn-primary">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    Save Colors & Styles
-                </button>
-            </form>
-        </div>
-        
-        <div class="card">
-            <div class="card-header">
-                <h2 class="card-title">Template Preview</h2>
-            </div>
-            <p style="margin-bottom: 20px; color: var(--muted);">Your restaurant menu page will use the selected template design. You can preview it by visiting your restaurant's public menu page.</p>
-            <div style="text-align: center; padding: 20px;">
-                <?php 
-                // Ensure slug is available - try multiple methods
-                $viewSlug = $restaurant['slug'] ?? '';
-                if (empty($viewSlug)) {
-                    // Try URL slug first
-                    $viewSlug = $restaurantSlug ?? '';
-                    if (empty($viewSlug) && $restaurantId && $pdo) {
-                        // Fallback to database
-                        $stmt = $pdo->prepare("SELECT slug FROM restaurants WHERE id = ?");
-                        $stmt->execute([$restaurantId]);
-                        $slugData = $stmt->fetch();
-                        if ($slugData && !empty($slugData['slug'])) {
-                            $viewSlug = $slugData['slug'];
-                            $restaurant['slug'] = $viewSlug; // Update restaurant array
-                        }
-                    }
-                }
-                
-                if (!empty($viewSlug)):
-                ?>
-                    <a href="/restaurant/<?php echo htmlspecialchars($viewSlug); ?>" target="_blank" class="btn btn-primary">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                        </svg>
-                        View Menu Page
-                    </a>
-                <?php else: ?>
-                    <p style="color: var(--danger);">Error: Restaurant slug is missing. Please contact administrator.</p>
-                <?php endif; ?>
-            </div>
-        </div>
+
+<script>
+// Accordion for Template Colors & Styles (starts closed on every page load)
+document.addEventListener('DOMContentLoaded', function() {
+    var toggle = document.getElementById('template-colors-toggle');
+    var body = document.getElementById('template-colors-body');
+    var chevron = document.getElementById('template-colors-chevron');
+    if (!toggle || !body) return;
+    
+    body.style.display = 'none';
+    
+    toggle.addEventListener('click', function() {
+        var isOpen = body.style.display === 'block';
+        body.style.display = isOpen ? 'none' : 'block';
+        if (chevron) {
+            chevron.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+        }
+    });
+});
+</script>
 
 <style>
 /* Clean Button and Icon Styles */
