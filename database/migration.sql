@@ -272,6 +272,10 @@ ALTER TABLE `restaurants` ADD COLUMN IF NOT EXISTS `instagram_url` varchar(255) 
 ALTER TABLE `restaurants` ADD COLUMN IF NOT EXISTS `facebook_url` varchar(255) DEFAULT NULL AFTER `instagram_url`;
 ALTER TABLE `restaurants` ADD COLUMN IF NOT EXISTS `twitter_url` varchar(255) DEFAULT NULL AFTER `facebook_url`;
 
+-- 21. Restaurant-level toggles for ordering & reservations (manager can turn off even if plan allows)
+ALTER TABLE `restaurants` ADD COLUMN IF NOT EXISTS `enable_food_ordering` tinyint(1) NOT NULL DEFAULT 1 AFTER `twitter_url`;
+ALTER TABLE `restaurants` ADD COLUMN IF NOT EXISTS `enable_table_reservations` tinyint(1) NOT NULL DEFAULT 1 AFTER `enable_food_ordering`;
+
 -- ============================================================
 -- 23. Most recent migrations
 -- ============================================================

@@ -81,6 +81,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
     
+    // Handle manager feature toggles (ordering & reservations)
+    if ($action === 'save_feature_toggles') {
+        $enableOrdering = isset($_POST['enable_food_ordering']) ? 1 : 0;
+        $enableReservations = isset($_POST['enable_table_reservations']) ? 1 : 0;
+        
+        try {
+            $stmt = $pdo->prepare("UPDATE restaurants SET enable_food_ordering = ?, enable_table_reservations = ? WHERE id = ?");
+            $stmt->execute([$enableOrdering, $enableReservations, $restaurantId]);
+            
+            $redirectUrl = '/manager/customization.php';
+            if (!empty($restaurant['slug'])) {
+                $redirectUrl .= '?slug=' . urlencode($restaurant['slug']);
+            }
+            $redirectUrl .= (strpos($redirectUrl, '?') !== false ? '&' : '?') . 'message=features_updated';
+            header('Location: ' . $redirectUrl);
+            exit;
+        } catch (PDOException $e) {
+            $error = 'Error saving feature toggles: ' . $e->getMessage();
+        }
+    }
+    
     // Handle full customization save (per-template)
     if ($action === 'save_customization') {
         $customizationData = [
@@ -144,6 +165,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 if (isset($_GET['message'])) {
     if ($_GET['message'] === 'template_updated') $message = 'Template updated successfully';
     elseif ($_GET['message'] === 'customization_updated') $message = 'Template colors and styles saved. Each template keeps its own settings when you switch.';
+    elseif ($_GET['message'] === 'features_updated') $message = 'Ordering & reservation settings updated for your menu.';
 }
 
 // Store template ID BEFORE layout include (sidebar overwrites $restaurant with only name/logo)
@@ -157,6 +179,19 @@ $availableTemplates = getTemplatesAvailableForRestaurant($restaurantId);
 $templatesCanUse = array_filter($availableTemplates, function ($t) { return !empty($t['can_use']); });
 $templatesUpgradeRequired = array_filter($availableTemplates, function ($t) { return !empty($t['can_see']) && empty($t['can_use']); });
 $customization = getCustomizationSettings($restaurantId, $currentTemplateId);
+
+// Current manager toggles (default to enabled if columns missing)
+$enableFoodOrdering = array_key_exists('enable_food_ordering', (array)$restaurant)
+    ? (int)$restaurant['enable_food_ordering']
+    : 1;
+$enableTableReservations = array_key_exists('enable_table_reservations', (array)$restaurant)
+    ? (int)$restaurant['enable_table_reservations']
+    : 1;
+
+// Plan-level feature availability (used to disable toggles when plan does not include a feature)
+require_once __DIR__ . '/../includes/subscription.php';
+$planHasOrdering = hasFeatureAccess($restaurantId, 'food_ordering');
+$planHasReservations = hasFeatureAccess($restaurantId, 'table_reservations');
 ?>
 
         <div class="page-header">
@@ -220,6 +255,61 @@ $customization = getCustomizationSettings($restaurantId, $currentTemplateId);
                 }
                 ?>
             </p>
+        </div>
+        
+        <!-- Ordering & Reservations (manager-level toggles) -->
+        <div class="settings-card" style="margin-top: 24px;">
+            <div class="section-header">
+                <h2 class="section-title">Ordering & Reservations</h2>
+            </div>
+            <p style="margin-bottom: 16px; color: var(--muted); font-size: 0.875rem;">
+                Turn food ordering and table reservations on or off for your menu page. These settings apply to any template you select.
+            </p>
+            <form method="POST" action="/manager/customization.php<?php echo !empty($restaurant['slug']) ? '?slug=' . htmlspecialchars(urlencode($restaurant['slug'])) : ''; ?>">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
+                <input type="hidden" name="action" value="save_feature_toggles">
+                
+                <div class="form-group">
+                    <label class="form-label" style="display:flex;align-items:center;gap:8px;">
+                        <input type="checkbox" name="enable_food_ordering" value="1"
+                               <?php echo $enableFoodOrdering ? 'checked' : ''; ?>
+                               <?php echo !$planHasOrdering ? 'disabled' : ''; ?>>
+                        <span>Enable food ordering on my menu</span>
+                    </label>
+                    <p style="margin-top: 4px; color: var(--muted); font-size: 0.8rem;">
+                        When turned off, all “Add to bag” buttons are hidden on your public menu, even if your plan includes ordering.
+                    </p>
+                    <?php if (!$planHasOrdering): ?>
+                        <p style="margin-top: 4px; color: #b91c1c; font-size: 0.8rem;">
+                            Your current plan does not include food ordering. <a href="/manager/billing.php<?php echo !empty($restaurant['slug']) ? '?slug=' . urlencode($restaurant['slug']) : ''; ?>">Upgrade your plan</a> to enable this feature.
+                        </p>
+                    <?php endif; ?>
+                </div>
+                
+                <div class="form-group" style="margin-top: 12px;">
+                    <label class="form-label" style="display:flex;align-items:center;gap:8px;">
+                        <input type="checkbox" name="enable_table_reservations" value="1"
+                               <?php echo $enableTableReservations ? 'checked' : ''; ?>
+                               <?php echo !$planHasReservations ? 'disabled' : ''; ?>>
+                        <span>Enable table reservations on my menu</span>
+                    </label>
+                    <p style="margin-top: 4px; color: var(--muted); font-size: 0.8rem;">
+                        When turned off, all “Reserve Table” buttons and reservation entry points are hidden on your public menu.
+                    </p>
+                    <?php if (!$planHasReservations): ?>
+                        <p style="margin-top: 4px; color: #b91c1c; font-size: 0.8rem;">
+                            Your current plan does not include table reservations. <a href="/manager/billing.php<?php echo !empty($restaurant['slug']) ? '?slug=' . urlencode($restaurant['slug']) : ''; ?>">Upgrade your plan</a> to enable this feature.
+                        </p>
+                    <?php endif; ?>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="margin-top: 12px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Save Settings
+                </button>
+            </form>
         </div>
         
         <!-- Template Colors & Styles (per-template) -->

@@ -221,15 +221,27 @@ function loadTemplate($restaurant, $categories, $customization, $headerMenuItems
     }
     
     // Make variables available to template
-    // Note: Preview mode should show full template capabilities (no subscription gating).
+    // Note: Preview mode should show full template capabilities (no subscription/manager gating).
     $supportsOrdering = templateSupportsOrdering($templateId);
     $supportsReservations = true;
-
+    
     if (!$isTemplatePreview) {
         $restaurantId = (int)($restaurant['id'] ?? 0);
-        // Feature gating: templates may support ordering/reservations, but only enabled plans should expose them.
-        $supportsOrdering = $supportsOrdering && hasFeatureAccess($restaurantId, 'food_ordering');
-        $supportsReservations = $supportsReservations && hasFeatureAccess($restaurantId, 'table_reservations');
+        // Manager-level toggles (per restaurant) - default to enabled if column missing/null
+        $orderingToggle = array_key_exists('enable_food_ordering', (array)$restaurant)
+            ? (int)$restaurant['enable_food_ordering']
+            : 1;
+        $reservationsToggle = array_key_exists('enable_table_reservations', (array)$restaurant)
+            ? (int)$restaurant['enable_table_reservations']
+            : 1;
+        
+        // Feature gating: templates may support ordering/reservations, but only enabled plans AND manager toggles should expose them.
+        $supportsOrdering = $supportsOrdering
+            && hasFeatureAccess($restaurantId, 'food_ordering')
+            && ($orderingToggle === 1);
+        $supportsReservations = $supportsReservations
+            && hasFeatureAccess($restaurantId, 'table_reservations')
+            && ($reservationsToggle === 1);
     }
     extract([
         'restaurant' => $restaurant,
