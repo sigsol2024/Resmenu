@@ -101,14 +101,16 @@ h1, h2, h3, .serif-font { font-family: 'Bodoni Moda', serif; }
 <h2 class="text-2xl md:text-3xl font-bold tracking-[0.2em] uppercase accent-red mb-12 pb-4 border-b border-gray-200"><?php echo htmlspecialchars($category['name']); ?></h2>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-20 gap-y-12">
 <?php foreach ($items as $item): $itemAvailable = !isset($item['is_available']) || $item['is_available']; ?>
-<div class="flex gap-4 justify-between border-b border-gray-100 pb-4 items-start">
+<div class="flex gap-4 border-b border-gray-100 pb-4 items-start">
 <?php if (!empty($item['image'])): ?><img src="<?php echo $uploadBaseUrl . '/menu-items/' . htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="w-20 h-20 flex-shrink-0 object-cover rounded"/><?php endif; ?>
-<div class="flex-1 min-w-0">
-<h4 class="text-lg uppercase tracking-wider mb-1"><?php echo htmlspecialchars($item['name']); ?></h4>
-<p class="text-sm text-gray-400 italic"><?php echo htmlspecialchars($item['description'] ?? ''); ?></p>
+<div class="flex-1 min-w-0 w-full">
+<div class="flex justify-between items-baseline gap-4 mb-1">
+<h4 class="text-lg uppercase tracking-wider"><?php echo htmlspecialchars($item['name']); ?></h4>
+<span class="font-medium flex-shrink-0"><?php echo taf_price($item['price']); ?></span>
+</div>
+<p class="text-sm text-gray-400 italic w-full"><?php echo htmlspecialchars($item['description'] ?? ''); ?></p>
 <?php if (!empty($supportsOrdering) && $itemAvailable): ?><button type="button" class="add-to-bag-btn mt-2 text-xs uppercase tracking-wider text-[#bc002d] border border-[#bc002d] px-3 py-1.5 hover:bg-[#bc002d] hover:text-white" data-item-id="<?php echo (int)$item['id']; ?>" data-item-name="<?php echo htmlspecialchars($item['name']); ?>" data-item-price="<?php echo htmlspecialchars($item['price']); ?>" data-item-image="<?php echo !empty($item['image']) ? htmlspecialchars($item['image']) : ''; ?>">Add to bag</button><?php endif; ?>
 </div>
-<span class="font-medium flex-shrink-0"><?php echo taf_price($item['price']); ?></span>
 </div>
 <?php endforeach; ?>
 </div>
