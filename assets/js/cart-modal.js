@@ -76,8 +76,8 @@
         if (!contentEl) return;
 
         contentEl.innerHTML = `
-            <div class="flex flex-col h-full max-h-[85vh]">
-                <div class="flex items-center justify-between p-6 border-b border-gray-200">
+            <div class="flex flex-col h-full min-h-0">
+                <div class="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
                     <h3 class="text-xl font-bold text-gray-900">Shopping Bag</h3>
                     <button type="button" id="resmenu-cart-modal-close" class="p-2 text-gray-500 hover:text-primary transition-colors" aria-label="Close">
                         <span class="material-symbols-outlined">close</span>
@@ -86,7 +86,7 @@
                 <div class="flex-1 overflow-y-auto p-6 min-h-0">
                     ${items.length ? itemsHtml : '<p class="text-gray-600 py-8 text-center">Your bag is empty.</p>'}
                 </div>
-                <div class="p-6 border-t border-gray-200 bg-white">
+                <div class="p-6 border-t border-gray-200 bg-white flex-shrink-0">
                     <div class="flex flex-col gap-2 mb-4">
                         <div class="flex justify-between text-sm">
                             <span class="text-gray-600">Subtotal</span>

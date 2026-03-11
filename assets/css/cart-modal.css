@@ -41,14 +41,50 @@
   display: flex !important;
   flex-direction: column !important;
   overflow: hidden !important;
+  min-height: 0 !important;
 }
 
-/* Inner wrapper from JS */
+/* Inner wrapper from JS – flex so only the middle scrolls, footer stays visible */
 #resmenu-cart-modal-content > div {
   display: flex !important;
   flex-direction: column !important;
   height: 100% !important;
-  max-height: 85vh !important;
+  max-height: 90vh !important;
+  min-height: 0 !important;
+}
+
+/* Mobile: use most of viewport so modal is tall and footer/buttons always visible */
+@media (max-width: 768px) {
+  #resmenu-cart-modal {
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: calc(100% - 1rem) !important;
+    max-width: none !important;
+    height: 92vh !important;
+    max-height: 92vh !important;
+    border-radius: 1rem !important;
+  }
+  #resmenu-cart-modal-content > div {
+    max-height: 100% !important;
+    min-height: 0 !important;
+  }
+  #resmenu-cart-modal-content .flex.items-center.justify-between.p-6.border-b {
+    padding: 1rem 1.25rem !important;
+    flex-shrink: 0 !important;
+  }
+  #resmenu-cart-modal-content .flex-1.overflow-y-auto {
+    padding: 1rem 1.25rem !important;
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  #resmenu-cart-modal-content .border-t.border-gray-200.bg-white {
+    padding: 1rem 1.25rem !important;
+    flex-shrink: 0 !important;
+    padding-bottom: max(1rem, env(safe-area-inset-bottom)) !important;
+  }
 }
 
 /* Header */
