@@ -386,22 +386,14 @@ function toggleCategoryMenu() {
     }
 }
 
-// Back to top (show at 30% scroll)
-(function(){
-    var btn = document.getElementById('scrollToTop');
-    if (btn) {
-        window.addEventListener('scroll', function() {
-            var st = window.pageYOffset || document.documentElement.scrollTop;
-            var dh = document.documentElement.scrollHeight - window.innerHeight;
-            if (dh > 0 && st >= dh * 0.3) btn.classList.add('visible');
-            else btn.classList.remove('visible');
-        });
-        btn.addEventListener('click', function(e) { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
-    }
-})();
 </script>
-<a id="scrollToTop" href="#" class="fixed bottom-6 right-6 z-30 w-12 h-12 flex items-center justify-center rounded-full bg-primary text-white shadow-lg opacity-0 invisible translate-y-2 transition-all duration-300 hover:bg-primary/90" aria-label="Scroll to top" style="pointer-events:none;"><span class="material-symbols-outlined text-2xl">arrow_upward</span></a>
-<style>#scrollToTop.visible{opacity:1!important;visibility:visible!important;transform:translateY(0)!important;pointer-events:auto!important;}</style>
+<!-- Back to top -->
+<a id="scrollToTop" href="#" aria-label="Scroll to top" style="position:fixed;bottom:24px;right:24px;z-index:9999;width:48px;height:48px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:#ea2a33;color:#fff;opacity:0;visibility:hidden;transform:translateY(10px);transition:opacity 0.3s,visibility 0.3s,transform 0.3s;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6"/></svg>
+</a>
+<script>
+(function(){var btn=document.getElementById('scrollToTop');if(btn){window.addEventListener('scroll',function(){var st=window.pageYOffset||document.documentElement.scrollTop;var dh=document.documentElement.scrollHeight-window.innerHeight;if(dh>0&&st>=dh*0.3){btn.style.opacity='1';btn.style.visibility='visible';btn.style.transform='translateY(0)';}else{btn.style.opacity='0';btn.style.visibility='hidden';btn.style.transform='translateY(10px)';}});btn.addEventListener('click',function(e){e.preventDefault();window.scrollTo({top:0,behavior:'smooth'});});}})();
+</script>
 
 </body>
 </html>
