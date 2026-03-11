@@ -36,7 +36,7 @@ body { font-family: 'Noto Sans JP', sans-serif; color: #1a1a1a; }
 body.art-fusion-body { background-color: #fafafa; position: relative; overflow-x: hidden; }
 body.art-fusion-body .art-fusion-bg { position: absolute; inset: 0; pointer-events: none; background-image: url('<?php echo htmlspecialchars($siteAssetsBase . '/bh_pattern-orange.png'); ?>'); background-repeat: repeat; background-size: 280px 280px; opacity: 0.08; }
 h1, h2, h3, .serif-font { font-family: 'Bodoni Moda', serif; }
-.zen-divider { height: 1px; background-color: #e5e5e5; width: 100%; margin: 2rem 0; }
+.zen-divider { height: 3px; background-color: #bc002d; width: 100%; margin: 2rem 0; border-radius: 0; }
 .accent-red { color: #bc002d; }
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -73,7 +73,7 @@ h1, h2, h3, .serif-font { font-family: 'Bodoni Moda', serif; }
 </button>
 </div>
 <nav class="flex flex-col gap-1">
-<?php if (!empty($supportsReservations)): ?><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="art-fusion-nav-link block py-3 px-4 text-sm uppercase tracking-widest font-medium text-gray-700 hover:bg-gray-50 hover:text-[#bc002d] rounded">Reserve Table</a><?php endif; ?>
+<?php if (!empty($supportsReservations)): ?><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="art-fusion-nav-link block py-3 px-4 text-sm uppercase tracking-widest font-medium text-gray-700 hover:text-[#bc002d] bg-white/50 hover:bg-white/70 rounded border border-gray-200 hover:border-[#bc002d] transition-colors">Reserve Table</a><?php endif; ?>
 <?php foreach ($activeCategories as $i => $cat): $s = isset($cat['slug']) ? $cat['slug'] : ('section-'.$i); ?>
 <a href="#<?php echo htmlspecialchars($s); ?>" class="art-fusion-nav-link block py-3 px-4 text-sm uppercase tracking-widest font-medium text-gray-700 hover:bg-gray-50 hover:text-[#bc002d] rounded"><?php echo htmlspecialchars($cat['name']); ?></a>
 <?php endforeach; ?>
@@ -85,7 +85,7 @@ h1, h2, h3, .serif-font { font-family: 'Bodoni Moda', serif; }
 <div class="z-10 text-center px-4">
 <span class="text-xs uppercase tracking-[0.5em] mb-4 block"><?php echo htmlspecialchars($restaurant['description'] ?? 'Crafting Balance'); ?></span>
 <div class="w-12 h-px bg-black mx-auto mb-6"></div>
-<?php if (!empty($supportsReservations)): ?><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="inline-block text-sm uppercase tracking-widest font-medium text-gray-700 hover:text-[#bc002d] border border-gray-300 hover:border-[#bc002d] px-6 py-2.5 transition-colors">Reserve Table</a><?php endif; ?>
+<?php if (!empty($supportsReservations)): ?><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="inline-block text-sm uppercase tracking-widest font-medium text-gray-700 hover:text-[#bc002d] border border-gray-300 hover:border-[#bc002d] bg-white/60 hover:bg-white/80 px-6 py-2.5 transition-colors">Reserve Table</a><?php endif; ?>
 </div>
 <?php if (!empty($restaurant['hero_image']) && empty($isTemplatePreview)): ?>
 <img alt="" class="absolute inset-0 w-full h-full object-cover opacity-80" src="<?php echo $uploadBaseUrl . '/heroes/' . htmlspecialchars($restaurant['hero_image']); ?>"/>
@@ -99,7 +99,7 @@ h1, h2, h3, .serif-font { font-family: 'Bodoni Moda', serif; }
     if (empty($items)) continue;
 ?>
 <section class="menu-section py-24 max-w-7xl mx-auto px-6" id="<?php echo htmlspecialchars($slug); ?>">
-<h2 class="text-2xl md:text-3xl font-bold tracking-[0.2em] uppercase accent-red mb-12 pb-4 border-b border-gray-200"><?php echo htmlspecialchars($category['name']); ?></h2>
+<h2 class="text-2xl md:text-3xl font-bold tracking-[0.2em] uppercase accent-red mb-12 pb-4 border-b-2 border-[#bc002d]"><?php echo htmlspecialchars($category['name']); ?></h2>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-20 gap-y-12">
 <?php foreach ($items as $item): $itemAvailable = !isset($item['is_available']) || $item['is_available']; ?>
 <div class="flex gap-4 border-b border-gray-100 pb-4 items-start">
