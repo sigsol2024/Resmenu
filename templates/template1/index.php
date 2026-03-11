@@ -277,7 +277,9 @@ foreach ($categories as $category):
       <?php if ($category['image']): ?>
         <div class="menu-image" style="background-image: url('<?php echo $uploadBaseUrl . '/categories/' . htmlspecialchars($category['image']); ?>'); background-size: cover; background-position: center;"></div>
       <?php else: ?>
-        <div class="menu-image"></div>
+        <div class="menu-image menu-image--no-photo">
+          <div class="menu-image__bg-pattern" style="background-image: url('<?php echo htmlspecialchars($template1BaseUrl); ?>/bg_black.png');"></div>
+        </div>
       <?php endif; ?>
       <div class="menu-card">
         <div class="category-title"><?php echo htmlspecialchars($category['name']); ?></div>

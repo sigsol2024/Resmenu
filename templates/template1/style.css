@@ -469,6 +469,21 @@ body {
   opacity: 0; /* Initially hidden for animation */
 }
 
+/* Category card with no image: bg_black pattern + warm card color (same layout as CTA section) */
+.menu-image--no-photo {
+  background: #e0cba8;
+  position: absolute;
+  overflow: hidden;
+}
+.menu-image__bg-pattern {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-repeat: repeat;
+  background-size: 280px 280px;
+  opacity: 0.1;
+}
+
 .menu-card {
   position: absolute;
   left: 25%;
