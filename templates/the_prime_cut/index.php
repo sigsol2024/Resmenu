@@ -100,23 +100,31 @@ body.prime-cut-outer .prime-cut-outer-bg { position: absolute; inset: 0; pointer
     margin: 0 1rem;
     color: #D4AF37;
     font-size: 1.5rem
-    }</style>
+    }
+/* Toggle: more scale on mobile, sit in outer area (not touching gold border) */
+@media (max-width: 768px) {
+    body.prime-cut-outer { padding-left: 0.75rem; padding-right: 0.75rem; }
+    .prime-cut-toggle-wrap { top: 0.75rem !important; right: 1.25rem !important; width: 3.25rem !important; height: 3.25rem !important; min-width: 3.25rem !important; min-height: 3.25rem !important; }
+    .prime-cut-toggle-wrap .material-symbols-outlined { font-size: 1.75rem !important; }
+    .prime-cut-toggle-wrap.sidebar-open { visibility: hidden; pointer-events: none; }
+}
+</style>
 </head>
 <body class="prime-cut-outer min-h-screen py-12 px-4 flex justify-center items-start">
 <div class="prime-cut-outer-bg" aria-hidden="true"></div>
 <!-- Categories sidebar (desktop + mobile) -->
-<div class="fixed top-4 right-4 z-[60] flex items-center gap-3">
-    <button type="button" id="prime-cut-menu-toggle" class="flex items-center justify-center w-12 h-12 rounded-full border-2 border-gold/60 text-gold hover:bg-gold/20 transition-colors bg-black/40" aria-label="Open menu categories">
+<div class="prime-cut-toggle-wrap fixed top-4 right-4 z-[60] flex items-center justify-center w-12 h-12 min-w-[3rem] min-h-[3rem] rounded-full border-2 border-gold/60 text-gold hover:bg-gold/20 transition-colors bg-black/40" id="prime-cut-toggle-wrap">
+    <button type="button" id="prime-cut-menu-toggle" class="flex items-center justify-center w-full h-full rounded-full" aria-label="Open menu categories">
         <span class="material-symbols-outlined text-2xl">menu</span>
     </button>
 </div>
 <div class="fixed inset-0 z-[45] bg-black/50 opacity-0 invisible pointer-events-none transition-opacity duration-200" id="prime-cut-sidebar-overlay"></div>
 <aside class="fixed top-0 right-0 z-[50] w-72 max-w-[85vw] h-full bg-darkwood border-l-2 border-gold/40 shadow-2xl transform translate-x-full transition-transform duration-300 overflow-y-auto" id="prime-cut-category-sidebar">
-    <div class="p-6">
+    <div class="p-6 relative">
         <div class="flex items-center justify-between mb-6">
             <h3 class="font-serif text-xl text-gold uppercase tracking-widest">Categories</h3>
-            <button type="button" id="prime-cut-sidebar-close" class="p-2 text-gold hover:bg-gold/10 rounded-full transition-colors" aria-label="Close">
-                <span class="material-symbols-outlined">close</span>
+            <button type="button" id="prime-cut-sidebar-close" class="relative z-10 flex items-center justify-center w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] text-gold hover:bg-gold/10 rounded-full transition-colors" aria-label="Close">
+                <span class="material-symbols-outlined text-2xl">close</span>
             </button>
         </div>
         <nav class="flex flex-col gap-2">
@@ -154,40 +162,41 @@ body.prime-cut-outer .prime-cut-outer-bg { position: absolute; inset: 0; pointer
 <span class="ornate-symbol"><?php echo $symbol; ?></span>
 </div>
 <?php endif; ?>
-<h2 class="text-center font-serif text-4xl text-gold mb-10 uppercase tracking-widest"><?php echo htmlspecialchars($category['name']); ?></h2>
+<h2 class="text-left font-serif text-4xl text-gold mb-10 uppercase tracking-widest"><?php echo htmlspecialchars($category['name']); ?></h2>
 <?php if ($catIndex === 1 && count($items) > 0): ?>
 <div class="space-y-12">
-<div class="relative p-8 border border-gold/30 bg-black/20 flex flex-col items-center text-center" data-purpose="featured-item">
-<div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-gold text-burgundy px-4 py-1 text-xs font-bold uppercase tracking-widest">Chef's Recommendation</div>
-<?php $feat = $items[0]; ?>
+<div class="relative p-8 border border-gold/30 bg-black/20 flex flex-col items-start text-left" data-purpose="featured-item">
+<div class="absolute -top-4 left-0 bg-gold text-burgundy px-4 py-1 text-xs font-bold uppercase tracking-widest">Chef's Recommendation</div>
+<?php $feat = $items[0]; $featAvailable = !isset($feat['is_available']) || $feat['is_available']; ?>
 <h3 class="font-serif text-3xl font-bold mb-2"><?php echo htmlspecialchars($feat['name']); ?></h3>
-<p class="max-w-xl text-sm font-sans italic opacity-80 mb-4"><?php echo htmlspecialchars($feat['description'] ?? ''); ?></p>
+<p class="max-w-xl text-sm font-sans italic opacity-80 mb-4 text-left"><?php echo htmlspecialchars($feat['description'] ?? ''); ?></p>
 <span class="text-gold font-serif text-2xl"><?php echo the_prime_cut_price($feat['price']); ?></span>
-<?php if (!empty($supportsOrdering) && !empty($feat['is_available'])): ?><button type="button" class="add-to-bag-btn mt-3 font-sans text-sm tracking-widest uppercase text-gold border border-gold/60 px-4 py-2 hover:bg-gold/20 transition-colors" data-item-id="<?php echo (int)$feat['id']; ?>" data-item-name="<?php echo htmlspecialchars($feat['name']); ?>" data-item-price="<?php echo htmlspecialchars($feat['price']); ?>" data-item-image="<?php echo !empty($feat['image']) ? htmlspecialchars($feat['image']) : ''; ?>">Add to bag</button><?php endif; ?>
+<?php if (!empty($supportsOrdering) && $featAvailable): ?><button type="button" class="add-to-bag-btn mt-3 font-sans text-sm uppercase text-gold border border-gold/60 px-3 py-1.5 hover:bg-gold/20 transition-colors inline-block w-auto" data-item-id="<?php echo (int)$feat['id']; ?>" data-item-name="<?php echo htmlspecialchars($feat['name']); ?>" data-item-price="<?php echo htmlspecialchars($feat['price']); ?>" data-item-image="<?php echo !empty($feat['image']) ? htmlspecialchars($feat['image']) : ''; ?>">Add to bag</button><?php endif; ?>
 </div>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
-<?php for ($i = 1; $i < count($items); $i++): $item = $items[$i]; ?>
-<div class="flex flex-col text-center md:text-left">
+<?php for ($i = 1; $i < count($items); $i++): $item = $items[$i]; $itemAvailable = !isset($item['is_available']) || $item['is_available']; ?>
+<div class="flex flex-col text-left">
 <div class="flex justify-between items-baseline mb-1">
 <h3 class="font-serif text-xl font-bold"><?php echo htmlspecialchars($item['name']); ?></h3>
 <span class="text-gold font-serif"><?php echo the_prime_cut_price($item['price']); ?></span>
 </div>
-<p class="text-sm font-sans italic opacity-75"><?php echo htmlspecialchars($item['description'] ?? ''); ?></p>
-<?php if (!empty($supportsOrdering) && !empty($item['is_available'])): ?><button type="button" class="add-to-bag-btn mt-2 font-sans text-xs tracking-widest uppercase text-gold border border-gold/60 px-3 py-1.5 hover:bg-gold/20 transition-colors" data-item-id="<?php echo (int)$item['id']; ?>" data-item-name="<?php echo htmlspecialchars($item['name']); ?>" data-item-price="<?php echo htmlspecialchars($item['price']); ?>" data-item-image="<?php echo !empty($item['image']) ? htmlspecialchars($item['image']) : ''; ?>">Add to bag</button><?php endif; ?>
+<p class="text-sm font-sans italic opacity-75 text-left"><?php echo htmlspecialchars($item['description'] ?? ''); ?></p>
+<?php if (!empty($supportsOrdering) && $itemAvailable): ?><button type="button" class="add-to-bag-btn mt-2 font-sans text-xs uppercase text-gold border border-gold/60 px-3 py-1.5 hover:bg-gold/20 transition-colors inline-block w-auto" data-item-id="<?php echo (int)$item['id']; ?>" data-item-name="<?php echo htmlspecialchars($item['name']); ?>" data-item-price="<?php echo htmlspecialchars($item['price']); ?>" data-item-image="<?php echo !empty($item['image']) ? htmlspecialchars($item['image']) : ''; ?>">Add to bag</button><?php endif; ?>
 </div>
 <?php endfor; ?>
 </div>
 </div>
 <?php else: ?>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
-<?php foreach ($items as $item): ?>
-<div class="flex flex-col text-center md:text-left">
+<?php foreach ($items as $item): $itemAvailable = !isset($item['is_available']) || $item['is_available']; ?>
+<div class="flex flex-col text-left">
 <?php if (!empty($item['image'])): ?><div class="mb-3"><img src="<?php echo $uploadBaseUrl . '/menu-items/' . htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="w-full max-h-40 object-cover rounded border border-gold/30"/></div><?php endif; ?>
 <div class="flex justify-between items-baseline mb-1">
 <h3 class="font-serif text-xl font-bold"><?php echo htmlspecialchars($item['name']); ?></h3>
 <span class="text-gold font-serif"><?php echo the_prime_cut_price($item['price']); ?></span>
 </div>
-<p class="text-sm font-sans italic opacity-75"><?php echo htmlspecialchars($item['description'] ?? ''); ?></p>
+<p class="text-sm font-sans italic opacity-75 text-left"><?php echo htmlspecialchars($item['description'] ?? ''); ?></p>
+<?php if (!empty($supportsOrdering) && $itemAvailable): ?><button type="button" class="add-to-bag-btn mt-2 font-sans text-xs uppercase text-gold border border-gold/60 px-3 py-1.5 hover:bg-gold/20 transition-colors inline-block w-auto" data-item-id="<?php echo (int)$item['id']; ?>" data-item-name="<?php echo htmlspecialchars($item['name']); ?>" data-item-price="<?php echo htmlspecialchars($item['price']); ?>" data-item-image="<?php echo !empty($item['image']) ? htmlspecialchars($item['image']) : ''; ?>">Add to bag</button><?php endif; ?>
 </div>
 <?php endforeach; ?>
 </div>
@@ -233,18 +242,21 @@ body.prime-cut-outer .prime-cut-outer-bg { position: absolute; inset: 0; pointer
     var sidebar = document.getElementById('prime-cut-category-sidebar');
     var overlay = document.getElementById('prime-cut-sidebar-overlay');
     var closeBtn = document.getElementById('prime-cut-sidebar-close');
+    var toggleWrap = document.getElementById('prime-cut-toggle-wrap');
     function openSidebar() {
         if (sidebar) { sidebar.classList.remove('translate-x-full'); }
         if (overlay) { overlay.classList.remove('opacity-0', 'invisible', 'pointer-events-none'); overlay.classList.add('opacity-100'); overlay.style.pointerEvents = 'auto'; }
+        if (toggleWrap) { toggleWrap.classList.add('sidebar-open'); }
         document.body.style.overflow = 'hidden';
     }
     function closeSidebar() {
         if (sidebar) { sidebar.classList.add('translate-x-full'); }
         if (overlay) { overlay.classList.add('opacity-0', 'invisible', 'pointer-events-none'); overlay.classList.remove('opacity-100'); overlay.style.pointerEvents = 'none'; }
+        if (toggleWrap) { toggleWrap.classList.remove('sidebar-open'); }
         document.body.style.overflow = '';
     }
-    if (toggle) toggle.addEventListener('click', openSidebar);
-    if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+    if (toggle) { toggle.addEventListener('click', function(e) { e.stopPropagation(); openSidebar(); }); }
+    if (closeBtn) { closeBtn.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); closeSidebar(); }); }
     if (overlay) overlay.addEventListener('click', closeSidebar);
     document.querySelectorAll('.prime-cut-nav-link').forEach(function(link) {
         link.addEventListener('click', closeSidebar);
