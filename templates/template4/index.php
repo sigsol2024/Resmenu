@@ -318,24 +318,6 @@ function t4_formatPrice($price, $symbol = '₦') {
                                             Add to bag
                                         </button>
                                     </div>
-                                    <?php else:
-                                    $orderHref = '#';
-                                    $orderTarget = '_self';
-                                    if (!empty($restaurant['whatsapp_link'])) {
-                                        $orderHref = $restaurant['whatsapp_link'] . '?text=' . urlencode('I would like to order: ' . $item['name']);
-                                        $orderTarget = '_blank';
-                                    } elseif (!empty($restaurant['phone'])) {
-                                        $orderHref = 'tel:' . preg_replace('/\s+/', '', $restaurant['phone']);
-                                    } elseif (!empty($restaurant['email'])) {
-                                        $orderHref = 'mailto:' . $restaurant['email'] . '?subject=' . urlencode('Order: ' . $item['name']);
-                                    }
-                                    ?>
-                                    <div class="flex justify-start mt-auto">
-                                        <a href="<?php echo htmlspecialchars($orderHref); ?>" target="<?php echo htmlspecialchars($orderTarget); ?>" class="inline-flex items-center gap-1.5 md:gap-1 bg-primary text-white hover:bg-charcoal px-4 py-2 md:px-3 md:py-1.5 lg:px-3 lg:py-1.5 rounded-full text-xs md:text-[10px] lg:text-[10px] font-bold uppercase tracking-wider transition-all transform active:scale-95 shadow-lg shadow-primary/20">
-                                            <span class="material-symbols-outlined text-sm md:text-xs">shopping_bag</span>
-                                            Add to bag
-                                        </a>
-                                    </div>
                                     <?php endif; ?>
                                 </div>
                             </div>

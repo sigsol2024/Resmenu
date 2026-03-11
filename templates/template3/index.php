@@ -256,8 +256,7 @@ endif;
 <?php if (!$item['is_available'] && empty($item['image'])): ?>
 <span class="mt-2 text-sm font-bold text-red-500">Unavailable</span>
 <?php endif; ?>
-<?php if ($item['is_available']): ?>
-<?php if (!empty($supportsOrdering)): ?>
+<?php if ($item['is_available'] && !empty($supportsOrdering)): ?>
 <button type="button" class="add-to-bag-btn mt-3 text-sm font-bold text-slate-900 flex items-center gap-2 group/btn cursor-pointer border-0 bg-transparent p-0"
     data-item-id="<?php echo (int)$item['id']; ?>"
     data-item-name="<?php echo htmlspecialchars($item['name']); ?>"
@@ -265,11 +264,6 @@ endif;
     data-item-image="<?php echo !empty($item['image']) ? htmlspecialchars($item['image']) : ''; ?>">
     Add to Order <span class="material-symbols-outlined text-base text-primary transition-transform group-hover/btn:translate-x-1">add_circle</span>
 </button>
-<?php elseif (!empty($restaurant['whatsapp_link'])): ?>
-<a href="<?php echo htmlspecialchars($restaurant['whatsapp_link']); ?>" target="_blank" class="mt-3 text-sm font-bold text-slate-900 flex items-center gap-2 group/btn">
-    Add to Order <span class="material-symbols-outlined text-base text-primary transition-transform group-hover/btn:translate-x-1">add_circle</span>
-</a>
-<?php endif; ?>
 <?php endif; ?>
 </div>
 </div>
