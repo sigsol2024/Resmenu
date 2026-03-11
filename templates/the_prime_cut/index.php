@@ -35,7 +35,6 @@ if (!empty($categories) && is_array($categories)) {
         }
     }
 }
-$ornateSymbols = ['❦', '✧', '⚜', '🍷'];
 ?>
 <!DOCTYPE html>
 <html lang="en"><head>
@@ -156,12 +155,12 @@ body.prime-cut-outer .prime-cut-outer-bg { position: absolute; inset: 0; pointer
     $slug = isset($category['slug']) ? $category['slug'] : ('section-' . $catIndex);
     $items = $category['menu_items'];
     if (empty($items)) continue;
-    $symbol = $ornateSymbols[$catIndex % count($ornateSymbols)];
+    $categoryIcon = resmenu_get_category_icon($category);
 ?>
 <section class="mb-16" data-purpose="menu-section" id="<?php echo htmlspecialchars($slug); ?>">
 <?php if ($catIndex > 0): ?>
 <div class="ornate-divider">
-<span class="ornate-symbol"><?php echo $symbol; ?></span>
+<span class="ornate-symbol"><?php echo $categoryIcon; ?></span>
 </div>
 <?php endif; ?>
 <h2 class="text-left font-serif text-4xl text-gold mb-10 uppercase tracking-widest"><?php echo htmlspecialchars($category['name']); ?></h2>

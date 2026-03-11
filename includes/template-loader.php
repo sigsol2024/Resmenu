@@ -6,6 +6,7 @@
 
 require_once __DIR__ . '/functions.php';
 require_once __DIR__ . '/subscription.php';
+require_once __DIR__ . '/category-icons.php';
 
 /**
  * Check if template supports ordering (Add to bag / cart)
