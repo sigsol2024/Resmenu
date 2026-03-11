@@ -98,6 +98,7 @@ h1, h2, h3, .serif-font { font-family: 'Bodoni Moda', serif; }
     if (empty($items)) continue;
 ?>
 <section class="menu-section py-24 max-w-7xl mx-auto px-6" id="<?php echo htmlspecialchars($slug); ?>">
+<h2 class="text-2xl md:text-3xl font-bold tracking-[0.2em] uppercase text-gray-800 mb-12 pb-4 border-b border-gray-200"><?php echo htmlspecialchars($category['name']); ?></h2>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-20 gap-y-12">
 <?php foreach ($items as $item): $itemAvailable = !isset($item['is_available']) || $item['is_available']; ?>
 <div class="flex gap-4 justify-between border-b border-gray-100 pb-4 items-start">
