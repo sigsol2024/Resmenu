@@ -46,12 +46,13 @@ h1, h2, h3 { font-family: 'Fredoka One', cursive; }
 #resmenu-cart-widget .resmenu-cart-widget-btn:hover { background-color: #6ab87e !important; }
 @media (max-width: 768px) {
   .sd-desktop-nav { display: none; }
-  .sd-mobile-toggle-wrap { display: flex !important; }
+  .sd-mobile-toggle-wrap { display: flex !important; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.2s, visibility 0.2s; }
+  .sd-mobile-toggle-wrap.sd-toggle-visible { opacity: 1; visibility: visible; pointer-events: auto; }
 }
 @media (min-width: 769px) {
   .sd-mobile-toggle-wrap { display: none !important; }
 }
-.sd-toggle-wrap.sidebar-open { visibility: hidden; pointer-events: none; }
+.sd-mobile-toggle-wrap.sidebar-open { visibility: hidden; pointer-events: none; }
 </style>
 </head>
 <body class="min-h-screen">
@@ -64,11 +65,13 @@ h1, h2, h3 { font-family: 'Fredoka One', cursive; }
 </div>
 <div class="fixed inset-0 z-[45] bg-black/40 opacity-0 invisible pointer-events-none transition-opacity duration-200" id="sd-sidebar-overlay"></div>
 <aside class="fixed top-0 right-0 z-[50] w-72 max-w-[85vw] h-full bg-white shadow-2xl transform translate-x-full transition-transform duration-300 overflow-y-auto rounded-l-3xl border-2 border-soft-berry/30" id="sd-sidebar">
-<div class="p-6 pt-14 relative">
-<button type="button" id="sd-sidebar-close" class="absolute top-4 right-4 flex items-center justify-center w-10 h-10 text-soft-berry hover:bg-pastel-pink rounded-full transition-colors" aria-label="Close">
+<div class="p-6 sticky top-0 bg-white z-10 flex items-center justify-between border-b border-soft-berry/20 pb-4 mb-4 -mt-2">
+<h3 class="text-xl font-bold text-soft-berry">Menu</h3>
+<button type="button" id="sd-sidebar-close" class="flex items-center justify-center w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] text-soft-berry hover:bg-pastel-pink rounded-full transition-colors shrink-0" aria-label="Close">
 <span class="material-symbols-outlined text-2xl">close</span>
 </button>
-<h3 class="text-xl font-bold text-soft-berry mb-6">Menu</h3>
+</div>
+<div class="px-6 pb-6">
 <nav class="flex flex-col gap-2 sd-nav-links">
 <?php if (!empty($supportsReservations)): ?><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="sd-nav-link block px-4 py-3 rounded-full font-bold text-center bg-white border-2 border-soft-berry text-soft-berry hover:shadow-md">Reserve Table</a><?php endif; ?>
 <?php foreach ($activeCategories as $i => $cat): $s = isset($cat['slug']) ? $cat['slug'] : ('section-'.$i); ?>
@@ -77,7 +80,7 @@ h1, h2, h3 { font-family: 'Fredoka One', cursive; }
 </nav>
 </div>
 </aside>
-<header class="py-12 text-center relative z-10" data-purpose="header-container">
+<header class="py-12 text-center relative z-10" data-purpose="header-container" id="sd-hero-header">
 <?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?>
 <div class="inline-block p-4 bg-white rounded-full shadow-lg mb-4"><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" style="max-height: 48px; width: auto;"/></div>
 <p class="text-lg text-gray-600 font-semibold italic mb-4"><?php echo htmlspecialchars($restaurant['description'] ?? 'Where every scoop is a dream!'); ?></p>
@@ -158,6 +161,7 @@ h1, h2, h3 { font-family: 'Fredoka One', cursive; }
     var overlay=document.getElementById('sd-sidebar-overlay');
     var closeBtn=document.getElementById('sd-sidebar-close');
     var toggleWrap=document.getElementById('sd-toggle-wrap');
+    var heroHeader=document.getElementById('sd-hero-header');
     function openSidebar(){ if(sidebar)sidebar.classList.remove('translate-x-full'); if(overlay){ overlay.classList.remove('opacity-0','invisible','pointer-events-none'); overlay.classList.add('opacity-100'); overlay.style.pointerEvents='auto'; } if(toggleWrap)toggleWrap.classList.add('sidebar-open'); document.body.style.overflow='hidden'; }
     function closeSidebar(){ if(sidebar)sidebar.classList.add('translate-x-full'); if(overlay){ overlay.classList.add('opacity-0','invisible','pointer-events-none'); overlay.classList.remove('opacity-100'); overlay.style.pointerEvents='none'; } if(toggleWrap)toggleWrap.classList.remove('sidebar-open'); document.body.style.overflow=''; }
     if(toggle)toggle.addEventListener('click',function(e){e.stopPropagation();openSidebar();});
@@ -165,6 +169,17 @@ h1, h2, h3 { font-family: 'Fredoka One', cursive; }
     if(overlay)overlay.addEventListener('click',closeSidebar);
     document.querySelectorAll('.sd-nav-link').forEach(function(l){l.addEventListener('click',closeSidebar);});
     document.addEventListener('keydown',function(e){if(e.key==='Escape')closeSidebar();});
+    if(heroHeader&&toggleWrap){
+        function checkScroll(){
+            if(window.innerWidth>768)return;
+            var rect=heroHeader.getBoundingClientRect();
+            if(rect.bottom<0)toggleWrap.classList.add('sd-toggle-visible');
+            else toggleWrap.classList.remove('sd-toggle-visible');
+        }
+        window.addEventListener('scroll',checkScroll,{passive:true});
+        window.addEventListener('resize',checkScroll);
+        checkScroll();
+    }
 })();
 </script>
 <!-- Back to top -->
