@@ -38,9 +38,13 @@ $masonryClasses = ['masonry-item-sm', 'masonry-item-md', 'masonry-item-lg'];
 <style>
 .comic-border { border: 4px solid #1A1A1A; }
 .masonry-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; align-items: start; }
+@media (max-width: 1024px) {
+  .masonry-grid { gap: 10px; }
+}
 .masonry-item-sm { grid-row-end: span 18; }
 .masonry-item-md { grid-row-end: span 22; }
 .masonry-item-lg { grid-row-end: span 26; }
+.sfh-no-img h3 { margin-top: 2.75rem; }
 @keyframes wiggle { 0%, 100% { transform: rotate(-1deg); } 50% { transform: rotate(1deg); } }
 .animate-wiggle { animation: wiggle 2s infinite ease-in-out; }
 .material-symbols-outlined { font-family: 'Material Symbols Outlined', sans-serif; font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
@@ -95,7 +99,7 @@ body.sfh-body .sfh-bg { position: absolute; inset: 0; pointer-events: none; back
         $imgUrl = !empty($item['image']) ? $uploadBaseUrl . '/menu-items/' . htmlspecialchars($item['image']) : '';
         $itemAvailable = !isset($item['is_available']) || $item['is_available'];
 ?>
-<article class="<?php echo $masonry; ?> bg-white comic-border p-6 shadow-brutal flex flex-col relative overflow-hidden group" data-purpose="menu-item">
+<article class="<?php echo $masonry; ?> bg-white comic-border p-6 shadow-brutal flex flex-col relative overflow-hidden group <?php echo $imgUrl ? '' : 'sfh-no-img'; ?>" data-purpose="menu-item">
 <div class="absolute -top-2 -right-2 bg-brandBlack text-white px-4 py-2 font-chunky text-xl comic-border z-10 <?php echo $itemIndex === 0 ? 'animate-wiggle' : ''; ?>"><?php echo sfh_price($item['price']); ?></div>
 <?php if ($imgUrl): ?><img alt="<?php echo htmlspecialchars($item['name']); ?>" class="w-full h-48 object-cover comic-border mb-4 group-hover:grayscale transition-all duration-300" src="<?php echo $imgUrl; ?>"/><?php endif; ?>
 <h3 class="font-chunky text-2xl mb-2"><?php echo htmlspecialchars($item['name']); ?></h3>
