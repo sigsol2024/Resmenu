@@ -30,12 +30,6 @@ if (!$restaurant) {
     exit;
 }
 
-$templateId = (int) ($restaurant['template_id'] ?? 1);
-if ($templateId !== 4) {
-    echo json_encode(['success' => false, 'message' => 'Reservations not available']);
-    exit;
-}
-
 $restaurantId = (int)$restaurant['id'];
 $subscriptionAccess = checkSubscriptionAccess($restaurantId);
 if (!$subscriptionAccess['valid']) {
