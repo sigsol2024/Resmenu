@@ -12,6 +12,10 @@ if ($baseUrl === '') {
     $baseUrl = $protocol . ($_SERVER['HTTP_HOST'] ?? 'localhost') . (dirname(dirname(dirname($_SERVER['SCRIPT_NAME'] ?? '/index.php'))));
 }
 $reservationUrl = $baseUrl . '/restaurant/' . ($restaurant['slug'] ?? '') . '/reservation';
+$snswTemplateBaseUrl = rtrim($baseUrl, '/') . '/templates/salt_n_socials_white';
+$snswTemplateDir = __DIR__;
+$snswPageBgFile = (file_exists($snswTemplateDir . '/Salt-Social-2-copy-1.png')) ? 'Salt-Social-2-copy-1.png' : 'Salt-Social-2-copy-1.jpg';
+$snswSideBgFile = (file_exists($snswTemplateDir . '/side-bg-scaled.png')) ? 'side-bg-scaled.png' : 'side-bg-scaled.jpg';
 $currencySymbol = '₦';
 $primaryColor = isset($customization['primary_color']) ? $customization['primary_color'] : '#0D2633';
 function snsw_price($p, $s = '₦') { return $s . number_format((float)$p, 2); }
@@ -62,15 +66,31 @@ function snsw_brand_markup($name) {
 <style>
 html, body { overflow-x: hidden; }
 body { background-color: #F3FAFD; font-family: "Open Sans", sans-serif; color: #2C263F; min-width: 0; }
-.bg-pattern {
-  background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuBLv_oqYNC8EaWEczUB5kGqTJtluGVH1zde15oujrJFLMGcNJuR-45lQ3fL6RrJ7b3-LQgutpqEhPv77ovqk_qAuwu_qiOSyTN14nmb3SsEne7OAoRUqAOdwduy2m6CsnRgDXyDuCVp4Q1NSSPERmC8CxoLdZAbuFj98MNGZWSeEHC4aFV8dlxOuIoqqlW-y-A96Bg66uBtkZemKObyZR7ejUao5m8xex1Xae_1GxC6rOZ3-1GGVfsHpN5AihsU2YHpFm-C0oemOdmr);
-  background-repeat: repeat;
-  background-size: 400px;
-  opacity: 0.05;
+/* Page background image (same pattern as other templates: fixed full-screen layer) */
+.snsw-page-bg {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
+  background-image: url('<?php echo htmlspecialchars($snswTemplateBaseUrl . '/' . $snswPageBgFile); ?>');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
   z-index: -1;
   pointer-events: none;
+}
+/* Left sticky image column: image rotated vertically, fit to screen */
+.snsw-left-bg {
+  overflow: hidden;
+}
+.snsw-left-bg-inner {
+  position: absolute;
+  width: 100vh;
+  height: 100vw;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) rotate(-90deg);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 .vertical-text { writing-mode: vertical-rl; text-transform: uppercase; letter-spacing: 0.05em; }
 .menu-item-row { display: flex; align-items: baseline; width: 100%; min-width: 0; }
@@ -104,19 +124,15 @@ body { background-color: #F3FAFD; font-family: "Open Sans", sans-serif; color: #
 </style>
 </head>
 <body class="flex min-h-screen min-w-0">
-<div class="bg-pattern"></div>
-<!-- Sticky Sidebar: visible on all screens, narrower on mobile/tablet -->
-<aside class="flex flex-col items-center justify-between w-12 sm:w-16 md:w-20 bg-sidebar-bg text-white py-6 md:py-12 sticky top-0 h-screen shrink-0 z-10">
-  <div class="flex flex-col items-center space-y-6 md:space-y-12">
-    <div class="vertical-text text-xs sm:text-sm md:text-2xl font-raleway font-light"><?php echo snsw_brand_markup($brandName); ?></div>
-    <div class="vertical-text text-[8px] sm:text-[9px] md:text-[10px] tracking-widest opacity-60"><?php echo htmlspecialchars($tagline); ?></div>
-    <div class="vertical-text text-xs sm:text-sm md:text-2xl font-raleway font-light"><?php echo snsw_brand_markup($brandName); ?></div>
-    <div class="vertical-text text-[8px] sm:text-[9px] md:text-[10px] tracking-widest opacity-60"><?php echo htmlspecialchars($tagline); ?></div>
-    <div class="vertical-text text-xs sm:text-sm md:text-2xl font-raleway font-light"><?php echo snsw_brand_markup($brandName); ?></div>
-  </div>
-</aside>
+<div class="snsw-page-bg"></div>
+<!-- Layout: mobile = [sidebar][main]; desktop = [left image][main][sidebar right] -->
+<div class="flex flex-1 w-full min-w-0 flex-row">
+<!-- Left sticky image column (desktop only): fit to screen, rotated vertically, no bg color -->
+<div class="snsw-left-bg hidden md:flex flex-col w-16 lg:w-20 shrink-0 sticky top-0 h-screen z-10 order-3 md:order-1 relative" style="min-height: 100vh;">
+  <div class="snsw-left-bg-inner" style="background-image: url('<?php echo htmlspecialchars($snswTemplateBaseUrl . '/' . $snswSideBgFile); ?>');"></div>
+</div>
 <!-- Main Content -->
-<main class="flex-grow min-w-0 max-w-4xl mx-auto px-4 sm:px-6 md:px-12 py-6 md:py-8 snsw-main overflow-x-hidden">
+<main class="flex-grow min-w-0 max-w-4xl mx-auto px-4 sm:px-6 md:px-12 py-6 md:py-8 snsw-main overflow-x-hidden order-2">
   <header class="text-center mb-10 md:mb-16 border-b border-gray-200 pb-4">
     <div class="mb-2 text-accent-gold flex justify-center">
       <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 12l-6-6h12l-6 6z"></path></svg>
@@ -172,6 +188,17 @@ body { background-color: #F3FAFD; font-family: "Open Sans", sans-serif; color: #
     <?php if (!empty($restaurant['footer_content'])): ?><p class="mt-4 text-xs sm:text-sm text-gray-500 break-words"><?php echo nl2br(htmlspecialchars($restaurant['footer_content'])); ?></p><?php endif; ?>
   </footer>
 </main>
+<!-- Sticky Sidebar: left on mobile, right on desktop; fit to screen, sticky on all sizes -->
+<aside class="flex flex-col items-center justify-between w-12 sm:w-16 md:w-20 bg-sidebar-bg text-menu-text py-6 md:py-12 sticky top-0 h-screen shrink-0 z-10 order-1 md:order-3">
+  <div class="flex flex-col items-center space-y-6 md:space-y-12">
+    <div class="vertical-text text-xs sm:text-sm md:text-2xl font-raleway font-light"><?php echo snsw_brand_markup($brandName); ?></div>
+    <div class="vertical-text text-[8px] sm:text-[9px] md:text-[10px] tracking-widest opacity-60"><?php echo htmlspecialchars($tagline); ?></div>
+    <div class="vertical-text text-xs sm:text-sm md:text-2xl font-raleway font-light"><?php echo snsw_brand_markup($brandName); ?></div>
+    <div class="vertical-text text-[8px] sm:text-[9px] md:text-[10px] tracking-widest opacity-60"><?php echo htmlspecialchars($tagline); ?></div>
+    <div class="vertical-text text-xs sm:text-sm md:text-2xl font-raleway font-light"><?php echo snsw_brand_markup($brandName); ?></div>
+  </div>
+</aside>
+</div>
 
 <?php if (!empty($supportsOrdering)): ?>
 <link rel="stylesheet" href="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : $baseUrl, '/'); ?>/assets/css/cart-modal.css">
