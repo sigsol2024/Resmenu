@@ -37,14 +37,48 @@ $masonryClasses = ['masonry-item-sm', 'masonry-item-md', 'masonry-item-lg'];
   </script>
 <style>
 .comic-border { border: 4px solid #1A1A1A; }
-.masonry-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; align-items: start; }
-@media (max-width: 1024px) {
-  .masonry-grid { gap: 10px; }
+.masonry-grid { display: grid; gap: 10px; align-items: start; grid-template-columns: repeat(2, 1fr); }
+@media (min-width: 768px) {
+  .masonry-grid { grid-template-columns: repeat(3, 1fr); gap: 14px; }
 }
-.masonry-item-sm { grid-row-end: span 18; }
-.masonry-item-md { grid-row-end: span 22; }
-.masonry-item-lg { grid-row-end: span 26; }
+@media (min-width: 1024px) {
+  .masonry-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+}
+.masonry-item-sm { grid-row-end: span 14; }
+.masonry-item-md { grid-row-end: span 16; }
+.masonry-item-lg { grid-row-end: span 18; }
+@media (min-width: 768px) {
+  .masonry-item-sm { grid-row-end: span 16; }
+  .masonry-item-md { grid-row-end: span 20; }
+  .masonry-item-lg { grid-row-end: span 22; }
+}
+@media (min-width: 1024px) {
+  .masonry-item-sm { grid-row-end: span 18; }
+  .masonry-item-md { grid-row-end: span 22; }
+  .masonry-item-lg { grid-row-end: span 26; }
+}
 .sfh-no-img h3 { margin-top: 2.75rem; }
+@media (max-width: 767px) {
+  .sfh-no-img h3 { margin-top: 2rem; }
+}
+.sfh-card { padding: 0.75rem; }
+@media (min-width: 768px) { .sfh-card { padding: 1rem; } }
+@media (min-width: 1024px) { .sfh-card { padding: 1.5rem; } }
+.sfh-card .sfh-price { font-size: 0.7rem; padding: 0.35rem 0.5rem; }
+@media (min-width: 768px) { .sfh-card .sfh-price { font-size: 0.8rem; padding: 0.4rem 0.6rem; } }
+@media (min-width: 1024px) { .sfh-card .sfh-price { font-size: 1.25rem; padding: 0.5rem 1rem; } }
+.sfh-card .sfh-title { font-size: 0.95rem; margin-bottom: 0.25rem; }
+@media (min-width: 768px) { .sfh-card .sfh-title { font-size: 1.1rem; margin-bottom: 0.35rem; } }
+@media (min-width: 1024px) { .sfh-card .sfh-title { font-size: 1.5rem; margin-bottom: 0.5rem; } }
+.sfh-card .sfh-desc { font-size: 0.7rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+@media (min-width: 768px) { .sfh-card .sfh-desc { font-size: 0.75rem; -webkit-line-clamp: 4; } }
+@media (min-width: 1024px) { .sfh-card .sfh-desc { font-size: 0.875rem; -webkit-line-clamp: unset; display: block; overflow: visible; } }
+.sfh-card .sfh-btn { font-size: 0.65rem; padding: 0.35rem 0.6rem; margin-top: 0.5rem; }
+@media (min-width: 768px) { .sfh-card .sfh-btn { font-size: 0.75rem; padding: 0.5rem 0.75rem; margin-top: 0.6rem; } }
+@media (min-width: 1024px) { .sfh-card .sfh-btn { font-size: 1rem; padding: 0.5rem 1rem; margin-top: 0.75rem; } }
+.sfh-card .sfh-img { height: 5rem; margin-bottom: 0.5rem; }
+@media (min-width: 768px) { .sfh-card .sfh-img { height: 6rem; margin-bottom: 0.5rem; } }
+@media (min-width: 1024px) { .sfh-card .sfh-img { height: 12rem; margin-bottom: 1rem; } }
 @keyframes wiggle { 0%, 100% { transform: rotate(-1deg); } 50% { transform: rotate(1deg); } }
 .animate-wiggle { animation: wiggle 2s infinite ease-in-out; }
 .material-symbols-outlined { font-family: 'Material Symbols Outlined', sans-serif; font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
@@ -99,12 +133,12 @@ body.sfh-body .sfh-bg { position: absolute; inset: 0; pointer-events: none; back
         $imgUrl = !empty($item['image']) ? $uploadBaseUrl . '/menu-items/' . htmlspecialchars($item['image']) : '';
         $itemAvailable = !isset($item['is_available']) || $item['is_available'];
 ?>
-<article class="<?php echo $masonry; ?> bg-white comic-border p-6 shadow-brutal flex flex-col relative overflow-hidden group <?php echo $imgUrl ? '' : 'sfh-no-img'; ?>" data-purpose="menu-item">
-<div class="absolute -top-2 -right-2 bg-brandBlack text-white px-4 py-2 font-chunky text-xl comic-border z-10 <?php echo $itemIndex === 0 ? 'animate-wiggle' : ''; ?>"><?php echo sfh_price($item['price']); ?></div>
-<?php if ($imgUrl): ?><img alt="<?php echo htmlspecialchars($item['name']); ?>" class="w-full h-48 object-cover comic-border mb-4 group-hover:grayscale transition-all duration-300" src="<?php echo $imgUrl; ?>"/><?php endif; ?>
-<h3 class="font-chunky text-2xl mb-2"><?php echo htmlspecialchars($item['name']); ?></h3>
-<p class="text-sm font-bold flex-grow min-h-0"><?php echo htmlspecialchars($item['description'] ?? ''); ?></p>
-<?php if (!empty($supportsOrdering) && $itemAvailable): ?><button type="button" class="add-to-bag-btn mt-3 comic-border px-4 py-2 font-chunky bg-brandBlack text-white hover:bg-white hover:text-brandBlack transition-colors" data-item-id="<?php echo (int)$item['id']; ?>" data-item-name="<?php echo htmlspecialchars($item['name']); ?>" data-item-price="<?php echo htmlspecialchars($item['price']); ?>" data-item-image="<?php echo !empty($item['image']) ? htmlspecialchars($item['image']) : ''; ?>">Add to bag</button><?php endif; ?>
+<article class="<?php echo $masonry; ?> sfh-card bg-white comic-border shadow-brutal flex flex-col relative overflow-hidden group <?php echo $imgUrl ? '' : 'sfh-no-img'; ?>" data-purpose="menu-item">
+<div class="absolute -top-1 -right-1 sfh-price bg-brandBlack text-white font-chunky comic-border z-10 <?php echo $itemIndex === 0 ? 'animate-wiggle' : ''; ?>"><?php echo sfh_price($item['price']); ?></div>
+<?php if ($imgUrl): ?><img alt="<?php echo htmlspecialchars($item['name']); ?>" class="w-full sfh-img object-cover comic-border group-hover:grayscale transition-all duration-300" src="<?php echo $imgUrl; ?>"/><?php endif; ?>
+<h3 class="font-chunky sfh-title"><?php echo htmlspecialchars($item['name']); ?></h3>
+<p class="sfh-desc font-bold flex-grow min-h-0"><?php echo htmlspecialchars($item['description'] ?? ''); ?></p>
+<?php if (!empty($supportsOrdering) && $itemAvailable): ?><button type="button" class="add-to-bag-btn sfh-btn comic-border font-chunky bg-brandBlack text-white hover:bg-white hover:text-brandBlack transition-colors" data-item-id="<?php echo (int)$item['id']; ?>" data-item-name="<?php echo htmlspecialchars($item['name']); ?>" data-item-price="<?php echo htmlspecialchars($item['price']); ?>" data-item-image="<?php echo !empty($item['image']) ? htmlspecialchars($item['image']) : ''; ?>">Add to bag</button><?php endif; ?>
 </article>
 <?php endforeach; ?>
 </div>
