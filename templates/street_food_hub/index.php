@@ -92,7 +92,7 @@ body.sfh-body .sfh-bg { position: absolute; inset: 0; pointer-events: none; back
     if (empty($items)) continue;
 ?>
 <section class="mb-16" id="<?php echo htmlspecialchars($slug); ?>">
-<h2 class="font-chunky text-3xl md:text-4xl uppercase mb-6 comic-border inline-block bg-white px-6 py-3 shadow-brutal-sm -rotate-1"><?php echo htmlspecialchars($category['name']); ?></h2>
+<h2 class="font-chunky text-3xl md:text-4xl uppercase mb-6 comic-border inline-block bg-brandYellow text-brandBlack px-6 py-3 shadow-brutal-sm -rotate-1"><?php echo htmlspecialchars($category['name']); ?></h2>
 <div class="masonry-grid">
 <?php foreach ($items as $itemIndex => $item): 
         $masonry = $masonryClasses[$itemIndex % 3];
