@@ -22,13 +22,7 @@ $restaurant = $stmt->fetch();
 if (!$restaurant) die('Restaurant not found.');
 if (empty($restaurantSlug)) $restaurantSlug = $restaurant['slug'];
 
-$templateId = (int)($restaurant['template_id'] ?? 1);
 $slugParam = $restaurantSlug ? '?slug=' . urlencode($restaurantSlug) : '';
-
-if ($templateId !== 4) {
-    header('Location: /manager/reservations.php' . $slugParam);
-    exit;
-}
 
 $pageTitle = 'Table Inventory - ' . htmlspecialchars($restaurant['name']);
 include __DIR__ . '/../includes/manager-layout.php';
