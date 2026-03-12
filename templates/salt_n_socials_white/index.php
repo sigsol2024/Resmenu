@@ -77,6 +77,12 @@ body { overflow-x: clip; background-color: #E4DABF; font-family: "Open Sans", sa
   z-index: -1;
   pointer-events: none;
 }
+/* Left sidebar (desktop): side-bg-scaled image repeated vertically */
+.snsw-left-aside-bg {
+  background-repeat: repeat-y;
+  background-position: top center;
+  background-size: 100% auto;
+}
 .vertical-text { writing-mode: vertical-rl; text-transform: uppercase; letter-spacing: 0.05em; }
 .menu-item-row { display: flex; align-items: baseline; width: 100%; min-width: 0; }
 .item-name { flex-shrink: 1; min-width: 0; font-weight: 700; font-family: "Raleway", sans-serif; font-size: 1rem; text-transform: uppercase; word-break: break-word; overflow-wrap: break-word; }
@@ -112,16 +118,8 @@ body { overflow-x: clip; background-color: #E4DABF; font-family: "Open Sans", sa
 <div class="snsw-page-bg"></div>
 <!-- Layout: mobile = [sidebar][main]; desktop = [sidebar left][main][sidebar right] -->
 <div class="flex flex-1 w-full min-w-0 flex-row" style="overflow-x: clip;">
-<!-- Sidebar: #002F47, white text; mobile/tablet left, desktop right -->
-<aside class="flex flex-col items-center justify-between w-12 sm:w-16 md:w-20 bg-[#002F47] text-white py-6 md:py-12 shrink-0 z-10 order-1 md:order-3 sticky top-0 self-start" style="height: 100vh;">
-  <div class="flex flex-col items-center justify-between flex-1 py-4">
-    <div class="vertical-text text-xs sm:text-sm md:text-2xl font-raleway font-light"><?php echo snsw_brand_markup($brandName); ?></div>
-    <div class="vertical-text text-[8px] sm:text-[9px] md:text-[10px] tracking-widest opacity-80"><?php echo htmlspecialchars($tagline); ?></div>
-    <div class="vertical-text text-xs sm:text-sm md:text-2xl font-raleway font-light"><?php echo snsw_brand_markup($brandName); ?></div>
-    <div class="vertical-text text-[8px] sm:text-[9px] md:text-[10px] tracking-widest opacity-80"><?php echo htmlspecialchars($tagline); ?></div>
-    <div class="vertical-text text-xs sm:text-sm md:text-2xl font-raleway font-light"><?php echo snsw_brand_markup($brandName); ?></div>
-  </div>
-</aside>
+<!-- Sidebar: #002F47, no text; mobile/tablet left, desktop right; same size -->
+<aside class="flex flex-col w-12 sm:w-16 md:w-20 bg-[#002F47] shrink-0 z-10 order-1 md:order-3 sticky top-0 self-start py-6 md:py-12" style="height: 100vh;"></aside>
 <!-- Main Content -->
 <main class="flex-grow min-w-0 max-w-4xl mx-auto px-4 sm:px-6 md:px-12 py-6 md:py-8 snsw-main overflow-x-hidden order-2">
   <header class="text-center mb-10 md:mb-16 border-b border-gray-200 pb-4">
@@ -179,16 +177,8 @@ body { overflow-x: clip; background-color: #E4DABF; font-family: "Open Sans", sa
     <?php if (!empty($restaurant['footer_content'])): ?><p class="mt-4 text-xs sm:text-sm text-gray-500 break-words"><?php echo nl2br(htmlspecialchars($restaurant['footer_content'])); ?></p><?php endif; ?>
   </footer>
 </main>
-<!-- Sidebar: #E4DABF, dark text; desktop only, left on desktop -->
-<aside class="hidden md:flex flex-col items-center justify-between w-12 sm:w-16 md:w-20 bg-[#E4DABF] text-menu-text py-6 md:py-12 shrink-0 z-10 order-3 md:order-1 sticky top-0 self-start" style="height: 100vh;">
-  <div class="flex flex-col items-center justify-between flex-1 py-4">
-    <div class="vertical-text text-xs sm:text-sm md:text-2xl font-raleway font-light"><?php echo snsw_brand_markup($brandName); ?></div>
-    <div class="vertical-text text-[8px] sm:text-[9px] md:text-[10px] tracking-widest opacity-80"><?php echo htmlspecialchars($tagline); ?></div>
-    <div class="vertical-text text-xs sm:text-sm md:text-2xl font-raleway font-light"><?php echo snsw_brand_markup($brandName); ?></div>
-    <div class="vertical-text text-[8px] sm:text-[9px] md:text-[10px] tracking-widest opacity-80"><?php echo htmlspecialchars($tagline); ?></div>
-    <div class="vertical-text text-xs sm:text-sm md:text-2xl font-raleway font-light"><?php echo snsw_brand_markup($brandName); ?></div>
-  </div>
-</aside>
+<!-- Sidebar: #E4DABF, side-bg-scaled repeated vertically; desktop only, left; slightly wider -->
+<aside class="snsw-left-aside-bg hidden md:flex flex-col w-20 md:w-24 shrink-0 z-10 order-3 md:order-1 sticky top-0 self-start py-6 md:py-12" style="height: 100vh; background-image: url('<?php echo htmlspecialchars($snswTemplateBaseUrl . '/' . $snswSideBgFile); ?>');"></aside>
 </div>
 
 <?php if (!empty($supportsOrdering)): ?>
