@@ -112,8 +112,8 @@ body { overflow-x: clip; background-color: #E4DABF; font-family: "Open Sans", sa
 <div class="snsw-page-bg"></div>
 <!-- Layout: mobile = [sidebar][main]; desktop = [sidebar left][main][sidebar right] -->
 <div class="flex flex-1 w-full min-w-0 flex-row" style="overflow-x: clip;">
-<!-- Sidebar left: #002F47, white text, sticky (always visible) -->
-<aside class="flex flex-col items-center justify-between w-12 sm:w-16 md:w-20 bg-[#002F47] text-white py-6 md:py-12 shrink-0 z-10 order-1 sticky top-0 self-start" style="height: 100vh;">
+<!-- Sidebar: #002F47, white text; mobile/tablet left, desktop right -->
+<aside class="flex flex-col items-center justify-between w-12 sm:w-16 md:w-20 bg-[#002F47] text-white py-6 md:py-12 shrink-0 z-10 order-1 md:order-3 sticky top-0 self-start" style="height: 100vh;">
   <div class="flex flex-col items-center justify-between flex-1 py-4">
     <div class="vertical-text text-xs sm:text-sm md:text-2xl font-raleway font-light"><?php echo snsw_brand_markup($brandName); ?></div>
     <div class="vertical-text text-[8px] sm:text-[9px] md:text-[10px] tracking-widest opacity-80"><?php echo htmlspecialchars($tagline); ?></div>
@@ -179,8 +179,8 @@ body { overflow-x: clip; background-color: #E4DABF; font-family: "Open Sans", sa
     <?php if (!empty($restaurant['footer_content'])): ?><p class="mt-4 text-xs sm:text-sm text-gray-500 break-words"><?php echo nl2br(htmlspecialchars($restaurant['footer_content'])); ?></p><?php endif; ?>
   </footer>
 </main>
-<!-- Sidebar right: same content, desktop only, #E4DABF, dark text, sticky -->
-<aside class="hidden md:flex flex-col items-center justify-between w-12 sm:w-16 md:w-20 bg-[#E4DABF] text-menu-text py-6 md:py-12 shrink-0 z-10 order-3 sticky top-0 self-start" style="height: 100vh;">
+<!-- Sidebar: #E4DABF, dark text; desktop only, left on desktop -->
+<aside class="hidden md:flex flex-col items-center justify-between w-12 sm:w-16 md:w-20 bg-[#E4DABF] text-menu-text py-6 md:py-12 shrink-0 z-10 order-3 md:order-1 sticky top-0 self-start" style="height: 100vh;">
   <div class="flex flex-col items-center justify-between flex-1 py-4">
     <div class="vertical-text text-xs sm:text-sm md:text-2xl font-raleway font-light"><?php echo snsw_brand_markup($brandName); ?></div>
     <div class="vertical-text text-[8px] sm:text-[9px] md:text-[10px] tracking-widest opacity-80"><?php echo htmlspecialchars($tagline); ?></div>
