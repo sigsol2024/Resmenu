@@ -50,7 +50,7 @@ function snsw_brand_markup($name) {
         extend: {
           colors: {
             'menu-bg': '#F3FAFD',
-            'sidebar-bg': '#0D2633',
+            'sidebar-bg': '#E4DABF',
             'accent-gold': '#C4A484',
             'menu-text': '#2C263F',
             'divider-dark': '#0D2633',
@@ -64,9 +64,9 @@ function snsw_brand_markup($name) {
     }
   </script>
 <style>
-html, body { overflow-x: hidden; }
-body { background-color: #F3FAFD; font-family: "Open Sans", sans-serif; color: #2C263F; min-width: 0; }
-/* Page background image (same pattern as other templates: fixed full-screen layer) */
+html { overflow-x: clip; }
+body { overflow-x: clip; background-color: #E4DABF; font-family: "Open Sans", sans-serif; color: #2C263F; min-width: 0; }
+/* Template background image: full page, fixed (Salt-Social-2-copy-1) */
 .snsw-page-bg {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
@@ -77,14 +77,16 @@ body { background-color: #F3FAFD; font-family: "Open Sans", sans-serif; color: #
   z-index: -1;
   pointer-events: none;
 }
-/* Left sticky image column: image rotated vertically, fit to screen */
-.snsw-left-bg {
+/* Right sticky image column (desktop only): side-bg-scaled, no bg color, image rotated vertically to fit */
+.snsw-right-bg {
   overflow: hidden;
+  background: transparent;
 }
-.snsw-left-bg-inner {
+.snsw-right-bg-inner {
   position: absolute;
   width: 100vh;
-  height: 100vw;
+  height: 100%;
+  min-height: 80px;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%) rotate(-90deg);
@@ -125,12 +127,18 @@ body { background-color: #F3FAFD; font-family: "Open Sans", sans-serif; color: #
 </head>
 <body class="flex min-h-screen min-w-0">
 <div class="snsw-page-bg"></div>
-<!-- Layout: mobile = [sidebar][main]; desktop = [left image][main][sidebar right] -->
-<div class="flex flex-1 w-full min-w-0 flex-row">
-<!-- Left sticky image column (desktop only): fit to screen, rotated vertically, no bg color -->
-<div class="snsw-left-bg hidden md:flex flex-col w-16 lg:w-20 shrink-0 sticky top-0 h-screen z-10 order-3 md:order-1 relative" style="min-height: 100vh;">
-  <div class="snsw-left-bg-inner" style="background-image: url('<?php echo htmlspecialchars($snswTemplateBaseUrl . '/' . $snswSideBgFile); ?>');"></div>
-</div>
+<!-- Layout: mobile = [sidebar][main]; desktop = [sidebar left][main][image strip right] -->
+<div class="flex flex-1 w-full min-w-0 flex-row" style="overflow-x: clip;">
+<!-- Sidebar left: #E4DABF, white text, sticky -->
+<aside class="flex flex-col items-center justify-between w-12 sm:w-16 md:w-20 bg-[#E4DABF] text-white py-6 md:py-12 shrink-0 z-10 order-1 sticky top-0 self-start" style="height: 100vh;">
+  <div class="flex flex-col items-center justify-between flex-1 py-4">
+    <div class="vertical-text text-xs sm:text-sm md:text-2xl font-raleway font-light"><?php echo snsw_brand_markup($brandName); ?></div>
+    <div class="vertical-text text-[8px] sm:text-[9px] md:text-[10px] tracking-widest opacity-80"><?php echo htmlspecialchars($tagline); ?></div>
+    <div class="vertical-text text-xs sm:text-sm md:text-2xl font-raleway font-light"><?php echo snsw_brand_markup($brandName); ?></div>
+    <div class="vertical-text text-[8px] sm:text-[9px] md:text-[10px] tracking-widest opacity-80"><?php echo htmlspecialchars($tagline); ?></div>
+    <div class="vertical-text text-xs sm:text-sm md:text-2xl font-raleway font-light"><?php echo snsw_brand_markup($brandName); ?></div>
+  </div>
+</aside>
 <!-- Main Content -->
 <main class="flex-grow min-w-0 max-w-4xl mx-auto px-4 sm:px-6 md:px-12 py-6 md:py-8 snsw-main overflow-x-hidden order-2">
   <header class="text-center mb-10 md:mb-16 border-b border-gray-200 pb-4">
@@ -188,16 +196,10 @@ body { background-color: #F3FAFD; font-family: "Open Sans", sans-serif; color: #
     <?php if (!empty($restaurant['footer_content'])): ?><p class="mt-4 text-xs sm:text-sm text-gray-500 break-words"><?php echo nl2br(htmlspecialchars($restaurant['footer_content'])); ?></p><?php endif; ?>
   </footer>
 </main>
-<!-- Sticky Sidebar: left on mobile, right on desktop; fit to screen, sticky on all sizes -->
-<aside class="flex flex-col items-center justify-between w-12 sm:w-16 md:w-20 bg-sidebar-bg text-menu-text py-6 md:py-12 sticky top-0 h-screen shrink-0 z-10 order-1 md:order-3">
-  <div class="flex flex-col items-center space-y-6 md:space-y-12">
-    <div class="vertical-text text-xs sm:text-sm md:text-2xl font-raleway font-light"><?php echo snsw_brand_markup($brandName); ?></div>
-    <div class="vertical-text text-[8px] sm:text-[9px] md:text-[10px] tracking-widest opacity-60"><?php echo htmlspecialchars($tagline); ?></div>
-    <div class="vertical-text text-xs sm:text-sm md:text-2xl font-raleway font-light"><?php echo snsw_brand_markup($brandName); ?></div>
-    <div class="vertical-text text-[8px] sm:text-[9px] md:text-[10px] tracking-widest opacity-60"><?php echo htmlspecialchars($tagline); ?></div>
-    <div class="vertical-text text-xs sm:text-sm md:text-2xl font-raleway font-light"><?php echo snsw_brand_markup($brandName); ?></div>
-  </div>
-</aside>
+<!-- Right sticky image strip (desktop only): side-bg-scaled, no bg color, rotated vertical -->
+<div class="snsw-right-bg hidden md:block w-16 lg:w-20 shrink-0 z-10 order-3 sticky top-0 self-start relative" style="height: 100vh;">
+  <div class="snsw-right-bg-inner" style="width: 100vh; height: 100%; background-image: url('<?php echo htmlspecialchars($snswTemplateBaseUrl . '/' . $snswSideBgFile); ?>');"></div>
+</div>
 </div>
 
 <?php if (!empty($supportsOrdering)): ?>
