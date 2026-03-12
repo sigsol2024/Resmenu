@@ -60,7 +60,8 @@ function snsw_brand_markup($name) {
     }
   </script>
 <style>
-body { background-color: #F3FAFD; font-family: "Open Sans", sans-serif; color: #2C263F; }
+html, body { overflow-x: hidden; }
+body { background-color: #F3FAFD; font-family: "Open Sans", sans-serif; color: #2C263F; min-width: 0; }
 .bg-pattern {
   background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuBLv_oqYNC8EaWEczUB5kGqTJtluGVH1zde15oujrJFLMGcNJuR-45lQ3fL6RrJ7b3-LQgutpqEhPv77ovqk_qAuwu_qiOSyTN14nmb3SsEne7OAoRUqAOdwduy2m6CsnRgDXyDuCVp4Q1NSSPERmC8CxoLdZAbuFj98MNGZWSeEHC4aFV8dlxOuIoqqlW-y-A96Bg66uBtkZemKObyZR7ejUao5m8xex1Xae_1GxC6rOZ3-1GGVfsHpN5AihsU2YHpFm-C0oemOdmr);
   background-repeat: repeat;
@@ -71,10 +72,10 @@ body { background-color: #F3FAFD; font-family: "Open Sans", sans-serif; color: #
   z-index: -1;
   pointer-events: none;
 }
-.vertical-text { writing-mode: vertical-rl; text-transform: uppercase; letter-spacing: 0.1em; }
-.menu-item-row { display: flex; align-items: baseline; width: 100%; }
-.item-name { flex-shrink: 0; font-weight: 700; font-family: "Raleway", sans-serif; font-size: 1rem; text-transform: uppercase; }
-.item-dots { flex-grow: 1; border-bottom: 1px dotted #2C263F; margin: 0 8px; opacity: 0.3; }
+.vertical-text { writing-mode: vertical-rl; text-transform: uppercase; letter-spacing: 0.05em; }
+.menu-item-row { display: flex; align-items: baseline; width: 100%; min-width: 0; }
+.item-name { flex-shrink: 1; min-width: 0; font-weight: 700; font-family: "Raleway", sans-serif; font-size: 1rem; text-transform: uppercase; word-break: break-word; overflow-wrap: break-word; }
+.item-dots { flex-grow: 1; flex-shrink: 0; min-width: 12px; border-bottom: 1px dotted #2C263F; margin: 0 6px; opacity: 0.3; }
 .item-price { flex-shrink: 0; font-weight: 600; font-family: "Raleway", sans-serif; }
 .section-header {
   font-family: "Raleway", sans-serif;
@@ -88,33 +89,45 @@ body { background-color: #F3FAFD; font-family: "Open Sans", sans-serif; color: #
   max-width: 300px;
 }
 .material-symbols-outlined { font-family: 'Material Symbols Outlined', sans-serif; font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+@media (max-width: 767px) {
+  .vertical-text { font-size: 0.6rem; letter-spacing: 0.02em; }
+  .section-header { font-size: 0.95rem; letter-spacing: 0.1em; margin-bottom: 16px; }
+  .item-name { font-size: 0.8rem; }
+  .item-price { font-size: 0.85rem; }
+  .snsw-main { padding-left: 0.75rem; padding-right: 0.75rem; }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  .vertical-text { font-size: 0.75rem; letter-spacing: 0.04em; }
+  .section-header { font-size: 1rem; }
+  .item-name { font-size: 0.9rem; }
+}
 </style>
 </head>
-<body class="flex min-h-screen">
+<body class="flex min-h-screen min-w-0">
 <div class="bg-pattern"></div>
-<!-- Sticky Sidebar -->
-<aside class="hidden md:flex flex-col items-center justify-between w-20 bg-sidebar-bg text-white py-12 sticky top-0 h-screen shrink-0 z-10">
-  <div class="flex flex-col items-center space-y-12">
-    <div class="vertical-text text-2xl font-raleway font-light"><?php echo htmlspecialchars($brandName); ?></div>
-    <div class="vertical-text text-[10px] tracking-widest opacity-60"><?php echo htmlspecialchars($tagline); ?></div>
-    <div class="vertical-text text-2xl font-raleway font-light"><?php echo htmlspecialchars($brandName); ?></div>
-    <div class="vertical-text text-[10px] tracking-widest opacity-60"><?php echo htmlspecialchars($tagline); ?></div>
-    <div class="vertical-text text-2xl font-raleway font-light"><?php echo htmlspecialchars($brandName); ?></div>
+<!-- Sticky Sidebar: visible on all screens, narrower on mobile/tablet -->
+<aside class="flex flex-col items-center justify-between w-12 sm:w-16 md:w-20 bg-sidebar-bg text-white py-6 md:py-12 sticky top-0 h-screen shrink-0 z-10">
+  <div class="flex flex-col items-center space-y-6 md:space-y-12">
+    <div class="vertical-text text-xs sm:text-sm md:text-2xl font-raleway font-light"><?php echo snsw_brand_markup($brandName); ?></div>
+    <div class="vertical-text text-[8px] sm:text-[9px] md:text-[10px] tracking-widest opacity-60"><?php echo htmlspecialchars($tagline); ?></div>
+    <div class="vertical-text text-xs sm:text-sm md:text-2xl font-raleway font-light"><?php echo snsw_brand_markup($brandName); ?></div>
+    <div class="vertical-text text-[8px] sm:text-[9px] md:text-[10px] tracking-widest opacity-60"><?php echo htmlspecialchars($tagline); ?></div>
+    <div class="vertical-text text-xs sm:text-sm md:text-2xl font-raleway font-light"><?php echo snsw_brand_markup($brandName); ?></div>
   </div>
 </aside>
 <!-- Main Content -->
-<main class="flex-grow max-w-4xl mx-auto px-6 md:px-12 py-8">
-  <header class="text-center mb-16 border-b border-gray-200 pb-4">
+<main class="flex-grow min-w-0 max-w-4xl mx-auto px-4 sm:px-6 md:px-12 py-6 md:py-8 snsw-main overflow-x-hidden">
+  <header class="text-center mb-10 md:mb-16 border-b border-gray-200 pb-4">
     <div class="mb-2 text-accent-gold flex justify-center">
-      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 12l-6-6h12l-6 6z"></path></svg>
+      <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 12l-6-6h12l-6 6z"></path></svg>
     </div>
     <?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?>
-    <div class="mb-4"><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="h-16 w-auto object-contain mx-auto"/></div>
+    <div class="mb-3 md:mb-4"><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="h-12 sm:h-16 w-auto object-contain mx-auto max-w-full"/></div>
     <?php else: ?>
-    <h1 class="text-2xl font-raleway tracking-[0.3em] font-light text-menu-text"><?php echo htmlspecialchars(strtoupper($restaurant['name'])); ?></h1>
+    <h1 class="text-lg sm:text-xl md:text-2xl font-raleway tracking-[0.2em] sm:tracking-[0.3em] font-light text-menu-text break-words"><?php echo htmlspecialchars(strtoupper($restaurant['name'])); ?></h1>
     <?php endif; ?>
-    <?php if (!empty($restaurant['description']) && empty($restaurant['logo'])): ?><p class="text-xs tracking-widest text-gray-500 mt-1"><?php echo htmlspecialchars(mb_substr($restaurant['description'], 0, 60)); ?></p><?php endif; ?>
-    <?php if (!empty($supportsReservations)): ?><p class="mt-3"><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="text-sidebar-bg font-semibold hover:underline text-sm">Reserve Table</a></p><?php endif; ?>
+    <?php if (!empty($restaurant['description']) && empty($restaurant['logo'])): ?><p class="text-[10px] sm:text-xs tracking-widest text-gray-500 mt-1 break-words"><?php echo htmlspecialchars(mb_substr($restaurant['description'], 0, 60)); ?></p><?php endif; ?>
+    <?php if (!empty($supportsReservations)): ?><p class="mt-2 md:mt-3"><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="text-sidebar-bg font-semibold hover:underline text-xs sm:text-sm">Reserve Table</a></p><?php endif; ?>
   </header>
 
   <?php foreach ($activeCategories as $catIndex => $category):
@@ -123,22 +136,22 @@ body { background-color: #F3FAFD; font-family: "Open Sans", sans-serif; color: #
     if (empty($items)) continue;
     $useBox = in_array(strtolower($category['name']), ['sides', 'side orders', 'desserts', 'dessert'], true);
   ?>
-  <section class="mb-16" id="<?php echo htmlspecialchars($slug); ?>">
+  <section class="mb-10 md:mb-16 min-w-0" id="<?php echo htmlspecialchars($slug); ?>">
     <h2 class="section-header text-xl uppercase text-menu-text"><?php echo htmlspecialchars($category['name']); ?></h2>
-    <?php if ($useBox): ?><div class="border border-divider-dark p-6 bg-white bg-opacity-40"><?php endif; ?>
-    <div class="space-y-8">
+    <?php if ($useBox): ?><div class="border border-divider-dark p-4 md:p-6 bg-white bg-opacity-40 min-w-0"><?php endif; ?>
+    <div class="space-y-5 md:space-y-8">
       <?php foreach ($items as $item):
         $itemAvailable = !isset($item['is_available']) || $item['is_available'];
       ?>
-      <div class="menu-item">
-        <?php if (!empty($item['image'])): ?><div class="mb-2"><img src="<?php echo $uploadBaseUrl . '/menu-items/' . htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="max-h-24 w-auto object-cover rounded"/></div><?php endif; ?>
+      <div class="menu-item min-w-0">
+        <?php if (!empty($item['image'])): ?><div class="mb-2"><img src="<?php echo $uploadBaseUrl . '/menu-items/' . htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="max-h-20 md:max-h-24 w-full max-w-full object-cover rounded"/></div><?php endif; ?>
         <div class="menu-item-row">
           <span class="item-name"><?php echo htmlspecialchars($item['name']); ?></span>
           <span class="item-dots"></span>
           <span class="item-price"><?php echo snsw_price($item['price']); ?></span>
         </div>
-        <?php if (!empty($item['description'])): ?><p class="text-sm text-gray-500 mt-1 italic"><?php echo htmlspecialchars($item['description']); ?></p><?php endif; ?>
-        <?php if (!empty($supportsOrdering) && $itemAvailable): ?><button type="button" class="add-to-bag-btn mt-2 text-sidebar-bg border border-sidebar-bg px-4 py-2 rounded text-sm font-semibold hover:bg-sidebar-bg hover:text-white transition-colors" data-item-id="<?php echo (int)$item['id']; ?>" data-item-name="<?php echo htmlspecialchars($item['name']); ?>" data-item-price="<?php echo htmlspecialchars($item['price']); ?>" data-item-image="<?php echo !empty($item['image']) ? htmlspecialchars($item['image']) : ''; ?>">Add to bag</button><?php endif; ?>
+        <?php if (!empty($item['description'])): ?><p class="text-xs sm:text-sm text-gray-500 mt-1 italic break-words"><?php echo htmlspecialchars($item['description']); ?></p><?php endif; ?>
+        <?php if (!empty($supportsOrdering) && $itemAvailable): ?><button type="button" class="add-to-bag-btn mt-2 text-sidebar-bg border border-sidebar-bg px-3 py-1.5 sm:px-4 sm:py-2 rounded text-xs sm:text-sm font-semibold hover:bg-sidebar-bg hover:text-white transition-colors" data-item-id="<?php echo (int)$item['id']; ?>" data-item-name="<?php echo htmlspecialchars($item['name']); ?>" data-item-price="<?php echo htmlspecialchars($item['price']); ?>" data-item-image="<?php echo !empty($item['image']) ? htmlspecialchars($item['image']) : ''; ?>">Add to bag</button><?php endif; ?>
       </div>
       <?php endforeach; ?>
     </div>
@@ -146,7 +159,7 @@ body { background-color: #F3FAFD; font-family: "Open Sans", sans-serif; color: #
   </section>
   <?php endforeach; ?>
 
-  <footer class="text-center py-12 border-t border-gray-200">
+  <footer class="text-center py-8 md:py-12 border-t border-gray-200 min-w-0">
     <div class="font-raleway text-3xl font-light tracking-widest text-menu-text mb-2"><?php echo snsw_brand_markup($restaurant['name']); ?></div>
     <div class="text-[10px] tracking-[0.4em] opacity-60 mb-4"><?php echo htmlspecialchars($tagline); ?></div>
     <?php if (!empty($restaurant['address']) || !empty($restaurant['phone']) || !empty($restaurant['email'])): ?>
@@ -156,7 +169,7 @@ body { background-color: #F3FAFD; font-family: "Open Sans", sans-serif; color: #
       <?php if (!empty($restaurant['email'])): ?><span><?php if (!empty($restaurant['address']) || !empty($restaurant['phone'])): ?> • <?php endif; ?><a href="mailto:<?php echo htmlspecialchars($restaurant['email']); ?>" class="text-menu-text hover:underline"><?php echo htmlspecialchars($restaurant['email']); ?></a></span><?php endif; ?>
     </div>
     <?php endif; ?>
-    <?php if (!empty($restaurant['footer_content'])): ?><p class="mt-4 text-sm text-gray-500"><?php echo nl2br(htmlspecialchars($restaurant['footer_content'])); ?></p><?php endif; ?>
+    <?php if (!empty($restaurant['footer_content'])): ?><p class="mt-4 text-xs sm:text-sm text-gray-500 break-words"><?php echo nl2br(htmlspecialchars($restaurant['footer_content'])); ?></p><?php endif; ?>
   </footer>
 </main>
 
