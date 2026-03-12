@@ -66,33 +66,16 @@ function snsw_brand_markup($name) {
 <style>
 html { overflow-x: clip; }
 body { overflow-x: clip; background-color: #E4DABF; font-family: "Open Sans", sans-serif; color: #2C263F; min-width: 0; }
-/* Template background image: full page, fixed (Salt-Social-2-copy-1) */
+/* Template body background image: Salt-Social-2-copy-1, repeated like other templates */
 .snsw-page-bg {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
   background-image: url('<?php echo htmlspecialchars($snswTemplateBaseUrl . '/' . $snswPageBgFile); ?>');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: cover;
+  background-repeat: repeat;
+  background-size: 280px 280px;
+  opacity: 0.08;
   z-index: -1;
   pointer-events: none;
-}
-/* Right sticky image column (desktop only): side-bg-scaled, no bg color, image rotated vertically to fit */
-.snsw-right-bg {
-  overflow: hidden;
-  background: transparent;
-}
-.snsw-right-bg-inner {
-  position: absolute;
-  width: 100vh;
-  height: 100%;
-  min-height: 80px;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%) rotate(-90deg);
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
 }
 .vertical-text { writing-mode: vertical-rl; text-transform: uppercase; letter-spacing: 0.05em; }
 .menu-item-row { display: flex; align-items: baseline; width: 100%; min-width: 0; }
@@ -127,10 +110,10 @@ body { overflow-x: clip; background-color: #E4DABF; font-family: "Open Sans", sa
 </head>
 <body class="flex min-h-screen min-w-0">
 <div class="snsw-page-bg"></div>
-<!-- Layout: mobile = [sidebar][main]; desktop = [sidebar left][main][image strip right] -->
+<!-- Layout: mobile = [sidebar][main]; desktop = [sidebar left][main][sidebar right] -->
 <div class="flex flex-1 w-full min-w-0 flex-row" style="overflow-x: clip;">
-<!-- Sidebar left: #E4DABF, white text, sticky -->
-<aside class="flex flex-col items-center justify-between w-12 sm:w-16 md:w-20 bg-[#E4DABF] text-white py-6 md:py-12 shrink-0 z-10 order-1 sticky top-0 self-start" style="height: 100vh;">
+<!-- Sidebar left: #002F47, white text, sticky (always visible) -->
+<aside class="flex flex-col items-center justify-between w-12 sm:w-16 md:w-20 bg-[#002F47] text-white py-6 md:py-12 shrink-0 z-10 order-1 sticky top-0 self-start" style="height: 100vh;">
   <div class="flex flex-col items-center justify-between flex-1 py-4">
     <div class="vertical-text text-xs sm:text-sm md:text-2xl font-raleway font-light"><?php echo snsw_brand_markup($brandName); ?></div>
     <div class="vertical-text text-[8px] sm:text-[9px] md:text-[10px] tracking-widest opacity-80"><?php echo htmlspecialchars($tagline); ?></div>
@@ -196,10 +179,16 @@ body { overflow-x: clip; background-color: #E4DABF; font-family: "Open Sans", sa
     <?php if (!empty($restaurant['footer_content'])): ?><p class="mt-4 text-xs sm:text-sm text-gray-500 break-words"><?php echo nl2br(htmlspecialchars($restaurant['footer_content'])); ?></p><?php endif; ?>
   </footer>
 </main>
-<!-- Right sticky image strip (desktop only): side-bg-scaled, no bg color, rotated vertical -->
-<div class="snsw-right-bg hidden md:block w-16 lg:w-20 shrink-0 z-10 order-3 sticky top-0 self-start relative" style="height: 100vh;">
-  <div class="snsw-right-bg-inner" style="width: 100vh; height: 100%; background-image: url('<?php echo htmlspecialchars($snswTemplateBaseUrl . '/' . $snswSideBgFile); ?>');"></div>
-</div>
+<!-- Sidebar right: same content, desktop only, #E4DABF, dark text, sticky -->
+<aside class="hidden md:flex flex-col items-center justify-between w-12 sm:w-16 md:w-20 bg-[#E4DABF] text-menu-text py-6 md:py-12 shrink-0 z-10 order-3 sticky top-0 self-start" style="height: 100vh;">
+  <div class="flex flex-col items-center justify-between flex-1 py-4">
+    <div class="vertical-text text-xs sm:text-sm md:text-2xl font-raleway font-light"><?php echo snsw_brand_markup($brandName); ?></div>
+    <div class="vertical-text text-[8px] sm:text-[9px] md:text-[10px] tracking-widest opacity-80"><?php echo htmlspecialchars($tagline); ?></div>
+    <div class="vertical-text text-xs sm:text-sm md:text-2xl font-raleway font-light"><?php echo snsw_brand_markup($brandName); ?></div>
+    <div class="vertical-text text-[8px] sm:text-[9px] md:text-[10px] tracking-widest opacity-80"><?php echo htmlspecialchars($tagline); ?></div>
+    <div class="vertical-text text-xs sm:text-sm md:text-2xl font-raleway font-light"><?php echo snsw_brand_markup($brandName); ?></div>
+  </div>
+</aside>
 </div>
 
 <?php if (!empty($supportsOrdering)): ?>
