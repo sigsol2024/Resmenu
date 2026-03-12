@@ -452,10 +452,14 @@ include __DIR__ . '/../includes/manager-layout.php';
                     <input type="text" id="name" name="name" class="form-input" required value="<?php echo htmlspecialchars($editItem['name'] ?? ''); ?>">
                 </div>
                 
+                <?php if (isSuperAdmin()): ?>
                 <div class="form-group">
                     <label class="form-label" for="slug">Slug *</label>
                     <input type="text" id="slug" name="slug" class="form-input" required value="<?php echo htmlspecialchars($editItem['slug'] ?? ''); ?>">
                 </div>
+                <?php else: ?>
+                    <input type="hidden" id="slug" name="slug" value="<?php echo htmlspecialchars($editItem['slug'] ?? ''); ?>">
+                <?php endif; ?>
                 
                 <div class="form-group">
                     <label class="form-label" for="description">Description</label>
