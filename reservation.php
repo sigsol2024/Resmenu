@@ -205,9 +205,9 @@ $restaurantName = htmlspecialchars($restaurant['name']);
 </nav>
 
 <!-- Main Content -->
-<main class="relative z-10 max-w-4xl mx-auto px-4 py-12">
-    <div class="bg-white rounded-xl shadow-2xl overflow-hidden border border-gray-200">
-        <div class="p-8 md:p-12">
+<main class="relative z-10 max-w-4xl mx-auto px-4 py-8 md:py-10">
+    <div class="bg-white rounded-xl shadow-xl overflow-hidden border border-gray-200">
+        <div class="p-6 md:p-8">
             <?php if ($success): ?>
                 <header class="text-center mb-10">
                     <h1 class="text-3xl md:text-4xl font-bold mb-2 dark:text-white">Reservation Confirmed</h1>
@@ -231,25 +231,27 @@ $restaurantName = htmlspecialchars($restaurant['name']);
                 </div>
                 <?php endif; ?>
 
-                <!-- Progress steps -->
-                <div class="mb-10">
-                    <div class="flex items-center justify-between w-full relative">
-                        <div class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-0.5 bg-gray-200 -z-10"></div>
-                        <div class="flex flex-col items-center gap-2 px-2" style="background-color:<?php echo htmlspecialchars($bgColor); ?>">
-                            <div class="res-step-indicator w-10 h-10 rounded-full font-bold shadow-lg ring-4 flex items-center justify-center" id="step-ind-1" data-step="1" style="background-color:<?php echo htmlspecialchars($primaryColor); ?>;color:white;ring-color:<?php echo htmlspecialchars($bgColor); ?>">1</div>
-                            <span class="text-xs font-semibold text-gray-600">Date & Time</span>
+                <!-- Progress steps (compact) -->
+                <div class="mb-6 md:mb-8">
+                    <div class="flex items-center justify-between w-full text-xs md:text-sm">
+                        <div class="flex items-center gap-2">
+                            <div class="res-step-indicator w-8 h-8 md:w-9 md:h-9 rounded-full font-semibold shadow-md ring-2 flex items-center justify-center" id="step-ind-1" data-step="1" style="background-color:<?php echo htmlspecialchars($primaryColor); ?>;color:white;ring-color:<?php echo htmlspecialchars($bgColor); ?>">1</div>
+                            <span class="font-semibold text-gray-700">Date &amp; Time</span>
                         </div>
-                        <div class="flex flex-col items-center gap-2 px-2" style="background-color:<?php echo htmlspecialchars($bgColor); ?>">
-                            <div class="res-step-indicator w-10 h-10 rounded-full bg-white border-2 border-gray-200 text-gray-500 font-medium ring-4 flex items-center justify-center" id="step-ind-2" data-step="2" style="ring-color:<?php echo htmlspecialchars($bgColor); ?>">2</div>
-                            <span class="text-xs font-medium text-gray-500">Guest Info</span>
+                        <div class="flex-1 h-px mx-2 bg-gray-200 hidden sm:block"></div>
+                        <div class="flex items-center gap-2">
+                            <div class="res-step-indicator w-8 h-8 md:w-9 md:h-9 rounded-full bg-white border border-gray-300 text-gray-500 font-medium ring-2 flex items-center justify-center" id="step-ind-2" data-step="2" style="ring-color:<?php echo htmlspecialchars($bgColor); ?>">2</div>
+                            <span class="font-medium text-gray-600 hidden xs:inline">Guest Info</span>
                         </div>
-                        <div class="flex flex-col items-center gap-2 px-2" style="background-color:<?php echo htmlspecialchars($bgColor); ?>">
-                            <div class="res-step-indicator w-10 h-10 rounded-full bg-white border-2 border-gray-200 text-gray-500 font-medium ring-4 flex items-center justify-center" id="step-ind-3" data-step="3" style="ring-color:<?php echo htmlspecialchars($bgColor); ?>">3</div>
-                            <span class="text-xs font-medium text-gray-500">Requests</span>
+                        <div class="flex-1 h-px mx-2 bg-gray-200 hidden sm:block"></div>
+                        <div class="flex items-center gap-2">
+                            <div class="res-step-indicator w-8 h-8 md:w-9 md:h-9 rounded-full bg-white border border-gray-300 text-gray-500 font-medium ring-2 flex items-center justify-center" id="step-ind-3" data-step="3" style="ring-color:<?php echo htmlspecialchars($bgColor); ?>">3</div>
+                            <span class="font-medium text-gray-600 hidden md:inline">Requests</span>
                         </div>
-                        <div class="flex flex-col items-center gap-2 px-2" style="background-color:<?php echo htmlspecialchars($bgColor); ?>">
-                            <div class="res-step-indicator w-10 h-10 rounded-full bg-white border-2 border-gray-200 text-gray-500 font-medium ring-4 flex items-center justify-center" id="step-ind-4" data-step="4" style="ring-color:<?php echo htmlspecialchars($bgColor); ?>">4</div>
-                            <span class="text-xs font-medium text-gray-500">Confirm</span>
+                        <div class="flex-1 h-px mx-2 bg-gray-200 hidden sm:block"></div>
+                        <div class="flex items-center gap-2">
+                            <div class="res-step-indicator w-8 h-8 md:w-9 md:h-9 rounded-full bg-white border border-gray-300 text-gray-500 font-medium ring-2 flex items-center justify-center" id="step-ind-4" data-step="4" style="ring-color:<?php echo htmlspecialchars($bgColor); ?>">4</div>
+                            <span class="font-medium text-gray-600 hidden lg:inline">Confirm</span>
                         </div>
                     </div>
                 </div>
