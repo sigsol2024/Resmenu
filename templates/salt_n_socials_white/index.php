@@ -73,7 +73,7 @@ body { overflow-x: clip; background-color: #E4DABF; font-family: "Open Sans", sa
   background-image: url('<?php echo htmlspecialchars($snswTemplateBaseUrl . '/' . $snswPageBgFile); ?>');
   background-repeat: repeat;
   background-size: 280px 280px;
-  opacity: 0.08;
+  opacity: 0.03;
   z-index: -1;
   pointer-events: none;
 }
@@ -131,7 +131,7 @@ body { overflow-x: clip; background-color: #E4DABF; font-family: "Open Sans", sa
     <?php else: ?>
     <h1 class="text-lg sm:text-xl md:text-2xl font-raleway tracking-[0.2em] sm:tracking-[0.3em] font-light text-menu-text break-words"><?php echo htmlspecialchars(strtoupper($restaurant['name'])); ?></h1>
     <?php endif; ?>
-    <?php if (!empty($restaurant['description']) && empty($restaurant['logo'])): ?><p class="text-[10px] sm:text-xs tracking-widest text-gray-500 mt-1 break-words"><?php echo htmlspecialchars(mb_substr($restaurant['description'], 0, 60)); ?></p><?php endif; ?>
+    <?php if (!empty($restaurant['description']) && empty($restaurant['logo'])): ?><p class="text-[10px] sm:text-xs tracking-widest text-gray-700 mt-1 break-words"><?php echo htmlspecialchars(mb_substr($restaurant['description'], 0, 60)); ?></p><?php endif; ?>
     <?php if (!empty($supportsReservations)): ?><p class="mt-2 md:mt-3"><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="text-sidebar-bg font-semibold hover:underline text-xs sm:text-sm">Reserve Table</a></p><?php endif; ?>
   </header>
 
@@ -155,8 +155,8 @@ body { overflow-x: clip; background-color: #E4DABF; font-family: "Open Sans", sa
           <span class="item-dots"></span>
           <span class="item-price"><?php echo snsw_price($item['price']); ?></span>
         </div>
-        <?php if (!empty($item['description'])): ?><p class="text-xs sm:text-sm text-gray-500 mt-1 italic break-words"><?php echo htmlspecialchars($item['description']); ?></p><?php endif; ?>
-        <?php if (!empty($supportsOrdering) && $itemAvailable): ?><button type="button" class="add-to-bag-btn mt-2 text-sidebar-bg border border-sidebar-bg px-3 py-1.5 sm:px-4 sm:py-2 rounded text-xs sm:text-sm font-semibold hover:bg-sidebar-bg hover:text-white transition-colors" data-item-id="<?php echo (int)$item['id']; ?>" data-item-name="<?php echo htmlspecialchars($item['name']); ?>" data-item-price="<?php echo htmlspecialchars($item['price']); ?>" data-item-image="<?php echo !empty($item['image']) ? htmlspecialchars($item['image']) : ''; ?>">Add to bag</button><?php endif; ?>
+        <?php if (!empty($item['description'])): ?><p class="text-xs sm:text-sm text-gray-700 mt-1 italic break-words"><?php echo htmlspecialchars($item['description']); ?></p><?php endif; ?>
+        <?php if (!empty($supportsOrdering) && $itemAvailable): ?><button type="button" class="add-to-bag-btn mt-2 text-menu-text border border-menu-text px-3 py-1.5 sm:px-4 sm:py-2 rounded text-xs sm:text-sm font-semibold hover:bg-menu-text hover:text-white transition-colors" data-item-id="<?php echo (int)$item['id']; ?>" data-item-name="<?php echo htmlspecialchars($item['name']); ?>" data-item-price="<?php echo htmlspecialchars($item['price']); ?>" data-item-image="<?php echo !empty($item['image']) ? htmlspecialchars($item['image']) : ''; ?>">Add to bag</button><?php endif; ?>
       </div>
       <?php endforeach; ?>
     </div>
@@ -168,13 +168,13 @@ body { overflow-x: clip; background-color: #E4DABF; font-family: "Open Sans", sa
     <div class="font-raleway text-3xl font-light tracking-widest text-menu-text mb-2"><?php echo snsw_brand_markup($restaurant['name']); ?></div>
     <div class="text-[10px] tracking-[0.4em] opacity-60 mb-4"><?php echo htmlspecialchars($tagline); ?></div>
     <?php if (!empty($restaurant['address']) || !empty($restaurant['phone']) || !empty($restaurant['email'])): ?>
-    <div class="flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs text-gray-500">
+    <div class="flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs text-gray-700">
       <?php if (!empty($restaurant['address'])): ?><span><?php echo htmlspecialchars($restaurant['address']); ?></span><?php endif; ?>
       <?php if (!empty($restaurant['phone'])): ?><span><?php if (!empty($restaurant['address'])): ?> • <?php endif; ?><a href="tel:<?php echo htmlspecialchars(preg_replace('/\s+/', '', $restaurant['phone'])); ?>" class="text-menu-text hover:underline"><?php echo htmlspecialchars($restaurant['phone']); ?></a></span><?php endif; ?>
       <?php if (!empty($restaurant['email'])): ?><span><?php if (!empty($restaurant['address']) || !empty($restaurant['phone'])): ?> • <?php endif; ?><a href="mailto:<?php echo htmlspecialchars($restaurant['email']); ?>" class="text-menu-text hover:underline"><?php echo htmlspecialchars($restaurant['email']); ?></a></span><?php endif; ?>
     </div>
     <?php endif; ?>
-    <?php if (!empty($restaurant['footer_content'])): ?><p class="mt-4 text-xs sm:text-sm text-gray-500 break-words"><?php echo nl2br(htmlspecialchars($restaurant['footer_content'])); ?></p><?php endif; ?>
+    <?php if (!empty($restaurant['footer_content'])): ?><p class="mt-4 text-xs sm:text-sm text-gray-700 break-words"><?php echo nl2br(htmlspecialchars($restaurant['footer_content'])); ?></p><?php endif; ?>
   </footer>
 </main>
 <!-- Sidebar: #E4DABF, side-bg-scaled repeated vertically; desktop only, left; slightly wider -->
