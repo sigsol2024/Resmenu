@@ -258,6 +258,7 @@ include __DIR__ . '/../includes/manager-layout.php';
             </div>
             <p style="color: var(--muted); font-size: 0.875rem; margin-bottom: 20px;">Edit your restaurant information. Synced with admin—changes here appear in admin and vice versa. All data is saved to the same database.</p>
             <form method="POST" action="">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                 <input type="hidden" name="tab" value="restaurant">
                 <input type="hidden" name="action" value="update_restaurant">
                 <div class="form-group">
