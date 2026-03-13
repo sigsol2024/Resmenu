@@ -17,9 +17,12 @@ $currencySymbol = '₦';
 $primaryColor = isset($customization['primary_color']) ? $customization['primary_color'] : '#FFD700';
 function sfh_price($p, $s = '₦') { return $s . number_format((float)$p, 2); }
 $activeCategories = [];
-if (!empty($categories) && is_array($categories)) {
-    foreach ($categories as $c) {
-        if (!empty($c['menu_items']) && is_array($c['menu_items']) && !empty($c['is_active'])) $activeCategories[] = $c;
+if (!empty($sections) && is_array($sections)) {
+    foreach ($sections as $sec) {
+        if (empty($sec['categories']) || !is_array($sec['categories'])) continue;
+        foreach ($sec['categories'] as $c) {
+            if (!empty($c['menu_items']) && is_array($c['menu_items']) && !empty($c['is_active'])) $activeCategories[] = $c;
+        }
     }
 }
 $masonryClasses = ['masonry-item-sm', 'masonry-item-md', 'masonry-item-lg'];
@@ -120,13 +123,18 @@ body.sfh-body .sfh-bg { position: absolute; inset: 0; pointer-events: none; back
 <?php if (!empty($supportsReservations)): ?><p class="mt-4"><a class="inline-block bg-white comic-border px-6 py-2 font-chunky hover:bg-brandBlack hover:text-white transition-colors shadow-brutal-sm" href="<?php echo htmlspecialchars($reservationUrl); ?>">Reserve Table</a></p><?php endif; ?>
 </header>
 <main class="max-w-7xl mx-auto relative z-10">
-<?php foreach ($activeCategories as $catIndex => $category): 
-    $slug = isset($category['slug']) ? $category['slug'] : ('section-'.$catIndex);
-    $items = $category['menu_items'];
+<?php foreach ($sections as $section): 
+    if (empty($section['categories']) || !is_array($section['categories'])) continue;
+?>
+<div id="section-<?php echo htmlspecialchars($section['slug']); ?>" class="mb-14">
+<h2 class="font-chunky text-3xl md:text-4xl uppercase mb-8 text-center font-bold text-brandBlack"><?php echo htmlspecialchars($section['name']); ?></h2>
+<?php foreach ($section['categories'] as $catIndex => $category): 
+    $slug = isset($category['slug']) ? $category['slug'] : ('cat-'.$catIndex);
+    $items = isset($category['menu_items']) ? $category['menu_items'] : [];
     if (empty($items)) continue;
 ?>
 <section class="mb-16" id="<?php echo htmlspecialchars($slug); ?>">
-<h2 class="font-chunky text-3xl md:text-4xl uppercase mb-6 comic-border inline-block bg-brandYellow text-brandBlack px-6 py-3 shadow-brutal-sm -rotate-1"><?php echo htmlspecialchars($category['name']); ?></h2>
+<h3 class="font-chunky text-3xl md:text-4xl uppercase mb-6 comic-border inline-block bg-brandYellow text-brandBlack px-6 py-3 shadow-brutal-sm -rotate-1"><?php echo htmlspecialchars($category['name']); ?></h3>
 <div class="masonry-grid">
 <?php foreach ($items as $itemIndex => $item): 
         $masonry = $masonryClasses[$itemIndex % 3];
@@ -143,6 +151,8 @@ body.sfh-body .sfh-bg { position: absolute; inset: 0; pointer-events: none; back
 <?php endforeach; ?>
 </div>
 </section>
+<?php endforeach; ?>
+</div>
 <?php endforeach; ?>
 </main>
 <footer class="max-w-7xl mx-auto mt-20 mb-10 text-center relative z-10" data-purpose="footer">

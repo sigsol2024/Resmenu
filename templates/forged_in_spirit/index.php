@@ -12,9 +12,12 @@ $currencySymbol = '₦';
 $primaryColor = isset($customization['primary_color']) ? $customization['primary_color'] : '#ffbf00';
 function fis_price($p, $s = '₦') { return $s . number_format((float)$p, 2); }
 $activeCategories = [];
-if (!empty($categories) && is_array($categories)) {
-    foreach ($categories as $c) {
-        if (!empty($c['menu_items']) && is_array($c['menu_items']) && !empty($c['is_active'])) $activeCategories[] = $c;
+if (!empty($sections) && is_array($sections)) {
+    foreach ($sections as $sec) {
+        if (empty($sec['categories']) || !is_array($sec['categories'])) continue;
+        foreach ($sec['categories'] as $c) {
+            if (!empty($c['menu_items']) && is_array($c['menu_items']) && !empty($c['is_active'])) $activeCategories[] = $c;
+        }
     }
 }
 ?>
@@ -37,14 +40,22 @@ if (!empty($categories) && is_array($categories)) {
 <p class="uppercase tracking-widest text-sm text-copper-light"><?php echo htmlspecialchars($restaurant['description'] ?? 'Industrial Cocktail Bar &amp; Lounge'); ?></p>
 <?php if (!empty($supportsReservations)): ?><p class="mt-2"><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="text-amber-glow hover:underline">Reserve Table</a></p><?php endif; ?>
 </header>
-<?php foreach ($activeCategories as $catIndex => $category): 
-    $slug = isset($category['slug']) ? $category['slug'] : ('section-'.$catIndex);
-    $items = $category['menu_items'];
+<?php 
+$fisCatIndex = 0;
+foreach ($sections as $section): 
+    if (empty($section['categories']) || !is_array($section['categories'])) continue;
+?>
+<div id="section-<?php echo htmlspecialchars($section['slug']); ?>" class="mb-14">
+<h2 class="text-2xl md:text-3xl font-art-deco font-bold text-copper-light uppercase tracking-widest mb-8 text-center"><?php echo htmlspecialchars($section['name']); ?></h2>
+<?php foreach ($section['categories'] as $category): 
+    $slug = isset($category['slug']) ? $category['slug'] : ('cat-'.$fisCatIndex);
+    $items = isset($category['menu_items']) ? $category['menu_items'] : [];
     if (empty($items)) continue;
+    $fisCatIndex++;
 ?>
 <section class="mb-16" id="<?php echo htmlspecialchars($slug); ?>">
-<?php if ($catIndex > 0): ?><div class="divider"></div><?php endif; ?>
-<h2 class="text-2xl font-art-deco text-copper-light uppercase tracking-widest mb-8"><?php echo htmlspecialchars($category['name']); ?></h2>
+<?php if ($fisCatIndex > 1): ?><div class="divider"></div><?php endif; ?>
+<h3 class="text-2xl font-art-deco text-copper-light uppercase tracking-widest mb-8"><?php echo htmlspecialchars($category['name']); ?></h3>
 <div class="space-y-6">
 <?php foreach ($items as $item): ?>
 <div class="flex gap-4 items-start border-b border-copper/30 pb-4">
@@ -59,6 +70,8 @@ if (!empty($categories) && is_array($categories)) {
 <?php endforeach; ?>
 </div>
 </section>
+<?php endforeach; ?>
+</div>
 <?php endforeach; ?>
 <footer class="text-center pt-12 border-t border-copper/30 text-gray-500 text-sm"><?php echo htmlspecialchars($restaurant['footer_content'] ?? $restaurant['address'] ?? ''); ?></footer>
 </main>

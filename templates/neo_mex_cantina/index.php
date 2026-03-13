@@ -12,9 +12,12 @@ $currencySymbol = '₦';
 $primaryColor = isset($customization['primary_color']) ? $customization['primary_color'] : '#f97316';
 function nmc_price($p, $s = '₦') { return $s . number_format((float)$p, 2); }
 $activeCategories = [];
-if (!empty($categories) && is_array($categories)) {
-    foreach ($categories as $c) {
-        if (!empty($c['menu_items']) && is_array($c['menu_items']) && !empty($c['is_active'])) $activeCategories[] = $c;
+if (!empty($sections) && is_array($sections)) {
+    foreach ($sections as $sec) {
+        if (empty($sec['categories']) || !is_array($sec['categories'])) continue;
+        foreach ($sec['categories'] as $c) {
+            if (!empty($c['menu_items']) && is_array($c['menu_items']) && !empty($c['is_active'])) $activeCategories[] = $c;
+        }
     }
 }
 ?>
@@ -47,13 +50,18 @@ if (!empty($categories) && is_array($categories)) {
 <h1 class="text-5xl md:text-7xl font-black bg-gradient-to-r from-orange-500 to-purple-600 bg-clip-text text-transparent"><?php echo htmlspecialchars($restaurant['name']); ?></h1>
 <p class="text-slate-400 mt-4"><?php echo htmlspecialchars($restaurant['description'] ?? 'Modern Tech-Forward Cantina'); ?></p>
 </header>
-<?php foreach ($activeCategories as $catIndex => $category): 
-    $slug = isset($category['slug']) ? $category['slug'] : ('section-'.$catIndex);
-    $items = $category['menu_items'];
+<?php foreach ($sections as $section): 
+    if (empty($section['categories']) || !is_array($section['categories'])) continue;
+?>
+<div id="section-<?php echo htmlspecialchars($section['slug']); ?>" class="mb-14">
+<h2 class="text-2xl md:text-3xl font-bold text-orange-500 mb-8 text-center"><?php echo htmlspecialchars($section['name']); ?></h2>
+<?php foreach ($section['categories'] as $catIndex => $category): 
+    $slug = isset($category['slug']) ? $category['slug'] : ('cat-'.$catIndex);
+    $items = isset($category['menu_items']) ? $category['menu_items'] : [];
     if (empty($items)) continue;
 ?>
 <section class="mb-20 glass-card rounded-2xl p-8" id="<?php echo htmlspecialchars($slug); ?>">
-<h2 class="text-2xl font-bold text-orange-500 mb-8"><?php echo htmlspecialchars($category['name']); ?></h2>
+<h3 class="text-2xl font-bold text-orange-500 mb-8"><?php echo htmlspecialchars($category['name']); ?></h3>
 <div class="space-y-6">
 <?php foreach ($items as $item): ?>
 <div class="flex gap-4 items-start border-b border-white/10 pb-4">
@@ -68,6 +76,8 @@ if (!empty($categories) && is_array($categories)) {
 <?php endforeach; ?>
 </div>
 </section>
+<?php endforeach; ?>
+</div>
 <?php endforeach; ?>
 <footer class="mt-16 pt-8 border-t border-white/10 text-center text-slate-500 text-sm">
 <?php if (!empty($restaurant['footer_content'])): ?><p class="mb-4"><?php echo nl2br(htmlspecialchars($restaurant['footer_content'])); ?></p><?php endif; ?>

@@ -520,6 +520,24 @@ body {
   z-index: 10;
 }
 
+/* Section heading (section name at top of each section block) */
+.section-block {
+  margin-bottom: 0;
+}
+.section-heading {
+  font-size: 32px;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--dark);
+  margin: 40px 0 24px 0;
+  padding: 0;
+}
+.section-block:first-child .section-heading {
+  margin-top: 0;
+}
+
 /* Menu category specific styles */
 .category-title {
   font-size: 28px; /* Larger on desktop */

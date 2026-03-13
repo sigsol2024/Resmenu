@@ -206,13 +206,13 @@ function getTemplatesAvailableForRestaurant($restaurantId) {
 /**
  * Load template with restaurant data
  * @param array $restaurant Restaurant data
- * @param array $categories Categories array
+ * @param array $sections Sections array (each with 'categories' and each category with 'menu_items')
  * @param array $customization Customization settings
  * @param array $headerMenuItems Header menu items
  * @param bool $isTemplatePreview If true, templates show text "Logo" instead of logo image
  * @return bool Success
  */
-function loadTemplate($restaurant, $categories, $customization, $headerMenuItems = [], $isTemplatePreview = false) {
+function loadTemplate($restaurant, $sections, $customization, $headerMenuItems = [], $isTemplatePreview = false) {
     $templateId = $restaurant['template_id'] ?? 1;
     $templatePath = getTemplatePath($templateId);
     
@@ -244,8 +244,16 @@ function loadTemplate($restaurant, $categories, $customization, $headerMenuItems
             && hasFeatureAccess($restaurantId, 'table_reservations')
             && ($reservationsToggle === 1);
     }
+    // Flat list of categories (by section order) for nav/sidebar links
+    $categories = [];
+    foreach ($sections as $sec) {
+        foreach (isset($sec['categories']) ? $sec['categories'] : [] as $c) {
+            $categories[] = $c;
+        }
+    }
     extract([
         'restaurant' => $restaurant,
+        'sections' => $sections,
         'categories' => $categories,
         'customization' => $customization,
         'headerMenuItems' => $headerMenuItems,

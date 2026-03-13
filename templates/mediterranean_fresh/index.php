@@ -12,9 +12,12 @@ $currencySymbol = '₦';
 $primaryColor = isset($customization['primary_color']) ? $customization['primary_color'] : '#005696';
 function mf_price($p, $s = '₦') { return $s . number_format((float)$p, 2); }
 $activeCategories = [];
-if (!empty($categories) && is_array($categories)) {
-    foreach ($categories as $c) {
-        if (!empty($c['menu_items']) && is_array($c['menu_items']) && !empty($c['is_active'])) $activeCategories[] = $c;
+if (!empty($sections) && is_array($sections)) {
+    foreach ($sections as $sec) {
+        if (empty($sec['categories']) || !is_array($sec['categories'])) continue;
+        foreach ($sec['categories'] as $c) {
+            if (!empty($c['menu_items']) && is_array($c['menu_items']) && !empty($c['is_active'])) $activeCategories[] = $c;
+        }
     }
 }
 ?>
@@ -40,15 +43,20 @@ if (!empty($categories) && is_array($categories)) {
 </div>
 </header>
 <main class="max-w-6xl mx-auto px-4 py-16 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-20">
-<?php foreach ($activeCategories as $catIndex => $category): 
-    $slug = isset($category['slug']) ? $category['slug'] : ('section-'.$catIndex);
-    $items = $category['menu_items'];
+<?php foreach ($sections as $section): 
+    if (empty($section['categories']) || !is_array($section['categories'])) continue;
+?>
+<div id="section-<?php echo htmlspecialchars($section['slug']); ?>" class="mb-14">
+<h2 class="text-3xl md:text-4xl font-bold text-medBlue text-center mb-8 border-b-2 border-lemonYellow pb-4"><?php echo htmlspecialchars($section['name']); ?></h2>
+<?php foreach ($section['categories'] as $catIndex => $category): 
+    $slug = isset($category['slug']) ? $category['slug'] : ('cat-'.$catIndex);
+    $items = isset($category['menu_items']) ? $category['menu_items'] : [];
     if (empty($items)) continue;
 ?>
-<section class="flex gap-6 items-start" id="<?php echo htmlspecialchars($slug); ?>">
-<div class="hidden md:block"><h2 class="vertical-text text-medBlue font-bold text-3xl border-l-2 border-lemonYellow pl-4 py-4"><?php echo htmlspecialchars($category['name']); ?></h2></div>
+<section class="flex gap-6 items-start mb-12" id="<?php echo htmlspecialchars($slug); ?>">
+<div class="hidden md:block"><h3 class="vertical-text text-medBlue font-bold text-3xl border-l-2 border-lemonYellow pl-4 py-4"><?php echo htmlspecialchars($category['name']); ?></h3></div>
 <div class="flex-1">
-<h2 class="md:hidden text-3xl text-medBlue font-bold mb-6 border-b-2 border-lemonYellow inline-block"><?php echo htmlspecialchars($category['name']); ?></h2>
+<h3 class="md:hidden text-3xl text-medBlue font-bold mb-6 border-b-2 border-lemonYellow inline-block"><?php echo htmlspecialchars($category['name']); ?></h3>
 <div class="space-y-8">
 <?php foreach ($items as $item): ?>
 <div class="group">
@@ -64,6 +72,8 @@ if (!empty($categories) && is_array($categories)) {
 </div>
 </div>
 </section>
+<?php endforeach; ?>
+</div>
 <?php endforeach; ?>
 </main>
 <footer class="max-w-6xl mx-auto py-12 text-center text-slate-500 border-t border-slate-200"><?php echo htmlspecialchars($restaurant['footer_content'] ?? $restaurant['address'] ?? ''); ?></footer>

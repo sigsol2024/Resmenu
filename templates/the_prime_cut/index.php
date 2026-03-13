@@ -28,10 +28,13 @@ function the_prime_cut_price($price, $symbol = '₦') {
     return $symbol . number_format((float)$price, 2);
 }
 $activeCategories = [];
-if (!empty($categories) && is_array($categories)) {
-    foreach ($categories as $cat) {
-        if (!empty($cat['menu_items']) && is_array($cat['menu_items']) && !empty($cat['is_active'])) {
-            $activeCategories[] = $cat;
+if (!empty($sections) && is_array($sections)) {
+    foreach ($sections as $sec) {
+        if (empty($sec['categories']) || !is_array($sec['categories'])) continue;
+        foreach ($sec['categories'] as $cat) {
+            if (!empty($cat['menu_items']) && is_array($cat['menu_items']) && !empty($cat['is_active'])) {
+                $activeCategories[] = $cat;
+            }
         }
     }
 }
@@ -151,20 +154,28 @@ body.prime-cut-outer .prime-cut-outer-bg { position: absolute; inset: 0; pointer
 <span class="ornate-symbol">❦</span>
 </div>
 </header>
-<?php foreach ($activeCategories as $catIndex => $category): 
-    $slug = isset($category['slug']) ? $category['slug'] : ('section-' . $catIndex);
-    $items = $category['menu_items'];
+<?php 
+$primeCutCatIndex = 0;
+foreach ($sections as $section): 
+    if (empty($section['categories']) || !is_array($section['categories'])) continue;
+?>
+<div id="section-<?php echo htmlspecialchars($section['slug']); ?>" class="mb-14">
+<h2 class="text-center font-serif text-4xl md:text-5xl font-bold text-gold mb-10 uppercase tracking-widest"><?php echo htmlspecialchars($section['name']); ?></h2>
+<?php foreach ($section['categories'] as $category): 
+    $slug = isset($category['slug']) ? $category['slug'] : ('cat-' . $primeCutCatIndex);
+    $items = isset($category['menu_items']) ? $category['menu_items'] : [];
     if (empty($items)) continue;
     $categoryIcon = resmenu_get_category_icon($category);
+    $primeCutCatIndex++;
 ?>
 <section class="mb-16" data-purpose="menu-section" id="<?php echo htmlspecialchars($slug); ?>">
-<?php if ($catIndex > 0): ?>
+<?php if ($primeCutCatIndex > 1): ?>
 <div class="ornate-divider">
 <span class="ornate-symbol"><?php echo $categoryIcon; ?></span>
 </div>
 <?php endif; ?>
-<h2 class="text-left font-serif text-4xl text-gold mb-10 uppercase tracking-widest"><?php echo htmlspecialchars($category['name']); ?></h2>
-<?php if ($catIndex === 1 && count($items) > 0): ?>
+<h3 class="text-left font-serif text-4xl text-gold mb-10 uppercase tracking-widest"><?php echo htmlspecialchars($category['name']); ?></h3>
+<?php if ($primeCutCatIndex === 1 && count($items) > 0): ?>
 <div class="space-y-12">
 <div class="relative p-8 border border-gold/30 bg-black/20 flex flex-col items-start text-left" data-purpose="featured-item">
 <div class="absolute -top-4 left-0 bg-gold text-burgundy px-4 py-1 text-xs font-bold uppercase tracking-widest">Chef's Recommendation</div>
@@ -203,6 +214,8 @@ body.prime-cut-outer .prime-cut-outer-bg { position: absolute; inset: 0; pointer
 </div>
 <?php endif; ?>
 </section>
+<?php endforeach; ?>
+</div>
 <?php endforeach; ?>
 <footer class="text-center border-t border-gold/20 pt-10 relative z-10" data-purpose="menu-footer">
 <?php if (!empty($restaurant['footer_content'])): ?><p class="font-serif italic text-gold text-lg mb-4"><?php echo htmlspecialchars($restaurant['footer_content']); ?></p><?php endif; ?>

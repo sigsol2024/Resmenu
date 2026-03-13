@@ -139,6 +139,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if (empty($name) || empty($slug)) {
             $error = 'Name and slug are required';
+        } elseif ($section_id < 1) {
+            $error = 'Please select a section for this category';
         } elseif (!$error) {
             try {
                 $image = null;
@@ -174,8 +176,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (!$error) {
                     if ($action === 'create') {
                         reorderCategoriesForInsert($restaurantId, max(1, $display_order));
-                        $stmt = $pdo->prepare("INSERT INTO categories (restaurant_id, name, slug, description, image, display_order, is_active) VALUES (?, ?, ?, ?, ?, ?, ?)");
-                        $stmt->execute([$restaurantId, $name, $slug, $description, $image, max(1, $display_order), $is_active]);
+                        $stmt = $pdo->prepare("INSERT INTO categories (restaurant_id, section_id, name, slug, description, image, display_order, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+                        $stmt->execute([$restaurantId, $section_id, $name, $slug, $description, $image, max(1, $display_order), $is_active]);
                         // Redirect to prevent form resubmission
                         header('Location: categories.php?' . (isSuperAdmin() && $restaurantId ? 'restaurant_id=' . urlencode($restaurantId) . '&' : '') . 'success=created');
                         exit;
@@ -188,11 +190,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $oldOrder = $old ? (int)$old['display_order'] : 0;
                             reorderCategoriesForUpdate($restaurantId, $id, $oldOrder, max(1, $display_order));
                             if ($image) {
-                                $stmt = $pdo->prepare("UPDATE categories SET name = ?, slug = ?, description = ?, image = ?, display_order = ?, is_active = ? WHERE id = ? AND restaurant_id = ?");
-                                $stmt->execute([$name, $slug, $description, $image, max(1, $display_order), $is_active, $id, $restaurantId]);
+                                $stmt = $pdo->prepare("UPDATE categories SET section_id = ?, name = ?, slug = ?, description = ?, image = ?, display_order = ?, is_active = ? WHERE id = ? AND restaurant_id = ?");
+                                $stmt->execute([$section_id, $name, $slug, $description, $image, max(1, $display_order), $is_active, $id, $restaurantId]);
                             } else {
-                                $stmt = $pdo->prepare("UPDATE categories SET name = ?, slug = ?, description = ?, display_order = ?, is_active = ? WHERE id = ? AND restaurant_id = ?");
-                                $stmt->execute([$name, $slug, $description, max(1, $display_order), $is_active, $id, $restaurantId]);
+                                $stmt = $pdo->prepare("UPDATE categories SET section_id = ?, name = ?, slug = ?, description = ?, display_order = ?, is_active = ? WHERE id = ? AND restaurant_id = ?");
+                                $stmt->execute([$section_id, $name, $slug, $description, max(1, $display_order), $is_active, $id, $restaurantId]);
                             }
                             // Redirect to prevent form resubmission
                             header('Location: categories.php?' . (isSuperAdmin() && $restaurantId ? 'restaurant_id=' . urlencode($restaurantId) . '&' : '') . 'success=updated');
@@ -216,13 +218,30 @@ if (isset($_GET['action']) && $_GET['action'] === 'edit' && isset($_GET['id'])) 
     $editCategory = $stmt->fetch();
 }
 
-// Get all categories
+// Get all sections (for dropdown and list grouping)
+$sectionsList = [];
+if ($pdo && $restaurantId) {
+    try {
+        $sectionsList = getSections($restaurantId, false);
+    } catch (Throwable $e) {
+        $sectionsList = [];
+    }
+}
+
+// Get all categories (ordered by section then category)
 $categories = [];
 if ($pdo && $restaurantId) {
     normalizeCategoryDisplayOrder($restaurantId);
-    $stmt = $pdo->prepare("SELECT * FROM categories WHERE restaurant_id = ? ORDER BY display_order ASC, name ASC");
-    $stmt->execute([$restaurantId]);
-    $categories = $stmt->fetchAll();
+    try {
+        $stmt = $pdo->prepare("SELECT c.*, s.name AS section_name FROM categories c LEFT JOIN sections s ON s.id = c.section_id WHERE c.restaurant_id = ? ORDER BY COALESCE(s.display_order, 0) ASC, c.display_order ASC, c.name ASC");
+        $stmt->execute([$restaurantId]);
+        $categories = $stmt->fetchAll();
+    } catch (Throwable $e) {
+        $stmt = $pdo->prepare("SELECT * FROM categories WHERE restaurant_id = ? ORDER BY display_order ASC, name ASC");
+        $stmt->execute([$restaurantId]);
+        $categories = $stmt->fetchAll();
+        foreach ($categories as &$c) { $c['section_name'] = null; }
+    }
 }
 
 // Handle success messages
@@ -290,6 +309,17 @@ include __DIR__ . '/../includes/manager-layout.php';
                 <?php else: ?>
                     <input type="hidden" id="slug" name="slug" value="<?php echo htmlspecialchars($editCategory['slug'] ?? ''); ?>">
                 <?php endif; ?>
+
+                <div class="form-group">
+                    <label class="form-label" for="section_id">Section *</label>
+                    <select id="section_id" name="section_id" class="form-input" required>
+                        <option value="">— Select section —</option>
+                        <?php foreach ($sectionsList as $sec): ?>
+                            <option value="<?php echo (int)$sec['id']; ?>" <?php echo (isset($editCategory['section_id']) && (int)$editCategory['section_id'] === (int)$sec['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($sec['name']); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <p style="margin-top: 6px; font-size: 12px; color: var(--muted);">Categories are grouped under sections on your menu (e.g. Food, Drinks). <a href="sections.php<?php echo isSuperAdmin() && $restaurantId ? '?restaurant_id=' . urlencode($restaurantId) : ''; ?>">Manage sections</a></p>
+                </div>
                 
                 <div class="form-group">
                     <label class="form-label" for="description">Description</label>
@@ -370,14 +400,20 @@ include __DIR__ . '/../includes/manager-layout.php';
         <div class="settings-card">
             <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
                 <h2 class="section-title">All Categories</h2>
-                <?php if (!$editCategory): ?>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <a href="sections.php<?php echo isSuperAdmin() && $restaurantId ? '?restaurant_id=' . urlencode($restaurantId) : ''; ?>" class="btn btn-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" height="18"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
+                        Manage Sections
+                    </a>
+                    <?php if (!$editCategory): ?>
                     <button class="btn btn-primary" onclick="openCategoryModal()">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                         </svg>
                         New Category
                     </button>
-                <?php endif; ?>
+                    <?php endif; ?>
+                </div>
             </div>
             <div class="table-wrapper categories-table-desktop">
             <table class="table">
@@ -385,6 +421,7 @@ include __DIR__ . '/../includes/manager-layout.php';
                     <tr>
                         <th>Image</th>
                         <th>Name</th>
+                        <th>Section</th>
                         <th>Order</th>
                         <th>Status</th>
                         <th>Actions</th>
@@ -393,7 +430,7 @@ include __DIR__ . '/../includes/manager-layout.php';
                 <tbody>
                     <?php if (empty($categories)): ?>
                         <tr>
-                            <td colspan="5" style="text-align: center; padding: 40px; color: var(--muted);">No categories found.</td>
+                            <td colspan="6" style="text-align: center; padding: 40px; color: var(--muted);">No categories found.</td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($categories as $category): ?>
@@ -406,6 +443,7 @@ include __DIR__ . '/../includes/manager-layout.php';
                                     <?php endif; ?>
                                 </td>
                                 <td><?php echo htmlspecialchars($category['name']); ?></td>
+                                <td><?php echo htmlspecialchars($category['section_name'] ?? '—'); ?></td>
                                 <td><?php echo $category['display_order']; ?></td>
                                 <td><span style="padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; background: <?php echo $category['is_active'] ? '#d1fae5' : '#fee2e2'; ?>; color: <?php echo $category['is_active'] ? '#065f46' : '#991b1b'; ?>"><?php echo $category['is_active'] ? 'Active' : 'Inactive'; ?></span></td>
                                 <td class="actions-cell">

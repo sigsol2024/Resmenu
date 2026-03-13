@@ -19,10 +19,13 @@ if (!empty($headerMenuItems)) {
 
 // Count active categories with menu items (for navigation logic)
 $activeCategoryCount = 0;
-if (!empty($categories) && is_array($categories)) {
-    foreach ($categories as $category) {
-        if (!empty($category['menu_items']) && is_array($category['menu_items']) && $category['is_active']) {
-            $activeCategoryCount++;
+if (!empty($sections) && is_array($sections)) {
+    foreach ($sections as $sec) {
+        if (empty($sec['categories']) || !is_array($sec['categories'])) continue;
+        foreach ($sec['categories'] as $category) {
+            if (!empty($category['menu_items']) && is_array($category['menu_items']) && $category['is_active']) {
+                $activeCategoryCount++;
+            }
         }
     }
 }
@@ -208,12 +211,19 @@ endif;
 </div>
 
 <!-- Full Menu Categories -->
-<?php if (!empty($categories) && is_array($categories)): ?>
+<?php if (!empty($sections) && is_array($sections)): ?>
 <?php $categoryIndex = 0; ?>
-<?php foreach ($categories as $category): ?>
+<?php foreach ($sections as $section): ?>
+<?php if (empty($section['categories']) || !is_array($section['categories'])) continue; ?>
+<div class="px-4 md:px-40 flex justify-center pt-16 pb-2" id="section-<?php echo htmlspecialchars($section['slug']); ?>">
+<div class="w-full max-w-[960px] text-center">
+<h2 class="text-primary text-xl md:text-2xl font-black uppercase tracking-widest mb-8"><?php echo htmlspecialchars($section['name']); ?></h2>
+</div>
+</div>
+<?php foreach ($section['categories'] as $category): ?>
 <?php if (!empty($category['menu_items']) && is_array($category['menu_items']) && $category['is_active']): ?>
 <?php $categoryIndex++; ?>
-<div id="<?php echo htmlspecialchars($category['slug']); ?>" class="px-4 md:px-40 flex justify-center <?php echo $categoryIndex === 1 ? 'pt-16' : 'pt-20'; ?> pb-5">
+<div id="<?php echo htmlspecialchars($category['slug']); ?>" class="px-4 md:px-40 flex justify-center <?php echo $categoryIndex === 1 ? 'pt-4' : 'pt-20'; ?> pb-5">
 <div class="w-full max-w-[960px]">
 <div class="flex items-center gap-3 mb-6">
 <span class="h-px w-8 bg-primary"></span>
@@ -272,7 +282,7 @@ endif;
 </div>
 </div>
 </div>
-<?php if ($categoryIndex < count(array_filter($categories, function($cat) { return !empty($cat['menu_items']) && $cat['is_active']; }))): ?>
+<?php if ($categoryIndex < $activeCategoryCount): ?>
 <!-- Category Divider -->
 <div class="px-4 md:px-40 flex justify-center py-8">
 <div class="w-full max-w-[960px]">
@@ -281,6 +291,7 @@ endif;
 </div>
 <?php endif; ?>
 <?php endif; ?>
+<?php endforeach; ?>
 <?php endforeach; ?>
 <?php endif; ?>
 

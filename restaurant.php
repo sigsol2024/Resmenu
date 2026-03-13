@@ -47,11 +47,11 @@ if (!empty($restaurant['header_menu_items'])) {
 // Get customization settings
 $customization = getCustomizationSettings($restaurant['id']);
 
-// Get categories with menu items
-$categories = getCategoriesWithMenuItems($restaurant['id']);
+// Get sections with categories and menu items (section → category → items)
+$sections = getSectionsWithCategoriesAndItems($restaurant['id']);
 
-// Load template
-$templateLoaded = loadTemplate($restaurant, $categories, $customization, $headerMenuItems);
+// Load template (passes $sections; templates loop sections → categories → items)
+$templateLoaded = loadTemplate($restaurant, $sections, $customization, $headerMenuItems);
 
 if (!$templateLoaded) {
     http_response_code(500);

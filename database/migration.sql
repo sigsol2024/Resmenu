@@ -8,6 +8,7 @@
 -- 1. Schema updates (orders, order_items, payments, reservations, etc.)
 -- 2. Fix &amp; in category/menu names (section 23a)
 -- 3. Ensure Template 4 restaurants have reservation settings (section 23b)
+-- 34. Menu sections (sections table, categories.section_id, backfill) — idempotent
 --
 -- Requires: MariaDB 10.0.2+ or MySQL 8.0.12+ for ADD COLUMN IF NOT EXISTS
 -- ============================================================
@@ -453,3 +454,62 @@ INSERT INTO `templates` (`id`, `name`, `slug`, `description`, `preview_image`, `
 (17, 'Nostalgia Front Page', 'nostalgia_front_page', 'Nostalgia front page design.', NULL, NULL, 1, NOW(), NOW()),
 (18, 'Nostalgia Food Menu', 'nostalgia_food_menu', 'Nostalgia food menu design.', NULL, NULL, 1, NOW(), NOW())
 ON DUPLICATE KEY UPDATE `name` = VALUES(`name`), `slug` = VALUES(`slug`), `description` = VALUES(`description`), `is_active` = 1, `updated_at` = NOW();
+
+-- ============================================================
+-- 34. Menu sections (Section → Categories → Menu items)
+-- Idempotent: safe to re-run (skips ADD KEY / MODIFY / FK if already applied).
+-- ============================================================
+CREATE TABLE IF NOT EXISTS `sections` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `restaurant_id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `slug` varchar(255) NOT NULL,
+  `display_order` int(11) NOT NULL DEFAULT 0,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_restaurant_section_slug` (`restaurant_id`,`slug`),
+  KEY `idx_sections_restaurant` (`restaurant_id`),
+  KEY `idx_sections_display_order` (`display_order`),
+  CONSTRAINT `sections_ibfk_1` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE `categories` ADD COLUMN IF NOT EXISTS `section_id` int(11) DEFAULT NULL AFTER `restaurant_id`;
+
+-- Add index only if it does not exist (idempotent re-run)
+SET @idx_exists = (SELECT COUNT(*) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'categories' AND INDEX_NAME = 'idx_section_id');
+SET @sql = IF(@idx_exists = 0, 'ALTER TABLE `categories` ADD KEY `idx_section_id` (`section_id`)', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- Backfill: create one default section per restaurant that has categories, then assign categories to it
+INSERT INTO `sections` (`restaurant_id`, `name`, `slug`, `display_order`, `is_active`, `created_at`, `updated_at`)
+SELECT DISTINCT c.`restaurant_id`, 'General', 'general', 1, 1, NOW(), NOW()
+FROM `categories` c
+LEFT JOIN `sections` s ON s.`restaurant_id` = c.`restaurant_id` AND s.`slug` = 'general'
+WHERE s.`id` IS NULL;
+
+UPDATE `categories` c
+INNER JOIN `sections` s ON s.`restaurant_id` = c.`restaurant_id` AND s.`slug` = 'general'
+SET c.`section_id` = s.`id`
+WHERE c.`section_id` IS NULL;
+
+-- Ensure section_id is set for any remaining categories (restaurants that had no General section yet)
+INSERT INTO `sections` (`restaurant_id`, `name`, `slug`, `display_order`, `is_active`, `created_at`, `updated_at`)
+SELECT DISTINCT c.`restaurant_id`, 'General', 'general', 1, 1, NOW(), NOW()
+FROM `categories` c
+WHERE c.`section_id` IS NULL;
+
+UPDATE `categories` c
+INNER JOIN `sections` s ON s.`restaurant_id` = c.`restaurant_id` AND s.`slug` = 'general'
+SET c.`section_id` = s.`id`
+WHERE c.`section_id` IS NULL;
+
+-- Make section_id NOT NULL and add FK only if not already applied (idempotent)
+SET @col_not_null = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'categories' AND COLUMN_NAME = 'section_id' AND IS_NULLABLE = 'NO');
+SET @sql = IF(@col_not_null = 0, 'ALTER TABLE `categories` MODIFY COLUMN `section_id` int(11) NOT NULL', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @fk_exists = (SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'categories' AND CONSTRAINT_NAME = 'categories_section_fk');
+SET @sql = IF(@fk_exists = 0, 'ALTER TABLE `categories` ADD CONSTRAINT `categories_section_fk` FOREIGN KEY (`section_id`) REFERENCES `sections` (`id`) ON DELETE RESTRICT', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;

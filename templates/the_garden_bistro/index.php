@@ -17,9 +17,12 @@ $currencySymbol = '₦';
 $primaryColor = isset($customization['primary_color']) ? $customization['primary_color'] : '#333333';
 function tgb_price($p, $s = '₦') { return $s . number_format((float)$p, 2); }
 $activeCategories = [];
-if (!empty($categories) && is_array($categories)) {
-    foreach ($categories as $c) {
-        if (!empty($c['menu_items']) && is_array($c['menu_items']) && !empty($c['is_active'])) $activeCategories[] = $c;
+if (!empty($sections) && is_array($sections)) {
+    foreach ($sections as $sec) {
+        if (empty($sec['categories']) || !is_array($sec['categories'])) continue;
+        foreach ($sec['categories'] as $c) {
+            if (!empty($c['menu_items']) && is_array($c['menu_items']) && !empty($c['is_active'])) $activeCategories[] = $c;
+        }
     }
 }
 ?>
@@ -59,15 +62,20 @@ h1, h2, h3 { font-family: 'Playfair Display', serif; }
 <?php if (!empty($supportsReservations)): ?><p class="mt-4"><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="text-stone-600 hover:text-charcoal underline">Reserve Table</a></p><?php endif; ?>
 <div class="divider max-w-xs mx-auto mt-8 bg-stone-200"></div>
 </header>
-<?php foreach ($activeCategories as $catIndex => $category): 
-    $slug = isset($category['slug']) ? $category['slug'] : ('section-'.$catIndex);
-    $items = $category['menu_items'];
+<?php foreach ($sections as $section): 
+    if (empty($section['categories']) || !is_array($section['categories'])) continue;
+?>
+<div id="section-<?php echo htmlspecialchars($section['slug']); ?>" class="mb-16">
+<h2 class="text-3xl md:text-4xl font-bold text-center italic mb-10"><?php echo htmlspecialchars($section['name']); ?></h2>
+<?php foreach ($section['categories'] as $catIndex => $category): 
+    $slug = isset($category['slug']) ? $category['slug'] : ('cat-'.$catIndex);
+    $items = isset($category['menu_items']) ? $category['menu_items'] : [];
     if (empty($items)) continue;
-    $isMains = ($catIndex === 1 && count($activeCategories) > 1);
+    $isMains = ($catIndex === 1 && count($section['categories']) > 1);
 ?>
 <section class="mb-20 relative z-10" data-purpose="<?php echo $slug; ?>">
 <div class="flex items-center gap-8 mb-10">
-<h2 class="text-3xl italic"><?php echo htmlspecialchars($category['name']); ?></h2>
+<h3 class="text-3xl italic"><?php echo htmlspecialchars($category['name']); ?></h3>
 <div class="h-[1px] flex-grow bg-stone-200"></div>
 </div>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
@@ -87,6 +95,8 @@ h1, h2, h3 { font-family: 'Playfair Display', serif; }
 <?php endforeach; ?>
 </div>
 </section>
+<?php endforeach; ?>
+</div>
 <?php endforeach; ?>
 <footer class="mt-24 pt-12 border-t border-stone-100 text-center relative z-10" data-purpose="menu-footer">
 <?php if (!empty($restaurant['footer_content'])): ?><p class="text-stone-600 text-sm mb-4"><?php echo nl2br(htmlspecialchars($restaurant['footer_content'])); ?></p><?php endif; ?>

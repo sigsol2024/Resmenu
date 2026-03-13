@@ -20,9 +20,12 @@ $currencySymbol = '₦';
 $primaryColor = isset($customization['primary_color']) ? $customization['primary_color'] : '#0D2633';
 function snsw_price($p, $s = '₦') { return $s . number_format((float)$p, 2); }
 $activeCategories = [];
-if (!empty($categories) && is_array($categories)) {
-    foreach ($categories as $c) {
-        if (!empty($c['menu_items']) && is_array($c['menu_items']) && !empty($c['is_active'])) $activeCategories[] = $c;
+if (!empty($sections) && is_array($sections)) {
+    foreach ($sections as $sec) {
+        if (empty($sec['categories']) || !is_array($sec['categories'])) continue;
+        foreach ($sec['categories'] as $c) {
+            if (!empty($c['menu_items']) && is_array($c['menu_items']) && !empty($c['is_active'])) $activeCategories[] = $c;
+        }
     }
 }
 $brandName = $restaurant['name'] ?? 'Menu';
@@ -135,14 +138,19 @@ body { overflow-x: clip; background-color: #E4DABF; font-family: "Open Sans", sa
     <?php if (!empty($supportsReservations)): ?><p class="mt-2 md:mt-3"><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="text-sidebar-bg font-semibold hover:underline text-xs sm:text-sm">Reserve Table</a></p><?php endif; ?>
   </header>
 
-  <?php foreach ($activeCategories as $catIndex => $category):
-    $slug = isset($category['slug']) ? $category['slug'] : ('section-'.$catIndex);
-    $items = $category['menu_items'];
+  <?php foreach ($sections as $section):
+    if (empty($section['categories']) || !is_array($section['categories'])) continue;
+  ?>
+  <div class="mb-12 md:mb-16 min-w-0" id="section-<?php echo htmlspecialchars($section['slug']); ?>">
+    <h2 class="section-name-heading text-center text-2xl md:text-3xl font-raleway font-bold uppercase tracking-widest text-menu-text mb-8"><?php echo htmlspecialchars($section['name']); ?></h2>
+  <?php foreach ($section['categories'] as $catIndex => $category):
+    $slug = isset($category['slug']) ? $category['slug'] : ('cat-'.$catIndex);
+    $items = isset($category['menu_items']) ? $category['menu_items'] : [];
     if (empty($items)) continue;
     $useBox = in_array(strtolower($category['name']), ['sides', 'side orders', 'desserts', 'dessert'], true);
   ?>
   <section class="mb-10 md:mb-16 min-w-0" id="<?php echo htmlspecialchars($slug); ?>">
-    <h2 class="section-header text-xl uppercase text-menu-text"><?php echo htmlspecialchars($category['name']); ?></h2>
+    <h3 class="section-header text-xl uppercase text-menu-text"><?php echo htmlspecialchars($category['name']); ?></h3>
     <?php if ($useBox): ?><div class="border border-divider-dark p-4 md:p-6 bg-white bg-opacity-40 min-w-0"><?php endif; ?>
     <div class="space-y-5 md:space-y-8">
       <?php foreach ($items as $item):
@@ -162,6 +170,8 @@ body { overflow-x: clip; background-color: #E4DABF; font-family: "Open Sans", sa
     </div>
     <?php if ($useBox): ?></div><?php endif; ?>
   </section>
+  <?php endforeach; ?>
+  </div>
   <?php endforeach; ?>
 
   <footer class="text-center py-8 md:py-12 border-t border-gray-200 min-w-0">

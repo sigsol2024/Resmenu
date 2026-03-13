@@ -18,12 +18,15 @@ if (!empty($headerMenuItems)) {
     }
 }
 
-// Get active categories for navigation
+// Get active categories for navigation (from sections)
 $activeCategories = [];
-if (!empty($categories) && is_array($categories)) {
-    foreach ($categories as $category) {
-        if (!empty($category['menu_items']) && is_array($category['menu_items'])) {
-            $activeCategories[] = $category;
+if (!empty($sections) && is_array($sections)) {
+    foreach ($sections as $sec) {
+        if (empty($sec['categories']) || !is_array($sec['categories'])) continue;
+        foreach ($sec['categories'] as $category) {
+            if (!empty($category['menu_items']) && is_array($category['menu_items'])) {
+                $activeCategories[] = $category;
+            }
         }
     }
 }
@@ -279,10 +282,26 @@ function t4_formatPrice($price, $symbol = '₦') {
 <!-- Menu Section (grey bg + bg_black pattern overlay) -->
 <main class="food-pattern relative min-h-screen" id="menu">
     <div class="relative z-10 max-w-7xl mx-auto px-6 py-20">
-        <?php if (empty($activeCategories)): ?>
+        <?php if (empty($sections) || !is_array($sections)): ?>
             <p class="text-center text-charcoal/60 py-20">No menu items available at the moment.</p>
-        <?php else: ?>
-            <?php foreach ($activeCategories as $categoryIndex => $category): ?>
+        <?php else:
+            $categoryIndex = 0;
+            $totalCategoryCount = 0;
+            foreach ($sections as $sec) {
+                if (!empty($sec['categories']) && is_array($sec['categories'])) {
+                    foreach ($sec['categories'] as $c) {
+                        if (!empty($c['menu_items']) && is_array($c['menu_items'])) $totalCategoryCount++;
+                    }
+                }
+            }
+            foreach ($sections as $section): ?>
+            <?php if (empty($section['categories']) || !is_array($section['categories'])) continue; ?>
+            <div class="mb-16" id="section-<?php echo htmlspecialchars($section['slug']); ?>">
+                <h2 class="text-center text-2xl md:text-3xl font-serif font-black text-white tracking-tight mb-10"><?php echo htmlspecialchars($section['name']); ?></h2>
+            </div>
+            <?php foreach ($section['categories'] as $category): ?>
+            <?php if (empty($category['menu_items']) || !is_array($category['menu_items'])) continue; ?>
+            <?php $categoryIndex++; ?>
                 <div class="mb-24" id="<?php echo htmlspecialchars($category['slug']); ?>-section">
                     <div class="flex items-center gap-6 mb-8 category-title-animate">
                         <h3 class="text-base md:text-lg font-serif font-black text-white tracking-tight bg-charcoal rounded-xl px-4 py-3 shrink-0"><?php echo htmlspecialchars($category['name']); ?></h3>
@@ -324,7 +343,7 @@ function t4_formatPrice($price, $symbol = '₦') {
                         <?php endforeach; ?>
                     </div>
                 </div>
-                <?php if ($categoryIndex < count($activeCategories) - 1): ?>
+                <?php if ($categoryIndex < $totalCategoryCount): ?>
                 <div class="flex items-center gap-4 w-full my-20 py-4 px-6 rounded-xl" style="background-color: rgba(245, 240, 230, 0.9);">
                     <div class="h-px flex-1 bg-charcoal/20"></div>
                     <div class="shrink-0 flex items-center justify-center px-4">
@@ -339,6 +358,7 @@ function t4_formatPrice($price, $symbol = '₦') {
                     <div class="h-px flex-1 bg-charcoal/20"></div>
                 </div>
                 <?php endif; ?>
+            <?php endforeach; ?>
             <?php endforeach; ?>
         <?php endif; ?>
     </div>

@@ -388,6 +388,121 @@ function getAllActiveRestaurants() {
 }
 
 /**
+ * Get sections for restaurant
+ * @param int $restaurantId
+ * @param bool $activeOnly If true, only return active sections (for public menu and dropdowns)
+ * @return array
+ */
+function getSections($restaurantId, $activeOnly = true) {
+    $pdo = getDBConnection();
+    if (!$pdo) return [];
+    try {
+        $sql = "SELECT * FROM sections WHERE restaurant_id = ?";
+        if ($activeOnly) {
+            $sql .= " AND is_active = 1";
+        }
+        $sql .= " ORDER BY display_order ASC, name ASC";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$restaurantId]);
+        return $stmt->fetchAll();
+    } catch (PDOException $e) {
+        error_log("Error getting sections: " . $e->getMessage());
+        return [];
+    }
+}
+
+/**
+ * Get sections with categories and menu items for public menu (ordered: section → category → items)
+ * @param int $restaurantId
+ * @return array Array of sections, each with 'categories' (each category with 'menu_items')
+ */
+function getSectionsWithCategoriesAndItems($restaurantId) {
+    $pdo = getDBConnection();
+    if (!$pdo) return [];
+    try {
+        $sections = getSections($restaurantId, true);
+        if (empty($sections)) {
+            // Fallback: no sections yet (e.g. before migration) — use flat categories as one virtual section
+            $categories = getCategoriesWithMenuItems($restaurantId);
+            if (empty($categories)) return [];
+            return [['id' => 0, 'name' => 'Menu', 'slug' => 'menu', 'display_order' => 1, 'is_active' => 1, 'categories' => $categories]];
+        }
+        foreach ($sections as &$section) {
+            $stmt = $pdo->prepare("SELECT * FROM categories WHERE section_id = ? AND is_active = 1 ORDER BY display_order ASC, name ASC");
+            $stmt->execute([$section['id']]);
+            $section['categories'] = $stmt->fetchAll();
+            foreach ($section['categories'] as &$cat) {
+                $stmt2 = $pdo->prepare("SELECT * FROM menu_items WHERE category_id = ? AND is_available = 1 ORDER BY display_order ASC, name ASC");
+                $stmt2->execute([$cat['id']]);
+                $cat['menu_items'] = $stmt2->fetchAll();
+            }
+        }
+        return $sections;
+    } catch (PDOException $e) {
+        error_log("Error getting sections with categories and items: " . $e->getMessage());
+        // Fallback when sections table missing or error: show categories as one virtual section
+        $categories = getCategoriesWithMenuItems($restaurantId);
+        if (empty($categories)) return [];
+        return [['id' => 0, 'name' => 'Menu', 'slug' => 'menu', 'display_order' => 1, 'is_active' => 1, 'categories' => $categories]];
+    }
+}
+
+/**
+ * Normalize section display_order for a restaurant (renumber 1, 2, 3...)
+ * @param int $restaurantId
+ */
+function normalizeSectionDisplayOrder($restaurantId) {
+    $pdo = getDBConnection();
+    if (!$pdo || !$restaurantId) return;
+    try {
+        $check = $pdo->prepare("SELECT COUNT(*) as total, COUNT(DISTINCT display_order) as distinct_orders FROM sections WHERE restaurant_id = ?");
+        $check->execute([$restaurantId]);
+        $r = $check->fetch(PDO::FETCH_ASSOC);
+        if (!$r || $r['total'] == $r['distinct_orders']) return;
+        $stmt = $pdo->prepare("SELECT id FROM sections WHERE restaurant_id = ? ORDER BY display_order ASC, id ASC");
+        $stmt->execute([$restaurantId]);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $order = 1;
+        foreach ($rows as $row) {
+            $pdo->prepare("UPDATE sections SET display_order = ? WHERE id = ?")->execute([$order++, $row['id']]);
+        }
+    } catch (PDOException $e) {
+        error_log("normalizeSectionDisplayOrder: " . $e->getMessage());
+    }
+}
+
+/**
+ * Make space for a new section at the given display_order.
+ * @param int $restaurantId
+ * @param int $newOrder
+ */
+function reorderSectionsForInsert($restaurantId, $newOrder) {
+    $pdo = getDBConnection();
+    if (!$pdo || $newOrder < 1) return;
+    $stmt = $pdo->prepare("UPDATE sections SET display_order = display_order + 1 WHERE restaurant_id = ? AND display_order >= ?");
+    $stmt->execute([$restaurantId, $newOrder]);
+}
+
+/**
+ * Reorder sections when updating one section's display_order.
+ * @param int $restaurantId
+ * @param int $sectionId
+ * @param int $oldOrder
+ * @param int $newOrder
+ */
+function reorderSectionsForUpdate($restaurantId, $sectionId, $oldOrder, $newOrder) {
+    $pdo = getDBConnection();
+    if (!$pdo || $oldOrder == $newOrder) return;
+    if ($newOrder < $oldOrder) {
+        $stmt = $pdo->prepare("UPDATE sections SET display_order = display_order + 1 WHERE restaurant_id = ? AND display_order >= ? AND display_order < ? AND id != ?");
+        $stmt->execute([$restaurantId, $newOrder, $oldOrder, $sectionId]);
+    } else {
+        $stmt = $pdo->prepare("UPDATE sections SET display_order = display_order - 1 WHERE restaurant_id = ? AND display_order > ? AND display_order <= ? AND id != ?");
+        $stmt->execute([$restaurantId, $oldOrder, $newOrder, $sectionId]);
+    }
+}
+
+/**
  * Get categories for restaurant
  * @param int $restaurantId
  * @return array

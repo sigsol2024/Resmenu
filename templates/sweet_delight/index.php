@@ -16,9 +16,12 @@ $currencySymbol = '₦';
 $primaryColor = isset($customization['primary_color']) ? $customization['primary_color'] : '#FF85A2';
 function sd_price($p, $s = '₦') { return $s . number_format((float)$p, 2); }
 $activeCategories = [];
-if (!empty($categories) && is_array($categories)) {
-    foreach ($categories as $c) {
-        if (!empty($c['menu_items']) && is_array($c['menu_items']) && !empty($c['is_active'])) $activeCategories[] = $c;
+if (!empty($sections) && is_array($sections)) {
+    foreach ($sections as $sec) {
+        if (empty($sec['categories']) || !is_array($sec['categories'])) continue;
+        foreach ($sec['categories'] as $c) {
+            if (!empty($c['menu_items']) && is_array($c['menu_items']) && !empty($c['is_active'])) $activeCategories[] = $c;
+        }
     }
 }
 ?>
@@ -97,15 +100,20 @@ h1, h2, h3 { font-family: 'Fredoka One', cursive; }
 </nav>
 </header>
 <main class="container mx-auto px-4 pb-20">
-<?php foreach ($activeCategories as $catIndex => $category): 
-    $slug = isset($category['slug']) ? $category['slug'] : ('section-'.$catIndex);
-    $items = $category['menu_items'];
+<?php foreach ($sections as $section): 
+    if (empty($section['categories']) || !is_array($section['categories'])) continue;
+?>
+<div id="section-<?php echo htmlspecialchars($section['slug']); ?>" class="mb-14">
+<h2 class="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-8"><?php echo htmlspecialchars($section['name']); ?></h2>
+<?php foreach ($section['categories'] as $catIndex => $category): 
+    $slug = isset($category['slug']) ? $category['slug'] : ('cat-'.$catIndex);
+    $items = isset($category['menu_items']) ? $category['menu_items'] : [];
     if (empty($items)) continue;
     $useMint = ($catIndex % 2);
 ?>
 <section class="mb-16" id="<?php echo htmlspecialchars($slug); ?>">
 <div class="flex items-center gap-4 mb-8">
-<h2 class="text-3xl <?php echo $useMint ? 'text-mint-dark' : 'text-soft-berry'; ?>"><?php echo htmlspecialchars($category['name']); ?></h2>
+<h3 class="text-3xl <?php echo $useMint ? 'text-mint-dark' : 'text-soft-berry'; ?>"><?php echo htmlspecialchars($category['name']); ?></h3>
 <div class="h-1 flex-grow <?php echo $useMint ? 'bg-pastel-mint' : 'bg-pastel-pink'; ?> rounded-full"></div>
 </div>
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -122,6 +130,8 @@ h1, h2, h3 { font-family: 'Fredoka One', cursive; }
 <?php endforeach; ?>
 </div>
 </section>
+<?php endforeach; ?>
+</div>
 <?php endforeach; ?>
 </main>
 <footer class="bg-soft-berry text-white py-12 rounded-t-[3rem] text-center" data-purpose="menu-footer">

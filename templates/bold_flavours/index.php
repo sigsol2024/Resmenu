@@ -12,9 +12,12 @@ $currencySymbol = '₦';
 $primaryColor = isset($customization['primary_color']) ? $customization['primary_color'] : '#ff007f';
 function bf_price($p, $s = '₦') { return $s . number_format((float)$p, 2); }
 $activeCategories = [];
-if (!empty($categories) && is_array($categories)) {
-    foreach ($categories as $c) {
-        if (!empty($c['menu_items']) && is_array($c['menu_items']) && !empty($c['is_active'])) $activeCategories[] = $c;
+if (!empty($sections) && is_array($sections)) {
+    foreach ($sections as $sec) {
+        if (empty($sec['categories']) || !is_array($sec['categories'])) continue;
+        foreach ($sec['categories'] as $c) {
+            if (!empty($c['menu_items']) && is_array($c['menu_items']) && !empty($c['is_active'])) $activeCategories[] = $c;
+        }
     }
 }
 ?>
@@ -48,9 +51,14 @@ if (!empty($categories) && is_array($categories)) {
 <span class="text-neonPink font-mono text-sm tracking-widest uppercase mb-4 block"><?php echo htmlspecialchars($restaurant['description'] ?? 'Urban'); ?></span>
 <h2 class="text-7xl lg:text-8xl font-black italic uppercase leading-none tracking-tighter"><?php echo htmlspecialchars($restaurant['name']); ?></h2>
 </header>
-<?php foreach ($activeCategories as $catIndex => $category): 
-    $slug = isset($category['slug']) ? $category['slug'] : ('section-'.$catIndex);
-    $items = $category['menu_items'];
+<?php foreach ($sections as $section): 
+    if (empty($section['categories']) || !is_array($section['categories'])) continue;
+?>
+<div id="section-<?php echo htmlspecialchars($section['slug']); ?>" class="mb-14">
+<h2 class="text-2xl md:text-3xl font-bold text-neonPink mb-8 border-b border-white/20 pb-4 text-center"><?php echo htmlspecialchars($section['name']); ?></h2>
+<?php foreach ($section['categories'] as $catIndex => $category): 
+    $slug = isset($category['slug']) ? $category['slug'] : ('cat-'.$catIndex);
+    $items = isset($category['menu_items']) ? $category['menu_items'] : [];
     if (empty($items)) continue;
 ?>
 <section class="mb-24" id="<?php echo htmlspecialchars($slug); ?>">
@@ -68,6 +76,8 @@ if (!empty($categories) && is_array($categories)) {
 <?php endforeach; ?>
 </div>
 </section>
+<?php endforeach; ?>
+</div>
 <?php endforeach; ?>
 </main>
 </div>

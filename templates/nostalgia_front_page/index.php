@@ -11,9 +11,12 @@ $reservationUrl = $baseUrl . '/restaurant/' . ($restaurant['slug'] ?? '') . '/re
 $currencySymbol = '₦';
 $primaryColor = isset($customization['primary_color']) ? $customization['primary_color'] : '#f2b90d';
 $activeCategories = [];
-if (!empty($categories) && is_array($categories)) {
-    foreach ($categories as $c) {
-        if (!empty($c['menu_items']) && is_array($c['menu_items']) && !empty($c['is_active'])) $activeCategories[] = $c;
+if (!empty($sections) && is_array($sections)) {
+    foreach ($sections as $sec) {
+        if (empty($sec['categories']) || !is_array($sec['categories'])) continue;
+        foreach ($sec['categories'] as $c) {
+            if (!empty($c['menu_items']) && is_array($c['menu_items']) && !empty($c['is_active'])) $activeCategories[] = $c;
+        }
     }
 }
 $cardImages = ['https://lh3.googleusercontent.com/aida-public/AB6AXuD-NUGPkPCxpJ_nDAQV6DBrnTSRFar12tbgws-JbaaVlTnoTilN2HiC7cms5yqd8-ZB2sTXpUvWlhJuNI7khLoGvkr8_SEc7lIrA_MEFGd-x-bwnYc88B3jIM9XQwVEmzYU06fXyn3SMdujgrsHjSF2L4hJk4enNQ4OUgdVyoX9aWp6V4cr_QvVftOVDZjx0RX5e0hRgwSVYyOyDVrwfx08Vd-SsTUMgTb21kqi_DXLUC065r8SP0mr5gWUI-uXSgrjRy5oC9ymUp4F'];
@@ -65,13 +68,18 @@ $cardImages = ['https://lh3.googleusercontent.com/aida-public/AB6AXuD-NUGPkPCxpJ
 <div class="mt-16 space-y-16">
 <?php 
 function nfp_price($p, $s = '₦') { return $s . number_format((float)$p, 2); }
-foreach ($activeCategories as $catIndex => $category): 
-    $slug = isset($category['slug']) ? $category['slug'] : ('section-'.$catIndex);
-    $items = $category['menu_items'];
+foreach ($sections as $section): 
+    if (empty($section['categories']) || !is_array($section['categories'])) continue;
+?>
+<div id="section-<?php echo htmlspecialchars($section['slug']); ?>" class="mb-14">
+<h2 class="text-2xl md:text-3xl font-serif font-bold text-brandGold uppercase tracking-widest mb-8 text-center"><?php echo htmlspecialchars($section['name']); ?></h2>
+<?php foreach ($section['categories'] as $catIndex => $category): 
+    $slug = isset($category['slug']) ? $category['slug'] : ('cat-'.$catIndex);
+    $items = isset($category['menu_items']) ? $category['menu_items'] : [];
     if (empty($items)) continue;
 ?>
 <section class="card-border p-8 bg-black/40" id="<?php echo htmlspecialchars($slug); ?>">
-<h2 class="text-2xl font-serif text-brandGold uppercase tracking-widest mb-6"><?php echo htmlspecialchars($category['name']); ?></h2>
+<h3 class="text-2xl font-serif text-brandGold uppercase tracking-widest mb-6"><?php echo htmlspecialchars($category['name']); ?></h3>
 <div class="space-y-4">
 <?php foreach ($items as $item): ?>
 <div class="flex gap-4 items-start border-b border-gray-700 pb-3">
@@ -84,6 +92,8 @@ foreach ($activeCategories as $catIndex => $category):
 <?php endforeach; ?>
 </div>
 </section>
+<?php endforeach; ?>
+</div>
 <?php endforeach; ?>
 </div>
 </main>

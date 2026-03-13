@@ -331,10 +331,16 @@ foreach ($sampleCategories as $cat) {
     $catIndex++;
 }
 
+// Group categories into sections for template (Food: first 3 cats, Drinks: last 1)
+$sections = [
+    ['id' => 1, 'name' => 'Food', 'slug' => 'food', 'display_order' => 1, 'is_active' => 1, 'categories' => array_slice($categories, 0, 3)],
+    ['id' => 2, 'name' => 'Drinks', 'slug' => 'drinks', 'display_order' => 2, 'is_active' => 1, 'categories' => array_slice($categories, 3, 1)],
+];
+
 $customization = getTemplateDefaults($templateId);
 $headerMenuItems = [];
 
-$templateLoaded = loadTemplate($restaurant, $categories, $customization, $headerMenuItems, true);
+$templateLoaded = loadTemplate($restaurant, $sections, $customization, $headerMenuItems, true);
 
 if (!$templateLoaded) {
     http_response_code(500);

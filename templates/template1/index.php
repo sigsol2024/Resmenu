@@ -4,7 +4,7 @@
  * Modern restaurant menu template with alternating layout sections
  */
 
-// Note: $restaurant, $categories, $customization from template loader. Navigation uses sidebar + toggle on all devices (categories only).
+// Note: $restaurant, $sections, $categories (flat for nav), $customization from template loader.
 
 // Get the correct base URL dynamically
 $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
@@ -263,18 +263,27 @@ document.addEventListener('DOMContentLoaded', function() {
 </section>
 
 <?php 
-// Loop through categories with alternating layout
+// Loop through sections → categories → items
 $isAlternate = false;
-if (!empty($categories) && is_array($categories)):
-foreach ($categories as $category): 
-    if (!empty($category['menu_items']) && is_array($category['menu_items'])): 
+if (!empty($sections) && is_array($sections)):
+foreach ($sections as $section):
+    if (empty($section['categories']) || !is_array($section['categories'])) continue;
+?>
+<!-- Section: <?php echo htmlspecialchars($section['name']); ?> -->
+<section class="section-block" id="section-<?php echo htmlspecialchars($section['slug']); ?>" aria-label="<?php echo htmlspecialchars($section['name']); ?>">
+  <div class="container">
+    <h2 class="section-heading"><?php echo htmlspecialchars($section['name']); ?></h2>
+  </div>
+<?php
+    foreach ($section['categories'] as $category): 
+        if (empty($category['menu_items']) || !is_array($category['menu_items'])) continue;
         $isAlternate = !$isAlternate;
 ?>
-<!-- SECTION: <?php echo htmlspecialchars($category['name']); ?> -->
+<!-- Category: <?php echo htmlspecialchars($category['name']); ?> -->
 <section class="menu-section <?php echo $isAlternate ? 'alternate' : ''; ?>" id="<?php echo htmlspecialchars($category['slug']); ?>-section">
   <div class="container">
     <div class="menu-container">
-      <?php if ($category['image']): ?>
+      <?php if (!empty($category['image'])): ?>
         <div class="menu-image" style="background-image: url('<?php echo $uploadBaseUrl . '/categories/' . htmlspecialchars($category['image']); ?>'); background-size: cover; background-position: center;"></div>
       <?php else: ?>
         <div class="menu-image menu-image--no-photo">
@@ -323,7 +332,10 @@ foreach ($categories as $category):
 </section>
 
 <?php 
-    endif;
+    endforeach;
+?>
+</section>
+<?php
 endforeach;
 endif; 
 ?>

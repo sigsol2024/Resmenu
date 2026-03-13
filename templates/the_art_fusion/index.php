@@ -17,9 +17,12 @@ $currencySymbol = '₦';
 $primaryColor = isset($customization['primary_color']) ? $customization['primary_color'] : '#bc002d';
 function taf_price($p, $s = '₦') { return $s . number_format((float)$p, 2); }
 $activeCategories = [];
-if (!empty($categories) && is_array($categories)) {
-    foreach ($categories as $c) {
-        if (!empty($c['menu_items']) && is_array($c['menu_items']) && !empty($c['is_active'])) $activeCategories[] = $c;
+if (!empty($sections) && is_array($sections)) {
+    foreach ($sections as $sec) {
+        if (empty($sec['categories']) || !is_array($sec['categories'])) continue;
+        foreach ($sec['categories'] as $c) {
+            if (!empty($c['menu_items']) && is_array($c['menu_items']) && !empty($c['is_active'])) $activeCategories[] = $c;
+        }
     }
 }
 ?>
@@ -96,13 +99,22 @@ h1, h2, h3, .serif-font { font-family: 'Bodoni Moda', serif; }
 <img alt="Zen Interior" class="absolute inset-0 w-full h-full object-cover opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAk14in8WcP48BdHZuySC634eIGIRiALxRkUfbVkrJcIRS3dXUqmY2gKlDeEvji5Alw7DN3zJQmePUjDq6fu-6HNbAFYq0gLIHW3l6-LQiq1StCU2j0zTOvrvs4Jf_dN1fFwK8cbERicdHftKKuNYrWX3eBL1w_SVxbfdaWLGcLg_DY3OufFYGa7LCU-NUc2L8-HJmr6ipY9uZKklqSWQzWsJ8UPcrEWvMVTaehUU9diPCOOodb8eo_RRDAK3m569RIPKeEN_QJaa83"/>
 <?php endif; ?>
 </section>
-<?php foreach ($activeCategories as $catIndex => $category): 
-    $slug = isset($category['slug']) ? $category['slug'] : ('section-'.$catIndex);
-    $items = $category['menu_items'];
+<?php 
+$tafCatIndex = 0;
+$tafTotalCats = count($activeCategories);
+foreach ($sections as $section): 
+    if (empty($section['categories']) || !is_array($section['categories'])) continue;
+?>
+<div id="section-<?php echo htmlspecialchars($section['slug']); ?>" class="py-12">
+<h2 class="text-2xl md:text-3xl font-bold text-center tracking-[0.2em] uppercase accent-red mb-12 pb-4 border-b-2 border-[#bc002d]"><?php echo htmlspecialchars($section['name']); ?></h2>
+<?php foreach ($section['categories'] as $category): 
+    $slug = isset($category['slug']) ? $category['slug'] : ('cat-'.$tafCatIndex);
+    $items = isset($category['menu_items']) ? $category['menu_items'] : [];
     if (empty($items)) continue;
+    $tafCatIndex++;
 ?>
 <section class="menu-section py-24 max-w-7xl mx-auto px-6" id="<?php echo htmlspecialchars($slug); ?>">
-<h2 class="text-2xl md:text-3xl font-bold tracking-[0.2em] uppercase accent-red mb-12 pb-4 border-b-2 border-[#bc002d]"><?php echo htmlspecialchars($category['name']); ?></h2>
+<h3 class="text-2xl md:text-3xl font-bold tracking-[0.2em] uppercase accent-red mb-12 pb-4 border-b-2 border-[#bc002d]"><?php echo htmlspecialchars($category['name']); ?></h3>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-20 gap-y-12">
 <?php foreach ($items as $item): $itemAvailable = !isset($item['is_available']) || $item['is_available']; ?>
 <div class="flex gap-4 border-b border-gray-100 pb-4 items-start">
@@ -119,7 +131,9 @@ h1, h2, h3, .serif-font { font-family: 'Bodoni Moda', serif; }
 <?php endforeach; ?>
 </div>
 </section>
-<?php if ($catIndex < count($activeCategories) - 1): ?><div class="zen-divider max-w-2xl mx-auto"></div><?php endif; ?>
+<?php if ($tafCatIndex < $tafTotalCats): ?><div class="zen-divider max-w-2xl mx-auto"></div><?php endif; ?>
+<?php endforeach; ?>
+</div>
 <?php endforeach; ?>
 </main>
 <footer class="bg-white py-20 border-t border-gray-100 relative z-10" data-purpose="menu-footer">
