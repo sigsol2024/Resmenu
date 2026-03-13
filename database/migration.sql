@@ -29,7 +29,57 @@ CREATE TABLE IF NOT EXISTS `sections` (
 -- ---------------------------------------------------------------------------
 -- 2. Add section_id to categories (run once; omit if column already exists)
 -- ---------------------------------------------------------------------------
--- If you get "Duplicate column name 'section_id'", the migration was already applied.
-ALTER TABLE `categories` ADD COLUMN `section_id` int(11) DEFAULT NULL AFTER `restaurant_id`;
-ALTER TABLE `categories` ADD KEY `idx_section_id` (`section_id`);
-ALTER TABLE `categories` ADD CONSTRAINT `categories_section_fk` FOREIGN KEY (`section_id`) REFERENCES `sections` (`id`) ON DELETE SET NULL;
+-- This block is idempotent: it checks for the column, index and FK before adding them,
+-- so it can be safely re-run without "duplicate" errors.
+
+DELIMITER //
+
+DROP PROCEDURE IF EXISTS resmenu_add_section_id_to_categories//
+CREATE PROCEDURE resmenu_add_section_id_to_categories()
+BEGIN
+  DECLARE col_exists INT DEFAULT 0;
+  DECLARE idx_exists INT DEFAULT 0;
+  DECLARE fk_exists INT DEFAULT 0;
+
+  -- Check if the section_id column already exists
+  SELECT COUNT(*) INTO col_exists
+  FROM INFORMATION_SCHEMA.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'categories'
+    AND COLUMN_NAME = 'section_id';
+
+  IF col_exists = 0 THEN
+    ALTER TABLE `categories` ADD COLUMN `section_id` int(11) DEFAULT NULL AFTER `restaurant_id`;
+  END IF;
+
+  -- Check if the index on section_id already exists
+  SELECT COUNT(*) INTO idx_exists
+  FROM INFORMATION_SCHEMA.STATISTICS
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'categories'
+    AND INDEX_NAME = 'idx_section_id';
+
+  IF idx_exists = 0 THEN
+    ALTER TABLE `categories` ADD KEY `idx_section_id` (`section_id`);
+  END IF;
+
+  -- Check if the foreign key already exists
+  SELECT COUNT(*) INTO fk_exists
+  FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'categories'
+    AND CONSTRAINT_TYPE = 'FOREIGN KEY'
+    AND CONSTRAINT_NAME = 'categories_section_fk';
+
+  IF fk_exists = 0 THEN
+    ALTER TABLE `categories`
+      ADD CONSTRAINT `categories_section_fk`
+      FOREIGN KEY (`section_id`) REFERENCES `sections` (`id`) ON DELETE SET NULL;
+  END IF;
+END//
+
+CALL resmenu_add_section_id_to_categories()//
+DROP PROCEDURE IF EXISTS resmenu_add_section_id_to_categories//
+
+DELIMITER ;
+

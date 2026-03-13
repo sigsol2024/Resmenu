@@ -38,6 +38,20 @@ $pdo = getDBConnection();
 $message = '';
 $error = '';
 
+$restaurantSlug = null;
+if ($pdo && $restaurantId) {
+    try {
+        $stmt = $pdo->prepare("SELECT slug FROM restaurants WHERE id = ?");
+        $stmt->execute([$restaurantId]);
+        $restaurant = $stmt->fetch();
+        if ($restaurant && !empty($restaurant['slug'])) {
+            $restaurantSlug = $restaurant['slug'];
+        }
+    } catch (PDOException $e) {
+        // If slug lookup fails, we simply won't show the public section view link.
+    }
+}
+
 $slugParam = (isSuperAdmin() && $restaurantId) ? '?restaurant_id=' . urlencode($restaurantId) : '';
 // Build redirect URL so it always has ? (never sections.php&...)
 $redirectQuery = (isSuperAdmin() && $restaurantId) ? 'restaurant_id=' . urlencode($restaurantId) . '&' : '';
@@ -278,7 +292,14 @@ include __DIR__ . '/../includes/manager-layout.php';
                                         $stmt = $pdo->prepare("SELECT COUNT(*) FROM categories WHERE section_id = ?");
                                         $stmt->execute([$sec['id']]);
                                         $catCount = (int) $stmt->fetchColumn();
+                                        $sectionViewUrl = null;
+                                        if (!empty($restaurantSlug) && !empty($sec['slug'])) {
+                                            $sectionViewUrl = '/restaurant/' . $restaurantSlug . '/' . $sec['slug'];
+                                        }
                                         ?>
+                                        <?php if ($sectionViewUrl): ?>
+                                            <a href="<?php echo htmlspecialchars($sectionViewUrl); ?>" target="_blank" class="btn btn-small btn-primary">View section menu</a>
+                                        <?php endif; ?>
                                         <button type="button" class="btn btn-small btn-danger" onclick="openDeleteSectionModal(<?php echo (int)$sec['id']; ?>, '<?php echo htmlspecialchars(addslashes($sec['name'])); ?>')" <?php echo $catCount > 0 ? 'disabled title="Section has categories"' : ''; ?>>Delete</button>
                                     </td>
                                 </tr>
