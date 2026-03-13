@@ -106,7 +106,7 @@ body.prime-cut-outer .prime-cut-outer-bg { position: absolute; inset: 0; pointer
 /* Mobile: more outer bg visible on sides, extra top spacing, toggle, logo size */
 @media (max-width: 768px) {
     body.prime-cut-outer { padding-left: 1.5rem; padding-right: 1.5rem; }
-    .menu-page.prime-cut-main { max-width: calc(100vw - 3rem); width: 100%; margin-top: 1.5rem; }
+    .menu-page.prime-cut-main { max-width: calc(100vw - 3rem); width: 100%; margin-top: 2.5rem; }
     .prime-cut-toggle-wrap { top: 0.75rem !important; right: 1.25rem !important; width: 3.25rem !important; height: 3.25rem !important; min-width: 3.25rem !important; min-height: 3.25rem !important; }
     .prime-cut-toggle-wrap .material-symbols-outlined { font-size: 1.75rem !important; }
     .prime-cut-toggle-wrap.sidebar-open { visibility: hidden; pointer-events: none; }
@@ -159,7 +159,7 @@ foreach ($sections as $section):
     if (empty($section['categories']) || !is_array($section['categories'])) continue;
 ?>
 <div id="section-<?php echo htmlspecialchars($section['slug']); ?>" class="mb-14">
-<h2 class="text-center font-serif text-4xl md:text-5xl font-bold text-gold mb-10 uppercase tracking-widest"><?php echo htmlspecialchars($section['name']); ?></h2>
+<h2 class="text-center font-serif text-3xl md:text-5xl font-bold text-gold mb-10 uppercase tracking-widest"><?php echo htmlspecialchars($section['name']); ?></h2>
 <?php foreach ($section['categories'] as $category): 
     $slug = isset($category['slug']) ? $category['slug'] : ('cat-' . $primeCutCatIndex);
     $items = isset($category['menu_items']) ? $category['menu_items'] : [];
@@ -173,7 +173,7 @@ foreach ($sections as $section):
 <span class="ornate-symbol"><?php echo $categoryIcon; ?></span>
 </div>
 <?php endif; ?>
-<h3 class="text-left font-serif text-4xl text-gold mb-10 uppercase tracking-widest"><?php echo htmlspecialchars($category['name']); ?></h3>
+<h3 class="text-left font-serif text-2xl md:text-4xl text-gold mb-10 uppercase tracking-widest"><?php echo htmlspecialchars($category['name']); ?></h3>
 <?php if ($primeCutCatIndex === 1 && count($items) > 0): ?>
 <div class="space-y-12">
 <div class="relative p-8 border border-gold/30 bg-black/20 flex flex-col items-start text-left" data-purpose="featured-item">
