@@ -73,7 +73,7 @@ h1, h2, h3 { font-family: 'Playfair Display', serif; }
     if (empty($items)) continue;
     $isMains = ($catIndex === 1 && count($section['categories']) > 1);
 ?>
-<section class="mb-20 relative z-10" data-purpose="<?php echo $slug; ?>">
+<section class="mb-20 relative z-10" data-purpose="<?php echo htmlspecialchars($slug); ?>">
 <div class="flex items-center gap-8 mb-10">
 <h3 class="text-3xl italic"><?php echo htmlspecialchars($category['name']); ?></h3>
 <div class="h-[1px] flex-grow bg-stone-200"></div>

@@ -37,6 +37,62 @@ function sanitize($data) {
 }
 
 /**
+ * Sanitize string for safe HTML output (trim, strip tags, optional max length).
+ * Use with htmlspecialchars when echoing to HTML.
+ * @param string $str
+ * @param int $maxLength Max length (0 = no limit)
+ * @return string
+ */
+function sanitizeForHtml($str, $maxLength = 0) {
+    $s = strip_tags(trim((string) $str));
+    if ($maxLength > 0 && mb_strlen($s) > $maxLength) {
+        $s = mb_substr($s, 0, $maxLength, 'UTF-8');
+    }
+    return $s;
+}
+
+/**
+ * Sanitize and validate URL. Returns empty string if invalid.
+ * @param string $url
+ * @return string
+ */
+function sanitizeUrl($url) {
+    $url = trim((string) $url);
+    if ($url === '') return '';
+    $url = strip_tags($url);
+    return filter_var($url, FILTER_VALIDATE_URL) !== false ? $url : '';
+}
+
+/**
+ * Sanitize and validate email. Returns null if invalid.
+ * @param string $email
+ * @return string|null
+ */
+function sanitizeEmail($email) {
+    $email = trim((string) $email);
+    if ($email === '') return null;
+    $email = strip_tags($email);
+    return filter_var($email, FILTER_VALIDATE_EMAIL) !== false ? $email : null;
+}
+
+/**
+ * Sanitize slug: only lowercase letters, numbers, hyphens.
+ * @param string $slug
+ * @param int $maxLength Max length (0 = no limit)
+ * @return string
+ */
+function sanitizeSlug($slug, $maxLength = 255) {
+    $s = trim((string) $slug);
+    $s = mb_strtolower($s, 'UTF-8');
+    $s = preg_replace('/[^a-z0-9-]/', '', $s);
+    $s = trim($s, '-');
+    if ($maxLength > 0 && mb_strlen($s) > $maxLength) {
+        $s = mb_substr($s, 0, $maxLength, 'UTF-8');
+    }
+    return $s;
+}
+
+/**
  * Validate email
  * @param string $email
  * @return bool
@@ -46,10 +102,105 @@ function isValidEmail($email) {
 }
 
 /**
- * Upload file
+ * Resize image at $tmpPath to fit within $maxBytes (target ~$maxBytes).
+ * Overwrites $tmpPath with the resized image. Uses GD.
+ * @param string $tmpPath Path to temp image file
+ * @param int $maxBytes Target max size in bytes (e.g. IMAGE_MAX_BYTES)
+ * @param string $mimeType MIME type (image/jpeg, image/png, etc.)
+ * @return bool True on success, false on failure
+ */
+function resizeImageToMaxSize($tmpPath, $maxBytes, $mimeType) {
+    if (!function_exists('imagecreatefromjpeg')) {
+        return false;
+    }
+    $img = null;
+    switch ($mimeType) {
+        case 'image/jpeg':
+        case 'image/jpg':
+            $img = @imagecreatefromjpeg($tmpPath);
+            break;
+        case 'image/png':
+            $img = @imagecreatefrompng($tmpPath);
+            break;
+        case 'image/gif':
+            $img = @imagecreatefromgif($tmpPath);
+            break;
+        case 'image/webp':
+            if (function_exists('imagecreatefromwebp')) {
+                $img = @imagecreatefromwebp($tmpPath);
+            }
+            break;
+        default:
+            return false;
+    }
+    if (!$img) {
+        return false;
+    }
+    $w = imagesx($img);
+    $h = imagesy($img);
+    if ($w < 1 || $h < 1) {
+        imagedestroy($img);
+        return false;
+    }
+    $currentSize = filesize($tmpPath);
+    if ($currentSize <= $maxBytes) {
+        imagedestroy($img);
+        return true;
+    }
+    // Scale down dimensions to reduce file size (rough: size ~ width*height * factor)
+    $ratio = sqrt($maxBytes / (float) max($currentSize, 1));
+    $ratio = min($ratio, 0.95);
+    $nw = max(1, (int) round($w * $ratio));
+    $nh = max(1, (int) round($h * $ratio));
+    $scaled = imagescale($img, $nw, $nh);
+    imagedestroy($img);
+    if (!$scaled) {
+        return false;
+    }
+    $quality = 82;
+    $outPath = $tmpPath . '.resized';
+    $saved = false;
+    while ($quality >= 30) {
+        if ($mimeType === 'image/png') {
+            $compression = (int) round((100 - $quality) * 9 / 100);
+            $saved = imagepng($scaled, $outPath, min(9, $compression));
+        } elseif ($mimeType === 'image/gif') {
+            $saved = imagegif($scaled, $outPath);
+        } elseif ($mimeType === 'image/webp' && function_exists('imagewebp')) {
+            $saved = imagewebp($scaled, $outPath, $quality);
+        } else {
+            $saved = imagejpeg($scaled, $outPath, $quality);
+        }
+        if ($saved && file_exists($outPath) && filesize($outPath) <= $maxBytes) {
+            break;
+        }
+        $quality -= 10;
+    }
+    imagedestroy($scaled);
+    if (!$saved || !file_exists($outPath)) {
+        if (file_exists($outPath)) {
+            @unlink($outPath);
+        }
+        return false;
+    }
+    $finalSize = filesize($outPath);
+    if ($finalSize > $maxBytes) {
+        @unlink($outPath);
+        return false;
+    }
+    if (!rename($outPath, $tmpPath)) {
+        @unlink($outPath);
+        return false;
+    }
+    return true;
+}
+
+/**
+ * Upload file. For images: reject > 1MB; auto-resize to max 500KB when possible.
  * @param array $file $_FILES array element
  * @param string $destination Directory path
  * @param array $allowedTypes Allowed MIME types
+ * @param array $extraExtensions Extra extensions (e.g. 'ico' for favicon)
  * @return array ['success' => bool, 'message' => string, 'filename' => string|null]
  */
 function uploadFile($file, $destination, $allowedTypes = null, $extraExtensions = []) {
@@ -65,13 +216,20 @@ function uploadFile($file, $destination, $allowedTypes = null, $extraExtensions 
         return ['success' => false, 'message' => 'File upload error', 'filename' => null];
     }
     
+    // Image size cap: reject uploads over 1MB
+    if (defined('IMAGE_UPLOAD_MAX_BYTES') && $file['size'] > IMAGE_UPLOAD_MAX_BYTES) {
+        return ['success' => false, 'message' => 'Image must be 1 MB or smaller. Please reduce the file size and try again.', 'filename' => null];
+    }
+    
     if ($file['size'] > MAX_FILE_SIZE) {
         return ['success' => false, 'message' => 'File too large', 'filename' => null];
     }
     
     $finfo = new finfo(FILEINFO_MIME_TYPE);
     $mimeType = $finfo->file($file['tmp_name']);
-    
+    if ($mimeType === false || !is_string($mimeType) || $mimeType === '') {
+        return ['success' => false, 'message' => 'Invalid file type', 'filename' => null];
+    }
     if (!in_array($mimeType, $allowedTypes)) {
         return ['success' => false, 'message' => 'Invalid file type', 'filename' => null];
     }
@@ -85,6 +243,20 @@ function uploadFile($file, $destination, $allowedTypes = null, $extraExtensions 
         return ['success' => false, 'message' => 'Invalid file extension', 'filename' => null];
     }
     
+    // Auto-resize images over 500KB when type is resizable (jpeg, png, gif, webp). Favicon .ico / x-icon is not resized.
+    $resizableTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (defined('IMAGE_MAX_BYTES') && $file['size'] > IMAGE_MAX_BYTES && in_array($mimeType, $resizableTypes)) {
+        $resized = resizeImageToMaxSize($file['tmp_name'], IMAGE_MAX_BYTES, $mimeType);
+        if ($resized && file_exists($file['tmp_name']) && filesize($file['tmp_name']) <= IMAGE_MAX_BYTES) {
+            $file['size'] = filesize($file['tmp_name']);
+        }
+        // If resize failed, still allow save if under 1MB (already passed); final file may be >500KB
+        // Optionally reject if still over 500KB: uncomment below to enforce strict 500KB after failed resize
+        // if ($resized === false && $file['size'] > IMAGE_MAX_BYTES) {
+        //     return ['success' => false, 'message' => 'Image could not be resized. Please use an image under 500 KB.', 'filename' => null];
+        // }
+    }
+    
     // Generate safe filename
     $filename = uniqid() . '.' . $extension;
     $filepath = rtrim($destination, '/') . '/' . $filename;
@@ -95,6 +267,12 @@ function uploadFile($file, $destination, $allowedTypes = null, $extraExtensions 
     
     if (!move_uploaded_file($file['tmp_name'], $filepath)) {
         return ['success' => false, 'message' => 'Failed to save file', 'filename' => null];
+    }
+    
+    // Enforce max stored size for resizable types: if still over 500KB after resize attempt, reject
+    if (defined('IMAGE_MAX_BYTES') && in_array($mimeType, $resizableTypes) && filesize($filepath) > IMAGE_MAX_BYTES) {
+        deleteFile($filepath);
+        return ['success' => false, 'message' => 'Image could not be resized to the allowed size. Please use an image under 500 KB.', 'filename' => null];
     }
     
     return ['success' => true, 'message' => 'File uploaded successfully', 'filename' => $filename];
@@ -752,21 +930,22 @@ function updateSiteSettings($data) {
     $pdo = getDBConnection();
     if (!$pdo) return false;
     try {
-        $siteName = trim($data['site_name'] ?? 'Resmenu');
+        $siteName = sanitizeForHtml($data['site_name'] ?? 'Resmenu', 200);
+        if ($siteName === '') $siteName = 'Resmenu';
         $siteLogo = !empty($data['site_logo']) ? $data['site_logo'] : null;
         $favicon = !empty($data['favicon']) ? $data['favicon'] : null;
-        $contactSalesEmail = $data['contact_sales_email'] ?? null;
-        $contactSalesPhone = $data['contact_sales_phone'] ?? null;
-        $contactSupportEmail = $data['contact_support_email'] ?? null;
-        $contactSupportPhone = $data['contact_support_phone'] ?? null;
-        $contactPartnersEmail = $data['contact_partners_email'] ?? null;
-        $contactFormRecipient = $data['contact_form_recipient'] ?? null;
-        $contactHqTitle = $data['contact_hq_title'] ?? null;
-        $contactHqAddress = $data['contact_hq_address'] ?? null;
-        $contactMapEmbed = $data['contact_map_embed'] ?? null;
-        $contactSocialFacebook = $data['contact_social_facebook'] ?? null;
-        $contactSocialTwitter = $data['contact_social_twitter'] ?? null;
-        $contactSocialInstagram = $data['contact_social_instagram'] ?? null;
+        $contactSalesEmail = sanitizeEmail($data['contact_sales_email'] ?? '');
+        $contactSalesPhone = sanitizeForHtml($data['contact_sales_phone'] ?? '', 30);
+        $contactSupportEmail = sanitizeEmail($data['contact_support_email'] ?? '');
+        $contactSupportPhone = sanitizeForHtml($data['contact_support_phone'] ?? '', 30);
+        $contactPartnersEmail = sanitizeEmail($data['contact_partners_email'] ?? '');
+        $contactFormRecipient = sanitizeEmail($data['contact_form_recipient'] ?? '');
+        $contactHqTitle = sanitizeForHtml($data['contact_hq_title'] ?? '', 200);
+        $contactHqAddress = sanitizeForHtml($data['contact_hq_address'] ?? '', 500);
+        $contactMapEmbed = sanitizeForHtml($data['contact_map_embed'] ?? '', 2000);
+        $contactSocialFacebook = sanitizeUrl($data['contact_social_facebook'] ?? '');
+        $contactSocialTwitter = sanitizeUrl($data['contact_social_twitter'] ?? '');
+        $contactSocialInstagram = sanitizeUrl($data['contact_social_instagram'] ?? '');
 
         $stmt = $pdo->prepare(
             "INSERT INTO site_settings (

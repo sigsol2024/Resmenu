@@ -19,12 +19,20 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$slug = trim($_POST['slug'] ?? $_GET['slug'] ?? '');
+$slugRaw = trim((string) ($_POST['slug'] ?? $_GET['slug'] ?? ''));
+$slug = sanitizeSlug($slugRaw, 128);
 $cartJson = $_POST['cart_json'] ?? '';
 
-if (empty($slug)) {
+if ($slug === '') {
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'Restaurant slug required']);
+    exit;
+}
+
+// Limit cart_json size to prevent oversized payloads (e.g. 256KB)
+if (strlen($cartJson) > 262144) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => 'Cart data too large']);
     exit;
 }
 
@@ -60,11 +68,19 @@ if (empty($cart)) {
     exit;
 }
 
+$customerName = sanitizeForHtml($_POST['customer_name'] ?? '', 200);
+$customerPhone = trim((string) ($_POST['customer_phone'] ?? ''));
+$customerPhone = preg_replace('/[^0-9+\s-]/', '', $customerPhone);
+$customerPhone = mb_substr($customerPhone, 0, 20, 'UTF-8');
+$customerEmailRaw = trim((string) ($_POST['customer_email'] ?? ''));
+$customerEmail = sanitizeEmail($customerEmailRaw) ?? '';
+$deliveryAddress = sanitizeForHtml($_POST['delivery_address'] ?? '', 500);
+
 $result = createOrder($restaurant['id'], $cart, [
-    'customer_name' => trim($_POST['customer_name'] ?? ''),
-    'customer_phone' => trim($_POST['customer_phone'] ?? ''),
-    'customer_email' => trim($_POST['customer_email'] ?? ''),
-    'delivery_address' => trim($_POST['delivery_address'] ?? ''),
+    'customer_name' => $customerName,
+    'customer_phone' => $customerPhone,
+    'customer_email' => $customerEmail,
+    'delivery_address' => $deliveryAddress,
 ], (float) ($_POST['delivery_fee'] ?? 0), (float) ($_POST['tax_rate'] ?? 0));
 
 if ($result['success']) {

@@ -9,8 +9,9 @@ require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/includes/subscription.php';
 require_once __DIR__ . '/includes/subscription-middleware.php';
 
-$slug = trim($_GET['slug'] ?? $_POST['slug'] ?? '');
-if (empty($slug)) {
+$slug = isset($_GET['slug']) ? trim((string) $_GET['slug']) : (isset($_POST['slug']) ? trim((string) $_POST['slug']) : '');
+$slug = sanitizeSlug($slug, 128);
+if ($slug === '') {
     header('Location: /');
     exit;
 }
@@ -436,9 +437,9 @@ $restaurantName = htmlspecialchars($restaurant['name']);
 <?php if (!$success): ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    var primaryColor = '<?php echo addslashes($primaryColor); ?>';
-    var baseUrl = '<?php echo addslashes(rtrim($baseUrl ?? '', '/')); ?>';
-    var slug = '<?php echo addslashes($slug); ?>';
+    var primaryColor = <?php echo json_encode($primaryColor); ?>;
+    var baseUrl = <?php echo json_encode(rtrim($baseUrl ?? '', '/')); ?>;
+    var slug = <?php echo json_encode($slug); ?>;
     var partySize = <?php echo (int) ($_POST['party_size'] ?? 1); ?>;
     var partyInput = document.getElementById('party-size-input');
     var partyDisplay = document.getElementById('party-display');
@@ -561,7 +562,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     var calYear = new Date().getFullYear();
     var calMonth = new Date().getMonth();
-    var minDateStr = '<?php echo $minDate; ?>';
+    var minDateStr = <?php echo json_encode($minDate); ?>;
 
     function getCalMonthRange() {
         var start = new Date(calYear, calMonth, 1);

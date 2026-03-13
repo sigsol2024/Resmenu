@@ -37,8 +37,11 @@ define('SESSION_LIFETIME', 3600 * 24); // 24 hours
 define('PASSWORD_MIN_LENGTH', 8);
 
 // File upload settings
-define('MAX_FILE_SIZE', 5 * 1024 * 1024); // 5MB
+define('MAX_FILE_SIZE', 5 * 1024 * 1024); // 5MB (general cap; images use IMAGE_* below)
 define('ALLOWED_IMAGE_TYPES', ['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
+// Image size limits: max stored 500KB; reject uploads > 1MB; auto-resize 500KB–1MB to ~500KB
+define('IMAGE_MAX_BYTES', 500 * 1024);       // 500KB max stored size
+define('IMAGE_UPLOAD_MAX_BYTES', 1024 * 1024); // 1MB max upload; over this = reject
 
 // Timezone
 date_default_timezone_set('UTC');

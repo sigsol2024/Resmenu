@@ -9,9 +9,9 @@ require_once __DIR__ . '/../config/config.php';
 
 header('Content-Type: application/json');
 
-$restaurantSlug = $_GET['restaurant'] ?? null;
+$restaurantSlug = isset($_GET['restaurant']) ? sanitizeSlug(trim((string) $_GET['restaurant']), 128) : '';
 
-if (!$restaurantSlug) {
+if ($restaurantSlug === '') {
     jsonResponse(false, 'Restaurant slug required', null);
 }
 
