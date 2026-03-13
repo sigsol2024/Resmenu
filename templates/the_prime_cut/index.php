@@ -103,10 +103,10 @@ body.prime-cut-outer .prime-cut-outer-bg { position: absolute; inset: 0; pointer
     color: #D4AF37;
     font-size: 1.5rem
     }
-/* Mobile: more outer bg visible on sides, toggle, logo size */
+/* Mobile: more outer bg visible on sides, extra top spacing, toggle, logo size */
 @media (max-width: 768px) {
     body.prime-cut-outer { padding-left: 1.5rem; padding-right: 1.5rem; }
-    .menu-page.prime-cut-main { max-width: calc(100vw - 3rem); width: 100%; }
+    .menu-page.prime-cut-main { max-width: calc(100vw - 3rem); width: 100%; margin-top: 1.5rem; }
     .prime-cut-toggle-wrap { top: 0.75rem !important; right: 1.25rem !important; width: 3.25rem !important; height: 3.25rem !important; min-width: 3.25rem !important; min-height: 3.25rem !important; }
     .prime-cut-toggle-wrap .material-symbols-outlined { font-size: 1.75rem !important; }
     .prime-cut-toggle-wrap.sidebar-open { visibility: hidden; pointer-events: none; }
@@ -145,8 +145,7 @@ body.prime-cut-outer .prime-cut-outer-bg { position: absolute; inset: 0; pointer
 <div class="mb-4"><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="prime-cut-logo h-24 w-auto object-contain mx-auto"/></div>
 <div class="mb-4"><span class="text-gold tracking-[0.3em] uppercase text-sm font-sans"><?php echo !empty($restaurant['description']) ? htmlspecialchars(mb_substr($restaurant['description'], 0, 60)) : 'Established'; ?></span></div>
 <?php else: ?>
-<div class="mb-4"><span class="text-gold tracking-[0.3em] uppercase text-sm font-sans"><?php echo !empty($restaurant['description']) ? htmlspecialchars(mb_substr($restaurant['description'], 0, 60)) : 'Established'; ?></span></div>
-<h1 class="font-serif text-6xl md:text-7xl text-gold italic mb-2"><?php echo htmlspecialchars($restaurant['name']); ?></h1>
+<h1 class="font-serif text-4xl md:text-6xl text-gold italic mb-2"><?php echo htmlspecialchars($restaurant['name']); ?></h1>
 <p class="font-sans text-lg tracking-widest uppercase opacity-80"><?php echo !empty($restaurant['description']) ? htmlspecialchars(mb_substr($restaurant['description'], 0, 80)) : 'Premium Artisanal'; ?></p>
 <?php endif; ?>
 <?php if (!empty($supportsReservations)): ?><div class="mt-4"><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="font-sans text-sm tracking-widest uppercase text-gold border border-gold/60 px-6 py-2 hover:bg-gold/20 transition-colors">Reserve Table</a></div><?php endif; ?>
