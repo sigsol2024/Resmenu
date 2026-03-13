@@ -94,10 +94,17 @@ h1, h2, h3, .serif-font { font-family: 'Bodoni Moda', serif; }
 <div class="w-12 h-px bg-black mx-auto mb-6"></div>
 <?php if (!empty($supportsReservations)): ?><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="inline-block text-sm uppercase tracking-widest font-medium text-gray-700 hover:text-[#bc002d] border border-gray-300 hover:border-[#bc002d] bg-white/60 hover:bg-white/80 px-6 py-2.5 transition-colors">Reserve Table</a><?php endif; ?>
 </div>
-<?php if (!empty($restaurant['hero_image']) && empty($isTemplatePreview)): ?>
-<img alt="" class="absolute inset-0 w-full h-full object-cover opacity-80" src="<?php echo $uploadBaseUrl . '/heroes/' . htmlspecialchars($restaurant['hero_image']); ?>"/>
-<?php else: ?>
+<?php
+$tafHeroSrc = '';
+if (!empty($singleSectionView) && !empty($sections[0]['image'])) {
+    $tafHeroSrc = $uploadBaseUrl . '/sections/' . htmlspecialchars($sections[0]['image']);
+} elseif (!empty($restaurant['hero_image']) && empty($isTemplatePreview)) {
+    $tafHeroSrc = $uploadBaseUrl . '/heroes/' . htmlspecialchars($restaurant['hero_image']);
+}
+if ($tafHeroSrc === ''): ?>
 <img alt="Zen Interior" class="absolute inset-0 w-full h-full object-cover opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAk14in8WcP48BdHZuySC634eIGIRiALxRkUfbVkrJcIRS3dXUqmY2gKlDeEvji5Alw7DN3zJQmePUjDq6fu-6HNbAFYq0gLIHW3l6-LQiq1StCU2j0zTOvrvs4Jf_dN1fFwK8cbERicdHftKKuNYrWX3eBL1w_SVxbfdaWLGcLg_DY3OufFYGa7LCU-NUc2L8-HJmr6ipY9uZKklqSWQzWsJ8UPcrEWvMVTaehUU9diPCOOodb8eo_RRDAK3m569RIPKeEN_QJaa83"/>
+<?php else: ?>
+<img alt="" class="absolute inset-0 w-full h-full object-cover opacity-80" src="<?php echo $tafHeroSrc; ?>"/>
 <?php endif; ?>
 </section>
 <?php 

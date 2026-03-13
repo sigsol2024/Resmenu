@@ -38,6 +38,7 @@ if (!empty($sections) && is_array($sections)) {
 <?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?><div class="mb-4"><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="h-20 w-auto object-contain mx-auto"/></div><?php endif; ?>
 <h1 class="text-4xl md:text-6xl font-art-deco text-amber-glow mb-2"><?php echo htmlspecialchars($restaurant['name']); ?></h1>
 <p class="uppercase tracking-widest text-sm text-copper-light"><?php echo htmlspecialchars($restaurant['description'] ?? 'Industrial Cocktail Bar &amp; Lounge'); ?></p>
+<?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?><p class="mt-2"><a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="text-amber-glow hover:underline">Full menu</a></p><?php endif; ?>
 <?php if (!empty($supportsReservations)): ?><p class="mt-2"><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="text-amber-glow hover:underline">Reserve Table</a></p><?php endif; ?>
 </header>
 <?php 

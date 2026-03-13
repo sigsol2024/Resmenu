@@ -46,15 +46,15 @@ if (defined('UPLOAD_URL')) {
 $template4BaseUrl = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https://' : 'http://') . ($_SERVER['HTTP_HOST'] ?? 'localhost'))) . '/templates/template4';
 $reservationUrl = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : '') . '/restaurant/' . ($restaurant['slug'] ?? '') . '/reservation';
 
-// Hero image (hero_image_url for template preview cover, else hero_image, fallback)
+// Hero image (section image for section pages if set; else restaurant hero, fallback)
 $heroBgImage = '';
-if (!empty($restaurant['hero_image_url'])) {
+if (!empty($singleSectionView) && !empty($sections[0]['image'])) {
+    $heroBgImage = $uploadBaseUrl . '/sections/' . htmlspecialchars($sections[0]['image']);
+} elseif (!empty($restaurant['hero_image_url'])) {
     $heroBgImage = $restaurant['hero_image_url'];
-}
-if (empty($heroBgImage) && !empty($restaurant['hero_image'])) {
+} elseif (!empty($restaurant['hero_image'])) {
     $heroBgImage = $uploadBaseUrl . '/heroes/' . htmlspecialchars($restaurant['hero_image']);
-}
-if (empty($heroBgImage)) {
+} else {
     $heroBgImage = 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1600&h=900&fit=crop';
 }
 
@@ -263,8 +263,8 @@ function t4_formatPrice($price, $symbol = '₦') {
             </p>
         <?php endif; ?>
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a href="<?php echo !empty($singleSectionView) && !empty($fullMenuUrl) ? htmlspecialchars($fullMenuUrl) : '#menu'; ?>" class="w-full sm:w-auto bg-primary hover:bg-charcoal text-white text-lg font-bold px-10 py-4 rounded-xl transition-all transform hover:scale-105">
-                <?php echo !empty($singleSectionView) ? 'VIEW FULL MENU' : 'VIEW MENU'; ?>
+            <a href="#menu" class="w-full sm:w-auto bg-primary hover:bg-charcoal text-white text-lg font-bold px-10 py-4 rounded-xl transition-all transform hover:scale-105">
+                VIEW MENU
             </a>
             <?php if (!empty($supportsReservations)): ?>
                 <a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="w-full sm:w-auto bg-transparent border-2 border-white/20 hover:border-white text-white text-lg font-bold px-10 py-4 rounded-xl transition-all">

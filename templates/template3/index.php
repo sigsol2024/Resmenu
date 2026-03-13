@@ -42,9 +42,11 @@ $baseUrl = $protocol . $host . $currentDir;
 $uploadBaseUrl = $baseUrl . '/uploads';
 $reservationUrl = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : $baseUrl) . '/restaurant/' . ($restaurant['slug'] ?? '') . '/reservation';
 
-// Get hero image (hero_image_url for template preview cover, else hero_image in heroes/, else fallback)
+// Get hero image (section image for section pages if set; else restaurant hero; else fallback)
 $heroImage = '';
-if (!empty($restaurant['hero_image_url'])) {
+if (!empty($singleSectionView) && !empty($sections[0]['image'])) {
+    $heroImage = $uploadBaseUrl . '/sections/' . htmlspecialchars($sections[0]['image']);
+} elseif (!empty($restaurant['hero_image_url'])) {
     $heroImage = $restaurant['hero_image_url'];
 } elseif (!empty($restaurant['hero_image'])) {
     $heroImage = $uploadBaseUrl . '/heroes/' . htmlspecialchars($restaurant['hero_image']);
@@ -200,15 +202,9 @@ endif;
 <?php endif; ?>
 </div>
 <div class="flex flex-wrap gap-4 justify-center z-10 mt-4">
-<?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?>
-<a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="flex min-w-[140px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-12 px-8 bg-primary text-white text-base font-bold shadow-lg shadow-primary/40 transition-all hover:bg-red-600 hover:scale-105">
-<span class="truncate">View full menu</span>
-</a>
-<?php else: ?>
 <a href="#menu" class="flex min-w-[140px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-12 px-8 bg-primary text-white text-base font-bold shadow-lg shadow-primary/40 transition-all hover:bg-red-600 hover:scale-105">
 <span class="truncate">View Menu</span>
 </a>
-<?php endif; ?>
 <?php if (!empty($supportsReservations)): ?>
 <a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="flex min-w-[140px] items-center justify-center overflow-hidden rounded-full h-12 px-8 border-2 border-white/80 text-white text-base font-bold transition-all hover:bg-white/20 hover:scale-105">
 <span class="truncate">Reserve Table</span>
@@ -225,6 +221,7 @@ endif;
 <!-- Full Menu Categories -->
 <?php if (!empty($sections) && is_array($sections)): ?>
 <?php $categoryIndex = 0; ?>
+<div id="menu">
 <?php foreach ($sections as $section): ?>
 <?php if (empty($section['categories']) || !is_array($section['categories'])) continue; ?>
 <div class="px-4 md:px-40 flex justify-center pt-16 pb-2" id="section-<?php echo htmlspecialchars($section['slug']); ?>">
@@ -302,6 +299,7 @@ endif;
 <?php endif; ?>
 <?php endforeach; ?>
 <?php endforeach; ?>
+</div>
 <?php endif; ?>
 
 <!-- CTA Footer Section -->

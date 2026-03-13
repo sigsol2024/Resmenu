@@ -49,6 +49,7 @@ $cardImages = ['https://lh3.googleusercontent.com/aida-public/AB6AXuD-NUGPkPCxpJ
 <div class="text-brandGold"><svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M22 19H2v-2h1c0-4.97 4.03-9 9-9s9 4.03 9 9h1v2zm-10-15c-1.1 0-2 .9-2 2h4c0-1.1-.9-2-2-2z"/></svg></div>
 <div class="divider-line"></div>
 </div>
+<?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?><p class="mt-4"><a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="text-brandGold hover:underline">Full menu</a></p><?php endif; ?>
 <?php if (!empty($supportsReservations)): ?><p class="mt-4"><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="text-brandGold hover:underline">Reserve Table</a></p><?php endif; ?>
 </header>
 <main class="container mx-auto px-4 py-12 max-w-6xl flex-1">

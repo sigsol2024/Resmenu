@@ -84,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 }
 
 // Handle create/update
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && $restaurantId && $pdo) {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && $restaurantId && $pdo) {
     requireCSRFToken();
     $action = $_POST['action'] ?? '';
     if ($action === 'create' || $action === 'update') {
@@ -96,14 +96,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $restaurantId && $pdo) {
         $display_order = max(1, intval($_POST['display_order'] ?? 0));
         $is_active = isset($_POST['is_active']) ? 1 : 0;
 
+        // Handle section image upload (optional)
+        $uploadedImageFilename = null;
+        if (!empty($_FILES['image']['name'] ?? '')) {
+            $uploadResult = uploadFile($_FILES['image'], UPLOAD_PATH . '/sections');
+            if (!$uploadResult['success']) {
+                $error = $uploadResult['message'];
+            } else {
+                $uploadedImageFilename = $uploadResult['filename'];
+            }
+        }
+
         if (empty($name) || empty($slug)) {
             $error = 'Name is required';
         } else {
             try {
                 if ($action === 'create') {
                     reorderSectionsForInsert($restaurantId, $display_order);
-                    $stmt = $pdo->prepare("INSERT INTO sections (restaurant_id, name, slug, display_order, is_active) VALUES (?, ?, ?, ?, ?)");
-                    $stmt->execute([$restaurantId, $name, $slug, $display_order, $is_active]);
+                    $stmt = $pdo->prepare("INSERT INTO sections (restaurant_id, name, slug, image, display_order, is_active) VALUES (?, ?, ?, ?, ?, ?)");
+                    $stmt->execute([$restaurantId, $name, $slug, $uploadedImageFilename, $display_order, $is_active]);
                     header('Location: ' . $redirectUrl('success=created'));
                     exit;
                 }
@@ -114,8 +125,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $restaurantId && $pdo) {
                     $old = $stmt->fetch();
                     $oldOrder = $old ? (int)$old['display_order'] : 0;
                     reorderSectionsForUpdate($restaurantId, $id, $oldOrder, $display_order);
-                    $stmt = $pdo->prepare("UPDATE sections SET name = ?, slug = ?, display_order = ?, is_active = ? WHERE id = ? AND restaurant_id = ?");
-                    $stmt->execute([$name, $slug, $display_order, $is_active, $id, $restaurantId]);
+
+                    if ($uploadedImageFilename !== null) {
+                        $stmt = $pdo->prepare("UPDATE sections SET name = ?, slug = ?, image = ?, display_order = ?, is_active = ? WHERE id = ? AND restaurant_id = ?");
+                        $stmt->execute([$name, $slug, $uploadedImageFilename, $display_order, $is_active, $id, $restaurantId]);
+                    } else {
+                        $stmt = $pdo->prepare("UPDATE sections SET name = ?, slug = ?, display_order = ?, is_active = ? WHERE id = ? AND restaurant_id = ?");
+                        $stmt->execute([$name, $slug, $display_order, $is_active, $id, $restaurantId]);
+                    }
                     header('Location: ' . $redirectUrl('success=updated'));
                     exit;
                 }
@@ -192,7 +209,7 @@ include __DIR__ . '/../includes/manager-layout.php';
                     <button class="modal-close" onclick="closeSectionModal()" aria-label="Close">&times;</button>
                 </div>
                 <div class="modal-body">
-                    <form method="POST" action="">
+                    <form method="POST" action="" enctype="multipart/form-data">
                         <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                         <input type="hidden" name="action" value="<?php echo $editSection ? 'update' : 'create'; ?>">
                         <?php if ($editSection): ?>
@@ -215,6 +232,20 @@ include __DIR__ . '/../includes/manager-layout.php';
                         <div class="form-group">
                             <label class="form-label" for="section_display_order">Display Order</label>
                             <input type="number" id="section_display_order" name="display_order" class="form-input" min="1" value="<?php echo (int)($editSection['display_order'] ?? 1); ?>">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="section_image">Section Image (optional)</label>
+                            <input type="file" id="section_image" name="image" class="form-input" accept="image/*">
+                            <?php if (!empty($editSection['image'])): ?>
+                                <p style="margin-top: 6px; font-size: 0.8rem;">
+                                    Current image:
+                                    <code><?php echo htmlspecialchars($editSection['image']); ?></code>
+                                </p>
+                            <?php endif; ?>
+                            <p style="margin-top: 4px; font-size: 0.8rem; color: #6b7280;">
+                                Recommended: clear photo that represents this section. Max 1 MB; large images will be auto-optimized.
+                            </p>
                         </div>
 
                         <div class="form-group">

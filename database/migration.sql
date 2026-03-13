@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS `sections` (
   `restaurant_id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
   `slug` varchar(255) NOT NULL,
+  `image` varchar(255) DEFAULT NULL,
   `display_order` int(11) DEFAULT 1,
   `is_active` tinyint(1) DEFAULT 1,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -80,6 +81,33 @@ END//
 
 CALL resmenu_add_section_id_to_categories()//
 DROP PROCEDURE IF EXISTS resmenu_add_section_id_to_categories//
+
+DELIMITER ;
+
+-- ---------------------------------------------------------------------------
+-- 3. Add image column to sections (idempotent)
+-- ---------------------------------------------------------------------------
+
+DELIMITER //
+
+DROP PROCEDURE IF EXISTS resmenu_add_image_to_sections//
+CREATE PROCEDURE resmenu_add_image_to_sections()
+BEGIN
+  DECLARE col_exists INT DEFAULT 0;
+
+  SELECT COUNT(*) INTO col_exists
+  FROM INFORMATION_SCHEMA.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'sections'
+    AND COLUMN_NAME = 'image';
+
+  IF col_exists = 0 THEN
+    ALTER TABLE `sections` ADD COLUMN `image` varchar(255) DEFAULT NULL AFTER `slug`;
+  END IF;
+END//
+
+CALL resmenu_add_image_to_sections()//
+DROP PROCEDURE IF EXISTS resmenu_add_image_to_sections//
 
 DELIMITER ;
 

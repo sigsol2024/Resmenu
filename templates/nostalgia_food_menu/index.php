@@ -40,6 +40,7 @@ if (!empty($sections) && is_array($sections)) {
 <h1 class="text-4xl md:text-6xl font-serif text-brandGold tracking-widest uppercase mb-4"><?php echo htmlspecialchars($restaurant['name']); ?></h1>
 <div class="divider-line max-w-xs mx-auto"></div>
 <p class="text-gray-400 italic"><?php echo htmlspecialchars($restaurant['description'] ?? 'Our Menu'); ?></p>
+<?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?><p class="mt-2"><a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="text-brandGold hover:underline">Full menu</a></p><?php endif; ?>
 <?php if (!empty($supportsReservations)): ?><p class="mt-2"><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="text-brandGold hover:underline">Reserve Table</a></p><?php endif; ?>
 </header>
 <?php foreach ($sections as $section): 

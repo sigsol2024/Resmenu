@@ -135,6 +135,7 @@ body { overflow-x: clip; background-color: #E4DABF; font-family: "Open Sans", sa
     <h1 class="text-lg sm:text-xl md:text-2xl font-raleway tracking-[0.2em] sm:tracking-[0.3em] font-light text-menu-text break-words"><?php echo htmlspecialchars(strtoupper($restaurant['name'])); ?></h1>
     <?php endif; ?>
     <?php if (!empty($restaurant['description']) && empty($restaurant['logo'])): ?><p class="text-[10px] sm:text-xs tracking-widest text-gray-700 mt-1 break-words"><?php echo htmlspecialchars(mb_substr($restaurant['description'], 0, 60)); ?></p><?php endif; ?>
+    <?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?><p class="mt-2 md:mt-3"><a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="text-sidebar-bg font-semibold hover:underline text-xs sm:text-sm">Full menu</a></p><?php endif; ?>
     <?php if (!empty($supportsReservations)): ?><p class="mt-2 md:mt-3"><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="text-sidebar-bg font-semibold hover:underline text-xs sm:text-sm">Reserve Table</a></p><?php endif; ?>
   </header>
 

@@ -39,6 +39,7 @@ if (!empty($sections) && is_array($sections)) {
 <?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?><div class="mb-4"><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="h-20 w-auto object-contain mx-auto"/></div><?php endif; ?>
 <h1 class="font-serif text-5xl md:text-7xl font-bold text-earth mb-2"><?php echo htmlspecialchars($restaurant['name']); ?></h1>
 <p class="font-serif italic text-sage text-xl tracking-widest uppercase mb-4"><?php echo htmlspecialchars($restaurant['description'] ?? 'Sustainable &amp; Sourced'); ?></p>
+<?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?><p class="mt-2"><a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="text-terracotta font-semibold hover:underline">Full menu</a></p><?php endif; ?>
 <?php if (!empty($supportsReservations)): ?><p class="mt-2"><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="text-terracotta font-semibold hover:underline">Reserve Table</a></p><?php endif; ?>
 <div class="hand-drawn-line w-1/3 mx-auto"></div>
 </header>

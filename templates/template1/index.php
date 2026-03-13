@@ -17,6 +17,18 @@ $template1BaseUrl = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : $baseUrl) . '/
 $reservationUrl = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : $baseUrl) . '/restaurant/' . ($restaurant['slug'] ?? '') . '/reservation';
 $currencySymbol = '₦';
 $primaryColor = isset($customization['primary_color']) ? $customization['primary_color'] : '#f20d0d';
+
+// Hero image: use section image on section pages when available; otherwise restaurant hero/cover/logo as before
+$heroMainImageUrl = '';
+if (!empty($singleSectionView) && !empty($sections[0]['image'])) {
+    $heroMainImageUrl = $uploadBaseUrl . '/sections/' . htmlspecialchars($sections[0]['image']);
+} elseif (!empty($restaurant['hero_image_url'])) {
+    $heroMainImageUrl = $restaurant['hero_image_url'];
+} elseif (!empty($restaurant['hero_image'])) {
+    $heroMainImageUrl = $uploadBaseUrl . '/heroes/' . htmlspecialchars($restaurant['hero_image']);
+} elseif (!empty($restaurant['logo'])) {
+    $heroMainImageUrl = $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']);
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -237,11 +249,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <h1><?php echo htmlspecialchars($restaurant['name']); ?></h1>
         <p class="hero-text"><?php echo htmlspecialchars($restaurant['description'] ?? 'Welcome to our restaurant, where every experience is a step closer to happiness.'); ?></p>
         <div class="hero-buttons">
-          <?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?>
-          <a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="btn btn-primary">View full menu</a>
-          <?php else: ?>
           <button class="btn btn-primary" onclick="scrollToFirstMenu()">View Menu</button>
-          <?php endif; ?>
           <?php if (!empty($supportsReservations)): ?>
           <a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="btn btn-outline">Reserve Table</a>
           <?php endif; ?>
@@ -249,12 +257,8 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
       
       <div class="hero-image-container">
-        <?php if (!empty($restaurant['hero_image_url'])): ?>
-          <div class="hero-main-image" style="background-image: url('<?php echo htmlspecialchars($restaurant['hero_image_url']); ?>'); background-size: cover; background-position: center;"></div>
-        <?php elseif (!empty($restaurant['hero_image'])): ?>
-          <div class="hero-main-image" style="background-image: url('<?php echo $uploadBaseUrl . '/heroes/' . htmlspecialchars($restaurant['hero_image']); ?>'); background-size: cover; background-position: center;"></div>
-        <?php elseif (!empty($restaurant['logo'])): ?>
-          <div class="hero-main-image" style="background-image: url('<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>'); background-size: cover; background-position: center;"></div>
+        <?php if (!empty($heroMainImageUrl)): ?>
+          <div class="hero-main-image" style="background-image: url('<?php echo htmlspecialchars($heroMainImageUrl); ?>'); background-size: cover; background-position: center;"></div>
         <?php else: ?>
           <div class="hero-main-image"></div>
         <?php endif; ?>
@@ -262,11 +266,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="overlay-title"><?php echo htmlspecialchars($restaurant['name']); ?></div>
           <div class="overlay-stars">★★★★★</div>
           <div>Quick & Reliable</div>
-          <?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?>
-          <a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="btn btn-primary overlay-btn">View full menu</a>
-          <?php else: ?>
           <button class="btn btn-primary overlay-btn" onclick="scrollToFirstMenu()">View Menu</button>
-          <?php endif; ?>
         </div>
       </div>
     </div>

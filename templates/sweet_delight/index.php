@@ -76,6 +76,7 @@ h1, h2, h3 { font-family: 'Fredoka One', cursive; }
 </div>
 <div class="px-6 pb-6">
 <nav class="flex flex-col gap-2 sd-nav-links">
+<?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?><a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="sd-nav-link block px-4 py-3 rounded-full font-bold text-center bg-white border-2 border-soft-berry text-soft-berry hover:shadow-md">Full menu</a><?php endif; ?>
 <?php if (!empty($supportsReservations)): ?><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="sd-nav-link block px-4 py-3 rounded-full font-bold text-center bg-white border-2 border-soft-berry text-soft-berry hover:shadow-md">Reserve Table</a><?php endif; ?>
 <?php foreach ($activeCategories as $i => $cat): $s = isset($cat['slug']) ? $cat['slug'] : ('section-'.$i); ?>
 <a href="#<?php echo htmlspecialchars($s); ?>" class="sd-nav-link block px-4 py-3 rounded-full font-bold text-center <?php echo $i % 2 ? 'bg-pastel-mint text-mint-dark' : 'bg-pastel-pink text-soft-berry'; ?> hover:shadow-md"><?php echo htmlspecialchars($cat['name']); ?></a>
@@ -92,6 +93,7 @@ h1, h2, h3 { font-family: 'Fredoka One', cursive; }
 <h1 class="text-5xl md:text-6xl text-soft-berry mb-2"><?php echo htmlspecialchars($restaurant['name']); ?></h1>
 <p class="text-lg text-gray-600 font-semibold italic mb-4"><?php echo htmlspecialchars($restaurant['description'] ?? 'Where every scoop is a dream!'); ?></p>
 <?php endif; ?>
+<?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?><p class="mb-6"><a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="inline-block px-6 py-2 bg-white border-2 border-soft-berry text-soft-berry rounded-full font-bold hover:shadow-md transition-all">Full menu</a></p><?php endif; ?>
 <?php if (!empty($supportsReservations)): ?><p class="mb-6"><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="inline-block px-6 py-2 bg-white border-2 border-soft-berry text-soft-berry rounded-full font-bold hover:shadow-md transition-all">Reserve Table</a></p><?php endif; ?>
 <nav class="mt-6 flex justify-center gap-4 flex-wrap sd-desktop-nav" data-purpose="main-navigation">
 <?php foreach ($activeCategories as $i => $cat): $s = isset($cat['slug']) ? $cat['slug'] : ('section-'.$i); ?>

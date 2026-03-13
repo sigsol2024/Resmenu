@@ -59,6 +59,7 @@ h1, h2, h3 { font-family: 'Playfair Display', serif; }
 <h1 class="text-5xl md:text-7xl font-light mb-4 tracking-tight"><?php echo htmlspecialchars($restaurant['name']); ?></h1>
 <p class="uppercase tracking-[0.2em] text-sm text-stone-500 font-medium"><?php echo htmlspecialchars($restaurant['description'] ?? 'Elevated Brunch &amp; Artisan Coffee'); ?></p>
 <?php endif; ?>
+<?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?><p class="mt-4"><a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="text-stone-600 hover:text-charcoal underline">Full menu</a></p><?php endif; ?>
 <?php if (!empty($supportsReservations)): ?><p class="mt-4"><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="text-stone-600 hover:text-charcoal underline">Reserve Table</a></p><?php endif; ?>
 <div class="divider max-w-xs mx-auto mt-8 bg-stone-200"></div>
 </header>

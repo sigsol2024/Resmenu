@@ -39,6 +39,7 @@ if (!empty($sections) && is_array($sections)) {
 <?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="w-12 h-12 object-contain rounded-xl"/><?php else: ?><div class="w-12 h-12 brand-gradient rounded-xl flex items-center justify-center font-black text-2xl transform rotate-12"><?php echo strtoupper(substr($restaurant['name'], 0, 1)); ?></div><?php endif; ?>
 </div>
 <div class="flex flex-col space-y-12 flex-grow justify-center">
+<?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?><a class="flex flex-col items-center text-[10px] uppercase tracking-widest font-bold text-orange-500 origin-center -rotate-90" href="<?php echo htmlspecialchars($fullMenuUrl); ?>">Full menu</a><?php endif; ?>
 <?php if (!empty($supportsReservations)): ?><a class="flex flex-col items-center text-[10px] uppercase tracking-widest font-bold text-orange-500 origin-center -rotate-90" href="<?php echo htmlspecialchars($reservationUrl); ?>">Reserve Table</a><?php endif; ?>
 <?php foreach ($activeCategories as $i => $cat): $s = isset($cat['slug']) ? $cat['slug'] : ('section-'.$i); ?>
 <a class="group flex flex-col items-center" href="#<?php echo htmlspecialchars($s); ?>"><span class="text-[10px] uppercase tracking-widest font-bold opacity-40 group-hover:opacity-100 group-hover:text-orange-500 transition-all origin-center -rotate-90"><?php echo htmlspecialchars($cat['name']); ?></span></a>

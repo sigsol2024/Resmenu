@@ -39,6 +39,7 @@ if (!empty($sections) && is_array($sections)) {
 <span class="text-lemonYellow text-4xl">☀</span>
 <h1 class="text-5xl md:text-6xl text-medBlue font-bold mb-2"><?php echo htmlspecialchars($restaurant['name']); ?></h1>
 <p class="italic text-lg text-slate-500 font-serif"><?php echo htmlspecialchars($restaurant['description'] ?? 'A Taste of the Sun-Drenched Coast'); ?></p>
+<?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?><p class="mt-2"><a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="text-medBlue font-semibold hover:underline">Full menu</a></p><?php endif; ?>
 <?php if (!empty($supportsReservations)): ?><p class="mt-2"><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="text-medBlue font-semibold hover:underline">Reserve Table</a></p><?php endif; ?>
 </div>
 </header>
