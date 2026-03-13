@@ -39,6 +39,9 @@ $message = '';
 $error = '';
 
 $slugParam = (isSuperAdmin() && $restaurantId) ? '?restaurant_id=' . urlencode($restaurantId) : '';
+// Build redirect URL so it always has ? (never sections.php&...)
+$redirectQuery = (isSuperAdmin() && $restaurantId) ? 'restaurant_id=' . urlencode($restaurantId) . '&' : '';
+$redirectUrl = function ($success) use ($redirectQuery) { return 'sections.php?' . $redirectQuery . $success; };
 
 // Handle delete
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete') {
@@ -55,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 $stmt = $pdo->prepare("DELETE FROM sections WHERE id = ? AND restaurant_id = ?");
                 $stmt->execute([$id, $restaurantId]);
                 if ($stmt->rowCount()) {
-                    header('Location: sections.php' . ($slugParam ? $slugParam . '&' : '?') . 'success=deleted');
+                    header('Location: ' . $redirectUrl('success=deleted'));
                     exit;
                 }
                 $error = 'Section not found';
@@ -87,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $restaurantId && $pdo) {
                     reorderSectionsForInsert($restaurantId, $display_order);
                     $stmt = $pdo->prepare("INSERT INTO sections (restaurant_id, name, slug, display_order, is_active) VALUES (?, ?, ?, ?, ?)");
                     $stmt->execute([$restaurantId, $name, $slug, $display_order, $is_active]);
-                    header('Location: sections.php' . ($slugParam ? $slugParam . '&' : '?') . 'success=created');
+                    header('Location: ' . $redirectUrl('success=created'));
                     exit;
                 }
                 $id = intval($_POST['id'] ?? 0);
@@ -99,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $restaurantId && $pdo) {
                     reorderSectionsForUpdate($restaurantId, $id, $oldOrder, $display_order);
                     $stmt = $pdo->prepare("UPDATE sections SET name = ?, slug = ?, display_order = ?, is_active = ? WHERE id = ? AND restaurant_id = ?");
                     $stmt->execute([$name, $slug, $display_order, $is_active, $id, $restaurantId]);
-                    header('Location: sections.php' . ($slugParam ? $slugParam . '&' : '?') . 'success=updated');
+                    header('Location: ' . $redirectUrl('success=updated'));
                     exit;
                 }
             } catch (PDOException $e) {
