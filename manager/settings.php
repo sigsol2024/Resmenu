@@ -101,17 +101,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $facebook_url = sanitize($_POST['facebook_url'] ?? '');
         $twitter_url = sanitize($_POST['twitter_url'] ?? '');
         $footer_content = sanitize($_POST['footer_content'] ?? '');
-        
+        $logo = null;
+
         if (empty($name)) {
             $error = 'Restaurant name is required';
         } else {
             try {
-                $stmt = $pdo->prepare("UPDATE restaurants SET name = ?, description = ?, phone = ?, email = ?, address = ?, whatsapp_link = ?, instagram_url = ?, facebook_url = ?, twitter_url = ?, footer_content = ?, updated_at = NOW() WHERE id = ?");
-                $stmt->execute([$name, $description, $phone, $email, $address, $whatsapp_link, $instagram_url, $facebook_url, $twitter_url, $footer_content, $restaurantId]);
+                // Handle logo upload similar to admin side
+                if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
+                    $uploadResult = uploadFile($_FILES['logo'], UPLOAD_PATH . '/logos');
+                    if ($uploadResult['success']) {
+                        $logo = $uploadResult['filename'];
+
+                        // Delete old logo if updating
+                        $stmt = $pdo->prepare("SELECT logo FROM restaurants WHERE id = ?");
+                        $stmt->execute([$restaurantId]);
+                        $oldRestaurant = $stmt->fetch();
+                        if ($oldRestaurant && $oldRestaurant['logo']) {
+                            deleteFile(UPLOAD_PATH . '/logos/' . $oldRestaurant['logo']);
+                        }
+                    } else {
+                        $error = $uploadResult['message'];
+                    }
+                } else {
+                    // Keep existing logo if updating and no new file uploaded
+                    $stmt = $pdo->prepare("SELECT logo FROM restaurants WHERE id = ?");
+                    $stmt->execute([$restaurantId]);
+                    $oldRestaurant = $stmt->fetch();
+                    $logo = $oldRestaurant['logo'] ?? null;
+                }
+
+                if (!$error) {
+                    $stmt = $pdo->prepare("UPDATE restaurants SET name = ?, description = ?, phone = ?, email = ?, address = ?, whatsapp_link = ?, instagram_url = ?, facebook_url = ?, twitter_url = ?, footer_content = ?, logo = ?, updated_at = NOW() WHERE id = ?");
+                    $stmt->execute([$name, $description, $phone, $email, $address, $whatsapp_link, $instagram_url, $facebook_url, $twitter_url, $footer_content, $logo, $restaurantId]);
                 $message = 'Restaurant details updated successfully';
                 $stmt = $pdo->prepare("SELECT * FROM restaurants WHERE id = ?");
                 $stmt->execute([$restaurantId]);
                 $restaurant = $stmt->fetch(PDO::FETCH_ASSOC);
+                }
             } catch (PDOException $e) {
                 $error = 'Error updating restaurant: ' . $e->getMessage();
             }
@@ -232,7 +259,7 @@ include __DIR__ . '/../includes/manager-layout.php';
                 <?php endif; ?>
                 <div><label class="form-label">Account Created</label><div class="info-value"><?php echo !empty($manager['created_at']) ? date('F j, Y g:i A', strtotime($manager['created_at'])) : 'N/A'; ?></div></div>
             </div>
-            <form method="POST" action="">
+            <form method="POST" action="" enctype="multipart/form-data">
                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                 <input type="hidden" name="tab" value="account">
                 <input type="hidden" name="action" value="update_profile">
@@ -282,6 +309,17 @@ include __DIR__ . '/../includes/manager-layout.php';
                 <div class="form-group">
                     <label class="form-label" for="rest_address">Address</label>
                     <textarea id="rest_address" name="address" class="form-input form-textarea" rows="2"><?php echo htmlspecialchars($restaurant['address'] ?? ''); ?></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="rest_logo">Logo</label>
+                    <input type="file" id="rest_logo" name="logo" class="form-input" accept="image/*">
+                    <?php if (!empty($restaurant['logo'])): ?>
+                        <div style="margin-top: 10px;">
+                            <p style="margin-bottom: 5px; color: var(--muted);">Current logo:</p>
+                            <img src="<?php echo UPLOAD_URL . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="Current logo" style="max-width: 160px; max-height: 160px; border-radius: 8px; border: 2px solid #e5e7eb;">
+                        </div>
+                    <?php endif; ?>
+                    <small style="color: var(--muted); display: block; margin-top: 5px;">Recommended: square or horizontal logo (PNG/JPEG), max ~1MB.</small>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Social Media Links</label>
