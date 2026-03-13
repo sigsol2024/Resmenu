@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 $stmt = $pdo->prepare("DELETE FROM sections WHERE id = ? AND restaurant_id = ?");
                 $stmt->execute([$id, $restaurantId]);
                 if ($stmt->rowCount()) {
-                    header('Location: sections.php' . $slugParam . '&success=deleted');
+                    header('Location: sections.php' . ($slugParam ? $slugParam . '&' : '?') . 'success=deleted');
                     exit;
                 }
                 $error = 'Section not found';
@@ -99,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $restaurantId && $pdo) {
                     reorderSectionsForUpdate($restaurantId, $id, $oldOrder, $display_order);
                     $stmt = $pdo->prepare("UPDATE sections SET name = ?, slug = ?, display_order = ?, is_active = ? WHERE id = ? AND restaurant_id = ?");
                     $stmt->execute([$name, $slug, $display_order, $is_active, $id, $restaurantId]);
-                    header('Location: sections.php' . $slugParam . '&success=updated');
+                    header('Location: sections.php' . ($slugParam ? $slugParam . '&' : '?') . 'success=updated');
                     exit;
                 }
             } catch (PDOException $e) {
