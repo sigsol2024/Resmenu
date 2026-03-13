@@ -87,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $restaurantId && $pdo) {
                     reorderSectionsForInsert($restaurantId, $display_order);
                     $stmt = $pdo->prepare("INSERT INTO sections (restaurant_id, name, slug, display_order, is_active) VALUES (?, ?, ?, ?, ?)");
                     $stmt->execute([$restaurantId, $name, $slug, $display_order, $is_active]);
-                    header('Location: sections.php' . $slugParam . '&success=created');
+                    header('Location: sections.php' . ($slugParam ? $slugParam . '&' : '?') . 'success=created');
                     exit;
                 }
                 $id = intval($_POST['id'] ?? 0);
