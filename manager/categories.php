@@ -128,6 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $description = sanitize($_POST['description'] ?? '');
         $display_order = intval($_POST['display_order'] ?? 0);
         $is_active = isset($_POST['is_active']) ? 1 : 0;
+        $section_id = intval($_POST['section_id'] ?? 0);
         
         // Check subscription limits for new categories (skip for admins)
         if ($action === 'create' && !isSuperAdmin()) {
