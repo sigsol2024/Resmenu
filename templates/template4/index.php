@@ -46,16 +46,13 @@ if (defined('UPLOAD_URL')) {
 $template4BaseUrl = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https://' : 'http://') . ($_SERVER['HTTP_HOST'] ?? 'localhost'))) . '/templates/template4';
 $reservationUrl = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : '') . '/restaurant/' . ($restaurant['slug'] ?? '') . '/reservation';
 
-// Hero image (hero_image_url for template preview cover, else hero_image, logo, fallback)
+// Hero image (hero_image_url for template preview cover, else hero_image, fallback)
 $heroBgImage = '';
 if (!empty($restaurant['hero_image_url'])) {
     $heroBgImage = $restaurant['hero_image_url'];
 }
 if (empty($heroBgImage) && !empty($restaurant['hero_image'])) {
     $heroBgImage = $uploadBaseUrl . '/heroes/' . htmlspecialchars($restaurant['hero_image']);
-}
-if (empty($heroBgImage) && !empty($restaurant['logo'])) {
-    $heroBgImage = $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']);
 }
 if (empty($heroBgImage)) {
     $heroBgImage = 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1600&h=900&fit=crop';

@@ -59,9 +59,6 @@ $heroBgImage = '';
 if (!empty($restaurant['hero_image'])) {
     $heroBgImage = $uploadBaseUrl . '/heroes/' . htmlspecialchars($restaurant['hero_image']);
 }
-if (empty($heroBgImage) && !empty($restaurant['logo'])) {
-    $heroBgImage = $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']);
-}
 if (empty($heroBgImage)) {
     $heroBgImage = 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1600&h=900&fit=crop';
 }

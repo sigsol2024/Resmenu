@@ -102,12 +102,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $twitter_url = sanitize($_POST['twitter_url'] ?? '');
         $footer_content = sanitize($_POST['footer_content'] ?? '');
         $logo = null;
+        $heroImage = null;
 
         if (empty($name)) {
             $error = 'Restaurant name is required';
         } else {
             try {
-                // Handle logo upload similar to admin side
+                // Handle logo upload (same behavior as admin)
                 if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
                     $uploadResult = uploadFile($_FILES['logo'], UPLOAD_PATH . '/logos');
                     if ($uploadResult['success']) {
@@ -131,9 +132,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $logo = $oldRestaurant['logo'] ?? null;
                 }
 
+                // Handle cover/hero image upload (same behavior as admin hero_image)
+                if (isset($_FILES['hero_image']) && $_FILES['hero_image']['error'] === UPLOAD_ERR_OK) {
+                    $uploadResult = uploadFile($_FILES['hero_image'], UPLOAD_PATH . '/heroes');
+                    if ($uploadResult['success']) {
+                        $heroImage = $uploadResult['filename'];
+
+                        // Delete old hero image if updating
+                        $stmt = $pdo->prepare("SELECT hero_image FROM restaurants WHERE id = ?");
+                        $stmt->execute([$restaurantId]);
+                        $oldRestaurant = $stmt->fetch();
+                        if ($oldRestaurant && $oldRestaurant['hero_image']) {
+                            deleteFile(UPLOAD_PATH . '/heroes/' . $oldRestaurant['hero_image']);
+                        }
+                    } else {
+                        $error = $uploadResult['message'];
+                    }
+                } else {
+                    // Keep existing hero image if updating and no new file uploaded
+                    $stmt = $pdo->prepare("SELECT hero_image FROM restaurants WHERE id = ?");
+                    $stmt->execute([$restaurantId]);
+                    $oldRestaurant = $stmt->fetch();
+                    $heroImage = $oldRestaurant['hero_image'] ?? null;
+                }
+
                 if (!$error) {
-                    $stmt = $pdo->prepare("UPDATE restaurants SET name = ?, description = ?, phone = ?, email = ?, address = ?, whatsapp_link = ?, instagram_url = ?, facebook_url = ?, twitter_url = ?, footer_content = ?, logo = ?, updated_at = NOW() WHERE id = ?");
-                    $stmt->execute([$name, $description, $phone, $email, $address, $whatsapp_link, $instagram_url, $facebook_url, $twitter_url, $footer_content, $logo, $restaurantId]);
+                    $stmt = $pdo->prepare("UPDATE restaurants SET name = ?, description = ?, phone = ?, email = ?, address = ?, whatsapp_link = ?, instagram_url = ?, facebook_url = ?, twitter_url = ?, footer_content = ?, logo = ?, hero_image = ?, updated_at = NOW() WHERE id = ?");
+                    $stmt->execute([$name, $description, $phone, $email, $address, $whatsapp_link, $instagram_url, $facebook_url, $twitter_url, $footer_content, $logo, $heroImage, $restaurantId]);
                 $message = 'Restaurant details updated successfully';
                 $stmt = $pdo->prepare("SELECT * FROM restaurants WHERE id = ?");
                 $stmt->execute([$restaurantId]);
@@ -320,6 +345,17 @@ include __DIR__ . '/../includes/manager-layout.php';
                         </div>
                     <?php endif; ?>
                     <small style="color: var(--muted); display: block; margin-top: 5px;">Recommended: square or horizontal logo (PNG/JPEG), max ~1MB.</small>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="rest_hero_image">Cover / Hero Image</label>
+                    <input type="file" id="rest_hero_image" name="hero_image" class="form-input" accept="image/*">
+                    <?php if (!empty($restaurant['hero_image'])): ?>
+                        <div style="margin-top: 10px;">
+                            <p style="margin-bottom: 5px; color: var(--muted);">Current cover image:</p>
+                            <img src="<?php echo UPLOAD_URL . '/heroes/' . htmlspecialchars($restaurant['hero_image']); ?>" alt="Current cover image" style="max-width: 220px; max-height: 180px; border-radius: 8px; border: 2px solid #e5e7eb;">
+                        </div>
+                    <?php endif; ?>
+                    <small style="color: var(--muted); display: block; margin-top: 5px;">Large hero/cover image used on your menu and reservation page. Recommended wide image.</small>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Social Media Links</label>
