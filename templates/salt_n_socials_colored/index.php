@@ -25,7 +25,7 @@ if (!empty($sections) && is_array($sections)) {
 <html lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title><?php echo htmlspecialchars($restaurant['name']); ?></title>
+<title><?php echo htmlspecialchars($restaurant['name']); ?><?php if (!empty($singleSectionView) && !empty($sections[0]['name'])): ?> - <?php echo htmlspecialchars($sections[0]['name']); ?><?php endif; ?></title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&amp;family=Raleway:wght@300;400;600;700&amp;display=swap" rel="stylesheet"/>
 <script>
@@ -45,7 +45,7 @@ if (!empty($sections) && is_array($sections)) {
     if (empty($section['categories']) || !is_array($section['categories'])) continue;
 ?>
 <div id="section-<?php echo htmlspecialchars($section['slug']); ?>" class="mb-14">
-<h2 class="text-2xl md:text-3xl font-raleway font-bold border-b-4 border-accent pb-2 mb-8 text-center"><?php echo htmlspecialchars($section['name']); ?></h2>
+<h2 class="text-2xl md:text-3xl font-raleway font-bold border-b-4 border-accent pb-2 mb-8 text-center"><?php if (!empty($fullMenuUrl) && empty($singleSectionView)): ?><a href="<?php echo htmlspecialchars($fullMenuUrl . '/' . $section['slug']); ?>" class="hover:underline"><?php echo htmlspecialchars($section['name']); ?></a><?php else: ?><?php echo htmlspecialchars($section['name']); ?><?php endif; ?></h2>
 <?php foreach ($section['categories'] as $catIndex => $category): 
     $slug = isset($category['slug']) ? $category['slug'] : ('cat-'.$catIndex);
     $items = isset($category['menu_items']) ? $category['menu_items'] : [];

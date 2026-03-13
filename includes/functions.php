@@ -590,6 +590,38 @@ function getSections($restaurantId, $activeOnly = true) {
 }
 
 /**
+ * Get one section by restaurant and slug with its categories and menu items (for section sub-page).
+ * @param int $restaurantId
+ * @param string $sectionSlug Section slug (e.g. 'food', 'a-la-carte-menu')
+ * @return array|null Section with 'categories' (each with 'menu_items'), or null if not found/inactive
+ */
+function getSectionWithCategoriesAndItemsBySlug($restaurantId, $sectionSlug) {
+    $restaurantId = (int) $restaurantId;
+    $sectionSlug = trim((string) $sectionSlug);
+    if ($sectionSlug === '') return null;
+    $pdo = getDBConnection();
+    if (!$pdo) return null;
+    try {
+        $stmt = $pdo->prepare("SELECT * FROM sections WHERE restaurant_id = ? AND slug = ? AND is_active = 1 LIMIT 1");
+        $stmt->execute([$restaurantId, $sectionSlug]);
+        $section = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$section) return null;
+        $stmt = $pdo->prepare("SELECT * FROM categories WHERE section_id = ? AND is_active = 1 ORDER BY display_order ASC, name ASC");
+        $stmt->execute([$section['id']]);
+        $section['categories'] = $stmt->fetchAll();
+        foreach ($section['categories'] as &$cat) {
+            $stmt2 = $pdo->prepare("SELECT * FROM menu_items WHERE category_id = ? AND is_available = 1 ORDER BY display_order ASC, name ASC");
+            $stmt2->execute([$cat['id']]);
+            $cat['menu_items'] = $stmt2->fetchAll();
+        }
+        return $section;
+    } catch (PDOException $e) {
+        error_log("getSectionWithCategoriesAndItemsBySlug: " . $e->getMessage());
+        return null;
+    }
+}
+
+/**
  * Get sections with categories and menu items for public menu (ordered: section → category → items)
  * @param int $restaurantId
  * @return array Array of sections, each with 'categories' (each category with 'menu_items')

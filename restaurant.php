@@ -9,8 +9,9 @@ require_once __DIR__ . '/includes/template-loader.php';
 require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/includes/subscription-middleware.php';
 
-// Get restaurant slug from URL
-$restaurantSlug = $_GET['slug'] ?? '';
+// Get restaurant slug from URL (sanitize: only a-z0-9-)
+$restaurantSlug = isset($_GET['slug']) ? preg_replace('/[^a-z0-9-]/', '', strtolower(trim((string)$_GET['slug']))) : '';
+$sectionSlug = isset($_GET['section']) ? preg_replace('/[^a-z0-9-]/', '', strtolower(trim((string)$_GET['section']))) : '';
 
 // Allow template override for preview purposes (e.g., template showcase)
 $templateOverride = isset($_GET['template']) ? intval($_GET['template']) : null;
@@ -47,11 +48,25 @@ if (!empty($restaurant['header_menu_items'])) {
 // Get customization settings
 $customization = getCustomizationSettings($restaurant['id']);
 
-// Get sections with categories and menu items (section → category → items)
-$sections = getSectionsWithCategoriesAndItems($restaurant['id']);
+$singleSectionView = false;
+$fullMenuUrl = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : '') . '/restaurant/' . $restaurantSlug;
+
+// Section sub-page: /restaurant/{slug}/{section-slug} — show only that section
+if ($sectionSlug !== '') {
+    $section = getSectionWithCategoriesAndItemsBySlug($restaurant['id'], $sectionSlug);
+    if ($section === null) {
+        http_response_code(404);
+        die('Section not found.');
+    }
+    $sections = [$section];
+    $singleSectionView = true;
+} else {
+    // Full menu: all sections
+    $sections = getSectionsWithCategoriesAndItems($restaurant['id']);
+}
 
 // Load template (passes $sections; templates loop sections → categories → items)
-$templateLoaded = loadTemplate($restaurant, $sections, $customization, $headerMenuItems);
+$templateLoaded = loadTemplate($restaurant, $sections, $customization, $headerMenuItems, false, $singleSectionView, $fullMenuUrl);
 
 if (!$templateLoaded) {
     http_response_code(500);

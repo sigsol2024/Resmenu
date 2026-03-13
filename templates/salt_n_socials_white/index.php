@@ -42,7 +42,7 @@ function snsw_brand_markup($name) {
 <html lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title><?php echo htmlspecialchars($restaurant['name']); ?></title>
+<title><?php echo htmlspecialchars($restaurant['name']); ?><?php if (!empty($singleSectionView) && !empty($sections[0]['name'])): ?> - <?php echo htmlspecialchars($sections[0]['name']); ?><?php endif; ?></title>
 <link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&amp;family=Raleway:wght@300;400;600;700&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
@@ -142,7 +142,7 @@ body { overflow-x: clip; background-color: #E4DABF; font-family: "Open Sans", sa
     if (empty($section['categories']) || !is_array($section['categories'])) continue;
   ?>
   <div class="mb-12 md:mb-16 min-w-0" id="section-<?php echo htmlspecialchars($section['slug']); ?>">
-    <h2 class="section-name-heading text-center text-2xl md:text-3xl font-raleway font-bold uppercase tracking-widest text-menu-text mb-8"><?php echo htmlspecialchars($section['name']); ?></h2>
+    <h2 class="section-name-heading text-center text-2xl md:text-3xl font-raleway font-bold uppercase tracking-widest text-menu-text mb-8"><?php if (!empty($fullMenuUrl) && empty($singleSectionView)): ?><a href="<?php echo htmlspecialchars($fullMenuUrl . '/' . $section['slug']); ?>" class="hover:underline"><?php echo htmlspecialchars($section['name']); ?></a><?php else: ?><?php echo htmlspecialchars($section['name']); ?><?php endif; ?></h2>
   <?php foreach ($section['categories'] as $catIndex => $category):
     $slug = isset($category['slug']) ? $category['slug'] : ('cat-'.$catIndex);
     $items = isset($category['menu_items']) ? $category['menu_items'] : [];

@@ -31,7 +31,7 @@ $masonryClasses = ['masonry-item-sm', 'masonry-item-md', 'masonry-item-lg'];
 <html lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title><?php echo htmlspecialchars($restaurant['name']); ?></title>
+<title><?php echo htmlspecialchars($restaurant['name']); ?><?php if (!empty($singleSectionView) && !empty($sections[0]['name'])): ?> - <?php echo htmlspecialchars($sections[0]['name']); ?><?php endif; ?></title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Bungee&amp;family=Inter:wght@400;700;900&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
@@ -105,6 +105,7 @@ body.sfh-body .sfh-bg { position: absolute; inset: 0; pointer-events: none; back
 </button>
 </div>
 <nav class="flex flex-col gap-2 sfh-nav-links px-6 pb-6">
+<?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?><a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="sfh-nav-link block text-center comic-border px-4 py-3 font-chunky bg-white hover:bg-brandBlack hover:text-white transition-colors shadow-brutal-sm">Full menu</a><?php endif; ?>
 <?php if (!empty($supportsReservations)): ?><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="sfh-nav-link block text-center comic-border px-4 py-3 font-chunky bg-white hover:bg-brandBlack hover:text-white transition-colors shadow-brutal-sm">Reserve Table</a><?php endif; ?>
 <?php foreach ($activeCategories as $i => $cat): $s = isset($cat['slug']) ? $cat['slug'] : ('section-'.$i); ?>
 <a href="#<?php echo htmlspecialchars($s); ?>" class="sfh-nav-link block text-center comic-border px-4 py-3 font-chunky bg-white hover:bg-brandBlack hover:text-white transition-colors shadow-brutal-sm"><?php echo htmlspecialchars($cat['name']); ?></a>
@@ -127,7 +128,7 @@ body.sfh-body .sfh-bg { position: absolute; inset: 0; pointer-events: none; back
     if (empty($section['categories']) || !is_array($section['categories'])) continue;
 ?>
 <div id="section-<?php echo htmlspecialchars($section['slug']); ?>" class="mb-14">
-<h2 class="font-chunky text-3xl md:text-4xl uppercase mb-8 text-center font-bold text-brandBlack"><?php echo htmlspecialchars($section['name']); ?></h2>
+<h2 class="font-chunky text-3xl md:text-4xl uppercase mb-8 text-center font-bold text-brandBlack"><?php if (!empty($fullMenuUrl) && empty($singleSectionView)): ?><a href="<?php echo htmlspecialchars($fullMenuUrl . '/' . $section['slug']); ?>" class="hover:underline text-brandBlack"><?php echo htmlspecialchars($section['name']); ?></a><?php else: ?><?php echo htmlspecialchars($section['name']); ?><?php endif; ?></h2>
 <?php foreach ($section['categories'] as $catIndex => $category): 
     $slug = isset($category['slug']) ? $category['slug'] : ('cat-'.$catIndex);
     $items = isset($category['menu_items']) ? $category['menu_items'] : [];

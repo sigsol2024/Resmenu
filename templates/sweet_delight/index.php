@@ -29,7 +29,7 @@ if (!empty($sections) && is_array($sections)) {
 <html lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title><?php echo htmlspecialchars($restaurant['name']); ?></title>
+<title><?php echo htmlspecialchars($restaurant['name']); ?><?php if (!empty($singleSectionView) && !empty($sections[0]['name'])): ?> - <?php echo htmlspecialchars($sections[0]['name']); ?><?php endif; ?></title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <script>
     tailwind.config = { theme: { extend: { colors: { 'pastel-pink': '#FFD1DC', 'pastel-mint': '#B2F2BB', 'cream': '#FFF9E5', 'soft-berry': '#FF85A2', 'mint-dark': '#7BC992' }, borderRadius: { xlarge: '2rem' } } } }
@@ -104,7 +104,7 @@ h1, h2, h3 { font-family: 'Fredoka One', cursive; }
     if (empty($section['categories']) || !is_array($section['categories'])) continue;
 ?>
 <div id="section-<?php echo htmlspecialchars($section['slug']); ?>" class="mb-14">
-<h2 class="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-8"><?php echo htmlspecialchars($section['name']); ?></h2>
+<h2 class="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-8"><?php if (!empty($fullMenuUrl) && empty($singleSectionView)): ?><a href="<?php echo htmlspecialchars($fullMenuUrl . '/' . $section['slug']); ?>" class="hover:underline text-gray-800"><?php echo htmlspecialchars($section['name']); ?></a><?php else: ?><?php echo htmlspecialchars($section['name']); ?><?php endif; ?></h2>
 <?php foreach ($section['categories'] as $catIndex => $category): 
     $slug = isset($category['slug']) ? $category['slug'] : ('cat-'.$catIndex);
     $items = isset($category['menu_items']) ? $category['menu_items'] : [];

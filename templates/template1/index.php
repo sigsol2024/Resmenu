@@ -23,7 +23,7 @@ $primaryColor = isset($customization['primary_color']) ? $customization['primary
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title><?php echo htmlspecialchars($restaurant['name']); ?></title>
+<title><?php echo htmlspecialchars($restaurant['name']); ?><?php if (!empty($singleSectionView) && !empty($sections[0]['name'])): ?> - <?php echo htmlspecialchars($sections[0]['name']); ?><?php endif; ?></title>
 <link rel="stylesheet" href="<?php echo $baseUrl . '/templates/template1/style.css'; ?>">
 <?php if (!empty($supportsOrdering)): ?>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -83,6 +83,9 @@ section.hero .container { position: relative; z-index: 1; }
       </button>
     </div>
     <nav class="sidebar-nav">
+      <?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?>
+        <a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="sidebar-nav-link">Full menu</a>
+      <?php endif; ?>
       <?php 
       if (!empty($categories) && is_array($categories)):
         foreach ($categories as $category): 
@@ -234,7 +237,11 @@ document.addEventListener('DOMContentLoaded', function() {
         <h1><?php echo htmlspecialchars($restaurant['name']); ?></h1>
         <p class="hero-text"><?php echo htmlspecialchars($restaurant['description'] ?? 'Welcome to our restaurant, where every experience is a step closer to happiness.'); ?></p>
         <div class="hero-buttons">
+          <?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?>
+          <a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="btn btn-primary">View full menu</a>
+          <?php else: ?>
           <button class="btn btn-primary" onclick="scrollToFirstMenu()">View Menu</button>
+          <?php endif; ?>
           <?php if (!empty($supportsReservations)): ?>
           <a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="btn btn-outline">Reserve Table</a>
           <?php endif; ?>
@@ -255,7 +262,11 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="overlay-title"><?php echo htmlspecialchars($restaurant['name']); ?></div>
           <div class="overlay-stars">★★★★★</div>
           <div>Quick & Reliable</div>
+          <?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?>
+          <a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="btn btn-primary overlay-btn">View full menu</a>
+          <?php else: ?>
           <button class="btn btn-primary overlay-btn" onclick="scrollToFirstMenu()">View Menu</button>
+          <?php endif; ?>
         </div>
       </div>
     </div>
@@ -272,7 +283,7 @@ foreach ($sections as $section):
 <!-- Section: <?php echo htmlspecialchars($section['name']); ?> -->
 <section class="section-block" id="section-<?php echo htmlspecialchars($section['slug']); ?>" aria-label="<?php echo htmlspecialchars($section['name']); ?>">
   <div class="container">
-    <h2 class="section-heading"><?php echo htmlspecialchars($section['name']); ?></h2>
+    <h2 class="section-heading"><?php if (!empty($fullMenuUrl) && empty($singleSectionView)): ?><a href="<?php echo htmlspecialchars($fullMenuUrl . '/' . $section['slug']); ?>" class="hover:underline"><?php echo htmlspecialchars($section['name']); ?></a><?php else: ?><?php echo htmlspecialchars($section['name']); ?><?php endif; ?></h2>
   </div>
 <?php
     foreach ($section['categories'] as $category): 

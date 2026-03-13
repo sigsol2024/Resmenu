@@ -77,7 +77,7 @@ function t4_formatPrice($price, $symbol = '₦') {
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title><?php echo htmlspecialchars($restaurant['name']); ?> - Menu</title>
+<title><?php echo htmlspecialchars($restaurant['name']); ?><?php if (!empty($singleSectionView) && !empty($sections[0]['name'])): ?> - <?php echo htmlspecialchars($sections[0]['name']); ?><?php else: ?> - Menu<?php endif; ?></title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
@@ -230,6 +230,9 @@ function t4_formatPrice($price, $symbol = '₦') {
             <span class="material-symbols-outlined text-3xl">close</span>
         </button>
         <nav class="flex flex-col gap-4">
+            <?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?>
+                <a class="text-white font-medium py-2" href="<?php echo htmlspecialchars($fullMenuUrl); ?>" onclick="toggleMenu()">Full menu</a>
+            <?php endif; ?>
             <a class="text-white/80 hover:text-white font-medium py-2" href="#menu" onclick="toggleMenu()">Menu</a>
             <?php if (!empty($supportsReservations)): ?>
                 <a class="text-white/80 hover:text-white font-medium py-2" href="<?php echo htmlspecialchars($reservationUrl); ?>" onclick="toggleMenu()">Reserve Table</a>
@@ -260,8 +263,8 @@ function t4_formatPrice($price, $symbol = '₦') {
             </p>
         <?php endif; ?>
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a href="#menu" class="w-full sm:w-auto bg-primary hover:bg-charcoal text-white text-lg font-bold px-10 py-4 rounded-xl transition-all transform hover:scale-105">
-                VIEW MENU
+            <a href="<?php echo !empty($singleSectionView) && !empty($fullMenuUrl) ? htmlspecialchars($fullMenuUrl) : '#menu'; ?>" class="w-full sm:w-auto bg-primary hover:bg-charcoal text-white text-lg font-bold px-10 py-4 rounded-xl transition-all transform hover:scale-105">
+                <?php echo !empty($singleSectionView) ? 'VIEW FULL MENU' : 'VIEW MENU'; ?>
             </a>
             <?php if (!empty($supportsReservations)): ?>
                 <a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="w-full sm:w-auto bg-transparent border-2 border-white/20 hover:border-white text-white text-lg font-bold px-10 py-4 rounded-xl transition-all">
@@ -298,7 +301,11 @@ function t4_formatPrice($price, $symbol = '₦') {
                 <div class="flex items-center justify-center mb-10">
                     <div class="h-px flex-1 max-w-[160px] bg-charcoal/15"></div>
                     <h2 class="px-6 text-center text-2xl md:text-3xl font-serif font-black text-charcoal tracking-tight">
-                        <?php echo htmlspecialchars($section['name']); ?>
+                        <?php if (!empty($fullMenuUrl) && empty($singleSectionView)): ?>
+                            <a href="<?php echo htmlspecialchars($fullMenuUrl . '/' . $section['slug']); ?>" class="hover:underline focus:underline"><?php echo htmlspecialchars($section['name']); ?></a>
+                        <?php else: ?>
+                            <?php echo htmlspecialchars($section['name']); ?>
+                        <?php endif; ?>
                     </h2>
                     <div class="h-px flex-1 max-w-[160px] bg-charcoal/15"></div>
                 </div>

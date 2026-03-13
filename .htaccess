@@ -18,7 +18,12 @@ DirectoryIndex index.php index.html
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^restaurant/([a-z0-9-]+)/reservation/?$ reservation.php?slug=$1 [L,QSA]
     
-    # Restaurant menu pages
+    # Restaurant section sub-page (e.g. /restaurant/the-lusso-restaurant/food) — must be before single-segment rule
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^restaurant/([a-z0-9-]+)/([a-z0-9-]+)/?$ restaurant.php?slug=$1&section=$2 [L,QSA]
+    
+    # Restaurant full menu
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^restaurant/([a-z0-9-]+)/?$ restaurant.php?slug=$1 [L,QSA]

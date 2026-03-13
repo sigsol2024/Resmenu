@@ -43,7 +43,7 @@ if (!empty($sections) && is_array($sections)) {
 <html lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title><?php echo htmlspecialchars($restaurant['name']); ?></title>
+<title><?php echo htmlspecialchars($restaurant['name']); ?><?php if (!empty($singleSectionView) && !empty($sections[0]['name'])): ?> - <?php echo htmlspecialchars($sections[0]['name']); ?><?php endif; ?></title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -132,6 +132,9 @@ body.prime-cut-outer .prime-cut-outer-bg { position: absolute; inset: 0; pointer
             </button>
         </div>
         <nav class="flex flex-col gap-2">
+            <?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?>
+            <a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="prime-cut-nav-link block py-3 px-4 font-sans text-cream hover:bg-gold/10 hover:text-gold rounded-lg transition-colors">Full menu</a>
+            <?php endif; ?>
             <?php foreach ($activeCategories as $cat): $cslug = isset($cat['slug']) ? $cat['slug'] : ('section-' . array_search($cat, $activeCategories)); ?>
             <a href="#<?php echo htmlspecialchars($cslug); ?>" class="prime-cut-nav-link block py-3 px-4 font-sans text-cream hover:bg-gold/10 hover:text-gold rounded-lg transition-colors"><?php echo htmlspecialchars($cat['name']); ?></a>
             <?php endforeach; ?>
@@ -159,7 +162,7 @@ foreach ($sections as $section):
     if (empty($section['categories']) || !is_array($section['categories'])) continue;
 ?>
 <div id="section-<?php echo htmlspecialchars($section['slug']); ?>" class="mb-14">
-<h2 class="text-center font-serif text-3xl md:text-5xl font-bold text-gold mb-10 uppercase tracking-widest"><?php echo htmlspecialchars($section['name']); ?></h2>
+<h2 class="text-center font-serif text-3xl md:text-5xl font-bold text-gold mb-10 uppercase tracking-widest"><?php if (!empty($fullMenuUrl) && empty($singleSectionView)): ?><a href="<?php echo htmlspecialchars($fullMenuUrl . '/' . $section['slug']); ?>" class="hover:underline text-gold"><?php echo htmlspecialchars($section['name']); ?></a><?php else: ?><?php echo htmlspecialchars($section['name']); ?><?php endif; ?></h2>
 <?php foreach ($section['categories'] as $category): 
     $slug = isset($category['slug']) ? $category['slug'] : ('cat-' . $primeCutCatIndex);
     $items = isset($category['menu_items']) ? $category['menu_items'] : [];

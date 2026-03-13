@@ -30,7 +30,7 @@ if (!empty($sections) && is_array($sections)) {
 <html lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title><?php echo htmlspecialchars($restaurant['name']); ?></title>
+<title><?php echo htmlspecialchars($restaurant['name']); ?><?php if (!empty($singleSectionView) && !empty($sections[0]['name'])): ?> - <?php echo htmlspecialchars($sections[0]['name']); ?><?php endif; ?></title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <style>
@@ -79,6 +79,7 @@ h1, h2, h3, .serif-font { font-family: 'Bodoni Moda', serif; }
 </button>
 </div>
 <nav class="flex flex-col gap-1">
+<?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?><a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="art-fusion-nav-link block py-3 px-4 text-sm uppercase tracking-widest font-medium text-gray-700 hover:text-[#bc002d] rounded">Full menu</a><?php endif; ?>
 <?php if (!empty($supportsReservations)): ?><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="art-fusion-nav-link block py-3 px-4 text-sm uppercase tracking-widest font-medium text-gray-700 hover:text-[#bc002d] bg-white/50 hover:bg-white/70 rounded border border-gray-200 hover:border-[#bc002d] transition-colors">Reserve Table</a><?php endif; ?>
 <?php foreach ($activeCategories as $i => $cat): $s = isset($cat['slug']) ? $cat['slug'] : ('section-'.$i); ?>
 <a href="#<?php echo htmlspecialchars($s); ?>" class="art-fusion-nav-link block py-3 px-4 text-sm uppercase tracking-widest font-medium text-gray-700 hover:bg-gray-50 hover:text-[#bc002d] rounded"><?php echo htmlspecialchars($cat['name']); ?></a>
@@ -106,7 +107,7 @@ foreach ($sections as $section):
     if (empty($section['categories']) || !is_array($section['categories'])) continue;
 ?>
 <div id="section-<?php echo htmlspecialchars($section['slug']); ?>" class="py-12">
-<h2 class="text-2xl md:text-3xl font-bold text-center tracking-[0.2em] uppercase accent-red mb-12 pb-4 border-b-2 border-[#bc002d]"><?php echo htmlspecialchars($section['name']); ?></h2>
+<h2 class="text-2xl md:text-3xl font-bold text-center tracking-[0.2em] uppercase accent-red mb-12 pb-4 border-b-2 border-[#bc002d]"><?php if (!empty($fullMenuUrl) && empty($singleSectionView)): ?><a href="<?php echo htmlspecialchars($fullMenuUrl . '/' . $section['slug']); ?>" class="hover:underline accent-red"><?php echo htmlspecialchars($section['name']); ?></a><?php else: ?><?php echo htmlspecialchars($section['name']); ?><?php endif; ?></h2>
 <?php foreach ($section['categories'] as $category): 
     $slug = isset($category['slug']) ? $category['slug'] : ('cat-'.$tafCatIndex);
     $items = isset($category['menu_items']) ? $category['menu_items'] : [];

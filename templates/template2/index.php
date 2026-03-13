@@ -62,7 +62,7 @@ function formatPriceTemplate2($price, $currency = '$') {
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title><?php echo htmlspecialchars($restaurant['name']); ?> - <?php echo htmlspecialchars($restaurant['description'] ?? 'Restaurant Menu'); ?></title>
+<title><?php echo htmlspecialchars($restaurant['name']); ?><?php if (!empty($singleSectionView) && !empty($sections[0]['name'])): ?> - <?php echo htmlspecialchars($sections[0]['name']); ?><?php else: ?> - <?php echo htmlspecialchars($restaurant['description'] ?? 'Restaurant Menu'); ?><?php endif; ?></title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
@@ -127,6 +127,9 @@ function formatPriceTemplate2($price, $currency = '$') {
     </button>
 <?php else: ?>
     <div class="flex items-center gap-9">
+        <?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?>
+            <a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="text-[#1b0e0e] dark:text-gray-200 text-sm font-medium hover:text-primary transition-colors">Full menu</a>
+        <?php endif; ?>
         <?php 
         // Show active categories as navigation links
         if (!empty($categories) && is_array($categories)):
@@ -159,6 +162,9 @@ function formatPriceTemplate2($price, $currency = '$') {
 </button>
 </div>
 <nav class="flex flex-col gap-2">
+<?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?>
+<a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" onclick="toggleCategoryMenu()" class="text-[#1b0e0e] dark:text-white py-2 px-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">Full menu</a>
+<?php endif; ?>
 <?php 
 if (!empty($categories) && is_array($categories)):
     foreach ($categories as $category): 
@@ -194,9 +200,15 @@ endif;
 <?php endif; ?>
 </div>
 <div class="flex flex-wrap gap-4 justify-center z-10 mt-4">
+<?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?>
+<a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="flex min-w-[140px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-12 px-8 bg-primary text-white text-base font-bold shadow-lg shadow-primary/40 transition-all hover:bg-red-600 hover:scale-105">
+<span class="truncate">View full menu</span>
+</a>
+<?php else: ?>
 <a href="#menu" class="flex min-w-[140px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-12 px-8 bg-primary text-white text-base font-bold shadow-lg shadow-primary/40 transition-all hover:bg-red-600 hover:scale-105">
 <span class="truncate">View Menu</span>
 </a>
+<?php endif; ?>
 <?php if (!empty($supportsReservations)): ?>
 <a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="flex min-w-[140px] items-center justify-center overflow-hidden rounded-full h-12 px-8 border-2 border-white/80 text-white text-base font-bold transition-all hover:bg-white/20 hover:scale-105">
 <span class="truncate">Reserve Table</span>
@@ -217,7 +229,7 @@ endif;
 <?php if (empty($section['categories']) || !is_array($section['categories'])) continue; ?>
 <div class="px-4 md:px-40 flex justify-center pt-16 pb-2" id="section-<?php echo htmlspecialchars($section['slug']); ?>">
 <div class="w-full max-w-[960px] text-center">
-<h2 class="text-primary text-xl md:text-2xl font-black uppercase tracking-widest mb-8"><?php echo htmlspecialchars($section['name']); ?></h2>
+<h2 class="text-primary text-xl md:text-2xl font-black uppercase tracking-widest mb-8"><?php if (!empty($fullMenuUrl) && empty($singleSectionView)): ?><a href="<?php echo htmlspecialchars($fullMenuUrl . '/' . $section['slug']); ?>" class="hover:underline"><?php echo htmlspecialchars($section['name']); ?></a><?php else: ?><?php echo htmlspecialchars($section['name']); ?><?php endif; ?></h2>
 </div>
 </div>
 <?php foreach ($section['categories'] as $category): ?>

@@ -210,9 +210,11 @@ function getTemplatesAvailableForRestaurant($restaurantId) {
  * @param array $customization Customization settings
  * @param array $headerMenuItems Header menu items
  * @param bool $isTemplatePreview If true, templates show text "Logo" instead of logo image
+ * @param bool $singleSectionView If true, only one section is shown (section sub-page); templates may show "Full menu" link
+ * @param string $fullMenuUrl URL to full menu (e.g. /restaurant/slug); used when $singleSectionView is true
  * @return bool Success
  */
-function loadTemplate($restaurant, $sections, $customization, $headerMenuItems = [], $isTemplatePreview = false) {
+function loadTemplate($restaurant, $sections, $customization, $headerMenuItems = [], $isTemplatePreview = false, $singleSectionView = false, $fullMenuUrl = '') {
     $templateId = $restaurant['template_id'] ?? 1;
     $templatePath = getTemplatePath($templateId);
     
@@ -259,7 +261,9 @@ function loadTemplate($restaurant, $sections, $customization, $headerMenuItems =
         'headerMenuItems' => $headerMenuItems,
         'supportsOrdering' => $supportsOrdering,
         'supportsReservations' => $supportsReservations,
-        'isTemplatePreview' => $isTemplatePreview
+        'isTemplatePreview' => $isTemplatePreview,
+        'singleSectionView' => $singleSectionView,
+        'fullMenuUrl' => $fullMenuUrl
     ], EXTR_SKIP);
     
     // Include the template
