@@ -248,7 +248,8 @@ function t4_formatPrice($price, $symbol = '₦') {
 <section class="relative min-h-[85vh] flex items-center justify-center bg-charcoal overflow-hidden pt-20">
     <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('<?php echo htmlspecialchars($heroBgImage); ?>');"></div>
     <div class="absolute inset-0 herb-pattern pointer-events-none"></div>
-    <div class="absolute inset-0 bg-gradient-to-t from-charcoal via-transparent to-transparent opacity-80"></div>
+    <!-- Darker overlay for stronger contrast -->
+    <div class="absolute inset-0 bg-gradient-to-t from-charcoal via-black/70 to-transparent opacity-90"></div>
     <div class="relative z-10 text-center max-w-4xl px-6">
         <h2 class="text-white text-6xl md:text-8xl font-serif font-black mb-6 tracking-tight">
             <?php echo htmlspecialchars($restaurant['name']); ?>
@@ -294,7 +295,13 @@ function t4_formatPrice($price, $symbol = '₦') {
             foreach ($sections as $section): ?>
             <?php if (empty($section['categories']) || !is_array($section['categories'])) continue; ?>
             <div class="mb-16" id="section-<?php echo htmlspecialchars($section['slug']); ?>">
-                <h2 class="text-center text-2xl md:text-3xl font-serif font-black text-white tracking-tight mb-10"><?php echo htmlspecialchars($section['name']); ?></h2>
+                <div class="flex items-center justify-center mb-10">
+                    <div class="h-px flex-1 max-w-[160px] bg-charcoal/15"></div>
+                    <h2 class="px-6 text-center text-2xl md:text-3xl font-serif font-black text-charcoal tracking-tight">
+                        <?php echo htmlspecialchars($section['name']); ?>
+                    </h2>
+                    <div class="h-px flex-1 max-w-[160px] bg-charcoal/15"></div>
+                </div>
             </div>
             <?php foreach ($section['categories'] as $category): ?>
             <?php if (empty($category['menu_items']) || !is_array($category['menu_items'])) continue; ?>
