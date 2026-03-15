@@ -253,9 +253,12 @@ function loadTemplate($restaurant, $sections, $customization, $headerMenuItems =
             $categories[] = $c;
         }
     }
+    // Sidebar nav: on section sub-page show all sections so user can jump to full menu + hash
+    $sectionsForNav = $singleSectionView ? getSections((int)$restaurant['id'], true) : $sections;
     extract([
         'restaurant' => $restaurant,
         'sections' => $sections,
+        'sectionsForNav' => $sectionsForNav,
         'categories' => $categories,
         'customization' => $customization,
         'headerMenuItems' => $headerMenuItems,

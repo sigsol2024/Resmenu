@@ -98,17 +98,34 @@ section.hero .container { position: relative; z-index: 1; }
       <?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?>
         <a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="sidebar-nav-link">Full menu</a>
       <?php endif; ?>
+      <?php if (!empty($fullMenuUrl)): ?>
+        <a href="<?php echo htmlspecialchars($fullMenuUrl); ?>#menu" class="sidebar-nav-link">View menu</a>
+      <?php endif; ?>
+      <?php if (!empty($sectionsForNav) && is_array($sectionsForNav)): ?>
+        <?php foreach ($sectionsForNav as $navSection): ?>
+          <a href="<?php echo htmlspecialchars($fullMenuUrl); ?>#section-<?php echo htmlspecialchars($navSection['slug'] ?? ''); ?>" class="sidebar-nav-link"><?php echo htmlspecialchars($navSection['name'] ?? ''); ?></a>
+        <?php endforeach; ?>
+      <?php endif; ?>
+      <?php if (!empty($sectionsForNav) || !empty($categories)): ?>
+        <hr class="sidebar-divider" />
+      <?php endif; ?>
       <?php 
       if (!empty($categories) && is_array($categories)):
         foreach ($categories as $category): 
           if (!empty($category['menu_items']) && is_array($category['menu_items']) && !empty($category['is_active'])):
       ?>
-        <a href="#<?php echo htmlspecialchars($category['slug']); ?>-section" class="sidebar-nav-link"><?php echo htmlspecialchars($category['name']); ?></a>
+        <a href="<?php echo htmlspecialchars($fullMenuUrl); ?>#<?php echo htmlspecialchars($category['slug']); ?>-section" class="sidebar-nav-link"><?php echo htmlspecialchars($category['name']); ?></a>
       <?php 
           endif;
         endforeach;
       endif;
       ?>
+      <?php if (!empty($categories) && is_array($categories)): ?>
+        <hr class="sidebar-divider" />
+      <?php endif; ?>
+      <?php if (!empty($supportsReservations)): ?>
+        <a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="sidebar-nav-link btn btn-primary">Reserve Table</a>
+      <?php endif; ?>
     </nav>
   </div>
 </div>
@@ -155,23 +172,11 @@ document.addEventListener('DOMContentLoaded', function() {
   
   if (categorySidebar) {
     categorySidebar.querySelectorAll('.sidebar-nav-link').forEach(function(link) {
-      link.addEventListener('click', function(e) {
-        e.preventDefault();
-        var targetId = this.getAttribute('href');
+      link.addEventListener('click', function() {
         closeSidebar();
-        setTimeout(function() {
-          var targetSection = document.querySelector(targetId);
-          if (targetSection) targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 300);
       });
     });
   }
-  
-  function scrollToFirstMenu() {
-    var firstSection = document.querySelector('.menu-section');
-    if (firstSection) firstSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-  window.scrollToFirstMenu = scrollToFirstMenu;
   
   // Adjust container height to accommodate card content (desktop only)
   function adjustContainerHeights() {
@@ -249,7 +254,9 @@ document.addEventListener('DOMContentLoaded', function() {
         <h1><?php echo htmlspecialchars($restaurant['name']); ?></h1>
         <p class="hero-text"><?php echo htmlspecialchars($restaurant['description'] ?? 'Welcome to our restaurant, where every experience is a step closer to happiness.'); ?></p>
         <div class="hero-buttons">
-          <button class="btn btn-primary" onclick="scrollToFirstMenu()">View Menu</button>
+          <?php if (!empty($fullMenuUrl)): ?>
+          <a href="<?php echo htmlspecialchars($fullMenuUrl); ?>#menu" class="btn btn-primary">View Menu</a>
+          <?php endif; ?>
           <?php if (!empty($supportsReservations)): ?>
           <a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="btn btn-outline">Reserve Table</a>
           <?php endif; ?>
@@ -266,7 +273,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="overlay-title"><?php echo htmlspecialchars($restaurant['name']); ?></div>
           <div class="overlay-stars">★★★★★</div>
           <div>Quick & Reliable</div>
-          <button class="btn btn-primary overlay-btn" onclick="scrollToFirstMenu()">View Menu</button>
+          <?php if (!empty($fullMenuUrl)): ?><a href="<?php echo htmlspecialchars($fullMenuUrl); ?>#menu" class="btn btn-primary overlay-btn">View Menu</a><?php endif; ?>
         </div>
       </div>
     </div>
@@ -277,6 +284,9 @@ document.addEventListener('DOMContentLoaded', function() {
 // Loop through sections → categories → items
 $isAlternate = false;
 if (!empty($sections) && is_array($sections)):
+?>
+<div id="menu">
+<?php
 foreach ($sections as $section):
     if (empty($section['categories']) || !is_array($section['categories'])) continue;
 ?>
@@ -348,8 +358,9 @@ foreach ($sections as $section):
 </section>
 <?php
 endforeach;
-endif; 
+endif;
 ?>
+</div>
 
 <!-- Visit Section -->
 <section class="visit-section" id="visit-section">

@@ -40,13 +40,21 @@ if (!empty($sections) && is_array($sections)) {
 </div>
 <div class="flex flex-col space-y-12 flex-grow justify-center">
 <?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?><a class="flex flex-col items-center text-[10px] uppercase tracking-widest font-bold text-orange-500 origin-center -rotate-90" href="<?php echo htmlspecialchars($fullMenuUrl); ?>">Full menu</a><?php endif; ?>
-<?php if (!empty($supportsReservations)): ?><a class="flex flex-col items-center text-[10px] uppercase tracking-widest font-bold text-orange-500 origin-center -rotate-90" href="<?php echo htmlspecialchars($reservationUrl); ?>">Reserve Table</a><?php endif; ?>
-<?php foreach ($activeCategories as $i => $cat): $s = isset($cat['slug']) ? $cat['slug'] : ('section-'.$i); ?>
-<a class="group flex flex-col items-center" href="#<?php echo htmlspecialchars($s); ?>"><span class="text-[10px] uppercase tracking-widest font-bold opacity-40 group-hover:opacity-100 group-hover:text-orange-500 transition-all origin-center -rotate-90"><?php echo htmlspecialchars($cat['name']); ?></span></a>
+<?php if (!empty($fullMenuUrl)): ?><a class="flex flex-col items-center text-[10px] uppercase tracking-widest font-bold text-orange-500 origin-center -rotate-90" href="<?php echo htmlspecialchars($fullMenuUrl); ?>#menu">View menu</a><?php endif; ?>
+<?php if (!empty($sectionsForNav) && is_array($sectionsForNav)): ?>
+<?php foreach ($sectionsForNav as $navSection): ?>
+<a class="flex flex-col items-center text-[10px] uppercase tracking-widest font-bold text-orange-500 origin-center -rotate-90 hover:opacity-100 opacity-80" href="<?php echo htmlspecialchars($fullMenuUrl); ?>#section-<?php echo htmlspecialchars($navSection['slug'] ?? ''); ?>"><?php echo htmlspecialchars($navSection['name'] ?? ''); ?></a>
 <?php endforeach; ?>
+<?php endif; ?>
+<hr class="w-px h-8 bg-white/20 self-center" aria-hidden="true" />
+<?php foreach ($activeCategories as $i => $cat): $s = isset($cat['slug']) ? $cat['slug'] : ('section-'.$i); ?>
+<a class="group flex flex-col items-center" href="<?php echo htmlspecialchars(!empty($fullMenuUrl) ? $fullMenuUrl . '#' . $s : '#' . $s); ?>"><span class="text-[10px] uppercase tracking-widest font-bold opacity-40 group-hover:opacity-100 group-hover:text-orange-500 transition-all origin-center -rotate-90"><?php echo htmlspecialchars($cat['name']); ?></span></a>
+<?php endforeach; ?>
+<hr class="w-px h-8 bg-white/20 self-center" aria-hidden="true" />
+<?php if (!empty($supportsReservations)): ?><a class="flex flex-col items-center text-[10px] uppercase tracking-widest font-bold text-orange-500 origin-center -rotate-90" href="<?php echo htmlspecialchars($reservationUrl); ?>">Reserve Table</a><?php endif; ?>
 </div>
 </nav>
-<main class="flex-1 ml-20 md:ml-32 p-8 lg:p-16">
+<main class="flex-1 ml-20 md:ml-32 p-8 lg:p-16" id="menu">
 <header class="mb-24">
 <h1 class="text-5xl md:text-7xl font-black bg-gradient-to-r from-orange-500 to-purple-600 bg-clip-text text-transparent"><?php echo htmlspecialchars($restaurant['name']); ?></h1>
 <p class="text-slate-400 mt-4"><?php echo htmlspecialchars($restaurant['description'] ?? 'Modern Tech-Forward Cantina'); ?></p>

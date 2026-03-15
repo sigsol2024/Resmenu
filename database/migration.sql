@@ -111,3 +111,19 @@ DROP PROCEDURE IF EXISTS resmenu_add_image_to_sections//
 
 DELIMITER ;
 
+-- ---------------------------------------------------------------------------
+-- 4. Seed Drinks section for The Lusso Restaurant (optional)
+-- ---------------------------------------------------------------------------
+-- To populate the Drinks section with categories and menu items for the
+-- restaurant with email restaurant@lussohotelsabuja.com, run the seed file
+-- after this migration:
+--
+--   mysql -u user -p database_name < database/seed_lusso_drinks.sql
+--
+-- Or in MySQL client: SOURCE /path/to/Resmenu/database/seed_lusso_drinks.sql;
+--
+-- The seed creates section "Drinks" and 20 categories (Soft Drinks/Water,
+-- Juices, Energy Drinks, Beers, Aperitif, Gin, Whisky variants, Vodka, Rum,
+-- Cognac, Tequila, Liquor, Hot Beverages, White/Red/Rosé Wine, Champagne)
+-- with all menu items and prices in ₦. Run once per restaurant.
+

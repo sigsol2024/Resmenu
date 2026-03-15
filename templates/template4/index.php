@@ -233,13 +233,22 @@ function t4_formatPrice($price, $symbol = '₦') {
             <?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?>
                 <a class="text-white font-medium py-2" href="<?php echo htmlspecialchars($fullMenuUrl); ?>" onclick="toggleMenu()">Full menu</a>
             <?php endif; ?>
-            <a class="text-white/80 hover:text-white font-medium py-2" href="#menu" onclick="toggleMenu()">Menu</a>
-            <?php if (!empty($supportsReservations)): ?>
-                <a class="text-white/80 hover:text-white font-medium py-2" href="<?php echo htmlspecialchars($reservationUrl); ?>" onclick="toggleMenu()">Reserve Table</a>
+            <?php if (!empty($fullMenuUrl)): ?>
+                <a class="text-white/80 hover:text-white font-medium py-2" href="<?php echo htmlspecialchars($fullMenuUrl); ?>#menu" onclick="toggleMenu()">View menu</a>
             <?php endif; ?>
+            <?php if (!empty($sectionsForNav) && is_array($sectionsForNav)): ?>
+                <?php foreach ($sectionsForNav as $navSection): ?>
+                <a class="text-white/80 hover:text-white font-medium py-2" href="<?php echo htmlspecialchars($fullMenuUrl); ?>#section-<?php echo htmlspecialchars($navSection['slug'] ?? ''); ?>" onclick="toggleMenu()"><?php echo htmlspecialchars($navSection['name'] ?? ''); ?></a>
+                <?php endforeach; ?>
+            <?php endif; ?>
+            <hr class="border-white/20 my-2" aria-hidden="true" />
             <?php foreach ($activeCategories as $cat): ?>
-                <a class="text-white/80 hover:text-white font-medium py-2" href="#<?php echo htmlspecialchars($cat['slug']); ?>-section" onclick="toggleMenu()"><?php echo htmlspecialchars($cat['name']); ?></a>
+                <a class="text-white/80 hover:text-white font-medium py-2" href="<?php echo htmlspecialchars(!empty($fullMenuUrl) ? $fullMenuUrl . '#' . $cat['slug'] . '-section' : '#' . $cat['slug'] . '-section'); ?>" onclick="toggleMenu()"><?php echo htmlspecialchars($cat['name']); ?></a>
             <?php endforeach; ?>
+            <hr class="border-white/20 my-2" aria-hidden="true" />
+            <?php if (!empty($supportsReservations)): ?>
+                <a class="text-white font-medium py-2 bg-primary px-4 py-2 rounded-lg text-center hover:opacity-90" href="<?php echo htmlspecialchars($reservationUrl); ?>" onclick="toggleMenu()">Reserve Table</a>
+            <?php endif; ?>
             <?php foreach ($navLinks as $link): ?>
                 <a class="text-white/80 hover:text-white font-medium py-2" href="<?php echo htmlspecialchars($link['url'] ?? '#'); ?>" onclick="toggleMenu()"><?php echo htmlspecialchars($link['label'] ?? ''); ?></a>
             <?php endforeach; ?>
@@ -263,9 +272,7 @@ function t4_formatPrice($price, $symbol = '₦') {
             </p>
         <?php endif; ?>
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a href="#menu" class="w-full sm:w-auto bg-primary hover:bg-charcoal text-white text-lg font-bold px-10 py-4 rounded-xl transition-all transform hover:scale-105">
-                VIEW MENU
-            </a>
+            <?php if (!empty($fullMenuUrl)): ?><a href="<?php echo htmlspecialchars($fullMenuUrl); ?>#menu" class="w-full sm:w-auto bg-primary hover:bg-charcoal text-white text-lg font-bold px-10 py-4 rounded-xl transition-all transform hover:scale-105">VIEW MENU</a><?php endif; ?>
             <?php if (!empty($supportsReservations)): ?>
                 <a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="w-full sm:w-auto bg-transparent border-2 border-white/20 hover:border-white text-white text-lg font-bold px-10 py-4 rounded-xl transition-all">
                     RESERVE TABLE

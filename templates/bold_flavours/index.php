@@ -42,14 +42,27 @@ if (!empty($sections) && is_array($sections)) {
 <?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?>
 <a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="block text-xl font-bold hover:text-neonPink transition-colors duration-300 group">Full menu</a>
 <?php endif; ?>
-<?php foreach ($activeCategories as $i => $cat): $s = isset($cat['slug']) ? $cat['slug'] : ('section-'.$i); ?>
-<a class="block text-xl font-bold hover:text-neonPink transition-colors duration-300 group" href="#<?php echo htmlspecialchars($s); ?>"><span class="text-xs mr-2 opacity-50 group-hover:text-neonPink"><?php echo str_pad((string)($i+1), 2, '0', STR_PAD_LEFT); ?></span> <?php echo strtoupper(htmlspecialchars($cat['name'])); ?></a>
+<?php if (!empty($fullMenuUrl)): ?>
+<a href="<?php echo htmlspecialchars($fullMenuUrl); ?>#menu" class="block text-xl font-bold hover:text-neonPink transition-colors duration-300 group">View menu</a>
+<?php endif; ?>
+<?php if (!empty($sectionsForNav) && is_array($sectionsForNav)): ?>
+<?php foreach ($sectionsForNav as $navSection): ?>
+<a href="<?php echo htmlspecialchars($fullMenuUrl); ?>#section-<?php echo htmlspecialchars($navSection['slug'] ?? ''); ?>" class="block text-xl font-bold hover:text-neonPink transition-colors duration-300 group"><?php echo htmlspecialchars($navSection['name'] ?? ''); ?></a>
 <?php endforeach; ?>
+<?php endif; ?>
+<hr class="border-white/20 my-4" aria-hidden="true" />
+<?php foreach ($activeCategories as $i => $cat): $s = isset($cat['slug']) ? $cat['slug'] : ('section-'.$i); ?>
+<a class="block text-xl font-bold hover:text-neonPink transition-colors duration-300 group" href="<?php echo htmlspecialchars(!empty($fullMenuUrl) ? $fullMenuUrl . '#' . $s : '#' . $s); ?>"><span class="text-xs mr-2 opacity-50 group-hover:text-neonPink"><?php echo str_pad((string)($i+1), 2, '0', STR_PAD_LEFT); ?></span> <?php echo strtoupper(htmlspecialchars($cat['name'])); ?></a>
+<?php endforeach; ?>
+<hr class="border-white/20 my-4" aria-hidden="true" />
+<?php if (!empty($supportsReservations)): ?>
+<a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="block text-xl font-bold hover:text-neonPink border border-neonPink/50 px-4 py-2 rounded hover:bg-neonPink/10 transition-colors text-center">Reserve Table</a>
+<?php endif; ?>
 </nav>
 </div>
 <div class="text-xs text-gray-500 uppercase tracking-widest"><?php echo htmlspecialchars(!empty($restaurant['footer_content']) ? $restaurant['footer_content'] : ($restaurant['address'] ?? '')); ?></div>
 </aside>
-<main class="flex-1 p-8 lg:p-16 overflow-y-auto">
+<main class="flex-1 p-8 lg:p-16 overflow-y-auto" id="menu">
 <header class="mb-24">
 <span class="text-neonPink font-mono text-sm tracking-widest uppercase mb-4 block"><?php echo htmlspecialchars($restaurant['description'] ?? 'Urban'); ?></span>
 <h2 class="text-7xl lg:text-8xl font-black italic uppercase leading-none tracking-tighter"><?php echo htmlspecialchars($restaurant['name']); ?></h2>

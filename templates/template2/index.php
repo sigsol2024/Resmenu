@@ -118,33 +118,40 @@ function formatPriceTemplate2($price, $currency = '$') {
 <?php endif; ?>
 <h2 class="text-lg font-bold leading-tight tracking-[-0.015em]"><?php echo htmlspecialchars($restaurant['name'] ?? 'Restaurant'); ?></h2>
 </div>
-<div class="flex items-center gap-8 hidden md:flex">
-<?php if (!empty($supportsReservations)): ?>
-    <a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="text-[#1b0e0e] dark:text-gray-200 text-sm font-medium hover:text-primary transition-colors">Reserve Table</a>
+<div class="flex items-center gap-6 hidden md:flex flex-wrap">
+<?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?>
+    <a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="text-[#1b0e0e] dark:text-gray-200 text-sm font-medium hover:text-primary transition-colors">Full menu</a>
 <?php endif; ?>
+<?php if (!empty($fullMenuUrl)): ?>
+    <a href="<?php echo htmlspecialchars($fullMenuUrl); ?>#menu" class="text-[#1b0e0e] dark:text-gray-200 text-sm font-medium hover:text-primary transition-colors">View menu</a>
+<?php endif; ?>
+<?php if (!empty($sectionsForNav) && is_array($sectionsForNav)): ?>
+    <?php foreach ($sectionsForNav as $navSection): ?>
+    <a href="<?php echo htmlspecialchars($fullMenuUrl); ?>#section-<?php echo htmlspecialchars($navSection['slug'] ?? ''); ?>" class="text-[#1b0e0e] dark:text-gray-200 text-sm font-medium hover:text-primary transition-colors"><?php echo htmlspecialchars($navSection['name'] ?? ''); ?></a>
+    <?php endforeach; ?>
+<?php endif; ?>
+<span class="border-l border-[#1b0e0e]/30 dark:border-gray-200/30 h-4" aria-hidden="true"></span>
 <?php if ($useToggleMenu): ?>
     <button class="flex items-center gap-2 text-[#1b0e0e] dark:text-gray-200 text-sm font-medium hover:text-primary transition-colors" onclick="toggleCategoryMenu()">
         <span class="material-symbols-outlined">menu</span>
         <span>Categories</span>
     </button>
 <?php else: ?>
-    <div class="flex items-center gap-9">
-        <?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?>
-            <a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="text-[#1b0e0e] dark:text-gray-200 text-sm font-medium hover:text-primary transition-colors">Full menu</a>
-        <?php endif; ?>
-        <?php 
-        // Show active categories as navigation links
-        if (!empty($categories) && is_array($categories)):
-            foreach ($categories as $category): 
-                if (!empty($category['menu_items']) && is_array($category['menu_items']) && $category['is_active']):
-        ?>
-            <a class="text-[#1b0e0e] dark:text-gray-200 text-sm font-medium hover:text-primary transition-colors" href="#<?php echo htmlspecialchars($category['slug']); ?>"><?php echo htmlspecialchars($category['name']); ?></a>
-        <?php 
-                endif;
-            endforeach;
-        endif;
-        ?>
-    </div>
+    <?php
+    if (!empty($categories) && is_array($categories)):
+        foreach ($categories as $category):
+            if (!empty($category['menu_items']) && is_array($category['menu_items']) && $category['is_active']):
+    ?>
+    <a class="text-[#1b0e0e] dark:text-gray-200 text-sm font-medium hover:text-primary transition-colors" href="<?php echo htmlspecialchars(!empty($fullMenuUrl) ? $fullMenuUrl . '#' . $category['slug'] : '#' . $category['slug']); ?>"><?php echo htmlspecialchars($category['name']); ?></a>
+    <?php
+            endif;
+        endforeach;
+    endif;
+    ?>
+<?php endif; ?>
+<span class="border-l border-[#1b0e0e]/30 dark:border-gray-200/30 h-4" aria-hidden="true"></span>
+<?php if (!empty($supportsReservations)): ?>
+    <a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="text-[#1b0e0e] dark:text-gray-200 text-sm font-medium hover:text-primary transition-colors">Reserve Table</a>
 <?php endif; ?>
 </div>
 <div class="md:hidden text-[#1b0e0e] dark:text-white">
@@ -167,17 +174,30 @@ function formatPriceTemplate2($price, $currency = '$') {
 <?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?>
 <a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" onclick="toggleCategoryMenu()" class="text-[#1b0e0e] dark:text-white py-2 px-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">Full menu</a>
 <?php endif; ?>
-<?php 
+<?php if (!empty($fullMenuUrl)): ?>
+<a href="<?php echo htmlspecialchars($fullMenuUrl); ?>#menu" onclick="toggleCategoryMenu()" class="text-[#1b0e0e] dark:text-white py-2 px-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">View menu</a>
+<?php endif; ?>
+<?php if (!empty($sectionsForNav) && is_array($sectionsForNav)): ?>
+<?php foreach ($sectionsForNav as $navSection): ?>
+<a href="<?php echo htmlspecialchars($fullMenuUrl); ?>#section-<?php echo htmlspecialchars($navSection['slug'] ?? ''); ?>" onclick="toggleCategoryMenu()" class="text-[#1b0e0e] dark:text-white py-2 px-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"><?php echo htmlspecialchars($navSection['name'] ?? ''); ?></a>
+<?php endforeach; ?>
+<?php endif; ?>
+<hr class="border-[#f3e7e8] dark:border-[#332222] my-2" aria-hidden="true" />
+<?php
 if (!empty($categories) && is_array($categories)):
-    foreach ($categories as $category): 
+    foreach ($categories as $category):
         if (!empty($category['menu_items']) && is_array($category['menu_items']) && $category['is_active']):
 ?>
-<a href="#<?php echo htmlspecialchars($category['slug']); ?>" onclick="toggleCategoryMenu()" class="text-[#1b0e0e] dark:text-white py-2 px-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"><?php echo htmlspecialchars($category['name']); ?></a>
-<?php 
+<a href="<?php echo htmlspecialchars(!empty($fullMenuUrl) ? $fullMenuUrl . '#' . $category['slug'] : '#' . $category['slug']); ?>" onclick="toggleCategoryMenu()" class="text-[#1b0e0e] dark:text-white py-2 px-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"><?php echo htmlspecialchars($category['name']); ?></a>
+<?php
         endif;
     endforeach;
 endif;
 ?>
+<hr class="border-[#f3e7e8] dark:border-[#332222] my-2" aria-hidden="true" />
+<?php if (!empty($supportsReservations)): ?>
+<a href="<?php echo htmlspecialchars($reservationUrl); ?>" onclick="toggleCategoryMenu()" class="text-[#1b0e0e] dark:text-white py-2 px-4 rounded-lg bg-primary text-white font-bold hover:opacity-90 transition-colors">Reserve Table</a>
+<?php endif; ?>
 </nav>
 </div>
 </div>
@@ -202,9 +222,7 @@ endif;
 <?php endif; ?>
 </div>
 <div class="flex flex-wrap gap-4 justify-center z-10 mt-4">
-<a href="#menu" class="flex min-w-[140px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-12 px-8 bg-primary text-white text-base font-bold shadow-lg shadow-primary/40 transition-all hover:bg-red-600 hover:scale-105">
-<span class="truncate">View Menu</span>
-</a>
+<?php if (!empty($fullMenuUrl)): ?><a href="<?php echo htmlspecialchars($fullMenuUrl); ?>#menu" class="flex min-w-[140px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-12 px-8 bg-primary text-white text-base font-bold shadow-lg shadow-primary/40 transition-all hover:bg-red-600 hover:scale-105"><span class="truncate">View Menu</span></a><?php endif; ?>
 <?php if (!empty($supportsReservations)): ?>
 <a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="flex min-w-[140px] items-center justify-center overflow-hidden rounded-full h-12 px-8 border-2 border-white/80 text-white text-base font-bold transition-all hover:bg-white/20 hover:scale-105">
 <span class="truncate">Reserve Table</span>

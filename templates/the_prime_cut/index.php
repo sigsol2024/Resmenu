@@ -135,13 +135,26 @@ body.prime-cut-outer .prime-cut-outer-bg { position: absolute; inset: 0; pointer
             <?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?>
             <a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="prime-cut-nav-link block py-3 px-4 font-sans text-cream hover:bg-gold/10 hover:text-gold rounded-lg transition-colors">Full menu</a>
             <?php endif; ?>
-            <?php foreach ($activeCategories as $cat): $cslug = isset($cat['slug']) ? $cat['slug'] : ('section-' . array_search($cat, $activeCategories)); ?>
-            <a href="#<?php echo htmlspecialchars($cslug); ?>" class="prime-cut-nav-link block py-3 px-4 font-sans text-cream hover:bg-gold/10 hover:text-gold rounded-lg transition-colors"><?php echo htmlspecialchars($cat['name']); ?></a>
+            <?php if (!empty($fullMenuUrl)): ?>
+            <a href="<?php echo htmlspecialchars($fullMenuUrl); ?>#menu" class="prime-cut-nav-link block py-3 px-4 font-sans text-cream hover:bg-gold/10 hover:text-gold rounded-lg transition-colors">View menu</a>
+            <?php endif; ?>
+            <?php if (!empty($sectionsForNav) && is_array($sectionsForNav)): ?>
+            <?php foreach ($sectionsForNav as $navSection): ?>
+            <a href="<?php echo htmlspecialchars($fullMenuUrl); ?>#section-<?php echo htmlspecialchars($navSection['slug'] ?? ''); ?>" class="prime-cut-nav-link block py-3 px-4 font-sans text-cream hover:bg-gold/10 hover:text-gold rounded-lg transition-colors"><?php echo htmlspecialchars($navSection['name'] ?? ''); ?></a>
             <?php endforeach; ?>
+            <?php endif; ?>
+            <hr class="border-gold/30 my-2" aria-hidden="true" />
+            <?php foreach ($activeCategories as $cat): $cslug = isset($cat['slug']) ? $cat['slug'] : ('section-' . array_search($cat, $activeCategories)); ?>
+            <a href="<?php echo htmlspecialchars(!empty($fullMenuUrl) ? $fullMenuUrl . '#' . $cslug : '#' . $cslug); ?>" class="prime-cut-nav-link block py-3 px-4 font-sans text-cream hover:bg-gold/10 hover:text-gold rounded-lg transition-colors"><?php echo htmlspecialchars($cat['name']); ?></a>
+            <?php endforeach; ?>
+            <hr class="border-gold/30 my-2" aria-hidden="true" />
+            <?php if (!empty($supportsReservations)): ?>
+            <a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="prime-cut-nav-link block py-3 px-4 font-sans text-gold font-bold border border-gold/60 hover:bg-gold/20 rounded-lg transition-colors text-center">Reserve Table</a>
+            <?php endif; ?>
         </nav>
     </div>
 </aside>
-<main class="menu-page prime-cut-main max-w-4xl w-full text-cream p-8 md:p-16 gold-border relative z-10">
+<main class="menu-page prime-cut-main max-w-4xl w-full text-cream p-8 md:p-16 gold-border relative z-10" id="menu">
 <div class="menu-page-pattern" aria-hidden="true"></div>
 <header class="text-center mb-16 relative z-10" data-purpose="main-header">
 <?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?>

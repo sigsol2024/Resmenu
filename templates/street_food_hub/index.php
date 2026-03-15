@@ -106,10 +106,18 @@ body.sfh-body .sfh-bg { position: absolute; inset: 0; pointer-events: none; back
 </div>
 <nav class="flex flex-col gap-2 sfh-nav-links px-6 pb-6">
 <?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?><a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="sfh-nav-link block text-center comic-border px-4 py-3 font-chunky bg-white hover:bg-brandBlack hover:text-white transition-colors shadow-brutal-sm">Full menu</a><?php endif; ?>
-<?php if (!empty($supportsReservations)): ?><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="sfh-nav-link block text-center comic-border px-4 py-3 font-chunky bg-white hover:bg-brandBlack hover:text-white transition-colors shadow-brutal-sm">Reserve Table</a><?php endif; ?>
-<?php foreach ($activeCategories as $i => $cat): $s = isset($cat['slug']) ? $cat['slug'] : ('section-'.$i); ?>
-<a href="#<?php echo htmlspecialchars($s); ?>" class="sfh-nav-link block text-center comic-border px-4 py-3 font-chunky bg-white hover:bg-brandBlack hover:text-white transition-colors shadow-brutal-sm"><?php echo htmlspecialchars($cat['name']); ?></a>
+<?php if (!empty($fullMenuUrl)): ?><a href="<?php echo htmlspecialchars($fullMenuUrl); ?>#menu" class="sfh-nav-link block text-center comic-border px-4 py-3 font-chunky bg-white hover:bg-brandBlack hover:text-white transition-colors shadow-brutal-sm">View menu</a><?php endif; ?>
+<?php if (!empty($sectionsForNav) && is_array($sectionsForNav)): ?>
+<?php foreach ($sectionsForNav as $navSection): ?>
+<a href="<?php echo htmlspecialchars($fullMenuUrl); ?>#section-<?php echo htmlspecialchars($navSection['slug'] ?? ''); ?>" class="sfh-nav-link block text-center comic-border px-4 py-3 font-chunky bg-white hover:bg-brandBlack hover:text-white transition-colors shadow-brutal-sm"><?php echo htmlspecialchars($navSection['name'] ?? ''); ?></a>
 <?php endforeach; ?>
+<?php endif; ?>
+<hr class="border-brandBlack/30 my-2" aria-hidden="true" />
+<?php foreach ($activeCategories as $i => $cat): $s = isset($cat['slug']) ? $cat['slug'] : ('section-'.$i); ?>
+<a href="<?php echo htmlspecialchars(!empty($fullMenuUrl) ? $fullMenuUrl . '#' . $s : '#' . $s); ?>" class="sfh-nav-link block text-center comic-border px-4 py-3 font-chunky bg-white hover:bg-brandBlack hover:text-white transition-colors shadow-brutal-sm"><?php echo htmlspecialchars($cat['name']); ?></a>
+<?php endforeach; ?>
+<hr class="border-brandBlack/30 my-2" aria-hidden="true" />
+<?php if (!empty($supportsReservations)): ?><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="sfh-nav-link block text-center comic-border px-4 py-3 font-chunky bg-brandBlack text-white hover:bg-white hover:text-brandBlack transition-colors shadow-brutal-sm">Reserve Table</a><?php endif; ?>
 </nav>
 </aside>
 <header class="max-w-7xl mx-auto mb-12 text-center relative z-10" data-purpose="page-header">
@@ -123,7 +131,7 @@ body.sfh-body .sfh-bg { position: absolute; inset: 0; pointer-events: none; back
 <p class="font-bold text-xl md:text-2xl uppercase italic"><?php echo htmlspecialchars($restaurant['description'] ?? 'Vibrant. Loud. Delicious.'); ?></p>
 <?php if (!empty($supportsReservations)): ?><p class="mt-4"><a class="inline-block bg-white comic-border px-6 py-2 font-chunky hover:bg-brandBlack hover:text-white transition-colors shadow-brutal-sm" href="<?php echo htmlspecialchars($reservationUrl); ?>">Reserve Table</a></p><?php endif; ?>
 </header>
-<main class="max-w-7xl mx-auto relative z-10">
+<main class="max-w-7xl mx-auto relative z-10" id="menu">
 <?php foreach ($sections as $section): 
     if (empty($section['categories']) || !is_array($section['categories'])) continue;
 ?>

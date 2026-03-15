@@ -77,10 +77,18 @@ h1, h2, h3 { font-family: 'Fredoka One', cursive; }
 <div class="px-6 pb-6">
 <nav class="flex flex-col gap-2 sd-nav-links">
 <?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?><a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="sd-nav-link block px-4 py-3 rounded-full font-bold text-center bg-white border-2 border-soft-berry text-soft-berry hover:shadow-md">Full menu</a><?php endif; ?>
-<?php if (!empty($supportsReservations)): ?><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="sd-nav-link block px-4 py-3 rounded-full font-bold text-center bg-white border-2 border-soft-berry text-soft-berry hover:shadow-md">Reserve Table</a><?php endif; ?>
-<?php foreach ($activeCategories as $i => $cat): $s = isset($cat['slug']) ? $cat['slug'] : ('section-'.$i); ?>
-<a href="#<?php echo htmlspecialchars($s); ?>" class="sd-nav-link block px-4 py-3 rounded-full font-bold text-center <?php echo $i % 2 ? 'bg-pastel-mint text-mint-dark' : 'bg-pastel-pink text-soft-berry'; ?> hover:shadow-md"><?php echo htmlspecialchars($cat['name']); ?></a>
+<?php if (!empty($fullMenuUrl)): ?><a href="<?php echo htmlspecialchars($fullMenuUrl); ?>#menu" class="sd-nav-link block px-4 py-3 rounded-full font-bold text-center bg-white border-2 border-soft-berry text-soft-berry hover:shadow-md">View menu</a><?php endif; ?>
+<?php if (!empty($sectionsForNav) && is_array($sectionsForNav)): ?>
+<?php foreach ($sectionsForNav as $navSection): ?>
+<a href="<?php echo htmlspecialchars($fullMenuUrl); ?>#section-<?php echo htmlspecialchars($navSection['slug'] ?? ''); ?>" class="sd-nav-link block px-4 py-3 rounded-full font-bold text-center bg-white border-2 border-soft-berry text-soft-berry hover:shadow-md"><?php echo htmlspecialchars($navSection['name'] ?? ''); ?></a>
 <?php endforeach; ?>
+<?php endif; ?>
+<hr class="border-soft-berry/30 my-2" aria-hidden="true" />
+<?php foreach ($activeCategories as $i => $cat): $s = isset($cat['slug']) ? $cat['slug'] : ('section-'.$i); ?>
+<a href="<?php echo htmlspecialchars(!empty($fullMenuUrl) ? $fullMenuUrl . '#' . $s : '#' . $s); ?>" class="sd-nav-link block px-4 py-3 rounded-full font-bold text-center <?php echo $i % 2 ? 'bg-pastel-mint text-mint-dark' : 'bg-pastel-pink text-soft-berry'; ?> hover:shadow-md"><?php echo htmlspecialchars($cat['name']); ?></a>
+<?php endforeach; ?>
+<hr class="border-soft-berry/30 my-2" aria-hidden="true" />
+<?php if (!empty($supportsReservations)): ?><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="sd-nav-link block px-4 py-3 rounded-full font-bold text-center bg-soft-berry text-white hover:shadow-md">Reserve Table</a><?php endif; ?>
 </nav>
 </div>
 </aside>
@@ -96,12 +104,21 @@ h1, h2, h3 { font-family: 'Fredoka One', cursive; }
 <?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?><p class="mb-6"><a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="inline-block px-6 py-2 bg-white border-2 border-soft-berry text-soft-berry rounded-full font-bold hover:shadow-md transition-all">Full menu</a></p><?php endif; ?>
 <?php if (!empty($supportsReservations)): ?><p class="mb-6"><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="inline-block px-6 py-2 bg-white border-2 border-soft-berry text-soft-berry rounded-full font-bold hover:shadow-md transition-all">Reserve Table</a></p><?php endif; ?>
 <nav class="mt-6 flex justify-center gap-4 flex-wrap sd-desktop-nav" data-purpose="main-navigation">
-<?php foreach ($activeCategories as $i => $cat): $s = isset($cat['slug']) ? $cat['slug'] : ('section-'.$i); ?>
-<a class="px-6 py-2 <?php echo $i % 2 ? 'bg-pastel-mint text-mint-dark' : 'bg-pastel-pink text-soft-berry'; ?> rounded-full font-bold hover:shadow-md transition-all" href="#<?php echo htmlspecialchars($s); ?>"><?php echo htmlspecialchars($cat['name']); ?></a>
+<?php if (!empty($fullMenuUrl)): ?><a class="px-6 py-2 bg-white border-2 border-soft-berry text-soft-berry rounded-full font-bold hover:shadow-md transition-all" href="<?php echo htmlspecialchars($fullMenuUrl); ?>#menu">View menu</a><?php endif; ?>
+<?php if (!empty($sectionsForNav) && is_array($sectionsForNav)): ?>
+<?php foreach ($sectionsForNav as $navSection): ?>
+<a class="px-6 py-2 bg-pastel-pink text-soft-berry rounded-full font-bold hover:shadow-md transition-all" href="<?php echo htmlspecialchars($fullMenuUrl); ?>#section-<?php echo htmlspecialchars($navSection['slug'] ?? ''); ?>"><?php echo htmlspecialchars($navSection['name'] ?? ''); ?></a>
 <?php endforeach; ?>
+<?php endif; ?>
+<span class="self-center w-px h-6 bg-soft-berry/40" aria-hidden="true"></span>
+<?php foreach ($activeCategories as $i => $cat): $s = isset($cat['slug']) ? $cat['slug'] : ('section-'.$i); ?>
+<a class="px-6 py-2 <?php echo $i % 2 ? 'bg-pastel-mint text-mint-dark' : 'bg-pastel-pink text-soft-berry'; ?> rounded-full font-bold hover:shadow-md transition-all" href="<?php echo htmlspecialchars(!empty($fullMenuUrl) ? $fullMenuUrl . '#' . $s : '#' . $s); ?>"><?php echo htmlspecialchars($cat['name']); ?></a>
+<?php endforeach; ?>
+<span class="self-center w-px h-6 bg-soft-berry/40" aria-hidden="true"></span>
+<?php if (!empty($supportsReservations)): ?><a class="px-6 py-2 bg-soft-berry text-white rounded-full font-bold hover:shadow-md transition-all" href="<?php echo htmlspecialchars($reservationUrl); ?>">Reserve Table</a><?php endif; ?>
 </nav>
 </header>
-<main class="container mx-auto px-4 pb-20">
+<main class="container mx-auto px-4 pb-20" id="menu">
 <?php foreach ($sections as $section): 
     if (empty($section['categories']) || !is_array($section['categories'])) continue;
 ?>

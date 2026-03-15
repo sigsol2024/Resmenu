@@ -80,14 +80,22 @@ h1, h2, h3, .serif-font { font-family: 'Bodoni Moda', serif; }
 </div>
 <nav class="flex flex-col gap-1">
 <?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?><a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="art-fusion-nav-link block py-3 px-4 text-sm uppercase tracking-widest font-medium text-gray-700 hover:text-[#bc002d] rounded">Full menu</a><?php endif; ?>
-<?php if (!empty($supportsReservations)): ?><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="art-fusion-nav-link block py-3 px-4 text-sm uppercase tracking-widest font-medium text-gray-700 hover:text-[#bc002d] bg-white/50 hover:bg-white/70 rounded border border-gray-200 hover:border-[#bc002d] transition-colors">Reserve Table</a><?php endif; ?>
-<?php foreach ($activeCategories as $i => $cat): $s = isset($cat['slug']) ? $cat['slug'] : ('section-'.$i); ?>
-<a href="#<?php echo htmlspecialchars($s); ?>" class="art-fusion-nav-link block py-3 px-4 text-sm uppercase tracking-widest font-medium text-gray-700 hover:bg-gray-50 hover:text-[#bc002d] rounded"><?php echo htmlspecialchars($cat['name']); ?></a>
+<?php if (!empty($fullMenuUrl)): ?><a href="<?php echo htmlspecialchars($fullMenuUrl); ?>#menu" class="art-fusion-nav-link block py-3 px-4 text-sm uppercase tracking-widest font-medium text-gray-700 hover:text-[#bc002d] rounded">View menu</a><?php endif; ?>
+<?php if (!empty($sectionsForNav) && is_array($sectionsForNav)): ?>
+<?php foreach ($sectionsForNav as $navSection): ?>
+<a href="<?php echo htmlspecialchars($fullMenuUrl); ?>#section-<?php echo htmlspecialchars($navSection['slug'] ?? ''); ?>" class="art-fusion-nav-link block py-3 px-4 text-sm uppercase tracking-widest font-medium text-gray-700 hover:bg-gray-50 hover:text-[#bc002d] rounded"><?php echo htmlspecialchars($navSection['name'] ?? ''); ?></a>
 <?php endforeach; ?>
+<?php endif; ?>
+<hr class="border-gray-200 my-2" aria-hidden="true" />
+<?php foreach ($activeCategories as $i => $cat): $s = isset($cat['slug']) ? $cat['slug'] : ('section-'.$i); ?>
+<a href="<?php echo htmlspecialchars(!empty($fullMenuUrl) ? $fullMenuUrl . '#' . $s : '#' . $s); ?>" class="art-fusion-nav-link block py-3 px-4 text-sm uppercase tracking-widest font-medium text-gray-700 hover:bg-gray-50 hover:text-[#bc002d] rounded"><?php echo htmlspecialchars($cat['name']); ?></a>
+<?php endforeach; ?>
+<hr class="border-gray-200 my-2" aria-hidden="true" />
+<?php if (!empty($supportsReservations)): ?><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="art-fusion-nav-link block py-3 px-4 text-sm uppercase tracking-widest font-medium text-gray-700 hover:text-[#bc002d] bg-white/50 hover:bg-white/70 rounded border border-gray-200 hover:border-[#bc002d] transition-colors">Reserve Table</a><?php endif; ?>
 </nav>
 </div>
 </aside>
-<main class="pt-20 relative z-10">
+<main class="pt-20 relative z-10" id="menu">
 <section class="relative h-[70vh] flex items-center justify-center overflow-hidden bg-gray-50">
 <div class="z-10 text-center px-4">
 <span class="text-xs uppercase tracking-[0.5em] mb-4 block"><?php echo htmlspecialchars($restaurant['description'] ?? 'Crafting Balance'); ?></span>
