@@ -60,9 +60,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if ($subscriptionId > 0 && $days > 0) {
             try {
+                // UI displays trial end using trial_ends_at when status is 'trial'.
+                $stmt = $pdo->prepare("SELECT status FROM subscriptions WHERE id = ?");
+                $stmt->execute([$subscriptionId]);
+                $sub = $stmt->fetch(PDO::FETCH_ASSOC);
+                $status = $sub['status'] ?? '';
+                
+                $isTrial = ($status === 'trial');
+                $column = $isTrial ? 'trial_ends_at' : 'current_period_end';
+                
+                // Update the correct end-date field based on current subscription status.
                 $stmt = $pdo->prepare("
-                    UPDATE subscriptions 
-                    SET current_period_end = DATE_ADD(COALESCE(current_period_end, NOW()), INTERVAL ? DAY)
+                    UPDATE subscriptions
+                    SET {$column} = DATE_ADD(COALESCE({$column}, NOW()), INTERVAL ? DAY)
                     WHERE id = ?
                 ");
                 $stmt->execute([$days, $subscriptionId]);
