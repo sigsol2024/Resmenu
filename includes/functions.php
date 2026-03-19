@@ -93,6 +93,55 @@ function sanitizeSlug($slug, $maxLength = 255) {
 }
 
 /**
+ * Resolve a menu-item slug collision for a given restaurant+category.
+ * The DB has a UNIQUE constraint on (restaurant_id, category_id, slug),
+ * so we append "-2", "-3", ... until the slug is unique (or we fall back).
+ *
+ * @param mixed $pdo PDO-like handle
+ * @param int $restaurantId
+ * @param int $categoryId
+ * @param string $slug Proposed slug
+ * @param int|null $excludeMenuItemId When updating: exclude the current row id
+ * @return string A unique slug for this restaurant+category
+ */
+function resolveMenuItemSlugCollision($pdo, $restaurantId, $categoryId, $slug, $excludeMenuItemId = null) {
+    $restaurantId = (int)$restaurantId;
+    $categoryId = (int)$categoryId;
+    $slug = sanitizeSlug($slug);
+
+    if ($slug === '') {
+        $slug = 'item';
+    }
+
+    $candidate = $slug;
+    // Try suffixes: item, item-2, item-3...
+    $maxTries = 50;
+    for ($i = 1; $i <= $maxTries; $i++) {
+        if ($excludeMenuItemId !== null) {
+            $stmt = $pdo->prepare(
+                "SELECT id FROM menu_items WHERE restaurant_id = ? AND category_id = ? AND slug = ? AND id <> ? LIMIT 1"
+            );
+            $stmt->execute([$restaurantId, $categoryId, $candidate, (int)$excludeMenuItemId]);
+        } else {
+            $stmt = $pdo->prepare(
+                "SELECT id FROM menu_items WHERE restaurant_id = ? AND category_id = ? AND slug = ? LIMIT 1"
+            );
+            $stmt->execute([$restaurantId, $categoryId, $candidate]);
+        }
+
+        $exists = $stmt->fetch();
+        if (!$exists) {
+            return $candidate;
+        }
+
+        $candidate = $slug . '-' . ($i + 1); // first collision => "-2"
+    }
+
+    // Last-resort fallback to guarantee uniqueness.
+    return $slug . '-' . time();
+}
+
+/**
  * Validate email
  * @param string $email
  * @return bool

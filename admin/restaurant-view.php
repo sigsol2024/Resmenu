@@ -152,7 +152,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         require_once __DIR__ . '/../includes/functions.php';
         
         $name = sanitize($_POST['name'] ?? '');
-        $slug = sanitize($_POST['slug'] ?? '');
+        $slug = sanitizeSlug($_POST['slug'] ?? '');
+        if ($slug === '') {
+            // Fall back to slugifying the name if user left slug empty.
+            $slug = sanitizeSlug(generateSlug($name));
+        }
         $category_id = intval($_POST['category_id'] ?? 0);
         $description = sanitize($_POST['description'] ?? '');
         $price = floatval($_POST['price'] ?? 0);
@@ -206,6 +210,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     
                     if (!$error) {
                         if ($action === 'create_menu_item') {
+                                // Prevent UNIQUE(menu_items.restaurant_id, category_id, slug) collisions.
+                                $slug = resolveMenuItemSlugCollision($pdo, $restaurantId, $category_id, $slug);
                             $stmt = $pdo->prepare("INSERT INTO menu_items (restaurant_id, category_id, name, slug, description, price, image, display_order, is_available) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
                             $stmt->execute([$restaurantId, $category_id, $name, $slug, $description, $price, $image, $display_order, $is_available]);
                             
@@ -216,6 +222,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         } else {
                             $id = intval($_POST['id'] ?? 0);
                             if ($id > 0) {
+                                    // Prevent UNIQUE(menu_items.restaurant_id, category_id, slug) collisions.
+                                    $slug = resolveMenuItemSlugCollision($pdo, $restaurantId, $category_id, $slug, $id);
                                 if ($image) {
                                     $stmt = $pdo->prepare("UPDATE menu_items SET category_id = ?, name = ?, slug = ?, description = ?, price = ?, image = ?, display_order = ?, is_available = ? WHERE id = ? AND restaurant_id = ?");
                                     $stmt->execute([$category_id, $name, $slug, $description, $price, $image, $display_order, $is_available, $id, $restaurantId]);
