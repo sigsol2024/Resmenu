@@ -396,11 +396,8 @@ include __DIR__ . '/../includes/manager-layout.php';
                         ?>
                         <?php foreach ($sectionsList as $sec): ?>
                             <?php $sid = (int)$sec['id']; ?>
-                            <?php
-                                $checked = in_array($sid, $selectedSecondary, true);
-                                // Avoid showing the primary section here to prevent duplicates on a section page.
-                                if ($sid === $primarySectionId) $checked = false;
-                            ?>
+                            <?php if ($sid === $primarySectionId) continue; ?>
+                            <?php $checked = in_array($sid, $selectedSecondary, true); ?>
                             <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted);">
                                 <input type="checkbox"
                                        name="secondary_section_ids[]"

@@ -1551,7 +1551,8 @@ include __DIR__ . '/../includes/admin-layout.php';
                             <div style="display: flex; flex-wrap: wrap; gap: 10px;">
                                 <?php foreach ($sectionsList as $sec): ?>
                                     <?php $sid = (int)($sec['id'] ?? 0); ?>
-                                    <?php $checked = in_array($sid, $selectedSecondary, true) && $sid !== $primarySectionId; ?>
+                                    <?php if ($sid === $primarySectionId) continue; ?>
+                                    <?php $checked = in_array($sid, $selectedSecondary, true); ?>
                                     <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted);">
                                         <input type="checkbox" id="cat_secondary_<?php echo $sid; ?>" name="secondary_section_ids[]" value="<?php echo $sid; ?>" <?php echo $checked ? 'checked' : ''; ?>>
                                         <?php echo htmlspecialchars($sec['name'] ?? ''); ?>
