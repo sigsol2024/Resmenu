@@ -368,13 +368,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         $stmtIns->execute([$newCategoryId, (int)$sid, 1]);
                                     }
                                 } catch (PDOException $e) {
-                                    // Optional feature may not have been migrated yet.
+                                    error_log("Secondary section mapping save failed (create_category): " . $e->getMessage());
+                                    $error = 'Failed to save secondary section mappings. Please run the secondary-sections migration.';
                                 }
                             }
                         }
                         
-                        header('Location: restaurant-view.php?slug=' . urlencode($restaurantSlug) . '&tab=categories&success=category_created');
-                        exit;
+                        if (!$error) {
+                            header('Location: restaurant-view.php?slug=' . urlencode($restaurantSlug) . '&tab=categories&success=category_created');
+                            exit;
+                        }
                     } else {
                         $id = intval($_POST['id'] ?? 0);
                         if ($id > 0) {
@@ -418,11 +421,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     }
                                 }
                             } catch (PDOException $e) {
-                                // Optional feature may not have been migrated yet.
+                                error_log("Secondary section mapping save failed (update_category): " . $e->getMessage());
+                                $error = 'Failed to save secondary section mappings. Please run the secondary-sections migration.';
                             }
                             
-                            header('Location: restaurant-view.php?slug=' . urlencode($restaurantSlug) . '&tab=categories&success=category_updated');
-                            exit;
+                            if (!$error) {
+                                header('Location: restaurant-view.php?slug=' . urlencode($restaurantSlug) . '&tab=categories&success=category_updated');
+                                exit;
+                            }
                         } else {
                             $error = 'Invalid category ID';
                         }

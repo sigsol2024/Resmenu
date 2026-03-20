@@ -201,7 +201,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 return (int)$sid !== (int)$section_id;
                             }));
 
-                            // Refresh mappings (ignore if migration table doesn't exist yet)
+                            // Refresh mappings (secondary-section feature required for this data to show on section pages)
                             try {
                                 $pdo->prepare("DELETE FROM category_secondary_sections WHERE category_id = ?")->execute([$newCategoryId]);
                                 $stmtIns = $pdo->prepare("INSERT INTO category_secondary_sections (category_id, section_id, is_active) VALUES (?, ?, ?)");
@@ -209,13 +209,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     $stmtIns->execute([$newCategoryId, $sid, 1]);
                                 }
                             } catch (PDOException $e) {
-                                // Optional feature may not have been migrated yet.
+                                error_log("Secondary section mapping save failed (manager create): " . $e->getMessage());
+                                $error = 'Failed to save secondary section mappings. Please run the secondary-sections migration.';
                             }
                         }
 
                         // Redirect to prevent form resubmission
-                        header('Location: categories.php?' . (isSuperAdmin() && $restaurantId ? 'restaurant_id=' . urlencode($restaurantId) . '&' : '') . 'success=created');
-                        exit;
+                        if (!$error) {
+                            header('Location: categories.php?' . (isSuperAdmin() && $restaurantId ? 'restaurant_id=' . urlencode($restaurantId) . '&' : '') . 'success=created');
+                            exit;
+                        }
                     } else {
                         $id = intval($_POST['id'] ?? 0);
                         if ($id > 0) {
@@ -240,7 +243,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 return (int)$sid !== (int)$section_id;
                             }));
 
-                            // Refresh mappings (ignore if migration table doesn't exist yet)
+                            // Refresh mappings (secondary-section feature required for this data to show on section pages)
                             try {
                                 $pdo->prepare("DELETE FROM category_secondary_sections WHERE category_id = ?")->execute([$id]);
                                 $stmtIns = $pdo->prepare("INSERT INTO category_secondary_sections (category_id, section_id, is_active) VALUES (?, ?, ?)");
@@ -248,12 +251,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     $stmtIns->execute([$id, $sid, 1]);
                                 }
                             } catch (PDOException $e) {
-                                // Optional feature may not have been migrated yet.
+                                error_log("Secondary section mapping save failed (manager update): " . $e->getMessage());
+                                $error = 'Failed to save secondary section mappings. Please run the secondary-sections migration.';
                             }
 
                             // Redirect to prevent form resubmission
-                            header('Location: categories.php?' . (isSuperAdmin() && $restaurantId ? 'restaurant_id=' . urlencode($restaurantId) . '&' : '') . 'success=updated');
-                            exit;
+                            if (!$error) {
+                                header('Location: categories.php?' . (isSuperAdmin() && $restaurantId ? 'restaurant_id=' . urlencode($restaurantId) . '&' : '') . 'success=updated');
+                                exit;
+                            }
                         }
                     }
                 }
