@@ -1551,10 +1551,18 @@ include __DIR__ . '/../includes/admin-layout.php';
                             <div style="display: flex; flex-wrap: wrap; gap: 10px;">
                                 <?php foreach ($sectionsList as $sec): ?>
                                     <?php $sid = (int)($sec['id'] ?? 0); ?>
-                                    <?php if ($sid === $primarySectionId) continue; ?>
-                                    <?php $checked = in_array($sid, $selectedSecondary, true); ?>
-                                    <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted);">
-                                        <input type="checkbox" id="cat_secondary_<?php echo $sid; ?>" name="secondary_section_ids[]" value="<?php echo $sid; ?>" <?php echo $checked ? 'checked' : ''; ?>>
+                                    <?php
+                                        $isSecondary = in_array($sid, $selectedSecondary, true);
+                                        $isPrimary = ($sid === $primarySectionId && $primarySectionId > 0);
+                                    ?>
+                                    <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted);<?php echo $isPrimary ? 'display:none;' : ''; ?>">
+                                        <input type="checkbox"
+                                               id="cat_secondary_<?php echo $sid; ?>"
+                                               name="secondary_section_ids[]"
+                                               value="<?php echo $sid; ?>"
+                                               data-secondary="<?php echo $isSecondary ? '1' : '0'; ?>"
+                                               <?php echo ($isSecondary && !$isPrimary) ? 'checked' : ''; ?>
+                                               <?php echo $isPrimary ? 'disabled' : ''; ?>>
                                         <?php echo htmlspecialchars($sec['name'] ?? ''); ?>
                                     </label>
                                 <?php endforeach; ?>
@@ -1776,6 +1784,37 @@ include __DIR__ . '/../includes/admin-layout.php';
             if (slugInput && !slugInput.value) {
                 slugInput.value = this.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
             }
+        });
+
+        // Keep Secondary Sections UI in sync with the Primary Section dropdown (real-time).
+        function updateAdminSecondarySectionsUI() {
+            const categoryModal = document.getElementById('categoryModal');
+            const primarySelect = document.getElementById('cat_section_id');
+            if (!categoryModal || !primarySelect) return;
+
+            const primaryId = parseInt(primarySelect.value || '0', 10) || 0;
+            const checkboxes = categoryModal.querySelectorAll('input[name="secondary_section_ids[]"]');
+
+            checkboxes.forEach(function(cb) {
+                const sid = parseInt(cb.value || '0', 10) || 0;
+                const shouldBeSecondary = (cb.dataset.secondary || '0') === '1';
+                const label = cb.closest('label');
+
+                if (primaryId && sid === primaryId) {
+                    cb.checked = false;
+                    cb.disabled = true;
+                    if (label) label.style.display = 'none';
+                } else {
+                    cb.disabled = false;
+                    cb.checked = shouldBeSecondary;
+                    if (label) label.style.display = 'flex';
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateAdminSecondarySectionsUI();
+            document.getElementById('cat_section_id')?.addEventListener('change', updateAdminSecondarySectionsUI);
         });
         
         // Open modal if editing category
