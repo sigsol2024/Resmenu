@@ -71,8 +71,17 @@ function getRestaurantById($restaurantId) {
  * @param string $restaurantSlug
  * @return string
  */
-function getRestaurantQRCodeURL($restaurantSlug) {
-    return SITE_URL . '/qr/' . urlencode($restaurantSlug);
+function getRestaurantQRCodeURL($restaurantSlug, $sectionSlug = null) {
+    $restaurantSlug = (string)$restaurantSlug;
+    $base = SITE_URL . '/qr/' . urlencode($restaurantSlug);
+    $sectionSlug = is_null($sectionSlug) ? null : trim((string)$sectionSlug);
+    if (!empty($sectionSlug)) {
+        $sectionSlug = preg_replace('/[^a-z0-9-]/', '', strtolower($sectionSlug));
+        if (!empty($sectionSlug)) {
+            return $base . '?section=' . urlencode($sectionSlug);
+        }
+    }
+    return $base;
 }
 
 /**
@@ -438,13 +447,13 @@ function applyFrameToImage($imageData, $frameConfig, $format) {
 
 /**
  * Draw a rounded rectangle (border only, not filled)
- * @param resource $image GD image resource
+ * @param GdImage $image GD image resource
  * @param int $x1 Top-left X
  * @param int $y1 Top-left Y
  * @param int $x2 Bottom-right X
  * @param int $y2 Bottom-right Y
  * @param int $radius Corner radius
- * @param int $color GD color resource
+ * @param int $color GD color id
  * @param int $thickness Line thickness
  */
 function drawRoundedRectangle($image, $x1, $y1, $x2, $y2, $radius, $color, $thickness) {
@@ -738,8 +747,11 @@ function convertSVGToImage($svgContent, $format = 'png') {
     }
     
     try {
-        $imagick = new Imagick();
-        $imagick->setBackgroundColor(new ImagickPixel('white'));
+        // Instantiate Imagick classes dynamically to avoid IDE linter errors when Imagick isn't installed.
+        $imagickClass = 'Imagick';
+        $pixelClass = 'ImagickPixel';
+        $imagick = new $imagickClass();
+        $imagick->setBackgroundColor(new $pixelClass('white'));
         $imagick->readImageBlob($svgContent);
         
         // Set format
@@ -848,8 +860,9 @@ function generateQRCodeImage($restaurantId, $format = 'png', $size = null) {
     
     $restaurant = getRestaurantById($restaurantId);
     if (!$restaurant) return null;
-    
-    $qrCodeURL = getRestaurantQRCodeURL($restaurant['slug']);
+
+    $sectionSlug = $GLOBALS['qr_target_section_slug'] ?? null;
+    $qrCodeURL = getRestaurantQRCodeURL($restaurant['slug'], $sectionSlug);
     $qrSize = $size ?? ($settings['qr_size'] ?? 300);
     
     try {
@@ -992,8 +1005,9 @@ function generateQRCodeImage($restaurantId, $format = 'png', $size = null) {
 function generateQRCodeViaAPI($restaurantId, $format = 'png', $size = 300) {
     $restaurant = getRestaurantById($restaurantId);
     if (!$restaurant) return null;
-    
-    $qrCodeURL = getRestaurantQRCodeURL($restaurant['slug']);
+
+    $sectionSlug = $GLOBALS['qr_target_section_slug'] ?? null;
+    $qrCodeURL = getRestaurantQRCodeURL($restaurant['slug'], $sectionSlug);
     $size = $size ?? 300;
     
     // Using qrcode.tec-it.com API (free, no API key needed)

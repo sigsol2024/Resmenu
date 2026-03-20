@@ -27,11 +27,20 @@ if (!$restaurantId) {
 $format = $_GET['format'] ?? 'png';
 $size = isset($_GET['size']) ? intval($_GET['size']) : null;
 $download = isset($_GET['download']) && $_GET['download'] == '1';
+$sectionSlug = $_GET['section_slug'] ?? ($_GET['section'] ?? '');
 
 // Validate format
 $allowedFormats = ['png', 'jpeg', 'jpg', 'svg', 'pdf'];
 if (!in_array(strtolower($format), $allowedFormats)) {
     $format = 'png';
+}
+
+$sectionSlug = strtolower(trim((string)$sectionSlug));
+$sectionSlug = preg_replace('/[^a-z0-9-]/', '', $sectionSlug);
+if (!empty($sectionSlug)) {
+    $GLOBALS['qr_target_section_slug'] = $sectionSlug;
+} else {
+    $GLOBALS['qr_target_section_slug'] = null;
 }
 
 $pdo = getDBConnection();

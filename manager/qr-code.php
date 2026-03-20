@@ -154,6 +154,14 @@ if (!$analytics || !is_array($analytics)) {
 }
 $qrCodeURL = getRestaurantQRCodeURL($restaurant['slug']);
 
+// Active sections for section-page QR codes
+$sectionsForQR = [];
+try {
+    $sectionsForQR = getSections($restaurantId, true);
+} catch (Throwable $e) {
+    $sectionsForQR = [];
+}
+
 $pageTitle = 'QR Code';
 include __DIR__ . '/../includes/manager-layout.php';
 ?>
@@ -216,6 +224,51 @@ include __DIR__ . '/../includes/manager-layout.php';
                 <p style="color: var(--muted); margin-bottom: 20px; font-size: 0.875rem;">
                     <strong>URL:</strong> <code style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px;"><?php echo htmlspecialchars($qrCodeURL); ?></code>
                 </p>
+
+                <?php if (!empty($sectionsForQR) && is_array($sectionsForQR)): ?>
+                    <div style="margin: 0 -4px 20px; padding-top: 8px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                            <h3 class="section-title" style="margin:0; font-size:1rem;">Your QR Codes (Sections)</h3>
+                        </div>
+                        <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px;">
+                            <?php foreach ($sectionsForQR as $sec): ?>
+                                <?php
+                                    $secSlug = $sec['slug'] ?? '';
+                                    $secName = $sec['name'] ?? '';
+                                    if (empty($secSlug)) continue;
+
+                                    $secQrCodeURL = getRestaurantQRCodeURL($restaurant['slug'], $secSlug);
+                                    $imgSrc = SITE_URL . '/api/qr-generate.php?restaurant_id=' . (int)$restaurantId . '&format=png&size=160&t=' . time() . '&section_slug=' . urlencode($secSlug);
+                                ?>
+                                <div style="background: #f9fafb; border-radius: 12px; padding: 14px; text-align:center; border: 1px solid #e5e7eb;">
+                                    <div style="font-weight: 600; font-size: 0.9rem; margin-bottom: 8px; color: var(--text);">
+                                        <?php echo htmlspecialchars($secName); ?>
+                                    </div>
+                                    <div style="background:#fff; border-radius: 10px; padding: 10px; display:flex; justify-content:center; align-items:center; margin-bottom: 10px;">
+                                        <img src="<?php echo htmlspecialchars($imgSrc); ?>"
+                                             alt="QR Code for <?php echo htmlspecialchars($secName); ?>"
+                                             style="max-width: 160px; height: auto; display: block;"
+                                             onerror="this.parentElement.innerHTML='<p style=\'color: var(--muted); margin: 0;\'>Preview loading...</p>'">
+                                    </div>
+                                    <div style="color: var(--muted); margin-bottom: 10px; font-size: 0.75rem;">
+                                        <strong>URL:</strong>
+                                        <div>
+                                            <code style="background: #f3f4f6; padding: 3px 6px; border-radius: 4px; display:inline-block; word-break: break-word; max-width: 150px;">
+                                                <?php echo htmlspecialchars($secQrCodeURL); ?>
+                                            </code>
+                                        </div>
+                                    </div>
+                                    <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+                                        <a href="<?php echo SITE_URL; ?>/api/qr-generate.php?restaurant_id=<?php echo (int)$restaurantId; ?>&format=png&download=1&section_slug=<?php echo urlencode($secSlug); ?>"
+                                           class="btn btn-primary" style="padding: 8px 12px; font-size: 0.75rem;">
+                                            Download PNG
+                                        </a>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                <?php endif; ?>
                 
                 <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
                     <a href="<?php echo SITE_URL; ?>/api/qr-generate.php?restaurant_id=<?php echo $restaurantId; ?>&format=png&download=1" 
