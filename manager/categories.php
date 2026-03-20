@@ -45,6 +45,9 @@ $pdo = getDBConnection();
 $message = '';
 $error = '';
 
+// Secondary section selections (used only when editing)
+$editCategorySecondarySectionIds = [];
+
 // Get restaurant slug for return URL (if coming from admin dashboard)
 $restaurantSlug = null;
 if (isSuperAdmin() && $restaurantId && $pdo) {
@@ -87,6 +90,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             if ($category) {
                 // Delete associated menu items
                 $pdo->prepare("DELETE FROM menu_items WHERE category_id = ? AND restaurant_id = ?")->execute([$id, $restaurantId]);
+                // Delete secondary section mappings for this category
+                try {
+                    $pdo->prepare("DELETE FROM category_secondary_sections WHERE category_id = ?")->execute([$id]);
+                } catch (PDOException $e) {
+                    // Optional feature may not have been migrated yet.
+                }
                 // Delete category
                 $pdo->prepare("DELETE FROM categories WHERE id = ? AND restaurant_id = ?")->execute([$id, $restaurantId]);
                 
@@ -179,6 +188,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         reorderCategoriesForInsert($restaurantId, max(1, $display_order));
                         $stmt = $pdo->prepare("INSERT INTO categories (restaurant_id, section_id, name, slug, description, image, display_order, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
                         $stmt->execute([$restaurantId, $section_id, $name, $slug, $description, $image, max(1, $display_order), $is_active]);
+
+                        // Persist secondary section mappings for this category.
+                        // Category can appear in multiple secondary sections (not on the main full menu).
+                        $newCategoryId = (int)$pdo->lastInsertId();
+                        if ($newCategoryId > 0) {
+                            $secondarySectionIds = $_POST['secondary_section_ids'] ?? [];
+                            if (!is_array($secondarySectionIds)) $secondarySectionIds = [];
+                            $secondarySectionIds = array_values(array_filter(array_map('intval', $secondarySectionIds)));
+                            // Prevent duplicates by filtering out the primary section.
+                            $secondarySectionIds = array_values(array_filter($secondarySectionIds, function($sid) use ($section_id) {
+                                return (int)$sid !== (int)$section_id;
+                            }));
+
+                            // Refresh mappings (ignore if migration table doesn't exist yet)
+                            try {
+                                $pdo->prepare("DELETE FROM category_secondary_sections WHERE category_id = ?")->execute([$newCategoryId]);
+                                $stmtIns = $pdo->prepare("INSERT INTO category_secondary_sections (category_id, section_id, is_active) VALUES (?, ?, ?)");
+                                foreach ($secondarySectionIds as $sid) {
+                                    $stmtIns->execute([$newCategoryId, $sid, 1]);
+                                }
+                            } catch (PDOException $e) {
+                                // Optional feature may not have been migrated yet.
+                            }
+                        }
+
                         // Redirect to prevent form resubmission
                         header('Location: categories.php?' . (isSuperAdmin() && $restaurantId ? 'restaurant_id=' . urlencode($restaurantId) . '&' : '') . 'success=created');
                         exit;
@@ -197,6 +231,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 $stmt = $pdo->prepare("UPDATE categories SET section_id = ?, name = ?, slug = ?, description = ?, display_order = ?, is_active = ? WHERE id = ? AND restaurant_id = ?");
                                 $stmt->execute([$section_id, $name, $slug, $description, max(1, $display_order), $is_active, $id, $restaurantId]);
                             }
+
+                            // Refresh secondary section mappings
+                            $secondarySectionIds = $_POST['secondary_section_ids'] ?? [];
+                            if (!is_array($secondarySectionIds)) $secondarySectionIds = [];
+                            $secondarySectionIds = array_values(array_filter(array_map('intval', $secondarySectionIds)));
+                            $secondarySectionIds = array_values(array_filter($secondarySectionIds, function($sid) use ($section_id) {
+                                return (int)$sid !== (int)$section_id;
+                            }));
+
+                            // Refresh mappings (ignore if migration table doesn't exist yet)
+                            try {
+                                $pdo->prepare("DELETE FROM category_secondary_sections WHERE category_id = ?")->execute([$id]);
+                                $stmtIns = $pdo->prepare("INSERT INTO category_secondary_sections (category_id, section_id, is_active) VALUES (?, ?, ?)");
+                                foreach ($secondarySectionIds as $sid) {
+                                    $stmtIns->execute([$id, $sid, 1]);
+                                }
+                            } catch (PDOException $e) {
+                                // Optional feature may not have been migrated yet.
+                            }
+
                             // Redirect to prevent form resubmission
                             header('Location: categories.php?' . (isSuperAdmin() && $restaurantId ? 'restaurant_id=' . urlencode($restaurantId) . '&' : '') . 'success=updated');
                             exit;
@@ -217,6 +271,17 @@ if (isset($_GET['action']) && $_GET['action'] === 'edit' && isset($_GET['id'])) 
     $stmt = $pdo->prepare("SELECT * FROM categories WHERE id = ? AND restaurant_id = ?");
     $stmt->execute([$_GET['id'], $restaurantId]);
     $editCategory = $stmt->fetch();
+
+    if ($editCategory) {
+        try {
+            $stmt2 = $pdo->prepare("SELECT section_id FROM category_secondary_sections WHERE category_id = ? AND is_active = 1");
+            $stmt2->execute([(int)$editCategory['id']]);
+            $editCategorySecondarySectionIds = array_map('intval', $stmt2->fetchAll(PDO::FETCH_COLUMN));
+        } catch (Throwable $e) {
+            // If migration isn't run yet, keep empty selection.
+            $editCategorySecondarySectionIds = [];
+        }
+    }
 }
 
 // Get all sections (for dropdown and list grouping)
@@ -320,6 +385,34 @@ include __DIR__ . '/../includes/manager-layout.php';
                         <?php endforeach; ?>
                     </select>
                     <p style="margin-top: 6px; font-size: 12px; color: var(--muted);">Categories are grouped under sections on your menu (e.g. Food, Drinks). <a href="sections.php<?php echo isSuperAdmin() && $restaurantId ? '?restaurant_id=' . urlencode($restaurantId) : ''; ?>">Manage sections</a></p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Secondary Sections (optional)</label>
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                        <?php
+                        $primarySectionId = (int)($editCategory['section_id'] ?? 0);
+                        $selectedSecondary = $editCategorySecondarySectionIds ?? [];
+                        ?>
+                        <?php foreach ($sectionsList as $sec): ?>
+                            <?php $sid = (int)$sec['id']; ?>
+                            <?php
+                                $checked = in_array($sid, $selectedSecondary, true);
+                                // Avoid showing the primary section here to prevent duplicates on a section page.
+                                if ($sid === $primarySectionId) $checked = false;
+                            ?>
+                            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted);">
+                                <input type="checkbox"
+                                       name="secondary_section_ids[]"
+                                       value="<?php echo $sid; ?>"
+                                       <?php echo $checked ? 'checked' : ''; ?>>
+                                <?php echo htmlspecialchars($sec['name']); ?>
+                            </label>
+                        <?php endforeach; ?>
+                    </div>
+                    <p style="margin-top: 6px; font-size: 12px; color: var(--muted);">
+                        This category will also appear on those section pages only (not on the main full menu page).
+                    </p>
                 </div>
                 
                 <div class="form-group">

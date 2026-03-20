@@ -145,7 +145,7 @@ body.prime-cut-outer .prime-cut-outer-bg { position: absolute; inset: 0; pointer
             <?php endif; ?>
             <hr class="border-gold/30 my-2" aria-hidden="true" />
             <?php foreach ($activeCategories as $cat): $cslug = isset($cat['slug']) ? $cat['slug'] : ('section-' . array_search($cat, $activeCategories)); ?>
-            <a href="<?php echo htmlspecialchars(!empty($fullMenuUrl) ? $fullMenuUrl . '#' . $cslug : '#' . $cslug); ?>" class="prime-cut-nav-link block py-3 px-4 font-sans text-cream hover:bg-gold/10 hover:text-gold rounded-lg transition-colors"><?php echo htmlspecialchars($cat['name']); ?></a>
+            <a href="<?php echo htmlspecialchars(!empty($fullMenuUrl) ? ((!empty($singleSectionView) && !empty($sections) && is_array($sections) && !empty($sections[0]['slug'])) ? $fullMenuUrl . '/' . $sections[0]['slug'] . '#' . $cslug : $fullMenuUrl . '#' . $cslug) : '#' . $cslug); ?>" class="prime-cut-nav-link block py-3 px-4 font-sans text-cream hover:bg-gold/10 hover:text-gold rounded-lg transition-colors"><?php echo htmlspecialchars($cat['name']); ?></a>
             <?php endforeach; ?>
             <hr class="border-gold/30 my-2" aria-hidden="true" />
             <?php if (!empty($supportsReservations)): ?>

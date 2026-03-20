@@ -114,7 +114,7 @@ section.hero .container { position: relative; z-index: 1; }
         foreach ($categories as $category): 
           if (!empty($category['menu_items']) && is_array($category['menu_items']) && !empty($category['is_active'])):
       ?>
-        <a href="<?php echo htmlspecialchars($fullMenuUrl); ?>#<?php echo htmlspecialchars($category['slug']); ?>-section" class="sidebar-nav-link"><?php echo htmlspecialchars($category['name']); ?></a>
+        <a href="<?php echo htmlspecialchars((!empty($singleSectionView) && !empty($sections) && is_array($sections) && !empty($sections[0]['slug'])) ? ($fullMenuUrl . '/' . $sections[0]['slug']) : $fullMenuUrl); ?>#<?php echo htmlspecialchars($category['slug']); ?>-section" class="sidebar-nav-link"><?php echo htmlspecialchars($category['name']); ?></a>
       <?php 
           endif;
         endforeach;

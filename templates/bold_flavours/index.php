@@ -52,7 +52,7 @@ if (!empty($sections) && is_array($sections)) {
 <?php endif; ?>
 <hr class="border-white/20 my-4" aria-hidden="true" />
 <?php foreach ($activeCategories as $i => $cat): $s = isset($cat['slug']) ? $cat['slug'] : ('section-'.$i); ?>
-<a class="block text-xl font-bold hover:text-neonPink transition-colors duration-300 group" href="<?php echo htmlspecialchars(!empty($fullMenuUrl) ? $fullMenuUrl . '#' . $s : '#' . $s); ?>"><span class="text-xs mr-2 opacity-50 group-hover:text-neonPink"><?php echo str_pad((string)($i+1), 2, '0', STR_PAD_LEFT); ?></span> <?php echo strtoupper(htmlspecialchars($cat['name'])); ?></a>
+<a class="block text-xl font-bold hover:text-neonPink transition-colors duration-300 group" href="<?php echo htmlspecialchars(!empty($fullMenuUrl) ? ((!empty($singleSectionView) && !empty($sections) && is_array($sections) && !empty($sections[0]['slug'])) ? $fullMenuUrl . '/' . $sections[0]['slug'] . '#' . $s : $fullMenuUrl . '#' . $s) : '#' . $s); ?>"><span class="text-xs mr-2 opacity-50 group-hover:text-neonPink"><?php echo str_pad((string)($i+1), 2, '0', STR_PAD_LEFT); ?></span> <?php echo strtoupper(htmlspecialchars($cat['name'])); ?></a>
 <?php endforeach; ?>
 <hr class="border-white/20 my-4" aria-hidden="true" />
 <?php if (!empty($supportsReservations)): ?>

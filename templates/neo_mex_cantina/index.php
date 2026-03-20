@@ -48,7 +48,7 @@ if (!empty($sections) && is_array($sections)) {
 <?php endif; ?>
 <hr class="w-px h-8 bg-white/20 self-center" aria-hidden="true" />
 <?php foreach ($activeCategories as $i => $cat): $s = isset($cat['slug']) ? $cat['slug'] : ('section-'.$i); ?>
-<a class="group flex flex-col items-center" href="<?php echo htmlspecialchars(!empty($fullMenuUrl) ? $fullMenuUrl . '#' . $s : '#' . $s); ?>"><span class="text-[10px] uppercase tracking-widest font-bold opacity-40 group-hover:opacity-100 group-hover:text-orange-500 transition-all origin-center -rotate-90"><?php echo htmlspecialchars($cat['name']); ?></span></a>
+<a class="group flex flex-col items-center" href="<?php echo htmlspecialchars(!empty($fullMenuUrl) ? ((!empty($singleSectionView) && !empty($sections) && is_array($sections) && !empty($sections[0]['slug'])) ? $fullMenuUrl . '/' . $sections[0]['slug'] . '#' . $s : $fullMenuUrl . '#' . $s) : '#' . $s); ?>"><span class="text-[10px] uppercase tracking-widest font-bold opacity-40 group-hover:opacity-100 group-hover:text-orange-500 transition-all origin-center -rotate-90"><?php echo htmlspecialchars($cat['name']); ?></span></a>
 <?php endforeach; ?>
 <hr class="w-px h-8 bg-white/20 self-center" aria-hidden="true" />
 <?php if (!empty($supportsReservations)): ?><a class="flex flex-col items-center text-[10px] uppercase tracking-widest font-bold text-orange-500 origin-center -rotate-90" href="<?php echo htmlspecialchars($reservationUrl); ?>">Reserve Table</a><?php endif; ?>

@@ -655,9 +655,41 @@ function getSectionWithCategoriesAndItemsBySlug($restaurantId, $sectionSlug) {
         $stmt->execute([$restaurantId, $sectionSlug]);
         $section = $stmt->fetch(PDO::FETCH_ASSOC);
         if (!$section) return null;
-        $stmt = $pdo->prepare("SELECT * FROM categories WHERE section_id = ? AND is_active = 1 ORDER BY display_order ASC, name ASC");
-        $stmt->execute([$section['id']]);
-        $section['categories'] = $stmt->fetchAll();
+
+        // Section pages: include categories that are either:
+        // - primary (categories.section_id = this section)
+        // - secondary mapped (category_secondary_sections.section_id = this section)
+        // Full menu pages remain primary-only (handled in getSectionsWithCategoriesAndItems()).
+        try {
+            $stmt = $pdo->prepare("
+                SELECT x.*
+                FROM (
+                    SELECT c.*
+                    FROM categories c
+                    WHERE c.restaurant_id = ?
+                      AND c.section_id = ?
+                      AND c.is_active = 1
+                    UNION
+                    SELECT c.*
+                    FROM categories c
+                    JOIN category_secondary_sections css
+                      ON css.category_id = c.id
+                    WHERE c.restaurant_id = ?
+                      AND css.section_id = ?
+                      AND c.is_active = 1
+                      AND css.is_active = 1
+                ) x
+                ORDER BY x.display_order ASC, x.name ASC
+            ");
+            $stmt->execute([$restaurantId, (int)$section['id'], $restaurantId, (int)$section['id']]);
+            $section['categories'] = $stmt->fetchAll();
+        } catch (PDOException $e) {
+            // Backward-compatibility: if mapping table doesn't exist, fall back to primary categories.
+            $stmt = $pdo->prepare("SELECT * FROM categories WHERE section_id = ? AND is_active = 1 ORDER BY display_order ASC, name ASC");
+            $stmt->execute([(int)$section['id']]);
+            $section['categories'] = $stmt->fetchAll();
+        }
+
         foreach ($section['categories'] as &$cat) {
             $stmt2 = $pdo->prepare("SELECT * FROM menu_items WHERE category_id = ? AND is_available = 1 ORDER BY display_order ASC, name ASC");
             $stmt2->execute([$cat['id']]);

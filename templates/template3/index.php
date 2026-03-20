@@ -142,7 +142,7 @@ function formatPriceTemplate3($price, $currency = '$') {
         foreach ($categories as $category):
             if (!empty($category['menu_items']) && is_array($category['menu_items']) && $category['is_active']):
     ?>
-    <a class="text-white text-sm font-medium hover:text-primary transition-colors" href="<?php echo htmlspecialchars(!empty($fullMenuUrl) ? $fullMenuUrl . '#' . $category['slug'] : '#' . $category['slug']); ?>"><?php echo htmlspecialchars($category['name']); ?></a>
+    <a class="text-white text-sm font-medium hover:text-primary transition-colors" href="<?php echo htmlspecialchars(!empty($fullMenuUrl) ? ((!empty($singleSectionView) && !empty($sections) && is_array($sections) && !empty($sections[0]['slug'])) ? $fullMenuUrl . '/' . $sections[0]['slug'] . '#' . $category['slug'] : $fullMenuUrl . '#' . $category['slug']) : '#' . $category['slug']); ?>"><?php echo htmlspecialchars($category['name']); ?></a>
     <?php
             endif;
         endforeach;
@@ -188,7 +188,7 @@ if (!empty($categories) && is_array($categories)):
     foreach ($categories as $category):
         if (!empty($category['menu_items']) && is_array($category['menu_items']) && $category['is_active']):
 ?>
-<a href="<?php echo htmlspecialchars(!empty($fullMenuUrl) ? $fullMenuUrl . '#' . $category['slug'] : '#' . $category['slug']); ?>" onclick="toggleCategoryMenu()" class="text-white py-2 px-4 rounded-lg hover:bg-slate-800 transition-colors"><?php echo htmlspecialchars($category['name']); ?></a>
+<a href="<?php echo htmlspecialchars(!empty($fullMenuUrl) ? ((!empty($singleSectionView) && !empty($sections) && is_array($sections) && !empty($sections[0]['slug'])) ? $fullMenuUrl . '/' . $sections[0]['slug'] . '#' . $category['slug'] : $fullMenuUrl . '#' . $category['slug']) : '#' . $category['slug']); ?>" onclick="toggleCategoryMenu()" class="text-white py-2 px-4 rounded-lg hover:bg-slate-800 transition-colors"><?php echo htmlspecialchars($category['name']); ?></a>
 <?php
         endif;
     endforeach;

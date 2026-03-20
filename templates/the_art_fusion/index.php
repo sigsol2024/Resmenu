@@ -88,7 +88,7 @@ h1, h2, h3, .serif-font { font-family: 'Bodoni Moda', serif; }
 <?php endif; ?>
 <hr class="border-gray-200 my-2" aria-hidden="true" />
 <?php foreach ($activeCategories as $i => $cat): $s = isset($cat['slug']) ? $cat['slug'] : ('section-'.$i); ?>
-<a href="<?php echo htmlspecialchars(!empty($fullMenuUrl) ? $fullMenuUrl . '#' . $s : '#' . $s); ?>" class="art-fusion-nav-link block py-3 px-4 text-sm uppercase tracking-widest font-medium text-gray-700 hover:bg-gray-50 hover:text-[#bc002d] rounded"><?php echo htmlspecialchars($cat['name']); ?></a>
+<a href="<?php echo htmlspecialchars(!empty($fullMenuUrl) ? ((!empty($singleSectionView) && !empty($sections) && is_array($sections) && !empty($sections[0]['slug'])) ? $fullMenuUrl . '/' . $sections[0]['slug'] . '#' . $s : $fullMenuUrl . '#' . $s) : '#' . $s); ?>" class="art-fusion-nav-link block py-3 px-4 text-sm uppercase tracking-widest font-medium text-gray-700 hover:bg-gray-50 hover:text-[#bc002d] rounded"><?php echo htmlspecialchars($cat['name']); ?></a>
 <?php endforeach; ?>
 <hr class="border-gray-200 my-2" aria-hidden="true" />
 <?php if (!empty($supportsReservations)): ?><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="art-fusion-nav-link block py-3 px-4 text-sm uppercase tracking-widest font-medium text-gray-700 hover:text-[#bc002d] bg-white/50 hover:bg-white/70 rounded border border-gray-200 hover:border-[#bc002d] transition-colors">Reserve Table</a><?php endif; ?>

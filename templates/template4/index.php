@@ -243,7 +243,7 @@ function t4_formatPrice($price, $symbol = '₦') {
             <?php endif; ?>
             <hr class="border-white/20 my-2" aria-hidden="true" />
             <?php foreach ($activeCategories as $cat): ?>
-                <a class="text-white/80 hover:text-white font-medium py-2" href="<?php echo htmlspecialchars(!empty($fullMenuUrl) ? $fullMenuUrl . '#' . $cat['slug'] . '-section' : '#' . $cat['slug'] . '-section'); ?>" onclick="toggleMenu()"><?php echo htmlspecialchars($cat['name']); ?></a>
+                <a class="text-white/80 hover:text-white font-medium py-2" href="<?php echo htmlspecialchars(!empty($fullMenuUrl) ? ((!empty($singleSectionView) && !empty($sections) && is_array($sections) && !empty($sections[0]['slug'])) ? $fullMenuUrl . '/' . $sections[0]['slug'] . '#' . $cat['slug'] . '-section' : $fullMenuUrl . '#' . $cat['slug'] . '-section') : '#' . $cat['slug'] . '-section'); ?>" onclick="toggleMenu()"><?php echo htmlspecialchars($cat['name']); ?></a>
             <?php endforeach; ?>
             <hr class="border-white/20 my-2" aria-hidden="true" />
             <?php if (!empty($supportsReservations)): ?>
