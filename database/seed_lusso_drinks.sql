@@ -42,7 +42,6 @@ SET @cat5 = LAST_INSERT_ID();
 INSERT INTO categories (restaurant_id, section_id, name, slug, display_order, is_active)
 SELECT @rid, @sid, 'Gin', 'gin', 6, 1 FROM DUAL WHERE @sid IS NOT NULL LIMIT 1;
 SET @cat6 = LAST_INSERT_ID();
-
 INSERT INTO categories (restaurant_id, section_id, name, slug, display_order, is_active)
 SELECT @rid, @sid, 'Whisky Regular Blend', 'whisky-regular-blend', 7, 1 FROM DUAL WHERE @sid IS NOT NULL LIMIT 1;
 SET @cat7 = LAST_INSERT_ID();

@@ -664,13 +664,13 @@ function getSectionWithCategoriesAndItemsBySlug($restaurantId, $sectionSlug) {
             $stmt = $pdo->prepare("
                 SELECT x.*
                 FROM (
-                    SELECT c.*
+                    SELECT c.*, 0 AS is_secondary
                     FROM categories c
                     WHERE c.restaurant_id = ?
                       AND c.section_id = ?
                       AND c.is_active = 1
-                    UNION
-                    SELECT c.*
+                    UNION ALL
+                    SELECT c.*, 1 AS is_secondary
                     FROM categories c
                     JOIN category_secondary_sections css
                       ON css.category_id = c.id
@@ -678,10 +678,11 @@ function getSectionWithCategoriesAndItemsBySlug($restaurantId, $sectionSlug) {
                       AND css.section_id = ?
                       AND c.is_active = 1
                       AND css.is_active = 1
+                      AND c.section_id <> ?
                 ) x
-                ORDER BY x.display_order ASC, x.name ASC
+                ORDER BY x.is_secondary ASC, x.display_order ASC, x.name ASC
             ");
-            $stmt->execute([$restaurantId, (int)$section['id'], $restaurantId, (int)$section['id']]);
+            $stmt->execute([$restaurantId, (int)$section['id'], $restaurantId, (int)$section['id'], (int)$section['id']]);
             $section['categories'] = $stmt->fetchAll();
         } catch (PDOException $e) {
             // Backward-compatibility: if mapping table doesn't exist, fall back to primary categories.
