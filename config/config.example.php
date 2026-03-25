@@ -18,3 +18,7 @@
 // define('SMTP_PASSWORD', 'your-smtp-password');
 // define('MAIL_FROM_EMAIL', 'noreply@yoursite.com');
 // define('MAIL_FROM_NAME', 'Your Site');
+
+// Google reCAPTCHA (recommended for registration)
+// define('RECAPTCHA_SITE_KEY', 'your-recaptcha-site-key');
+// define('RECAPTCHA_SECRET_KEY', 'your-recaptcha-secret-key');

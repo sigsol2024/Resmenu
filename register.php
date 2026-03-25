@@ -10,6 +10,8 @@ if (!defined('SITE_URL')) {
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/includes/mail.php';
+require_once __DIR__ . '/includes/recaptcha.php';
+require_once __DIR__ . '/includes/rate-limit.php';
 
 function getSafeNextPath($rawNext) {
     $next = trim((string)$rawNext);
@@ -83,6 +85,30 @@ $showcaseRestaurantLogos = [
 ];
 $error = '';
 $info = '';
+
+$recaptchaEnabled = recaptchaIsEnabled();
+$recaptchaSiteKey = $recaptchaEnabled ? (string)RECAPTCHA_SITE_KEY : '';
+$recaptchaSessionKey = 'registration_recaptcha_ok';
+
+function registrationRecaptchaOkForEmail($email, $ttlSeconds = 1800) {
+    global $recaptchaSessionKey;
+    $email = trim((string)$email);
+    $sess = $_SESSION[$recaptchaSessionKey] ?? null;
+    if (!is_array($sess)) return false;
+    $at = (int)($sess['at'] ?? 0);
+    $okEmail = (string)($sess['email'] ?? '');
+    if ($at <= 0 || (time() - $at) > (int)$ttlSeconds) return false;
+    return $okEmail !== '' && $okEmail === $email;
+}
+
+function markRegistrationRecaptchaOk($email) {
+    global $recaptchaSessionKey;
+    $_SESSION[$recaptchaSessionKey] = [
+        'at' => time(),
+        'email' => trim((string)$email),
+        'ip' => $_SERVER['REMOTE_ADDR'] ?? '',
+    ];
+}
 
 function maskEmailForDisplay($email) {
     $email = trim((string)$email);
@@ -185,6 +211,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($managerEmail === '' || !filter_var($managerEmail, FILTER_VALIDATE_EMAIL)) {
                 $error = 'Please enter a valid manager email address.';
             } else {
+                // Abuse prevention: cooldown + max attempts per window (per email + per IP)
+                // This is enforced before sending any OTP email.
+                $emailKey = 'reg-otp-email:' . strtolower($managerEmail);
+                $ipKey = 'reg-otp-ip:' . (string)($_SERVER['REMOTE_ADDR'] ?? '');
+
+                // Cooldowns (seconds)
+                $cooldownEmail = 60;
+                $cooldownIp = 30;
+
+                // Windows + limits
+                $windowSeconds = 3600; // 1 hour
+                $limitPerEmail = 5;
+                $limitPerIp = 15;
+
+                // Cooldown checks
+                if ($error === '') {
+                    $cdEmail = rateLimitCooldownCheck($emailKey, $cooldownEmail, $windowSeconds);
+                    if (!$cdEmail['allowed']) {
+                        $error = "Please wait {$cdEmail['retry_after']} seconds before requesting another verification code.";
+                    }
+                }
+                if ($error === '') {
+                    $cdIp = rateLimitCooldownCheck($ipKey, $cooldownIp, $windowSeconds);
+                    if (!$cdIp['allowed']) {
+                        $error = "Too many requests. Please wait {$cdIp['retry_after']} seconds and try again.";
+                    }
+                }
+
+                // Windowed max-attempt checks
+                if ($error === '') {
+                    $chkEmail = rateLimitCheck($emailKey, $limitPerEmail, $windowSeconds);
+                    if (!$chkEmail['allowed']) {
+                        $mins = (int)ceil($chkEmail['retry_after'] / 60);
+                        $error = "You've requested too many verification codes for this email. Please try again in {$mins} minute(s).";
+                    }
+                }
+                if ($error === '') {
+                    $chkIp = rateLimitCheck($ipKey, $limitPerIp, $windowSeconds);
+                    if (!$chkIp['allowed']) {
+                        $mins = (int)ceil($chkIp['retry_after'] / 60);
+                        $error = "Too many verification requests from your network. Please try again in {$mins} minute(s).";
+                    }
+                }
+
+                // reCAPTCHA gate (prevents bot OTP spam + protects email reputation)
+                if ($error === '' && recaptchaIsEnabled() && !registrationRecaptchaOkForEmail($managerEmail)) {
+                    $token = (string)($_POST['g-recaptcha-response'] ?? '');
+                    $verify = verifyRecaptchaToken($token, $_SERVER['REMOTE_ADDR'] ?? '');
+                    if (empty($verify['success'])) {
+                        $error = 'Please complete the CAPTCHA to continue.';
+                    } else {
+                        markRegistrationRecaptchaOk($managerEmail);
+                    }
+                }
+
                 $lastSentAt = (int)(($_SESSION[$otpSessionKey]['sent_at'] ?? 0));
                 if ($action === 'resend_otp' && $lastSentAt && (time() - $lastSentAt) < 30) {
                     $error = 'Please wait a few seconds before requesting a new code.';
@@ -198,6 +279,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ];
                     $_SESSION[$pendingSessionKey] = $payload;
                     $otpActive = true;
+
+                    // Count this as an OTP send attempt (even if mail fails).
+                    rateLimitHit($emailKey, $windowSeconds);
+                    rateLimitHit($ipKey, $windowSeconds);
 
                     if (sendRegistrationOtpEmail($managerEmail, $siteNameRaw, $otpCode, 10)) {
                         $info = 'We sent a 6-digit verification code to ' . maskEmailForDisplay($managerEmail) . '.';
@@ -246,6 +331,9 @@ function oldValue($key, $default = '') {
             },
         }
     </script>
+    <?php if ($recaptchaEnabled && $recaptchaSiteKey !== ''): ?>
+        <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <?php endif; ?>
     <title>Register - <?php echo $siteName; ?></title>
 </head>
 <body class="bg-background-light dark:bg-background-dark font-display antialiased min-h-screen lg:h-screen overflow-x-hidden lg:overflow-hidden">
@@ -352,6 +440,11 @@ $heroImg = $assetBase . '/assets/images/woman_work.jpg';
                         echo '<input type="hidden" name="' . htmlspecialchars((string)$k, ENT_QUOTES, 'UTF-8') . '" value="' . htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8') . '">' . "\n";
                     }
                     ?>
+                    <?php if ($recaptchaEnabled && !registrationRecaptchaOkForEmail($otpEmail ?? '')): ?>
+                        <div class="mt-4 flex justify-center">
+                            <div class="g-recaptcha" data-sitekey="<?php echo htmlspecialchars($recaptchaSiteKey, ENT_QUOTES, 'UTF-8'); ?>"></div>
+                        </div>
+                    <?php endif; ?>
                     <button class="w-full rounded-xl bg-slate-100 px-5 py-3 text-sm font-bold text-slate-900 hover:bg-slate-200 transition-colors" type="submit">Resend Code</button>
                 </form>
             <?php else: ?>
@@ -461,6 +554,13 @@ $heroImg = $assetBase . '/assets/images/woman_work.jpg';
                         <input class="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary" id="is_active" name="is_active" type="checkbox" <?php echo $isActiveChecked ? 'checked' : ''; ?>/>
                         <label class="text-sm font-medium text-slate-700" for="is_active">Active</label>
                     </div>
+
+                    <?php if ($recaptchaEnabled && $recaptchaSiteKey !== ''): ?>
+                        <div class="pt-2 flex justify-center">
+                            <div class="g-recaptcha" data-sitekey="<?php echo htmlspecialchars($recaptchaSiteKey, ENT_QUOTES, 'UTF-8'); ?>"></div>
+                        </div>
+                        <p class="text-xs text-slate-500 text-center">Please complete the CAPTCHA before creating your account.</p>
+                    <?php endif; ?>
                 </div>
 
                 <div class="flex items-center gap-3 pt-2">
@@ -579,6 +679,22 @@ $heroImg = $assetBase . '/assets/images/woman_work.jpg';
             });
         }
     });
+
+    // Client-side guard: ensure reCAPTCHA is completed before submitting registration.
+    <?php if ($recaptchaEnabled && $recaptchaSiteKey !== ''): ?>
+    const registerForm = document.getElementById('registerForm');
+    if (registerForm) {
+        registerForm.addEventListener('submit', function(e) {
+            if (typeof grecaptcha !== 'undefined' && grecaptcha.getResponse) {
+                const token = grecaptcha.getResponse();
+                if (!token) {
+                    e.preventDefault();
+                    alert('Please complete the CAPTCHA to continue.');
+                }
+            }
+        });
+    }
+    <?php endif; ?>
 
     updateStep();
 })();
