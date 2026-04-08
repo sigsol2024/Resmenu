@@ -2,14 +2,11 @@
 /**
  * Template Preview - Renders a template with sample data for showcase.
  * URL: /template1-preview, /template2-preview, etc. (via .htaccess)
- * Allow embedding in iframe on resmenu.net (X-Frame-Options omitted for this URL in .htaccess).
+ * Template preview page.
  */
 require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/includes/template-loader.php';
 require_once __DIR__ . '/config/config.php';
-
-// Allow this page to be embedded in iframes on resmenu.net (and same origin)
-header("Content-Security-Policy: frame-ancestors 'self' https://resmenu.net https://www.resmenu.net http://resmenu.net http://www.resmenu.net");
 
 // Allow template IDs 1–999 so new templates (5, 6, …) get the same preview behaviour
 $templateId = isset($_GET['t']) ? max(1, min(999, (int)$_GET['t'])) : 1;

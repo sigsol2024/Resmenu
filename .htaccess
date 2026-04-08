@@ -49,11 +49,9 @@ DirectoryIndex index.php index.html
     RewriteRule ^template([0-9]+)-preview/?$ template-preview.php?t=$1 [L,QSA]
 </IfModule>
 
-# Security Headers (allow template preview to be embedded in iframe on resmenu.net)
+# Security Headers
 <IfModule mod_headers.c>
-    SetEnvIf Request_URI "^/template[0-9]+-preview" allow_embed
     Header set X-Content-Type-Options "nosniff"
-    Header set X-Frame-Options "SAMEORIGIN" env=!allow_embed
     Header set X-XSS-Protection "1; mode=block"
 </IfModule>
 
