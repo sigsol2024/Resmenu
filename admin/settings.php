@@ -257,7 +257,18 @@ include __DIR__ . '/../includes/admin-layout.php';
                 <h2 class="card-title">Email Configuration Test</h2>
             </div>
             <div class="card-body">
-                <p style="margin: 0 0 16px; color: #6b7280; font-size: 0.875rem;">Send a test email to verify your SMTP configuration. Current: <?php echo defined('SMTP_HOST') && SMTP_HOST && SMTP_HOST !== 'smtp.example.com' ? 'SMTP (' . htmlspecialchars(SMTP_HOST) . ')' : 'PHP mail()'; ?></p>
+                <p style="margin: 0 0 16px; color: #6b7280; font-size: 0.875rem;">
+                    Send a test email to verify your mail configuration. Current:
+                    <?php
+                        $currentTransport = 'PHP mail()';
+                        if (defined('ZEPTOMAIL_SENDMAIL_TOKEN') && trim((string)ZEPTOMAIL_SENDMAIL_TOKEN) !== '') {
+                            $currentTransport = 'ZeptoMail API';
+                        } elseif (defined('SMTP_HOST') && SMTP_HOST && SMTP_HOST !== 'smtp.example.com') {
+                            $currentTransport = 'SMTP (' . htmlspecialchars(SMTP_HOST) . ')';
+                        }
+                        echo $currentTransport;
+                    ?>
+                </p>
                 <form method="POST">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                     <input type="hidden" name="action" value="test_email">

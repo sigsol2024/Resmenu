@@ -19,9 +19,14 @@ if (!defined('MAIL_FROM_NAME')) {
     define('MAIL_FROM_NAME', 'Resmenu');
 }
 
+if (!defined('MAIL_PHP_FALLBACK_ENABLED')) {
+    define('MAIL_PHP_FALLBACK_ENABLED', true);
+}
+
 require_once __DIR__ . '/../PHPMailer/Exception.php';
 require_once __DIR__ . '/../PHPMailer/PHPMailer.php';
 require_once __DIR__ . '/../PHPMailer/SMTP.php';
+require_once __DIR__ . '/zeptomail.php';
 
 /**
  * Send an HTML email
@@ -42,6 +47,35 @@ function sendEmail($to, $toName, $subject, $htmlBody, $options = []) {
     $fromEmail = $options['from_email'] ?? MAIL_FROM_EMAIL;
     $fromName = $options['from_name'] ?? MAIL_FROM_NAME;
 
+    $replyTo = $options['reply_to'] ?? (defined('ZEPTOMAIL_REPLY_TO') ? ZEPTOMAIL_REPLY_TO : '');
+    $replyTo = is_string($replyTo) ? trim($replyTo) : '';
+    $replyToName = $options['reply_to_name'] ?? '';
+
+    // Primary: ZeptoMail API (transactional)
+    if (function_exists('zeptoMailIsEnabled') && zeptoMailIsEnabled()) {
+        $zeptoOptions = [
+            'reply_to' => $replyTo,
+            'reply_to_name' => $replyToName,
+        ];
+        // Only override ZeptoMail defaults if explicitly provided by the caller.
+        if (array_key_exists('from_email', $options)) $zeptoOptions['from_email'] = $fromEmail;
+        if (array_key_exists('from_name', $options)) $zeptoOptions['from_name'] = $fromName;
+
+        $zeptoResult = zeptoMailSendHtml((string)$to, (string)($toName ?? ''), (string)$subject, (string)$htmlBody, $zeptoOptions);
+
+        if (!empty($zeptoResult['ok'])) {
+            error_log('sendEmail: mail_transport=zeptomail to=' . $to);
+            return true;
+        }
+
+        $rid = !empty($zeptoResult['request_id']) ? (' request_id=' . $zeptoResult['request_id']) : '';
+        $http = isset($zeptoResult['http_code']) ? (int)$zeptoResult['http_code'] : 0;
+        $errno = isset($zeptoResult['curl_errno']) ? (int)$zeptoResult['curl_errno'] : 0;
+        $emsg = !empty($zeptoResult['error_message']) ? (string)$zeptoResult['error_message'] : 'unknown error';
+        error_log("sendEmail ZeptoMail failed to {$to}: http={$http} curl_errno={$errno}{$rid} msg={$emsg}");
+        // fall through to SMTP
+    }
+
     if (MAIL_ENABLED && defined('SMTP_HOST') && SMTP_HOST && SMTP_HOST !== 'smtp.example.com') {
         try {
             $mail = new PHPMailer(true);
@@ -52,8 +86,8 @@ function sendEmail($to, $toName, $subject, $htmlBody, $options = []) {
             $mail->Subject = $subject;
             $mail->Body = $htmlBody;
 
-            if (!empty($options['reply_to'])) {
-                $mail->addReplyTo($options['reply_to'], $options['reply_to_name'] ?? '');
+            if ($replyTo !== '') {
+                $mail->addReplyTo($replyTo, $replyToName);
             }
 
             $mail->isSMTP();
@@ -64,11 +98,17 @@ function sendEmail($to, $toName, $subject, $htmlBody, $options = []) {
             $mail->SMTPSecure = defined('SMTP_SECURE') ? SMTP_SECURE : 'tls';
             $mail->Port = defined('SMTP_PORT') ? (int)SMTP_PORT : 587;
             $mail->send();
+            error_log('sendEmail: mail_transport=smtp to=' . $to);
             return true;
         } catch (PHPMailerException $e) {
             error_log("sendEmail PHPMailer failed to {$to}: {$subject} - " . $e->getMessage());
-            return false;
+            // fall through to PHP mail (if enabled)
         }
+    }
+
+    if (!MAIL_PHP_FALLBACK_ENABLED) {
+        error_log("sendEmail: PHP mail fallback disabled; failing for {$to}");
+        return false;
     }
 
     // Fallback: PHP mail()
@@ -76,11 +116,15 @@ function sendEmail($to, $toName, $subject, $htmlBody, $options = []) {
         'MIME-Version: 1.0',
         'Content-type: text/html; charset=UTF-8',
         'From: ' . $fromName . ' <' . $fromEmail . '>',
+        $replyTo !== '' ? ('Reply-To: ' . $replyTo) : null,
         'X-Mailer: PHP/' . phpversion(),
     ];
+    $headers = array_values(array_filter($headers, static fn($h) => is_string($h) && $h !== ''));
     $sent = @mail($to, $subject, $htmlBody, implode("\r\n", $headers));
     if (!$sent) {
         error_log("sendEmail mail() failed to {$to}: {$subject}");
+    } else {
+        error_log('sendEmail: mail_transport=php_mail to=' . $to);
     }
     return $sent;
 }

@@ -16,8 +16,17 @@
 // define('SMTP_SECURE', 'ssl');
 // define('SMTP_USERNAME', '');
 // define('SMTP_PASSWORD', 'your-smtp-password');
-// define('MAIL_FROM_EMAIL', 'noreply@yoursite.com');
+// define('MAIL_FROM_EMAIL', 'noreply@resmenu.net');
 // define('MAIL_FROM_NAME', 'Your Site');
+
+// ZeptoMail (API) - primary transactional mail transport (recommended)
+// define('ZEPTOMAIL_SENDMAIL_TOKEN', 'your-send-mail-token'); // you can also paste the full \"Zoho-enczapikey <token>\" value; it will be normalized
+// define('ZEPTOMAIL_URL', 'https://api.zeptomail.com/v1.1/email');
+// define('ZEPTOMAIL_FROM_ADDRESS', 'noreply@resmenu.net');
+// define('ZEPTOMAIL_FROM_NAME', 'Resmenu');
+// define('ZEPTOMAIL_REPLY_TO', 'support@resmenu.net');
+// define('ZEPTOMAIL_TIMEOUT_SECONDS', 30);
+// define('MAIL_PHP_FALLBACK_ENABLED', true); // last resort only
 
 // Google reCAPTCHA (recommended for registration)
 // define('RECAPTCHA_SITE_KEY', 'your-recaptcha-site-key');

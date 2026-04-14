@@ -48,13 +48,25 @@ date_default_timezone_set('UTC');
 
 // Email (SMTP) - set MAIL_ENABLED to false to use PHP mail() fallback
 define('MAIL_ENABLED', true);
-if (!defined('MAIL_FROM_EMAIL')) define('MAIL_FROM_EMAIL', getenv('MAIL_FROM_EMAIL') ?: 'services@our-menu.online');
+if (!defined('MAIL_FROM_EMAIL')) define('MAIL_FROM_EMAIL', getenv('MAIL_FROM_EMAIL') ?: 'noreply@resmenu.net');
 if (!defined('MAIL_FROM_NAME')) define('MAIL_FROM_NAME', getenv('MAIL_FROM_NAME') ?: 'Resmenu');
 if (!defined('SMTP_HOST')) define('SMTP_HOST', getenv('SMTP_HOST') ?: '');
 if (!defined('SMTP_PORT')) define('SMTP_PORT', getenv('SMTP_PORT') ?: '465');
 if (!defined('SMTP_SECURE')) define('SMTP_SECURE', getenv('SMTP_SECURE') ?: 'ssl');
 if (!defined('SMTP_USERNAME')) define('SMTP_USERNAME', getenv('SMTP_USERNAME') ?: '');
 if (!defined('SMTP_PASSWORD')) define('SMTP_PASSWORD', getenv('SMTP_PASSWORD') ?: '');
+
+// ZeptoMail (API) - primary transactional mail transport when configured
+// Set ZEPTOMAIL_SENDMAIL_TOKEN to enable (Agent -> SMTP/API -> Send Mail Token).
+if (!defined('ZEPTOMAIL_SENDMAIL_TOKEN')) define('ZEPTOMAIL_SENDMAIL_TOKEN', getenv('ZEPTOMAIL_SENDMAIL_TOKEN') ?: '');
+if (!defined('ZEPTOMAIL_URL')) define('ZEPTOMAIL_URL', getenv('ZEPTOMAIL_URL') ?: 'https://api.zeptomail.com/v1.1/email');
+if (!defined('ZEPTOMAIL_FROM_ADDRESS')) define('ZEPTOMAIL_FROM_ADDRESS', getenv('ZEPTOMAIL_FROM_ADDRESS') ?: 'noreply@resmenu.net');
+if (!defined('ZEPTOMAIL_FROM_NAME')) define('ZEPTOMAIL_FROM_NAME', getenv('ZEPTOMAIL_FROM_NAME') ?: '');
+if (!defined('ZEPTOMAIL_REPLY_TO')) define('ZEPTOMAIL_REPLY_TO', getenv('ZEPTOMAIL_REPLY_TO') ?: 'support@resmenu.net');
+if (!defined('ZEPTOMAIL_TIMEOUT_SECONDS')) define('ZEPTOMAIL_TIMEOUT_SECONDS', (int)(getenv('ZEPTOMAIL_TIMEOUT_SECONDS') ?: 30));
+
+// Last-resort fallback: PHP mail()
+if (!defined('MAIL_PHP_FALLBACK_ENABLED')) define('MAIL_PHP_FALLBACK_ENABLED', (getenv('MAIL_PHP_FALLBACK_ENABLED') === false || getenv('MAIL_PHP_FALLBACK_ENABLED') === '') ? true : (filter_var(getenv('MAIL_PHP_FALLBACK_ENABLED'), FILTER_VALIDATE_BOOLEAN)));
 
 // reCAPTCHA (Google) - set via env or config.local.php
 // Leave empty to disable (registration will not enforce CAPTCHA).
