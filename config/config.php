@@ -68,6 +68,10 @@ if (!defined('ZEPTOMAIL_TIMEOUT_SECONDS')) define('ZEPTOMAIL_TIMEOUT_SECONDS', (
 // Last-resort fallback: PHP mail()
 if (!defined('MAIL_PHP_FALLBACK_ENABLED')) define('MAIL_PHP_FALLBACK_ENABLED', (getenv('MAIL_PHP_FALLBACK_ENABLED') === false || getenv('MAIL_PHP_FALLBACK_ENABLED') === '') ? true : (filter_var(getenv('MAIL_PHP_FALLBACK_ENABLED'), FILTER_VALIDATE_BOOLEAN)));
 
+// Rate limiting storage override (optional)
+// If empty, the app auto-detects a writable directory.
+if (!defined('RATE_LIMIT_DIR')) define('RATE_LIMIT_DIR', getenv('RATE_LIMIT_DIR') ?: '');
+
 // reCAPTCHA (Google) - set via env or config.local.php
 // Leave empty to disable (registration will not enforce CAPTCHA).
 if (!defined('RECAPTCHA_SITE_KEY')) define('RECAPTCHA_SITE_KEY', getenv('RECAPTCHA_SITE_KEY') ?: '');

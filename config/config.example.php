@@ -27,6 +27,7 @@
 // define('ZEPTOMAIL_REPLY_TO', 'support@resmenu.net');
 // define('ZEPTOMAIL_TIMEOUT_SECONDS', 30);
 // define('MAIL_PHP_FALLBACK_ENABLED', true); // last resort only
+// define('RATE_LIMIT_DIR', '/tmp/resmenu-rate-limits'); // optional override for file-based rate limiting
 
 // Google reCAPTCHA (recommended for registration)
 // define('RECAPTCHA_SITE_KEY', 'your-recaptcha-site-key');

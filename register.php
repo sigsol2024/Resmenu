@@ -90,15 +90,20 @@ $recaptchaEnabled = recaptchaIsEnabled();
 $recaptchaSiteKey = $recaptchaEnabled ? (string)RECAPTCHA_SITE_KEY : '';
 $recaptchaSessionKey = 'registration_recaptcha_ok';
 
-function registrationRecaptchaOkForEmail($email, $ttlSeconds = 1800) {
+function registrationRecaptchaOkForEmail($email, $ttlSeconds = 300) {
     global $recaptchaSessionKey;
     $email = trim((string)$email);
     $sess = $_SESSION[$recaptchaSessionKey] ?? null;
     if (!is_array($sess)) return false;
     $at = (int)($sess['at'] ?? 0);
     $okEmail = (string)($sess['email'] ?? '');
+    $okIp = (string)($sess['ip'] ?? '');
+    $ip = (string)($_SERVER['REMOTE_ADDR'] ?? '');
     if ($at <= 0 || (time() - $at) > (int)$ttlSeconds) return false;
-    return $okEmail !== '' && $okEmail === $email;
+    if ($okEmail === '' || $okEmail !== $email) return false;
+    // Bind cached CAPTCHA to same IP to reduce reuse abuse.
+    if ($okIp !== '' && $ip !== '' && $okIp !== $ip) return false;
+    return true;
 }
 
 function markRegistrationRecaptchaOk($email) {
@@ -145,6 +150,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!validateCSRFToken($_POST['csrf_token'] ?? '')) {
         $error = 'Invalid security token. Please refresh and try again.';
     } else {
+        // Honeypot: bots often fill hidden fields.
+        if (!empty($_POST['company'] ?? '')) {
+            error_log('register: honeypot_triggered ip=' . (string)($_SERVER['REMOTE_ADDR'] ?? ''));
+            $error = 'Invalid request.';
+        }
+
         $action = (string)($_POST['registration_action'] ?? 'start');
 
         // Verify OTP step
@@ -215,25 +226,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // This is enforced before sending any OTP email.
                 $emailKey = 'reg-otp-email:' . strtolower($managerEmail);
                 $ipKey = 'reg-otp-ip:' . (string)($_SERVER['REMOTE_ADDR'] ?? '');
+                $globalKey = 'reg-otp-global';
 
-                // Cooldowns (seconds)
+                // If rate limit storage isn't available, fail closed to protect deliverability.
+                if ($error === '' && !getRateLimitDir()) {
+                    error_log('register: otp_rate_limit_storage_unavailable ip=' . ($ipKey ?: ''));
+                    $error = 'Email verification is temporarily unavailable. Please try again later.';
+                }
+
+                // Disposable email blocking (basic)
+                if ($error === '') {
+                    $domain = strtolower(trim((string)substr(strrchr($managerEmail, "@") ?: '', 1)));
+                    $blockedDomains = [
+                        '10minutemail.com',
+                        'tempmail.com',
+                        'yopmail.com',
+                        'mailinator.com',
+                        'guerrillamail.com',
+                        'guerrillamail.net',
+                        'sharklasers.com',
+                        'getnada.com',
+                        'dispostable.com',
+                    ];
+                    foreach ($blockedDomains as $bd) {
+                        $bd = strtolower(trim((string)$bd));
+                        if ($bd === '' || $domain === '') continue;
+                        if ($domain === $bd || (strlen($domain) > strlen($bd) && substr($domain, -strlen('.' . $bd)) === ('.' . $bd))) {
+                            $error = 'Please use a real business email address (disposable emails are not allowed).';
+                            break;
+                        }
+                    }
+                }
+
+                // Tightened cooldowns (seconds)
                 $cooldownEmail = 60;
-                $cooldownIp = 30;
+                $cooldownIp = 60;
 
-                // Windows + limits
-                $windowSeconds = 3600; // 1 hour
-                $limitPerEmail = 5;
-                $limitPerIp = 15;
+                // Tightened windows + limits (active attack posture)
+                $emailWindowSeconds = 15 * 60; // 15 minutes
+                $ipWindowSeconds = 10 * 60;    // 10 minutes
+                $globalWindowSeconds = 60;     // 1 minute
+                $limitPerEmail = 2;            // 2 / 15 min
+                $limitPerIp = 3;               // 3 / 10 min
+                $limitGlobal = 30;             // 30 / minute (system-wide)
 
                 // Cooldown checks
                 if ($error === '') {
-                    $cdEmail = rateLimitCooldownCheck($emailKey, $cooldownEmail, $windowSeconds);
+                    $cdEmail = rateLimitCooldownCheck($emailKey, $cooldownEmail, $emailWindowSeconds);
                     if (!$cdEmail['allowed']) {
                         $error = "Please wait {$cdEmail['retry_after']} seconds before requesting another verification code.";
                     }
                 }
                 if ($error === '') {
-                    $cdIp = rateLimitCooldownCheck($ipKey, $cooldownIp, $windowSeconds);
+                    $cdIp = rateLimitCooldownCheck($ipKey, $cooldownIp, $ipWindowSeconds);
                     if (!$cdIp['allowed']) {
                         $error = "Too many requests. Please wait {$cdIp['retry_after']} seconds and try again.";
                     }
@@ -241,17 +286,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 // Windowed max-attempt checks
                 if ($error === '') {
-                    $chkEmail = rateLimitCheck($emailKey, $limitPerEmail, $windowSeconds);
+                    $chkEmail = rateLimitCheck($emailKey, $limitPerEmail, $emailWindowSeconds);
                     if (!$chkEmail['allowed']) {
                         $mins = (int)ceil($chkEmail['retry_after'] / 60);
                         $error = "You've requested too many verification codes for this email. Please try again in {$mins} minute(s).";
                     }
                 }
                 if ($error === '') {
-                    $chkIp = rateLimitCheck($ipKey, $limitPerIp, $windowSeconds);
+                    $chkIp = rateLimitCheck($ipKey, $limitPerIp, $ipWindowSeconds);
                     if (!$chkIp['allowed']) {
                         $mins = (int)ceil($chkIp['retry_after'] / 60);
                         $error = "Too many verification requests from your network. Please try again in {$mins} minute(s).";
+                    }
+                }
+                if ($error === '') {
+                    $chkGlobal = rateLimitCheck($globalKey, $limitGlobal, $globalWindowSeconds);
+                    if (!$chkGlobal['allowed']) {
+                        $error = 'Too many verification requests right now. Please try again in a minute.';
                     }
                 }
 
@@ -270,6 +321,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($action === 'resend_otp' && $lastSentAt && (time() - $lastSentAt) < 30) {
                     $error = 'Please wait a few seconds before requesting a new code.';
                 } else {
+                    // If the email already belongs to an existing manager, don't send OTPs (prevents targeted spam).
+                    if ($error === '') {
+                        $pdo = getDBConnection();
+                        if ($pdo) {
+                            $stmt = $pdo->prepare('SELECT id FROM managers WHERE email = ? LIMIT 1');
+                            $stmt->execute([$managerEmail]);
+                            if ($stmt->fetch(PDO::FETCH_ASSOC)) {
+                                $error = 'An account already exists for this email. Please sign in instead.';
+                            }
+                        }
+                    }
+
                     $otpCode = (string)random_int(100000, 999999);
                     $_SESSION[$otpSessionKey] = [
                         'hash' => hash('sha256', $otpCode),
@@ -281,8 +344,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $otpActive = true;
 
                     // Count this as an OTP send attempt (even if mail fails).
-                    rateLimitHit($emailKey, $windowSeconds);
-                    rateLimitHit($ipKey, $windowSeconds);
+                    rateLimitHit($emailKey, $emailWindowSeconds);
+                    rateLimitHit($ipKey, $ipWindowSeconds);
+                    rateLimitHit($globalKey, $globalWindowSeconds);
 
                     if (sendRegistrationOtpEmail($managerEmail, $siteNameRaw, $otpCode, 10)) {
                         $info = 'We sent a 6-digit verification code to ' . maskEmailForDisplay($managerEmail) . '.';
@@ -432,6 +496,7 @@ $heroImg = $assetBase . '/assets/images/woman_work.jpg';
                 <form class="mt-4" method="post">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                     <input type="hidden" name="registration_action" value="resend_otp">
+                    <input type="text" name="company" value="" style="display:none" tabindex="-1" autocomplete="off">
                     <?php
                     // Keep pending payload when resending.
                     foreach (($_SESSION[$pendingSessionKey] ?? []) as $k => $v) {
@@ -461,6 +526,7 @@ $heroImg = $assetBase . '/assets/images/woman_work.jpg';
                     <input type="hidden" name="plan" value="<?php echo htmlspecialchars($selectedPlan); ?>">
                     <input type="hidden" name="cycle" value="<?php echo htmlspecialchars($selectedCycle); ?>">
                     <input type="hidden" name="next" value="<?php echo htmlspecialchars($nextPath); ?>">
+                    <input type="text" name="company" value="" style="display:none" tabindex="-1" autocomplete="off">
 
                 <!-- Step 1: Restaurant details (same order as admin) -->
                 <div class="space-y-5" data-step="1">

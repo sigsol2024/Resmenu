@@ -7,6 +7,13 @@ require_once __DIR__ . '/../config/config.php';
 
 function getRateLimitDir() {
     $candidates = [];
+    // Optional override (recommended on locked-down hosts)
+    if (defined('RATE_LIMIT_DIR')) {
+        $override = trim((string)constant('RATE_LIMIT_DIR'));
+        if ($override !== '') {
+            $candidates[] = $override;
+        }
+    }
     $tmp = sys_get_temp_dir();
     if (is_string($tmp) && $tmp !== '') {
         $candidates[] = rtrim($tmp, "\\/") . DIRECTORY_SEPARATOR . 'resmenu-rate-limits';
