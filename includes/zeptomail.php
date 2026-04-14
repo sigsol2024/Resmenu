@@ -90,28 +90,55 @@ if (!function_exists('zeptoMailSendHtml')) {
             ], static fn($v) => $v !== '')];
         }
 
-        $curl = curl_init();
-        curl_setopt_array($curl, [
-            CURLOPT_URL => $url,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => '',
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => $timeout,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS => json_encode($payload),
-            CURLOPT_HTTPHEADER => [
-                'accept: application/json',
-                'content-type: application/json',
-                'authorization: Zoho-enczapikey ' . $token,
-            ],
-        ]);
+        $attempts = 2; // initial + one retry (transient network/API blips)
+        $responseBody = '';
+        $curlErrno = 0;
+        $httpCode = 0;
+        $curlError = '';
 
-        $responseBody = (string)curl_exec($curl);
-        $curlErrno = (int)curl_errno($curl);
-        $httpCode = (int)curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        $curlError = (string)curl_error($curl);
-        curl_close($curl);
+        for ($attempt = 1; $attempt <= $attempts; $attempt++) {
+            $curl = curl_init();
+            curl_setopt_array($curl, [
+                CURLOPT_URL => $url,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => $timeout,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'POST',
+                CURLOPT_POSTFIELDS => json_encode($payload),
+                CURLOPT_HTTPHEADER => [
+                    'accept: application/json',
+                    'content-type: application/json',
+                    'authorization: Zoho-enczapikey ' . $token,
+                ],
+                // Explicit SSL verification for consistency/safety.
+                CURLOPT_SSL_VERIFYPEER => true,
+                CURLOPT_SSL_VERIFYHOST => 2,
+            ]);
+
+            $responseBody = (string)curl_exec($curl);
+            $curlErrno = (int)curl_errno($curl);
+            $httpCode = (int)curl_getinfo($curl, CURLINFO_HTTP_CODE);
+            $curlError = (string)curl_error($curl);
+            curl_close($curl);
+
+            // Retry only on likely-transient failures.
+            $shouldRetry =
+                ($attempt < $attempts) &&
+                (
+                    $curlErrno !== 0 ||
+                    $httpCode === 0 ||
+                    $httpCode === 408 ||
+                    $httpCode === 425 ||
+                    $httpCode === 429 ||
+                    ($httpCode >= 500 && $httpCode <= 599)
+                );
+
+            if (!$shouldRetry) {
+                break;
+            }
+        }
 
         $requestId = null;
         $errorMessage = null;

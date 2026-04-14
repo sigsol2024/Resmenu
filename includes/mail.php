@@ -28,6 +28,29 @@ require_once __DIR__ . '/../PHPMailer/PHPMailer.php';
 require_once __DIR__ . '/../PHPMailer/SMTP.php';
 require_once __DIR__ . '/zeptomail.php';
 
+if (!function_exists('sendEmailRecipientHash')) {
+    function sendEmailRecipientHash(string $email): string
+    {
+        $email = strtolower(trim($email));
+        return substr(hash('sha256', $email), 0, 12);
+    }
+}
+
+if (!function_exists('sendEmailLogTransport')) {
+    function sendEmailLogTransport(string $transport, string $status, string $toEmail, array $extra = []): void
+    {
+        $parts = [];
+        $parts[] = 'transport=' . $transport;
+        $parts[] = 'status=' . $status;
+        $parts[] = 'to_hash=' . sendEmailRecipientHash($toEmail);
+        foreach ($extra as $k => $v) {
+            if ($v === null || $v === '') continue;
+            $parts[] = $k . '=' . $v;
+        }
+        error_log('sendEmail: ' . implode(' ', $parts));
+    }
+}
+
 /**
  * Send an HTML email
  *
@@ -64,15 +87,22 @@ function sendEmail($to, $toName, $subject, $htmlBody, $options = []) {
         $zeptoResult = zeptoMailSendHtml((string)$to, (string)($toName ?? ''), (string)$subject, (string)$htmlBody, $zeptoOptions);
 
         if (!empty($zeptoResult['ok'])) {
-            error_log('sendEmail: mail_transport=zeptomail to=' . $to);
+            sendEmailLogTransport('zeptomail', 'success', (string)$to, [
+                'http' => (string)((int)($zeptoResult['http_code'] ?? 0)),
+                'request_id' => (string)($zeptoResult['request_id'] ?? ''),
+            ]);
             return true;
         }
 
-        $rid = !empty($zeptoResult['request_id']) ? (' request_id=' . $zeptoResult['request_id']) : '';
         $http = isset($zeptoResult['http_code']) ? (int)$zeptoResult['http_code'] : 0;
         $errno = isset($zeptoResult['curl_errno']) ? (int)$zeptoResult['curl_errno'] : 0;
         $emsg = !empty($zeptoResult['error_message']) ? (string)$zeptoResult['error_message'] : 'unknown error';
-        error_log("sendEmail ZeptoMail failed to {$to}: http={$http} curl_errno={$errno}{$rid} msg={$emsg}");
+        sendEmailLogTransport('zeptomail', 'fail', (string)$to, [
+            'http' => (string)$http,
+            'curl_errno' => (string)$errno,
+            'request_id' => (string)($zeptoResult['request_id'] ?? ''),
+            'reason' => $emsg,
+        ]);
         // fall through to SMTP
     }
 
@@ -98,10 +128,15 @@ function sendEmail($to, $toName, $subject, $htmlBody, $options = []) {
             $mail->SMTPSecure = defined('SMTP_SECURE') ? SMTP_SECURE : 'tls';
             $mail->Port = defined('SMTP_PORT') ? (int)SMTP_PORT : 587;
             $mail->send();
-            error_log('sendEmail: mail_transport=smtp to=' . $to);
+            sendEmailLogTransport('smtp', 'success', (string)$to, [
+                'host' => (string)SMTP_HOST,
+            ]);
             return true;
         } catch (PHPMailerException $e) {
-            error_log("sendEmail PHPMailer failed to {$to}: {$subject} - " . $e->getMessage());
+            sendEmailLogTransport('smtp', 'fail', (string)$to, [
+                'host' => (string)(defined('SMTP_HOST') ? SMTP_HOST : ''),
+                'reason' => $e->getMessage(),
+            ]);
             // fall through to PHP mail (if enabled)
         }
     }
@@ -122,9 +157,9 @@ function sendEmail($to, $toName, $subject, $htmlBody, $options = []) {
     $headers = array_values(array_filter($headers, static fn($h) => is_string($h) && $h !== ''));
     $sent = @mail($to, $subject, $htmlBody, implode("\r\n", $headers));
     if (!$sent) {
-        error_log("sendEmail mail() failed to {$to}: {$subject}");
+        sendEmailLogTransport('php_mail', 'fail', (string)$to, []);
     } else {
-        error_log('sendEmail: mail_transport=php_mail to=' . $to);
+        sendEmailLogTransport('php_mail', 'success', (string)$to, []);
     }
     return $sent;
 }
