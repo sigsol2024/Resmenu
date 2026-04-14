@@ -456,6 +456,24 @@ body{
   font-weight:400;
 }
 
+.help-btn{
+  color:#0f172a;
+}
+
+.help-btn:hover{
+  background:#f1f5f9;
+  color:#0f172a;
+}
+
+.sidebar-modern.dark .help-btn{
+  color:#e2e8f0;
+}
+
+.sidebar-modern.dark .help-btn:hover{
+  background:rgba(148,163,184,.12);
+  color:#fff;
+}
+
 .logout-btn .nav-icon-wrapper{
   display:flex;
   align-items:center;
