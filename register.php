@@ -12,6 +12,17 @@ require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/includes/mail.php';
 require_once __DIR__ . '/includes/recaptcha.php';
 require_once __DIR__ . '/includes/rate-limit.php';
+require_once __DIR__ . '/includes/email-suppression.php';
+require_once __DIR__ . '/includes/disposable-email.php';
+require_once __DIR__ . '/includes/email-deliverability.php';
+require_once __DIR__ . '/includes/registration-otp-log.php';
+
+if (!defined('REG_OTP_MSG_ADDRESS_UNDELIVERABLE')) {
+    define('REG_OTP_MSG_ADDRESS_UNDELIVERABLE', 'We could not send a verification code to this address. Please try a different email or try again in a few minutes.');
+}
+if (!defined('REG_OTP_MSG_VERIFY_LATER')) {
+    define('REG_OTP_MSG_VERIFY_LATER', 'We could not verify your email right now. Please try again in a few minutes.');
+}
 
 function getSafeNextPath($rawNext) {
     $next = trim((string)$rawNext);
@@ -88,32 +99,6 @@ $info = '';
 
 $recaptchaEnabled = recaptchaIsEnabled();
 $recaptchaSiteKey = $recaptchaEnabled ? (string)RECAPTCHA_SITE_KEY : '';
-$recaptchaSessionKey = 'registration_recaptcha_ok';
-
-function registrationRecaptchaOkForEmail($email, $ttlSeconds = 300) {
-    global $recaptchaSessionKey;
-    $email = trim((string)$email);
-    $sess = $_SESSION[$recaptchaSessionKey] ?? null;
-    if (!is_array($sess)) return false;
-    $at = (int)($sess['at'] ?? 0);
-    $okEmail = (string)($sess['email'] ?? '');
-    $okIp = (string)($sess['ip'] ?? '');
-    $ip = (string)($_SERVER['REMOTE_ADDR'] ?? '');
-    if ($at <= 0 || (time() - $at) > (int)$ttlSeconds) return false;
-    if ($okEmail === '' || $okEmail !== $email) return false;
-    // Bind cached CAPTCHA to same IP to reduce reuse abuse.
-    if ($okIp !== '' && $ip !== '' && $okIp !== $ip) return false;
-    return true;
-}
-
-function markRegistrationRecaptchaOk($email) {
-    global $recaptchaSessionKey;
-    $_SESSION[$recaptchaSessionKey] = [
-        'at' => time(),
-        'email' => trim((string)$email),
-        'ip' => $_SERVER['REMOTE_ADDR'] ?? '',
-    ];
-}
 
 function maskEmailForDisplay($email) {
     $email = trim((string)$email);
@@ -152,7 +137,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         // Honeypot: bots often fill hidden fields.
         if (!empty($_POST['company'] ?? '')) {
-            error_log('register: honeypot_triggered ip=' . (string)($_SERVER['REMOTE_ADDR'] ?? ''));
+            registerOtpLogBlocked('honeypot', (string)($_POST['manager_email'] ?? ''));
             $error = 'Invalid request.';
         }
 
@@ -216,80 +201,86 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
         } else {
-            // Start or resend OTP step
+            // Start or resend OTP step — all gates must pass before any session/mail/rate-limit hits.
             $payload = $_POST;
             $managerEmail = trim((string)($payload['manager_email'] ?? ''));
             if ($managerEmail === '' || !filter_var($managerEmail, FILTER_VALIDATE_EMAIL)) {
                 $error = 'Please enter a valid manager email address.';
             } else {
-                // Abuse prevention: cooldown + max attempts per window (per email + per IP)
-                // This is enforced before sending any OTP email.
+                // New registration attempt with a different email: drop stale OTP session (only latest code valid).
+                $prevOtpEmail = (string)($_SESSION[$otpSessionKey]['email'] ?? '');
+                if ($prevOtpEmail !== '' && strcasecmp($prevOtpEmail, $managerEmail) !== 0) {
+                    unset($_SESSION[$otpSessionKey], $_SESSION[$pendingSessionKey]);
+                }
+
                 $emailKey = 'reg-otp-email:' . strtolower($managerEmail);
-                $ipKey = 'reg-otp-ip:' . (string)($_SERVER['REMOTE_ADDR'] ?? '');
+                // Client IP: use getClientIpAddress() so limits align with CF / reverse proxy (trusted edge only).
+                $clientIp = getClientIpAddress();
+                $ipKey = 'reg-otp-ip:' . $clientIp;
                 $globalKey = 'reg-otp-global';
 
-                // If rate limit storage isn't available, fail closed to protect deliverability.
+                $emailWindowSeconds = max(60, (int)REG_OTP_EMAIL_WINDOW_SECONDS);
+                $ipWindowSeconds = max(60, (int)REG_OTP_IP_WINDOW_SECONDS);
+                $globalWindowSeconds = max(30, (int)REG_OTP_GLOBAL_WINDOW_SECONDS);
+                $limitPerEmail = max(1, (int)REG_OTP_LIMIT_PER_EMAIL);
+                $limitPerIp = max(1, (int)REG_OTP_LIMIT_PER_IP);
+                $limitGlobal = max(1, (int)REG_OTP_LIMIT_GLOBAL);
+                $cooldownEmail = max(15, (int)REG_OTP_COOLDOWN_EMAIL_SECONDS);
+                $cooldownIp = max(15, (int)REG_OTP_COOLDOWN_IP_SECONDS);
+
+                $blockReason = '';
+
                 if ($error === '' && !getRateLimitDir()) {
-                    error_log('register: otp_rate_limit_storage_unavailable ip=' . ($ipKey ?: ''));
+                    error_log('register: otp_rate_limit_storage_unavailable ip_hash=' . substr(hash('sha256', $clientIp), 0, 16));
                     $error = 'Email verification is temporarily unavailable. Please try again later.';
                 }
 
-                // Disposable email blocking (basic)
+                $pdoEarly = null;
                 if ($error === '') {
-                    $domain = strtolower(trim((string)substr(strrchr($managerEmail, "@") ?: '', 1)));
-                    $blockedDomains = [
-                        '10minutemail.com',
-                        'tempmail.com',
-                        'yopmail.com',
-                        'mailinator.com',
-                        'guerrillamail.com',
-                        'guerrillamail.net',
-                        'sharklasers.com',
-                        'getnada.com',
-                        'dispostable.com',
-                    ];
-                    foreach ($blockedDomains as $bd) {
-                        $bd = strtolower(trim((string)$bd));
-                        if ($bd === '' || $domain === '') continue;
-                        if ($domain === $bd || (strlen($domain) > strlen($bd) && substr($domain, -strlen('.' . $bd)) === ('.' . $bd))) {
-                            $error = 'Please use a real business email address (disposable emails are not allowed).';
-                            break;
-                        }
+                    $pdoEarly = getDBConnection();
+                    if (!$pdoEarly) {
+                        // Fail closed: suppression + duplicate-manager checks require DB; do not send OTP blind.
+                        $error = 'Email verification is temporarily unavailable. Please try again in a few minutes.';
+                        $blockReason = 'otp_db_unavailable';
+                    } elseif (registrationOtpIsSuppressed($pdoEarly, $managerEmail)) {
+                        $error = REG_OTP_MSG_ADDRESS_UNDELIVERABLE;
+                        $blockReason = 'suppressed_hard_bounce';
                     }
                 }
 
-                // Tightened cooldowns (seconds)
-                $cooldownEmail = 60;
-                $cooldownIp = 60;
+                if ($error === '') {
+                    $domain = strtolower(trim((string)substr(strrchr($managerEmail, '@') ?: '', 1)));
+                    if (registrationOtpIsDisposableDomain($domain)) {
+                        $error = REG_OTP_MSG_ADDRESS_UNDELIVERABLE;
+                        $blockReason = 'disposable';
+                    }
+                }
 
-                // Tightened windows + limits (active attack posture)
-                $emailWindowSeconds = 15 * 60; // 15 minutes
-                $ipWindowSeconds = 10 * 60;    // 10 minutes
-                $globalWindowSeconds = 60;     // 1 minute
-                $limitPerEmail = 2;            // 2 / 15 min
-                $limitPerIp = 3;               // 3 / 10 min
-                $limitGlobal = 30;             // 30 / minute (system-wide)
+                if ($error === '' && registrationOtpLocalPartSuspicious($managerEmail)) {
+                    $error = REG_OTP_MSG_ADDRESS_UNDELIVERABLE;
+                    $blockReason = 'local_part_heuristic';
+                }
 
-                // Cooldown checks
                 if ($error === '') {
                     $cdEmail = rateLimitCooldownCheck($emailKey, $cooldownEmail, $emailWindowSeconds);
                     if (!$cdEmail['allowed']) {
                         $error = "Please wait {$cdEmail['retry_after']} seconds before requesting another verification code.";
+                        $blockReason = 'rate_email_cooldown';
                     }
                 }
                 if ($error === '') {
                     $cdIp = rateLimitCooldownCheck($ipKey, $cooldownIp, $ipWindowSeconds);
                     if (!$cdIp['allowed']) {
                         $error = "Too many requests. Please wait {$cdIp['retry_after']} seconds and try again.";
+                        $blockReason = 'rate_ip_cooldown';
                     }
                 }
-
-                // Windowed max-attempt checks
                 if ($error === '') {
                     $chkEmail = rateLimitCheck($emailKey, $limitPerEmail, $emailWindowSeconds);
                     if (!$chkEmail['allowed']) {
                         $mins = (int)ceil($chkEmail['retry_after'] / 60);
                         $error = "You've requested too many verification codes for this email. Please try again in {$mins} minute(s).";
+                        $blockReason = 'rate_email';
                     }
                 }
                 if ($error === '') {
@@ -297,60 +288,80 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if (!$chkIp['allowed']) {
                         $mins = (int)ceil($chkIp['retry_after'] / 60);
                         $error = "Too many verification requests from your network. Please try again in {$mins} minute(s).";
+                        $blockReason = 'rate_ip';
                     }
                 }
                 if ($error === '') {
                     $chkGlobal = rateLimitCheck($globalKey, $limitGlobal, $globalWindowSeconds);
                     if (!$chkGlobal['allowed']) {
                         $error = 'Too many verification requests right now. Please try again in a minute.';
+                        $blockReason = 'rate_global';
                     }
                 }
 
-                // reCAPTCHA gate (prevents bot OTP spam + protects email reputation)
-                if ($error === '' && recaptchaIsEnabled() && !registrationRecaptchaOkForEmail($managerEmail)) {
+                // reCAPTCHA before MX (reduces DNS load; fresh verify every OTP send — no session bypass).
+                if ($error === '' && $recaptchaEnabled) {
                     $token = (string)($_POST['g-recaptcha-response'] ?? '');
-                    $verify = verifyRecaptchaToken($token, $_SERVER['REMOTE_ADDR'] ?? '');
+                    $verify = verifyRecaptchaToken($token, $clientIp);
                     if (empty($verify['success'])) {
                         $error = 'Please complete the CAPTCHA to continue.';
-                    } else {
-                        markRegistrationRecaptchaOk($managerEmail);
+                        $blockReason = 'captcha';
+                    }
+                }
+
+                if ($error === '') {
+                    $mx = registrationOtpMxEvaluate($managerEmail);
+                    if (($mx['state'] ?? '') === 'permanent_bad') {
+                        $error = REG_OTP_MSG_ADDRESS_UNDELIVERABLE;
+                        $blockReason = 'mx_permanent';
+                    } elseif (($mx['state'] ?? '') === 'transient_unavailable') {
+                        $error = REG_OTP_MSG_VERIFY_LATER;
+                        $blockReason = 'mx_temp_unavailable';
                     }
                 }
 
                 $lastSentAt = (int)(($_SESSION[$otpSessionKey]['sent_at'] ?? 0));
-                if ($action === 'resend_otp' && $lastSentAt && (time() - $lastSentAt) < 30) {
+                if ($error === '' && $action === 'resend_otp' && $lastSentAt && (time() - $lastSentAt) < 30) {
                     $error = 'Please wait a few seconds before requesting a new code.';
-                } else {
-                    // If the email already belongs to an existing manager, don't send OTPs (prevents targeted spam).
-                    if ($error === '') {
-                        $pdo = getDBConnection();
-                        if ($pdo) {
-                            $stmt = $pdo->prepare('SELECT id FROM managers WHERE email = ? LIMIT 1');
-                            $stmt->execute([$managerEmail]);
-                            if ($stmt->fetch(PDO::FETCH_ASSOC)) {
-                                $error = 'An account already exists for this email. Please sign in instead.';
-                            }
-                        }
-                    }
+                    $blockReason = 'resend_cooldown';
+                }
 
+                if ($error === '') {
+                    $stmt = $pdoEarly->prepare('SELECT id FROM managers WHERE email = ? LIMIT 1');
+                    $stmt->execute([$managerEmail]);
+                    if ($stmt->fetch(PDO::FETCH_ASSOC)) {
+                        $error = REG_OTP_MSG_ADDRESS_UNDELIVERABLE . ' If you already have an account, use Log In below.';
+                        $blockReason = 'existing_manager';
+                    }
+                }
+
+                if ($blockReason !== '' && $error !== '') {
+                    registerOtpLogBlocked($blockReason, $managerEmail);
+                }
+
+                if ($error === '') {
+                    // Only the latest OTP in session is valid: each send overwrites hash, sent_at, and expires_at.
+                    $otpTtlMin = max(5, min(10, (int)REG_OTP_TTL_MINUTES));
                     $otpCode = (string)random_int(100000, 999999);
                     $_SESSION[$otpSessionKey] = [
                         'hash' => hash('sha256', $otpCode),
                         'sent_at' => time(),
-                        'expires_at' => time() + (10 * 60),
+                        'expires_at' => time() + ($otpTtlMin * 60),
                         'email' => $managerEmail,
+                        'ttl_minutes' => $otpTtlMin,
                     ];
                     $_SESSION[$pendingSessionKey] = $payload;
                     $otpActive = true;
 
-                    // Count this as an OTP send attempt (even if mail fails).
-                    rateLimitHit($emailKey, $emailWindowSeconds);
-                    rateLimitHit($ipKey, $ipWindowSeconds);
-                    rateLimitHit($globalKey, $globalWindowSeconds);
-
-                    if (sendRegistrationOtpEmail($managerEmail, $siteNameRaw, $otpCode, 10)) {
+                    if (sendRegistrationOtpEmail($managerEmail, $siteNameRaw, $otpCode, $otpTtlMin)) {
+                        rateLimitHit($emailKey, $emailWindowSeconds);
+                        rateLimitHit($ipKey, $ipWindowSeconds);
+                        rateLimitHit($globalKey, $globalWindowSeconds);
                         $info = 'We sent a 6-digit verification code to ' . maskEmailForDisplay($managerEmail) . '.';
                     } else {
+                        unset($_SESSION[$otpSessionKey], $_SESSION[$pendingSessionKey]);
+                        $otpActive = false;
+                        registerOtpLogBlocked('send_fail', $managerEmail);
                         $error = 'We could not send the verification code. Please try again.';
                     }
                 }
@@ -358,6 +369,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+
+$otpActive = is_array($_SESSION[$otpSessionKey] ?? null) && is_array($_SESSION[$pendingSessionKey] ?? null);
+$otpTtlUi = $otpActive
+    ? (int)(($_SESSION[$otpSessionKey]['ttl_minutes'] ?? 10) ?: 10)
+    : max(5, min(10, (int)(defined('REG_OTP_TTL_MINUTES') ? REG_OTP_TTL_MINUTES : 10)));
 
 function oldValue($key, $default = '') {
     return htmlspecialchars($_POST[$key] ?? $default, ENT_QUOTES, 'UTF-8');
@@ -487,13 +503,13 @@ $heroImg = $assetBase . '/assets/images/woman_work.jpg';
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="otp_code">6-digit code</label>
                         <input class="block w-full rounded-lg border-slate-200 bg-white px-4 py-3 text-center tracking-[0.5em] font-extrabold text-slate-900 placeholder:text-slate-400 focus:border-primary focus:ring-primary sm:text-lg shadow-sm" id="otp_code" name="otp_code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="••••••" required>
-                        <p class="mt-2 text-xs text-slate-500">Code expires in 10 minutes.</p>
+                        <p class="mt-2 text-xs text-slate-500">Code expires in <?php echo (int)$otpTtlUi; ?> minutes.</p>
                     </div>
 
                     <button class="w-full rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white hover:bg-primary/90 transition-colors" type="submit">Verify & Create Account</button>
                 </form>
 
-                <form class="mt-4" method="post">
+                <form id="resendOtpForm" class="mt-4" method="post">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
                     <input type="hidden" name="registration_action" value="resend_otp">
                     <input type="text" name="company" value="" style="display:none" tabindex="-1" autocomplete="off">
@@ -505,7 +521,7 @@ $heroImg = $assetBase . '/assets/images/woman_work.jpg';
                         echo '<input type="hidden" name="' . htmlspecialchars((string)$k, ENT_QUOTES, 'UTF-8') . '" value="' . htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8') . '">' . "\n";
                     }
                     ?>
-                    <?php if ($recaptchaEnabled && !registrationRecaptchaOkForEmail($otpEmail ?? '')): ?>
+                    <?php if ($recaptchaEnabled && $recaptchaSiteKey !== ''): ?>
                         <div class="mt-4 flex justify-center">
                             <div class="g-recaptcha" data-sitekey="<?php echo htmlspecialchars($recaptchaSiteKey, ENT_QUOTES, 'UTF-8'); ?>"></div>
                         </div>
@@ -760,6 +776,29 @@ $heroImg = $assetBase . '/assets/images/woman_work.jpg';
             }
         });
     }
+    <?php endif; ?>
+
+    <?php if ($recaptchaEnabled && $recaptchaSiteKey !== ''): ?>
+    const resendOtpForm = document.getElementById('resendOtpForm');
+    if (resendOtpForm) {
+        resendOtpForm.addEventListener('submit', function(e) {
+            if (typeof grecaptcha !== 'undefined' && grecaptcha.getResponse) {
+                const token = grecaptcha.getResponse();
+                if (!token) {
+                    e.preventDefault();
+                    alert('Please complete the CAPTCHA to continue.');
+                }
+            }
+        });
+    }
+    <?php endif; ?>
+
+    <?php if ($recaptchaEnabled && $recaptchaSiteKey !== '' && !empty($error)): ?>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof grecaptcha !== 'undefined' && grecaptcha.reset) {
+            try { grecaptcha.reset(); } catch (err) {}
+        }
+    });
     <?php endif; ?>
 
     updateStep();

@@ -32,3 +32,18 @@
 // Google reCAPTCHA (recommended for registration)
 // define('RECAPTCHA_SITE_KEY', 'your-recaptcha-site-key');
 // define('RECAPTCHA_SECRET_KEY', 'your-recaptcha-secret-key');
+
+// Registration OTP (deliverability / abuse; defaults are B2B-safe — override via env if needed)
+// define('REG_OTP_LIMIT_PER_EMAIL', 3);           // max OTP sends per email per window
+// define('REG_OTP_EMAIL_WINDOW_SECONDS', 3600);  // window for per-email limit (1 hour)
+// define('REG_OTP_LIMIT_PER_IP', 5);
+// define('REG_OTP_IP_WINDOW_SECONDS', 3600);
+// define('REG_OTP_LIMIT_GLOBAL', 8);             // max OTP sends per minute site-wide
+// define('REG_OTP_GLOBAL_WINDOW_SECONDS', 60);
+// define('REG_OTP_COOLDOWN_EMAIL_SECONDS', 60);
+// define('REG_OTP_COOLDOWN_IP_SECONDS', 60);
+// define('REG_OTP_TTL_MINUTES', 10);             // OTP validity (clamped 5–10 in code)
+// define('REG_OTP_STRICT_LOCAL_PART', false);     // optional aggressive local-part heuristic
+// define('REG_OTP_BOUNCE_WEBHOOK_SECRET', '');   // Bearer / X-Webhook-Secret for api/email-suppression-webhook.php (prefer X-Webhook-Secret if Apache strips Authorization)
+
+// Hard-bounce suppression for registration OTP: run database/migration_registration_email_suppression.sql once.

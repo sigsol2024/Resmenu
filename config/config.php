@@ -77,6 +77,22 @@ if (!defined('RATE_LIMIT_DIR')) define('RATE_LIMIT_DIR', getenv('RATE_LIMIT_DIR'
 if (!defined('RECAPTCHA_SITE_KEY')) define('RECAPTCHA_SITE_KEY', getenv('RECAPTCHA_SITE_KEY') ?: '');
 if (!defined('RECAPTCHA_SECRET_KEY')) define('RECAPTCHA_SECRET_KEY', getenv('RECAPTCHA_SECRET_KEY') ?: '');
 
+// Registration OTP rate limits (deliverability / abuse; B2B restaurant defaults)
+if (!defined('REG_OTP_LIMIT_PER_EMAIL')) define('REG_OTP_LIMIT_PER_EMAIL', (int)(getenv('REG_OTP_LIMIT_PER_EMAIL') ?: 3));
+if (!defined('REG_OTP_EMAIL_WINDOW_SECONDS')) define('REG_OTP_EMAIL_WINDOW_SECONDS', (int)(getenv('REG_OTP_EMAIL_WINDOW_SECONDS') ?: 3600));
+if (!defined('REG_OTP_LIMIT_PER_IP')) define('REG_OTP_LIMIT_PER_IP', (int)(getenv('REG_OTP_LIMIT_PER_IP') ?: 5));
+if (!defined('REG_OTP_IP_WINDOW_SECONDS')) define('REG_OTP_IP_WINDOW_SECONDS', (int)(getenv('REG_OTP_IP_WINDOW_SECONDS') ?: 3600));
+if (!defined('REG_OTP_LIMIT_GLOBAL')) define('REG_OTP_LIMIT_GLOBAL', (int)(getenv('REG_OTP_LIMIT_GLOBAL') ?: 8));
+if (!defined('REG_OTP_GLOBAL_WINDOW_SECONDS')) define('REG_OTP_GLOBAL_WINDOW_SECONDS', (int)(getenv('REG_OTP_GLOBAL_WINDOW_SECONDS') ?: 60));
+if (!defined('REG_OTP_COOLDOWN_EMAIL_SECONDS')) define('REG_OTP_COOLDOWN_EMAIL_SECONDS', (int)(getenv('REG_OTP_COOLDOWN_EMAIL_SECONDS') ?: 60));
+if (!defined('REG_OTP_COOLDOWN_IP_SECONDS')) define('REG_OTP_COOLDOWN_IP_SECONDS', (int)(getenv('REG_OTP_COOLDOWN_IP_SECONDS') ?: 60));
+if (!defined('REG_OTP_TTL_MINUTES')) define('REG_OTP_TTL_MINUTES', (int)(getenv('REG_OTP_TTL_MINUTES') ?: 10));
+if (!defined('REG_OTP_STRICT_LOCAL_PART')) {
+    $strict = getenv('REG_OTP_STRICT_LOCAL_PART');
+    define('REG_OTP_STRICT_LOCAL_PART', $strict !== false && $strict !== '' ? filter_var($strict, FILTER_VALIDATE_BOOLEAN) : false);
+}
+if (!defined('REG_OTP_BOUNCE_WEBHOOK_SECRET')) define('REG_OTP_BOUNCE_WEBHOOK_SECRET', getenv('REG_OTP_BOUNCE_WEBHOOK_SECRET') ?: '');
+
 // Error reporting (set to 0 in production)
 // IMPORTANT: Set these to 0 in production!
 error_reporting(E_ALL);
