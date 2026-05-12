@@ -8,6 +8,9 @@ require_once __DIR__ . '/../includes/auth.php';
 requireManager();
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/order-functions.php';
+require_once __DIR__ . '/../includes/csrf.php';
+
+$reservationsPageCsrf = getCSRFToken();
 
 $restaurantId = getCurrentUserRestaurantId();
 if (!$restaurantId) {
@@ -324,6 +327,7 @@ $statusColors = ['pending' => '#f59e0b', 'confirmed' => '#10b981', 'rejected' =>
 
 <script>
 (function() {
+    const CSRF_TOKEN = <?php echo json_encode($reservationsPageCsrf); ?>;
     const slug = <?php echo json_encode($restaurantSlug); ?>;
     const symbol = <?php echo json_encode($currencySymbol); ?>;
 
@@ -434,6 +438,7 @@ $statusColors = ['pending' => '#f59e0b', 'confirmed' => '#10b981', 'rejected' =>
             e.preventDefault();
             const amt = parseFloat(document.getElementById('deposit_amount').value) || 0;
             const fd = new FormData();
+            fd.append('csrf_token', CSRF_TOKEN);
             fd.append('deposit_amount', amt);
             btn.disabled = true;
             btn.textContent = 'Saving…';

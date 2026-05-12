@@ -25,7 +25,22 @@ desktop.ini
 
 # Config (sensitive - use config.local.php or env)
 .env
+.env.*.local
 config/config.local.php
+
+# Database SQL folder — not executed by PHP from the web tree; you import via phpMyAdmin from your dev copy.
+# Keeps dumps/migrations/seeds out of Git deploys to production; keep the same files locally for manual import.
+database/
+
+# Logs and noisy runtime (paths may vary by host)
+logs/
+*.log
+**/mx-reg-cache/
+
+# Other large SQL dump patterns (optional extra safety outside database/)
+*.sql.gz
+backup*.sql
+dump*.sql
 
 # Temporary files
 *.tmp

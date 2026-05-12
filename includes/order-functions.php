@@ -230,6 +230,48 @@ function sendReservationDepositPaidEmail($reservationId, $restaurantId) {
 }
 
 /**
+ * Validate cart lines and compute subtotal using server menu prices (ignores client price/name).
+ *
+ * @param int $restaurantId
+ * @param array $cart cart lines with id (menu_item_id), quantity
+ * @return array{success:bool, subtotal:float, lines:array<int, array{menu_item_id:int,name:string,price:float,quantity:int}>, errors:string[]}
+ */
+function validateRestaurantOrderCart($restaurantId, array $cart) {
+    $errors = [];
+    $pdo = getDBConnection();
+    if (!$pdo) {
+        return ['success' => false, 'subtotal' => 0.0, 'lines' => [], 'errors' => ['Database connection failed.']];
+    }
+    $restaurantId = (int)$restaurantId;
+    if (empty($cart)) {
+        return ['success' => false, 'subtotal' => 0.0, 'lines' => [], 'errors' => ['Cart is empty.']];
+    }
+
+    $stmt = $pdo->prepare("SELECT id, name, price FROM menu_items WHERE restaurant_id = ? AND is_available = 1");
+    $stmt->execute([$restaurantId]);
+    $menuPrices = [];
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $menuPrices[(int)$row['id']] = ['name' => $row['name'], 'price' => (float)$row['price']];
+    }
+
+    $subtotal = 0.0;
+    $lines = [];
+    foreach ($cart as $item) {
+        $menuItemId = (int)($item['id'] ?? 0);
+        $quantity = min(max(1, (int)($item['quantity'] ?? 1)), 99);
+        if (!$menuItemId || !isset($menuPrices[$menuItemId])) {
+            return ['success' => false, 'subtotal' => 0.0, 'lines' => [], 'errors' => ['Invalid or inactive menu item.']];
+        }
+        $price = $menuPrices[$menuItemId]['price'];
+        $name = $menuPrices[$menuItemId]['name'];
+        $subtotal += $price * $quantity;
+        $lines[] = ['menu_item_id' => $menuItemId, 'name' => $name, 'price' => $price, 'quantity' => $quantity];
+    }
+
+    return ['success' => true, 'subtotal' => $subtotal, 'lines' => $lines, 'errors' => []];
+}
+
+/**
  * Create an order from cart data
  * @param int $restaurantId
  * @param array $cart Items with id, name, price, quantity
@@ -263,34 +305,17 @@ function createOrder($restaurantId, $cart, $customer, $deliveryFee = 0, $taxRate
     if (empty($customerEmail)) $errors[] = 'Email address is required.';
     if (!isValidEmail($customerEmail)) $errors[] = 'Invalid email address.';
     if (empty($deliveryAddress)) $errors[] = 'Delivery address is required.';
-    if (empty($cart)) $errors[] = 'Cart is empty.';
 
     if (!empty($errors)) {
         return ['success' => false, 'order_id' => null, 'errors' => $errors];
     }
 
-    // Server-side price lookup: ignore client-supplied price/name to prevent tampering
-    $stmt = $pdo->prepare("SELECT id, name, price FROM menu_items WHERE restaurant_id = ? AND is_available = 1");
-    $stmt->execute([$restaurantId]);
-    $menuPrices = [];
-    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $menuPrices[(int)$row['id']] = ['name' => $row['name'], 'price' => (float)$row['price']];
+    $priced = validateRestaurantOrderCart($restaurantId, $cart);
+    if (!$priced['success']) {
+        return ['success' => false, 'order_id' => null, 'errors' => $priced['errors']];
     }
-
-    $subtotal = 0;
-    $validCartItems = [];
-    foreach ($cart as $item) {
-        $menuItemId = (int) ($item['id'] ?? 0);
-        $quantity = min(max(1, (int) ($item['quantity'] ?? 1)), 99);
-        if (!$menuItemId || !isset($menuPrices[$menuItemId])) {
-            $errors[] = 'Invalid or inactive menu item.';
-            return ['success' => false, 'order_id' => null, 'errors' => $errors];
-        }
-        $price = $menuPrices[$menuItemId]['price'];
-        $name = $menuPrices[$menuItemId]['name'];
-        $subtotal += $price * $quantity;
-        $validCartItems[] = ['menu_item_id' => $menuItemId, 'name' => $name, 'price' => $price, 'quantity' => $quantity];
-    }
+    $subtotal = (float)$priced['subtotal'];
+    $validCartItems = $priced['lines'];
     $tax = $subtotal * (float) $taxRate;
     $total = $subtotal + (float) $deliveryFee + $tax;
 

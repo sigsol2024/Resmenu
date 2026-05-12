@@ -9,7 +9,10 @@ header('Content-Type: application/json');
 
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/order-functions.php';
+require_once __DIR__ . '/../includes/order-cancel-token.php';
 require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/public-api-rate-limit.php';
 require_once __DIR__ . '/../includes/subscription.php';
 require_once __DIR__ . '/../includes/subscription-middleware.php';
 
@@ -68,6 +71,13 @@ if (empty($cart)) {
     exit;
 }
 
+$pdo = getDBConnection();
+if ($pdo && isPublicApiRateLimited($pdo, 'submit_order', getClientIpAddress(), 40, 300)) {
+    http_response_code(429);
+    echo json_encode(['success' => false, 'message' => 'Too many requests. Please try again shortly.']);
+    exit;
+}
+
 $customerName = sanitizeForHtml($_POST['customer_name'] ?? '', 200);
 $customerPhone = trim((string) ($_POST['customer_phone'] ?? ''));
 $customerPhone = preg_replace('/[^0-9+\s-]/', '', $customerPhone);
@@ -76,20 +86,32 @@ $customerEmailRaw = trim((string) ($_POST['customer_email'] ?? ''));
 $customerEmail = sanitizeEmail($customerEmailRaw) ?? '';
 $deliveryAddress = sanitizeForHtml($_POST['delivery_address'] ?? '', 500);
 
+// Delivery/tax are not customer-controlled; enforce server defaults until real pricing exists in DB/UI.
+$deliveryFeeServer = 0.0;
+$taxRateServer = 0.0;
+
 $result = createOrder($restaurant['id'], $cart, [
     'customer_name' => $customerName,
     'customer_phone' => $customerPhone,
     'customer_email' => $customerEmail,
     'delivery_address' => $deliveryAddress,
-], (float) ($_POST['delivery_fee'] ?? 0), (float) ($_POST['tax_rate'] ?? 0));
+], $deliveryFeeServer, $taxRateServer);
 
 if ($result['success']) {
-    $menuUrl = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : '') . '/restaurant/' . $slug;
-    echo json_encode([
+    $orderId = (int)$result['order_id'];
+    $cancelTok = buildPendingOrderCancelToken($orderId, $slug, 900);
+    $payload = [
         'success' => true,
-        'order_id' => $result['order_id'],
-        'redirect' => (defined('SITE_URL') ? rtrim(SITE_URL, '/') : '') . '/order-confirmation.php?slug=' . urlencode($slug) . '&order_id=' . (int)$result['order_id'],
-    ]);
+        'order_id' => $orderId,
+        'redirect' => (defined('SITE_URL') ? rtrim(SITE_URL, '/') : '') . '/order-confirmation.php?slug=' . urlencode($slug) . '&order_id=' . $orderId,
+    ];
+    if ($cancelTok) {
+        $payload['cancel_order'] = [
+            'exp' => $cancelTok['exp'],
+            'sig' => $cancelTok['sig'],
+        ];
+    }
+    echo json_encode($payload);
 } else {
     http_response_code(400);
     echo json_encode([

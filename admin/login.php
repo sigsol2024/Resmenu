@@ -4,5 +4,6 @@
  */
 
 // Canonical login is at root; redirect so old bookmarks still work
-header('Location: /');
+$query = !empty($_SERVER['QUERY_STRING']) ? ('?' . $_SERVER['QUERY_STRING']) : '';
+header('Location: /' . $query);
 exit;

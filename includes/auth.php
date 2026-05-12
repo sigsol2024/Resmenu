@@ -80,6 +80,16 @@ function requireLogin() {
         header('Location: /admin/login.php');
         exit;
     }
+    $idle = defined('AUTH_SESSION_IDLE_SECONDS') ? (int)AUTH_SESSION_IDLE_SECONDS : 3600;
+    if ($idle > 0) {
+        $last = (int)($_SESSION['last_activity'] ?? 0);
+        if ($last > 0 && (time() - $last) > $idle) {
+            logoutUser();
+            header('Location: /admin/login.php?timeout=1');
+            exit;
+        }
+    }
+    $_SESSION['last_activity'] = time();
 }
 
 /**
@@ -115,7 +125,12 @@ function loginUser($username, $password) {
     if (!$pdo) {
         return ['success' => false, 'message' => 'Database connection failed', 'user' => null];
     }
-    
+
+    $ip = getClientIpAddress();
+    if (isLoginRateLimited($pdo, $ip)) {
+        return ['success' => false, 'message' => 'Too many login attempts. Please try again in about 15 minutes.', 'user' => null];
+    }
+
     try {
         // Try admin first
         $stmt = $pdo->prepare("SELECT id, username, email, password_hash FROM admins WHERE username = ? OR email = ?");
@@ -126,9 +141,11 @@ function loginUser($username, $password) {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_role'] = 'super_admin';
             $_SESSION['username'] = $user['username'];
+            $_SESSION['last_activity'] = time();
             $user['role'] = 'super_admin';
             $user['restaurant_id'] = null;
             session_regenerate_id(true);
+            error_log('Admin login success user_id=' . (int)$user['id'] . ' ip=' . $ip);
             return ['success' => true, 'message' => 'Login successful', 'user' => $user];
         }
         
@@ -142,12 +159,14 @@ function loginUser($username, $password) {
             $_SESSION['user_role'] = 'manager';
             $_SESSION['username'] = $user['username'];
             $_SESSION['restaurant_id'] = $user['restaurant_id'];
+            $_SESSION['last_activity'] = time();
             $user['role'] = 'manager';
             session_regenerate_id(true);
+            error_log('Manager login success user_id=' . (int)$user['id'] . ' ip=' . $ip);
             return ['success' => true, 'message' => 'Login successful', 'user' => $user];
         }
         
-        recordLoginAttempt($pdo, getClientIpAddress(), $username);
+        recordLoginAttempt($pdo, $ip, $username);
         return ['success' => false, 'message' => 'Invalid username or password', 'user' => null];
     } catch (PDOException $e) {
         error_log("Login error: " . $e->getMessage());
@@ -176,6 +195,24 @@ function hashPassword($password) {
 }
 
 /**
+ * Enforce password policy for admin/manager and registration flows.
+ *
+ * @param string $password
+ * @return string|null error message or null if OK
+ */
+function getPasswordPolicyError($password) {
+    $password = (string)$password;
+    $min = defined('PASSWORD_MIN_LENGTH') ? (int)PASSWORD_MIN_LENGTH : 8;
+    if (mb_strlen($password) < $min) {
+        return 'Password must be at least ' . $min . ' characters.';
+    }
+    if (!preg_match('/[a-zA-Z]/u', $password) || !preg_match('/\d/u', $password)) {
+        return 'Password must include at least one letter and one number.';
+    }
+    return null;
+}
+
+/**
  * Get restaurant slug by user ID
  * @param int $userId
  * @return string|null
@@ -201,23 +238,25 @@ function getRestaurantSlugByUserId($userId) {
  * @return string
  */
 function getClientIpAddress() {
-    $candidates = [
-        $_SERVER['HTTP_CF_CONNECTING_IP'] ?? '',
-        $_SERVER['HTTP_X_FORWARDED_FOR'] ?? '',
-        $_SERVER['REMOTE_ADDR'] ?? '',
-    ];
-
-    foreach ($candidates as $value) {
-        if (!$value) {
-            continue;
+    $remote = trim((string)($_SERVER['REMOTE_ADDR'] ?? ''));
+    if (defined('TRUST_PROXY_HEADERS') && TRUST_PROXY_HEADERS) {
+        $candidates = [
+            $_SERVER['HTTP_CF_CONNECTING_IP'] ?? '',
+            $_SERVER['HTTP_X_FORWARDED_FOR'] ?? '',
+            $remote,
+        ];
+        foreach ($candidates as $value) {
+            if (!$value) {
+                continue;
+            }
+            $ip = trim(explode(',', $value)[0]);
+            if (filter_var($ip, FILTER_VALIDATE_IP)) {
+                return $ip;
+            }
         }
-        $ip = trim(explode(',', $value)[0]);
-        if (filter_var($ip, FILTER_VALIDATE_IP)) {
-            return $ip;
-        }
+        return filter_var($remote, FILTER_VALIDATE_IP) ? $remote : '0.0.0.0';
     }
-
-    return '0.0.0.0';
+    return filter_var($remote, FILTER_VALIDATE_IP) ? $remote : '0.0.0.0';
 }
 
 /**
@@ -428,8 +467,9 @@ function resetPasswordWithToken($token, $newPassword, &$errorMessage = null) {
     }
 
     $newPassword = (string)$newPassword;
-    if (strlen($newPassword) < PASSWORD_MIN_LENGTH) {
-        $errorMessage = 'Password must be at least ' . PASSWORD_MIN_LENGTH . ' characters.';
+    $policyErr = getPasswordPolicyError($newPassword);
+    if ($policyErr !== null) {
+        $errorMessage = $policyErr;
         return false;
     }
 

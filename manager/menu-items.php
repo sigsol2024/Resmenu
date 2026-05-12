@@ -74,6 +74,7 @@ if (!$restaurantId) {
 
 // Handle delete action
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete') {
+    requireCSRFToken();
     $id = intval($_POST['id'] ?? 0);
     if ($id > 0 && $restaurantId) {
         try {

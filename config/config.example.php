@@ -47,3 +47,12 @@
 // define('REG_OTP_BOUNCE_WEBHOOK_SECRET', '');   // Bearer / X-Webhook-Secret for api/email-suppression-webhook.php (prefer X-Webhook-Secret if Apache strips Authorization)
 
 // Hard-bounce suppression for registration OTP: run database/migration_registration_email_suppression.sql once.
+
+// Public cancel-order / cancel-bank-transfer-order HMAC (generate a long random secret; never commit to Git)
+// define('APP_HMAC_SECRET', getenv('APP_HMAC_SECRET') ?: '');
+
+// Trust X-Forwarded-For / CF-Connecting-IP for getClientIpAddress() (set true only behind a trusted reverse proxy)
+// define('TRUST_PROXY_HEADERS', false);
+
+// Admin/manager idle session timeout in seconds (requireLogin). Default 3600; 0 disables idle logout.
+// define('AUTH_SESSION_IDLE_SECONDS', 3600);

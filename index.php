@@ -113,6 +113,9 @@ if (isLoggedIn()) {
 }
 
 $error = '';
+if (isset($_GET['timeout']) && (string)$_GET['timeout'] === '1') {
+    $error = 'Your session expired due to inactivity. Please sign in again.';
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? ($_POST['email'] ?? ''));

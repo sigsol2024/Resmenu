@@ -9,6 +9,7 @@ require_once __DIR__ . '/includes/restaurant-payment-functions.php';
 require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/includes/subscription.php';
 require_once __DIR__ . '/includes/subscription-middleware.php';
+require_once __DIR__ . '/includes/order-functions.php';
 
 $slug = trim($_GET['slug'] ?? $_POST['slug'] ?? '');
 $reservationId = isset($_GET['reservation_id']) ? (int)$_GET['reservation_id'] : (isset($_POST['reservation_id']) ? (int)$_POST['reservation_id'] : 0);
@@ -115,6 +116,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($cart)) $errors[] = 'Your cart is empty. Please add items before checkout.';
     }
 
+    $pricedOrderCart = null;
+    if (!$reservationForPost && !empty($cart) && empty($errors)) {
+        $pricedOrderCart = validateRestaurantOrderCart((int)$restaurant['id'], $cart);
+        if (!$pricedOrderCart['success']) {
+            foreach ($pricedOrderCart['errors'] as $pe) {
+                $errors[] = $pe;
+            }
+        }
+    }
+
     if (empty($paymentMethods)) $errors[] = 'No payment methods configured. Please contact the restaurant.';
 
     $activeGateways = array_column($paymentMethods, 'gateway');
@@ -125,20 +136,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($reservationForPost) {
             $subtotal = (float)$reservationForPost['deposit_amount'];
             $total = $subtotal;
-            require_once __DIR__ . '/includes/order-functions.php';
             $deliveryAddress = 'Table reservation #' . getReservationDisplayNumber($reservationForPost);
             $cartJsonForDb = null;
             $paymentType = 'reservation';
         } else {
-            $subtotal = 0;
-            foreach ($cart as $item) {
-                $price = (float)($item['price'] ?? 0);
-                $qty = max(1, (int)($item['quantity'] ?? 1));
-                $subtotal += $price * $qty;
+            $subtotal = (float)($pricedOrderCart['subtotal'] ?? 0);
+            $pricedCartJson = [];
+            foreach (($pricedOrderCart['lines'] ?? []) as $ln) {
+                $pricedCartJson[] = [
+                    'id' => $ln['menu_item_id'],
+                    'name' => $ln['name'],
+                    'price' => $ln['price'],
+                    'quantity' => $ln['quantity'],
+                ];
             }
+            $cartJsonForDb = json_encode($pricedCartJson);
             $tax = $subtotal * (float)$taxRate;
             $total = $subtotal + (float)$deliveryFee + $tax;
-            $cartJsonForDb = json_encode($cart);
             $paymentType = 'order';
         }
 
@@ -167,7 +181,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if ($paymentMethod === 'paystack' || $paymentMethod === 'flutterwave') {
-            require_once __DIR__ . '/includes/order-functions.php';
             $reference = 'POP_' . time() . '_' . bin2hex(random_bytes(8));
             $cols = "reference, restaurant_id, payment_type, reservation_id, gateway, cart_json, customer_name, customer_phone, customer_email, delivery_address, subtotal, delivery_fee, tax, total";
             $placeholders = "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?";

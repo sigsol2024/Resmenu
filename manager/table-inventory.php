@@ -5,8 +5,11 @@
  */
 
 require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/csrf.php';
 requireManager();
 require_once __DIR__ . '/../includes/functions.php';
+
+$tableInventoryCsrf = getCSRFToken();
 
 $restaurantId = getCurrentUserRestaurantId();
 if (!$restaurantId) {
@@ -126,6 +129,7 @@ include __DIR__ . '/../includes/manager-layout.php';
 
 <script>
 (function() {
+    const CSRF_TOKEN = <?php echo json_encode($tableInventoryCsrf); ?>;
     const slug = <?php echo json_encode($restaurantSlug); ?>;
     let currentYear = new Date().getFullYear();
     let currentMonth = new Date().getMonth();
@@ -259,6 +263,7 @@ include __DIR__ . '/../includes/manager-layout.php';
     }
     function doBulkUpdate(startDate, endDate, total) {
         const fd = new FormData();
+        fd.append('csrf_token', CSRF_TOKEN);
         fd.append('action', 'bulk_set_total');
         fd.append('start_date', startDate);
         fd.append('end_date', endDate);
@@ -327,6 +332,7 @@ include __DIR__ . '/../includes/manager-layout.php';
         if (!selectedDate) return;
         const total = parseInt(document.getElementById('day-total-tables').value, 10) || 10;
         const fd = new FormData();
+        fd.append('csrf_token', CSRF_TOKEN);
         fd.append('action', 'set_total');
         fd.append('date', selectedDate);
         fd.append('total_tables', total);
@@ -373,6 +379,7 @@ include __DIR__ . '/../includes/manager-layout.php';
         const name = document.getElementById('walkin-guest-name').value.trim() || 'Walk-in';
         closeWalkinModal();
         const fd = new FormData();
+        fd.append('csrf_token', CSRF_TOKEN);
         fd.append('action', 'add_walkin');
         fd.append('date', selectedDate);
         fd.append('guest_name', name);

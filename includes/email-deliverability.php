@@ -2,6 +2,9 @@
 /**
  * Registration OTP: recipient domain mail-host checks (MX / A).
  * Distinguishes permanent "no mail path" from transient resolver failures.
+ *
+ * RFC 7505 Null MX: MX with exchange "." means the domain explicitly does not accept mail.
+ * Must not treat as deliverable or fall through to A-record mail heuristics.
  */
 
 require_once __DIR__ . '/../config/config.php';
@@ -57,6 +60,33 @@ function registrationOtpMxEvaluate(string $email): array {
 }
 
 /**
+ * RFC 7505 null MX: exchange "." means the domain does not accept email.
+ * Preference is normally 0; we key off the dot exchanger as the definitive signal.
+ *
+ * @param array<string, mixed> $rec One element from dns_get_record(..., DNS_MX)
+ */
+function registrationOtpMxRecordIsNullMx(array $rec): bool {
+    $target = $rec['target'] ?? $rec['exchange'] ?? '';
+    $target = strtolower(trim((string)$target));
+    return $target === '.';
+}
+
+/**
+ * @param list<array<string, mixed>> $mxRecords
+ */
+function registrationOtpMxHasDeliverableMx(array $mxRecords): bool {
+    foreach ($mxRecords as $rec) {
+        if (!is_array($rec)) {
+            continue;
+        }
+        if (!registrationOtpMxRecordIsNullMx($rec)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
  * @return array{state:string}
  */
 function registrationOtpMxProbeWithRetries(string $domain): array {
@@ -75,7 +105,11 @@ function registrationOtpMxProbeWithRetries(string $domain): array {
         }
         $lastWasHardFalse = false;
         if (is_array($mx) && count($mx) > 0) {
-            return ['state' => 'ok'];
+            if (registrationOtpMxHasDeliverableMx($mx)) {
+                return ['state' => 'ok'];
+            }
+            // Only Null MX (RFC 7505) or no usable exchangers — do not use A fallback for mail.
+            return ['state' => 'permanent_bad'];
         }
         // Empty MX list: try A for mail host
         $a = @dns_get_record($domain, DNS_A);

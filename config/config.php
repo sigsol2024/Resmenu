@@ -31,10 +31,24 @@ define('UPLOAD_PATH', BASE_PATH . '/uploads');
 define('UPLOAD_URL', SITE_URL . '/uploads');
 
 // Session configuration
-define('SESSION_LIFETIME', 3600 * 24); // 24 hours
+define('SESSION_LIFETIME', 3600 * 24); // 24 hours (PHP session.gc_maxlifetime should align on the server)
 
 // Security
 define('PASSWORD_MIN_LENGTH', 8);
+// Idle timeout for authenticated admin/manager sessions (requireLogin). 0 = disable idle logout.
+if (!defined('AUTH_SESSION_IDLE_SECONDS')) {
+    define('AUTH_SESSION_IDLE_SECONDS', (int)(getenv('AUTH_SESSION_IDLE_SECONDS') !== false && getenv('AUTH_SESSION_IDLE_SECONDS') !== ''
+        ? getenv('AUTH_SESSION_IDLE_SECONDS') : 3600));
+}
+// HMAC for customer cancel URLs (order_id|slug|exp). Required for cancel-order.php / cancel-bank-transfer-order.php.
+if (!defined('APP_HMAC_SECRET')) {
+    define('APP_HMAC_SECRET', getenv('APP_HMAC_SECRET') ?: '');
+}
+// When false (default), client IP for rate limits/logs is REMOTE_ADDR only. Set true behind Cloudflare/LB you trust.
+if (!defined('TRUST_PROXY_HEADERS')) {
+    $trust = getenv('TRUST_PROXY_HEADERS');
+    define('TRUST_PROXY_HEADERS', $trust !== false && $trust !== '' ? filter_var($trust, FILTER_VALIDATE_BOOLEAN) : false);
+}
 
 // File upload settings
 define('MAX_FILE_SIZE', 5 * 1024 * 1024); // 5MB (general cap; images use IMAGE_* below)

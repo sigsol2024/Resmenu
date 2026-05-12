@@ -420,11 +420,12 @@ function createRestaurantWithManager(PDO $pdo, array $input, array $files = [], 
     if (!isValidEmail($managerEmail)) {
         return ['success' => false, 'message' => 'Invalid manager email address.', 'restaurant_id' => null, 'manager_id' => null, 'slug' => null];
     }
-    if (strlen($managerPassword) < PASSWORD_MIN_LENGTH) {
-        return ['success' => false, 'message' => 'Manager password is too short.', 'restaurant_id' => null, 'manager_id' => null, 'slug' => null];
-    }
     if ($managerPassword !== $managerPasswordConfirm) {
         return ['success' => false, 'message' => 'Manager passwords do not match.', 'restaurant_id' => null, 'manager_id' => null, 'slug' => null];
+    }
+    $pwErr = getPasswordPolicyError($managerPassword);
+    if ($pwErr !== null) {
+        return ['success' => false, 'message' => $pwErr, 'restaurant_id' => null, 'manager_id' => null, 'slug' => null];
     }
     if ($email !== '' && !isValidEmail($email)) {
         return ['success' => false, 'message' => 'Invalid restaurant email address.', 'restaurant_id' => null, 'manager_id' => null, 'slug' => null];

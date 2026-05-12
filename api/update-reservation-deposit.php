@@ -6,10 +6,18 @@
 header('Content-Type: application/json');
 
 require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/csrf.php';
 require_once __DIR__ . '/../config/config.php';
 
 if (!isLoggedIn() || !isManager()) {
     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+    exit;
+}
+
+$csrf = trim((string)($_POST['csrf_token'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '')));
+if (!validateCSRFToken($csrf)) {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'message' => 'Invalid security token']);
     exit;
 }
 

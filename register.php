@@ -188,6 +188,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     $_SESSION['username'] = $manager['username'];
                                     $_SESSION['restaurant_id'] = (int)$manager['restaurant_id'];
                                     $_SESSION['created'] = time();
+                                    $_SESSION['last_activity'] = time();
                                     header('Location: ' . $nextPath);
                                     exit;
                                 }

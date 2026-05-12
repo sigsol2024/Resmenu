@@ -174,9 +174,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = $error ?: 'All password fields are required';
         } elseif ($newPassword !== $confirmPassword) {
             $error = $error ?: 'New passwords do not match';
-        } elseif (strlen($newPassword) < 6) {
-            $error = $error ?: 'Password must be at least 6 characters';
         } else {
+            $pwErr = getPasswordPolicyError($newPassword);
+            if ($pwErr !== null) {
+                $error = $error ?: $pwErr;
+            } else {
             $stmt = $pdo->prepare("SELECT password_hash FROM admins WHERE id = ?");
             $stmt->execute([$adminId]);
             $adminData = $stmt->fetch();
@@ -192,6 +194,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } catch (PDOException $e) {
                     $error = $error ?: ('Error updating password: ' . $e->getMessage());
                 }
+            }
             }
         }
     }
@@ -439,12 +442,12 @@ include __DIR__ . '/../includes/admin-layout.php';
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="new_password">New Password *</label>
-                        <input type="password" id="new_password" name="new_password" class="form-input" required minlength="6">
+                        <input type="password" id="new_password" name="new_password" class="form-input" required minlength="8">
                         <small style="color: #6b7280; display: block; margin-top: 5px; font-size: 0.75rem;">Password must be at least 6 characters</small>
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="confirm_password">Confirm New Password *</label>
-                        <input type="password" id="confirm_password" name="confirm_password" class="form-input" required minlength="6">
+                        <input type="password" id="confirm_password" name="confirm_password" class="form-input" required minlength="8">
                     </div>
                     <button type="submit" class="btn btn-primary">Change Password</button>
                 </form>
