@@ -20,7 +20,14 @@ if (!file_exists($nfmTemplateDir . '/' . $nfmPageBgFile)) {
 $reservationUrl = $baseUrl . '/restaurant/' . ($restaurant['slug'] ?? '') . '/reservation';
 $currencySymbol = '₦';
 $primaryColor = isset($customization['primary_color']) ? $customization['primary_color'] : '#f2b90d';
-function nfm_price($p, $s = '₦') { return $s . number_format((float)$p, 2); }
+function nfm_price($p, $s = '₦') {
+    $n = (float)$p;
+    $str = number_format($n, 2, '.', ',');
+    if (substr($str, -3) === '.00') {
+        return $s . substr($str, 0, -3);
+    }
+    return $s . $str;
+}
 $activeCategories = [];
 if (!empty($sections) && is_array($sections)) {
     foreach ($sections as $sec) {
@@ -88,15 +95,16 @@ body.nfm-body {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background: linear-gradient(180deg, rgba(26,26,26,0.82) 0%, rgba(0,0,0,0.94) 55%, #000000 100%);
+  background: linear-gradient(180deg, rgba(26,26,26,0.58) 0%, rgba(0,0,0,0.78) 55%, rgba(0,0,0,0.9) 100%);
 }
 .nfm-shell { position: relative; z-index: 1; }
 .card-border { border: 2px solid #f2b90d; }
-/* Category card: glassy dark grey (lighter than solid black/40) */
+/* Category card: light glass so page texture reads through */
 .nfm-cat-panel {
-  background: rgba(39, 39, 42, 0.52);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(39, 39, 42, 0.22);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
 }
 .divider-line { height: 1px; background: linear-gradient(90deg, transparent 0%, #f2b90d 50%, transparent 100%); margin: 1.5rem 0; }
 #nfm-menu-toggle:focus-visible { outline: 2px solid #f2b90d; outline-offset: 2px; }
@@ -186,7 +194,7 @@ body.nfm-body {
 <h2 class="mb-4 text-center font-serif font-bold <?php echo !empty($singleSectionView) ? 'text-base uppercase tracking-wide text-gray-500 md:text-lg' : 'text-xl uppercase tracking-widest text-brandGold sm:text-2xl md:mb-3 md:text-2xl lg:text-3xl'; ?>"><?php if (!empty($fullMenuUrl) && empty($singleSectionView)): ?><a href="<?php echo htmlspecialchars($fullMenuUrl . '/' . $section['slug']); ?>" class="text-brandGold hover:underline"><?php echo htmlspecialchars($section['name']); ?></a><?php else: ?><?php echo htmlspecialchars($section['name']); ?><?php endif; ?></h2>
 <?php if (empty($singleSectionView) && !empty($section['image']) && empty($isTemplatePreview)): ?>
 <div class="mx-auto mb-5 max-w-sm px-1 sm:mb-6 sm:max-w-md">
-  <img src="<?php echo $uploadBaseUrl . '/sections/' . htmlspecialchars($section['image']); ?>" alt="" class="mx-auto max-h-28 w-full rounded-md object-cover shadow-md sm:max-h-32 md:max-h-36" loading="lazy" decoding="async"/>
+  <img src="<?php echo $uploadBaseUrl . '/sections/' . htmlspecialchars($section['image']); ?>" alt="" class="mx-auto max-h-28 w-full rounded-md object-contain shadow-md sm:max-h-32 md:max-h-36" loading="lazy" decoding="async"/>
 </div>
 <?php endif; ?>
 <div class="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-x-6 md:gap-y-6 lg:gap-x-8">
@@ -195,8 +203,8 @@ body.nfm-body {
     $items = isset($category['menu_items']) ? $category['menu_items'] : [];
     if (empty($items)) continue;
 ?>
-<section class="nfm-cat-panel card-border flex h-full min-w-0 flex-col rounded-sm border-brandGold/40 p-4 shadow-lg sm:p-5 md:p-5 lg:p-6" id="<?php echo htmlspecialchars($slug); ?>">
-<h3 class="mb-4 flex flex-wrap items-center justify-center gap-3 border-b border-brandGold/40 pb-3 text-center font-serif text-lg uppercase tracking-widest text-brandGold md:mb-4 md:justify-start md:text-left md:text-base lg:text-lg">
+<section class="nfm-cat-panel card-border flex h-full min-w-0 flex-col rounded-sm border-brandGold/30 p-4 sm:p-5 md:p-5 lg:p-6" id="<?php echo htmlspecialchars($slug); ?>">
+<h3 class="mb-4 flex flex-wrap items-center justify-center gap-3 border-b border-brandGold/25 pb-3 text-center font-serif text-lg font-semibold uppercase tracking-widest text-white md:mb-4 md:justify-start md:text-left md:text-base lg:text-lg">
   <?php if (!empty($category['image']) && empty($isTemplatePreview)): ?>
     <img src="<?php echo $uploadBaseUrl . '/categories/' . htmlspecialchars($category['image']); ?>" alt="" class="h-11 w-11 shrink-0 rounded-full object-cover ring-2 ring-brandGold/45 md:h-10 md:w-10" width="44" height="44" loading="lazy" decoding="async"/>
   <?php endif; ?>
