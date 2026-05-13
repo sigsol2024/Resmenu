@@ -55,9 +55,9 @@ if (!empty($singleSectionView) && !empty($sections) && is_array($sections) && !e
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title><?php echo htmlspecialchars($restaurant['name']); ?><?php if (!empty($singleSectionView) && !empty($sections) && is_array($sections) && !empty($sections[0]['name'])): ?> - <?php echo htmlspecialchars($sections[0]['name']); ?><?php else: ?> - Menu<?php endif; ?></title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&amp;family=Montserrat:wght@300;400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Carattere&amp;family=Cinzel:wght@400;700&amp;family=Montserrat:wght@300;400;600&amp;display=swap" rel="stylesheet"/>
 <script>
-    tailwind.config = { theme: { extend: { colors: { brandGold: '#f2b90d', darkEbony: '#0a0a0a' }, fontFamily: { serif: ['Cinzel', 'serif'], sans: ['Montserrat', 'sans-serif'] } } } }
+    tailwind.config = { theme: { extend: { colors: { brandGold: '#f2b90d', darkEbony: '#0a0a0a' }, fontFamily: { serif: ['Cinzel', 'serif'], sans: ['Montserrat', 'sans-serif'], carattere: ['Carattere', 'cursive'] } } } }
   </script>
 <style>
 /* Same base on html + body avoids “peeling” / grey flash on mobile overscroll */
@@ -98,6 +98,40 @@ body.nfm-body {
 }
 .nfm-shell { position: relative; z-index: 1; }
 .card-border { border: 2px solid #f2b90d; }
+/* Per-item row + dotted leader */
+.nfm-menu-item {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.nfm-dot-leader {
+  flex: 1 1 0%;
+  min-width: 0.5rem;
+  border-bottom: 1px dotted rgba(255, 255, 255, 0.4);
+  transform: translateY(-0.1em);
+}
+/* Section + category headings (Carattere) */
+.nfm-section-title,
+.nfm-category-title {
+  font-family: Carattere, cursive;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+/* Scroll reveal — slower so motion reads after paint */
+.nfm-reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  will-change: opacity, transform;
+  transition: opacity 0.95s cubic-bezier(0.22, 1, 0.36, 1), transform 0.95s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.nfm-reveal.nfm-reveal--in {
+  opacity: 1;
+  transform: translateY(0);
+  will-change: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  .nfm-reveal { opacity: 1; transform: none; transition: none; }
+}
 /* Category card: light glass so page texture reads through */
 .nfm-cat-panel {
   background: rgba(39, 39, 42, 0.22);
@@ -107,13 +141,18 @@ body.nfm-body {
 }
 .divider-line { height: 1px; background: linear-gradient(90deg, transparent 0%, #f2b90d 50%, transparent 100%); margin: 1.5rem 0; }
 #nfm-menu-toggle:focus-visible { outline: 2px solid #f2b90d; outline-offset: 2px; }
-.nfm-hero { min-height: 44vh; }
+.nfm-hero { min-height: 56vh; min-height: 56dvh; }
+@media (min-width: 640px) {
+  .nfm-hero { min-height: 60vh; min-height: 60dvh; }
+}
 @media (min-width: 768px) {
-  .nfm-hero { min-height: 50vh; }
+  .nfm-hero { min-height: 62vh; min-height: 62dvh; }
+}
+@media (min-width: 1024px) {
+  .nfm-hero { min-height: 54vh; min-height: 54dvh; }
 }
 /* Hero text fallbacks if Tailwind CDN is blocked or slow */
 .nfm-hero h1 { color: #f2b90d; }
-.nfm-hero .nfm-hero-tagline { color: #d4d4d4; }
 </style>
 </head>
 <body class="nfm-body font-sans">
@@ -124,14 +163,14 @@ body.nfm-body {
 <div id="nfm-sidebar-overlay" class="pointer-events-none fixed inset-0 z-[55] bg-black/70 opacity-0 invisible transition-opacity duration-200" aria-hidden="true"></div>
 <aside id="nfm-sidebar" class="fixed top-0 right-0 z-[60] flex h-full w-[min(100vw-3rem,22rem)] max-w-[90vw] translate-x-full flex-col border-l border-brandGold/40 bg-[#0a0a0a]/95 shadow-2xl backdrop-blur-md transition-transform duration-300 ease-out" aria-label="Menu" aria-hidden="true">
   <div class="flex shrink-0 items-center justify-between border-b border-brandGold/30 px-4 py-4">
-    <span class="font-serif text-sm uppercase tracking-[0.35em] text-brandGold">Navigate</span>
-    <button type="button" id="nfm-sidebar-close" class="flex h-10 w-10 items-center justify-center rounded border border-brandGold/40 text-brandGold transition-colors hover:bg-brandGold/10" aria-label="Close menu">
+    <span class="text-sm font-semibold uppercase tracking-[0.35em] text-white/90">Navigate</span>
+    <button type="button" id="nfm-sidebar-close" class="flex h-10 w-10 items-center justify-center rounded border border-white/35 text-white transition-colors hover:bg-white/10" aria-label="Close menu">
       <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
     </button>
   </div>
   <nav class="nfm-drawer-nav no-scrollbar flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-4 pb-8 font-sans text-sm">
     <?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?>
-      <a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="nfm-drawer-link rounded px-3 py-3 text-center font-semibold uppercase tracking-widest text-brandGold ring-1 ring-brandGold/50 hover:bg-brandGold/10">Full menu</a>
+      <a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="nfm-drawer-link rounded px-3 py-3 text-center font-semibold uppercase tracking-widest text-white ring-1 ring-white/25 hover:bg-white/10">Full menu</a>
     <?php endif; ?>
     <?php if (!empty($fullMenuUrl)): ?>
       <a href="<?php echo htmlspecialchars($fullMenuUrl); ?>#menu" class="nfm-drawer-link rounded px-3 py-3 text-center font-semibold uppercase tracking-widest text-white/90 ring-1 ring-white/15 hover:bg-white/5">View menu</a>
@@ -147,11 +186,11 @@ body.nfm-body {
     <?php endforeach; ?>
     <hr class="my-2 border-brandGold/20" />
     <?php if (!empty($supportsReservations)): ?>
-      <a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="nfm-drawer-link rounded px-3 py-3 text-center font-semibold uppercase tracking-widest text-brandGold ring-1 ring-brandGold/50 hover:bg-brandGold/10">Reserve table</a>
+      <a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="nfm-drawer-link rounded px-3 py-3 text-center font-semibold uppercase tracking-widest text-white ring-1 ring-white/30 hover:bg-white/10">Reserve table</a>
     <?php endif; ?>
   </nav>
 </aside>
-<button type="button" id="nfm-menu-toggle" class="fixed right-4 top-4 z-40 flex h-12 w-12 items-center justify-center rounded border-2 border-brandGold/80 bg-black/90 text-brandGold shadow-lg backdrop-blur-sm transition-colors hover:bg-brandGold/15" aria-label="Open menu" aria-expanded="false" aria-controls="nfm-sidebar">
+<button type="button" id="nfm-menu-toggle" class="fixed right-4 top-4 z-40 flex h-12 w-12 items-center justify-center rounded border-2 border-white/70 bg-black/90 text-white shadow-lg backdrop-blur-sm transition-colors hover:bg-white/10" aria-label="Open menu" aria-expanded="false" aria-controls="nfm-sidebar">
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
 </button>
 
@@ -162,7 +201,7 @@ body.nfm-body {
   <div class="absolute inset-0 bg-gradient-to-br from-zinc-800 via-zinc-900 to-black"></div>
   <?php endif; ?>
   <div class="absolute inset-0 bg-gradient-to-t from-black via-black/75 to-black/40"></div>
-  <div class="relative mx-auto flex max-w-4xl flex-col items-center justify-center px-6 pb-14 pt-20 text-center md:max-w-5xl md:pb-16 md:pt-24 lg:max-w-6xl">
+  <div class="relative mx-auto flex max-w-4xl flex-col items-center justify-center px-6 pb-20 pt-24 text-center sm:pt-28 md:max-w-5xl md:pb-24 md:pt-32 lg:max-w-6xl lg:pb-20 lg:pt-28">
     <?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?>
       <div class="mb-4"><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="mx-auto h-16 w-auto max-w-[220px] object-contain md:h-20"/></div>
     <?php endif; ?>
@@ -170,15 +209,14 @@ body.nfm-body {
     <h1 class="font-serif text-3xl uppercase tracking-[0.2em] text-brandGold sm:text-4xl md:text-5xl"><?php echo htmlspecialchars($restaurant['name']); ?></h1>
     <?php endif; ?>
     <?php if (!empty($singleSectionView) && !empty($sections) && is_array($sections) && !empty($sections[0]['name'])): ?>
-      <p class="mt-2 font-serif text-lg uppercase tracking-widest text-brandGold/90 md:text-xl"><?php echo htmlspecialchars($sections[0]['name']); ?></p>
+      <p class="nfm-section-title mt-2 text-2xl text-white md:text-3xl"><?php echo htmlspecialchars($sections[0]['name']); ?></p>
     <?php endif; ?>
-    <?php if (!empty($tagline)): ?><p class="nfm-hero-tagline mt-4 max-w-xl text-sm italic leading-relaxed text-gray-300 md:text-base"><?php echo htmlspecialchars($tagline); ?></p><?php endif; ?>
     <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
       <?php if (!empty($supportsReservations)): ?>
-        <a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="inline-flex items-center justify-center rounded border-2 border-brandGold bg-brandGold/10 px-6 py-2.5 text-xs font-semibold uppercase tracking-widest text-brandGold transition-colors hover:bg-brandGold hover:text-black md:px-8 md:text-sm">Reserve table</a>
+        <a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="inline-flex items-center justify-center rounded border-2 border-white bg-white px-6 py-2.5 text-xs font-semibold uppercase tracking-widest text-black transition-colors hover:bg-white/90 md:px-8 md:text-sm">Reserve table</a>
       <?php endif; ?>
       <?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?>
-        <a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="inline-flex items-center justify-center rounded border border-white/30 bg-white/5 px-5 py-2.5 text-xs font-semibold uppercase tracking-widest text-white transition-colors hover:border-brandGold/50 hover:text-brandGold md:text-sm">Full menu</a>
+        <a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="inline-flex items-center justify-center rounded border-2 border-white/80 bg-transparent px-5 py-2.5 text-xs font-semibold uppercase tracking-widest text-white transition-colors hover:bg-white/10 md:text-sm">Full menu</a>
       <?php endif; ?>
     </div>
   </div>
@@ -190,7 +228,7 @@ body.nfm-body {
     if (empty($section['categories']) || !is_array($section['categories'])) continue;
 ?>
 <div id="section-<?php echo htmlspecialchars($section['slug']); ?>" class="mb-10 md:mb-12">
-<h2 class="mb-4 text-center font-serif font-bold <?php echo !empty($singleSectionView) ? 'text-base uppercase tracking-wide text-gray-500 md:text-lg' : 'text-xl uppercase tracking-widest text-brandGold sm:text-2xl md:mb-3 md:text-2xl lg:text-3xl'; ?>"><?php if (!empty($fullMenuUrl) && empty($singleSectionView)): ?><a href="<?php echo htmlspecialchars($fullMenuUrl . '/' . $section['slug']); ?>" class="text-brandGold hover:underline"><?php echo htmlspecialchars($section['name']); ?></a><?php else: ?><?php echo htmlspecialchars($section['name']); ?><?php endif; ?></h2>
+<h2 class="nfm-section-title mb-4 text-center <?php echo !empty($singleSectionView) ? 'text-2xl text-gray-400 md:text-3xl' : 'text-3xl text-brandGold sm:text-4xl md:mb-3 md:text-4xl lg:text-5xl'; ?>"><?php if (!empty($fullMenuUrl) && empty($singleSectionView)): ?><a href="<?php echo htmlspecialchars($fullMenuUrl . '/' . $section['slug']); ?>" class="text-brandGold hover:underline"><?php echo htmlspecialchars($section['name']); ?></a><?php else: ?><?php echo htmlspecialchars($section['name']); ?><?php endif; ?></h2>
 <?php if (empty($singleSectionView) && !empty($section['image']) && empty($isTemplatePreview)): ?>
 <div class="mx-auto mb-5 max-w-sm px-1 sm:mb-6 sm:max-w-md">
   <img src="<?php echo $uploadBaseUrl . '/sections/' . htmlspecialchars($section['image']); ?>" alt="" class="mx-auto max-h-28 w-full rounded-md object-contain shadow-md sm:max-h-32 md:max-h-36" loading="lazy" decoding="async"/>
@@ -214,13 +252,15 @@ body.nfm-body {
 <article class="nfm-menu-item nfm-reveal flex min-w-0 items-start gap-3 rounded-md px-3 py-3 sm:px-4 sm:py-3.5">
 <?php if (!empty($item['image'])): ?><img src="<?php echo $uploadBaseUrl . '/menu-items/' . htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="h-14 w-14 shrink-0 rounded-md object-cover ring-1 ring-white/15 sm:h-16 sm:w-16 md:h-14 md:w-14" loading="lazy" decoding="async"/><?php endif; ?>
 <div class="flex min-w-0 flex-1 flex-col gap-1.5">
-<div class="flex min-w-0 w-full items-baseline gap-2">
-<span class="min-w-0 max-w-[50%] truncate text-base font-semibold leading-tight text-white sm:max-w-[58%] md:max-w-[62%]"><?php echo htmlspecialchars($item['name']); ?></span>
-<span class="nfm-dot-leader" aria-hidden="true"></span>
-<span class="shrink-0 rounded-sm bg-white px-2 py-0.5 font-sans text-xs font-semibold leading-none text-black"><?php echo nfm_price($item['price']); ?></span>
+<div class="flex w-full min-w-0 items-start gap-3">
+<div class="flex min-w-0 flex-1 items-start gap-2">
+<span class="line-clamp-2 min-w-0 shrink text-left text-base font-semibold leading-snug text-white"><?php echo htmlspecialchars($item['name']); ?></span>
+<span class="nfm-dot-leader mt-[0.55em] min-h-0 min-w-[8px]" aria-hidden="true"></span>
+</div>
+<span class="shrink-0 rounded-sm bg-white px-2 py-0.5 text-right font-sans text-xs font-semibold tabular-nums leading-none text-black"><?php echo nfm_price($item['price']); ?></span>
 </div>
 <?php if (!empty($item['description'])): ?><p class="text-xs leading-relaxed text-gray-400 sm:text-sm md:text-[11px] md:leading-snug"><?php echo htmlspecialchars($item['description']); ?></p><?php endif; ?>
-<?php if (!empty($supportsOrdering) && !empty($item['is_available'])): ?><button type="button" class="add-to-bag-btn self-start rounded border border-brandGold px-2.5 py-1 text-xs text-brandGold hover:bg-brandGold hover:text-black md:px-2 md:py-0.5 md:text-[10px]" data-item-id="<?php echo (int)$item['id']; ?>" data-item-name="<?php echo htmlspecialchars($item['name']); ?>" data-item-price="<?php echo htmlspecialchars($item['price']); ?>" data-item-image="<?php echo !empty($item['image']) ? htmlspecialchars($item['image']) : ''; ?>">Add to bag</button><?php endif; ?>
+<?php if (!empty($supportsOrdering) && !empty($item['is_available'])): ?><button type="button" class="add-to-bag-btn self-start rounded border border-white/50 px-2.5 py-1 text-xs text-white hover:bg-white/10 md:px-2 md:py-0.5 md:text-[10px]" data-item-id="<?php echo (int)$item['id']; ?>" data-item-name="<?php echo htmlspecialchars($item['name']); ?>" data-item-price="<?php echo htmlspecialchars($item['price']); ?>" data-item-image="<?php echo !empty($item['image']) ? htmlspecialchars($item['image']) : ''; ?>">Add to bag</button><?php endif; ?>
 </div>
 </article>
 <?php endforeach; ?>
@@ -300,14 +340,26 @@ body.nfm-body {
     nodes.forEach(function (el) { el.classList.add('nfm-reveal--in'); });
     return;
   }
-  var io = new IntersectionObserver(function (entries) {
-    entries.forEach(function (entry) {
-      if (!entry.isIntersecting) return;
-      entry.target.classList.add('nfm-reveal--in');
-      io.unobserve(entry.target);
+  function armObserver() {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        var el = entry.target;
+        io.unobserve(el);
+        window.setTimeout(function () { el.classList.add('nfm-reveal--in'); }, 60);
+      });
+    }, { root: null, rootMargin: '0px 0px 8% 0px', threshold: 0.01 });
+    nodes.forEach(function (el) { io.observe(el); });
+  }
+  function deferArm() {
+    window.requestAnimationFrame(function () {
+      window.requestAnimationFrame(function () {
+        window.setTimeout(armObserver, 140);
+      });
     });
-  }, { root: null, rootMargin: '0px 0px -6% 0px', threshold: 0.06 });
-  nodes.forEach(function (el) { io.observe(el); });
+  }
+  if (document.readyState === 'complete') deferArm();
+  else window.addEventListener('load', deferArm);
 })();
 </script>
 
