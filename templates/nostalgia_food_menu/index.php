@@ -100,7 +100,7 @@ body.nfm-body {
 .card-border { border: 2px solid #f2b90d; }
 /* Per-item row + dotted leader */
 .nfm-menu-item {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(10, 10, 12, 0.62);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 .nfm-dot-leader {
@@ -162,9 +162,9 @@ body.nfm-body {
   z-index: 3;
   pointer-events: none;
   overflow: hidden;
-  /* Match JS bandBasePx(): min(46vh, 520px) before footer overlap */
-  height: 46vh;
-  max-height: 520px;
+  /* Match JS bandBasePx(): min(52vh, 580px) before footer overlap */
+  height: 52vh;
+  max-height: 580px;
   transition: height 0.35s ease-out, max-height 0.35s ease-out;
 }
 #nfm-smoke-canvas {
@@ -283,7 +283,7 @@ body.nfm-body {
 </div>
 <span class="shrink-0 rounded-sm bg-white px-2 py-0.5 text-right font-sans text-xs font-semibold tabular-nums leading-none text-black"><?php echo nfm_price($item['price']); ?></span>
 </div>
-<?php if (!empty($item['description'])): ?><p class="text-xs leading-relaxed text-gray-400 sm:text-sm md:text-[11px] md:leading-snug"><?php echo htmlspecialchars($item['description']); ?></p><?php endif; ?>
+<?php if (!empty($item['description'])): ?><p class="text-xs leading-relaxed text-gray-300 sm:text-sm md:text-[11px] md:leading-snug"><?php echo htmlspecialchars($item['description']); ?></p><?php endif; ?>
 <?php if (!empty($supportsOrdering) && !empty($item['is_available'])): ?><button type="button" class="add-to-bag-btn self-start rounded border border-white/50 px-2.5 py-1 text-xs text-white hover:bg-white/10 md:px-2 md:py-0.5 md:text-[10px]" data-item-id="<?php echo (int)$item['id']; ?>" data-item-name="<?php echo htmlspecialchars($item['name']); ?>" data-item-price="<?php echo htmlspecialchars($item['price']); ?>" data-item-image="<?php echo !empty($item['image']) ? htmlspecialchars($item['image']) : ''; ?>">Add to bag</button><?php endif; ?>
 </div>
 </article>
@@ -416,8 +416,8 @@ body.nfm-body {
   if (!ctx) return;
 
   var parts = [];
-  var BASE_VH = 0.46;
-  var MAX_PX_CAP = 520;
+  var BASE_VH = 0.52;
+  var MAX_PX_CAP = 580;
   var MIN_BAND = 56;
   var dpr = 1;
 
@@ -454,17 +454,17 @@ body.nfm-body {
     var h = wrap.clientHeight;
     if (h < 28 || w < 80) return;
     var scale = Math.max(0.35, Math.min(1, (h - MIN_BAND) / (bandBasePx() - MIN_BAND + 1)));
-    var cap = Math.floor((w < 520 ? 52 : 78) * scale);
+    var cap = Math.floor((w < 520 ? 58 : 88) * scale);
     if (parts.length >= cap) return;
-    if (Math.random() > 0.26) return;
+    if (Math.random() > 0.22) return;
     parts.push({
       x: w * (0.1 + Math.random() * 0.8),
       y: h + 6 + Math.random() * 18,
       vx: (Math.random() - 0.5) * 0.55,
       vy: -(0.38 + Math.random() * 0.72),
-      r: 8 + Math.random() * 16,
-      a: 0.14 + Math.random() * 0.2,
-      grow: 0.14 + Math.random() * 0.24,
+      r: 10 + Math.random() * 18,
+      a: 0.15 + Math.random() * 0.22,
+      grow: 0.16 + Math.random() * 0.28,
       warm: Math.random() > 0.35
     });
   }
@@ -482,7 +482,7 @@ body.nfm-body {
       p.r += p.grow;
       p.a *= 0.988;
       p.vy *= 0.997;
-      if (p.y < ceiling || p.a < 0.012 || p.r > Math.max(w, h) * 0.48) {
+      if (p.y < ceiling || p.a < 0.012 || p.r > Math.max(w, h) * 0.52) {
         parts.splice(i, 1);
         continue;
       }
