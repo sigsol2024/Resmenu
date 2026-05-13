@@ -33,7 +33,7 @@ if (!empty($sections) && is_array($sections)) {
 $tagline = !empty($restaurant['description']) ? trim($restaurant['description']) : 'Our Menu';
 /* Cover / hero: section-specific page uses section banner; else restaurant cover URL or file or logo */
 $nfmHeroBgUrl = '';
-if (!empty($singleSectionView) && !empty($sections[0]['image']) && empty($isTemplatePreview)) {
+if (!empty($singleSectionView) && !empty($sections) && is_array($sections) && !empty($sections[0]['image']) && empty($isTemplatePreview)) {
     $nfmHeroBgUrl = $uploadBaseUrl . '/sections/' . htmlspecialchars($sections[0]['image']);
 } elseif (!empty($restaurant['hero_image_url'])) {
     $nfmHeroBgUrl = $restaurant['hero_image_url'];
@@ -47,7 +47,7 @@ if (!empty($singleSectionView) && !empty($sections[0]['image']) && empty($isTemp
 <html lang="en" class="nfm-html"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title><?php echo htmlspecialchars($restaurant['name']); ?><?php if (!empty($singleSectionView) && !empty($sections[0]['name'])): ?> - <?php echo htmlspecialchars($sections[0]['name']); ?><?php else: ?> - Menu<?php endif; ?></title>
+<title><?php echo htmlspecialchars($restaurant['name']); ?><?php if (!empty($singleSectionView) && !empty($sections) && is_array($sections) && !empty($sections[0]['name'])): ?> - <?php echo htmlspecialchars($sections[0]['name']); ?><?php else: ?> - Menu<?php endif; ?></title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&amp;family=Montserrat:wght@300;400;600&amp;display=swap" rel="stylesheet"/>
 <script>
@@ -98,6 +98,10 @@ body.nfm-body {
 @media (min-width: 768px) {
   .nfm-hero { min-height: 50vh; }
 }
+/* Hero text fallbacks if Tailwind CDN is blocked or slow */
+.nfm-hero h1 { color: #f2b90d; }
+.nfm-hero .nfm-hero-tagline { color: #d4d4d4; }
+</style>
 </head>
 <body class="nfm-body font-sans">
 <div class="nfm-page-bg" aria-hidden="true"></div>
@@ -150,10 +154,10 @@ body.nfm-body {
       <div class="mb-4 rounded-full border-2 border-brandGold/60 bg-black/30 p-2 shadow-lg backdrop-blur-sm"><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="mx-auto h-16 w-auto max-w-[200px] object-contain md:h-20"/></div>
     <?php endif; ?>
     <h1 class="font-serif text-3xl uppercase tracking-[0.2em] text-brandGold sm:text-4xl md:text-5xl"><?php echo htmlspecialchars($restaurant['name']); ?></h1>
-    <?php if (!empty($singleSectionView) && !empty($sections[0]['name'])): ?>
+    <?php if (!empty($singleSectionView) && !empty($sections) && is_array($sections) && !empty($sections[0]['name'])): ?>
       <p class="mt-2 font-serif text-lg uppercase tracking-widest text-brandGold/90 md:text-xl"><?php echo htmlspecialchars($sections[0]['name']); ?></p>
     <?php endif; ?>
-    <?php if (!empty($tagline)): ?><p class="mt-4 max-w-xl text-sm italic leading-relaxed text-gray-300 md:text-base"><?php echo htmlspecialchars($tagline); ?></p><?php endif; ?>
+    <?php if (!empty($tagline)): ?><p class="nfm-hero-tagline mt-4 max-w-xl text-sm italic leading-relaxed text-gray-300 md:text-base"><?php echo htmlspecialchars($tagline); ?></p><?php endif; ?>
     <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
       <?php if (!empty($supportsReservations)): ?>
         <a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="inline-flex items-center justify-center rounded border-2 border-brandGold bg-brandGold/10 px-6 py-2.5 text-xs font-semibold uppercase tracking-widest text-brandGold transition-colors hover:bg-brandGold hover:text-black md:px-8 md:text-sm">Reserve table</a>
