@@ -49,7 +49,6 @@ $primaryColor = $customization['primary_color'] ?? '#f20d0d';
 $bgColor = $customization['background_color'] ?? '#f8f5f5';
 
 $menuUrl = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : '') . '/restaurant/' . $slug;
-$reservationUrl = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : '') . '/restaurant/' . $slug . '/reservation';
 $baseUrl = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : '');
 $uploadBaseUrl = defined('UPLOAD_URL') ? rtrim(UPLOAD_URL, '/') : '';
 ensureHotelReservationSettings($restaurant['id'], (int)($restaurant['template_id'] ?? 1));
@@ -193,12 +192,12 @@ $restaurantName = htmlspecialchars($restaurant['name']);
             <div class="w-10 h-10 bg-primary flex items-center justify-center rounded-lg">
                 <span class="material-icons text-white">restaurant</span>
             </div>
+            <span class="text-xl md:text-2xl font-extrabold tracking-tighter text-white uppercase"><?php echo $restaurantName; ?></span>
         <?php endif; ?>
-        <span class="text-xl md:text-2xl font-extrabold tracking-tighter text-white uppercase"><?php echo $restaurantName; ?></span>
     </a>
     <div class="flex items-center space-x-4 md:space-x-8 text-sm font-medium text-white/80">
         <a class="hover:text-primary transition-colors" href="<?php echo htmlspecialchars($menuUrl); ?>">OUR MENU</a>
-        <a class="text-primary font-bold" href="<?php echo htmlspecialchars($reservationUrl); ?>">RESERVE TABLE</a>
+        <span class="text-primary font-bold cursor-default select-none" aria-current="page">RESERVE TABLE</span>
     </div>
 </nav>
 
@@ -385,8 +384,8 @@ $restaurantName = htmlspecialchars($restaurant['name']);
                         <div class="w-8 h-8 bg-primary flex items-center justify-center rounded-lg">
                             <span class="material-icons text-white text-sm">restaurant</span>
                         </div>
+                        <span class="text-xl font-extrabold tracking-tighter uppercase"><?php echo $restaurantName; ?></span>
                     <?php endif; ?>
-                    <span class="text-xl font-extrabold tracking-tighter uppercase"><?php echo $restaurantName; ?></span>
                 </div>
                 <?php if (!empty($restaurant['footer_content'])): ?>
                     <p class="text-zinc-400 text-sm leading-relaxed"><?php echo nl2br(htmlspecialchars($restaurant['footer_content'])); ?></p>
