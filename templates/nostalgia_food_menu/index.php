@@ -37,7 +37,6 @@ if (!empty($sections) && is_array($sections)) {
         }
     }
 }
-$tagline = !empty($restaurant['description']) ? trim($restaurant['description']) : 'Our Menu';
 /* Cover / hero: section-specific page uses section banner; else restaurant cover URL or file or logo */
 $nfmHeroBgUrl = '';
 if (!empty($singleSectionView) && !empty($sections) && is_array($sections) && !empty($sections[0]['image']) && empty($isTemplatePreview)) {
@@ -203,26 +202,27 @@ body.nfm-body {
     $items = isset($category['menu_items']) ? $category['menu_items'] : [];
     if (empty($items)) continue;
 ?>
-<section class="nfm-cat-panel card-border flex h-full min-w-0 flex-col rounded-sm border-brandGold/30 p-4 sm:p-5 md:p-5 lg:p-6" id="<?php echo htmlspecialchars($slug); ?>">
-<h3 class="mb-4 flex flex-wrap items-center justify-center gap-3 border-b border-brandGold/25 pb-3 text-center font-serif text-lg font-semibold uppercase tracking-widest text-white md:mb-4 md:justify-start md:text-left md:text-base lg:text-lg">
+<section class="card-border flex h-full min-w-0 flex-col rounded-sm border-brandGold/30 bg-transparent p-4 sm:p-5 md:p-5 lg:p-6" id="<?php echo htmlspecialchars($slug); ?>">
+<h3 class="nfm-category-title mb-4 flex flex-wrap items-center justify-center gap-3 border-b border-brandGold/25 pb-3 text-center text-2xl text-white md:mb-4 md:justify-start md:text-left md:text-3xl lg:text-4xl">
   <?php if (!empty($category['image']) && empty($isTemplatePreview)): ?>
     <img src="<?php echo $uploadBaseUrl . '/categories/' . htmlspecialchars($category['image']); ?>" alt="" class="h-11 w-11 shrink-0 rounded-full object-cover ring-2 ring-brandGold/45 md:h-10 md:w-10" width="44" height="44" loading="lazy" decoding="async"/>
   <?php endif; ?>
   <span class="min-w-0"><?php echo htmlspecialchars($category['name']); ?></span>
 </h3>
-<div class="flex flex-col gap-y-5">
+<div class="flex flex-col gap-3 md:gap-3.5">
 <?php foreach ($items as $item): ?>
-<div class="flex min-w-0 items-start gap-3 border-b border-white/5 pb-5 last:border-b-0 last:pb-0 md:gap-2.5 md:border-0 md:pb-0">
-<?php if (!empty($item['image'])): ?><img src="<?php echo $uploadBaseUrl . '/menu-items/' . htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="h-16 w-16 flex-shrink-0 rounded-lg object-cover ring-1 ring-brandGold/25 sm:h-[4.5rem] sm:w-[4.5rem] md:h-14 md:w-14 lg:h-16 lg:w-16" loading="lazy" decoding="async"/><?php endif; ?>
-<div class="flex min-w-0 flex-1 flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-2">
-<div class="min-w-0 flex-1">
-<h3 class="text-base font-semibold leading-snug text-white sm:text-lg md:text-sm md:leading-tight lg:text-base"><?php echo htmlspecialchars($item['name']); ?></h3>
-<p class="mt-0.5 text-xs leading-relaxed text-gray-400 sm:text-sm md:text-[11px] md:leading-snug lg:text-xs"><?php echo htmlspecialchars($item['description'] ?? ''); ?></p>
-<?php if (!empty($supportsOrdering) && !empty($item['is_available'])): ?><button type="button" class="add-to-bag-btn mt-1.5 rounded border border-brandGold px-2.5 py-1 text-xs text-brandGold hover:bg-brandGold hover:text-black md:px-2 md:py-0.5 md:text-[10px]" data-item-id="<?php echo (int)$item['id']; ?>" data-item-name="<?php echo htmlspecialchars($item['name']); ?>" data-item-price="<?php echo htmlspecialchars($item['price']); ?>" data-item-image="<?php echo !empty($item['image']) ? htmlspecialchars($item['image']) : ''; ?>">Add to bag</button><?php endif; ?>
+<article class="nfm-menu-item nfm-reveal flex min-w-0 items-start gap-3 rounded-md px-3 py-3 sm:px-4 sm:py-3.5">
+<?php if (!empty($item['image'])): ?><img src="<?php echo $uploadBaseUrl . '/menu-items/' . htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="h-14 w-14 shrink-0 rounded-md object-cover ring-1 ring-white/15 sm:h-16 sm:w-16 md:h-14 md:w-14" loading="lazy" decoding="async"/><?php endif; ?>
+<div class="flex min-w-0 flex-1 flex-col gap-1.5">
+<div class="flex min-w-0 w-full items-baseline gap-2">
+<span class="min-w-0 max-w-[50%] truncate text-base font-semibold leading-tight text-white sm:max-w-[58%] md:max-w-[62%]"><?php echo htmlspecialchars($item['name']); ?></span>
+<span class="nfm-dot-leader" aria-hidden="true"></span>
+<span class="shrink-0 rounded-sm bg-white px-2 py-0.5 font-sans text-xs font-semibold leading-none text-black"><?php echo nfm_price($item['price']); ?></span>
 </div>
-<span class="shrink-0 self-start font-serif text-sm text-brandGold sm:mt-0.5 sm:text-base md:text-xs lg:text-sm"><?php echo nfm_price($item['price']); ?></span>
+<?php if (!empty($item['description'])): ?><p class="text-xs leading-relaxed text-gray-400 sm:text-sm md:text-[11px] md:leading-snug"><?php echo htmlspecialchars($item['description']); ?></p><?php endif; ?>
+<?php if (!empty($supportsOrdering) && !empty($item['is_available'])): ?><button type="button" class="add-to-bag-btn self-start rounded border border-brandGold px-2.5 py-1 text-xs text-brandGold hover:bg-brandGold hover:text-black md:px-2 md:py-0.5 md:text-[10px]" data-item-id="<?php echo (int)$item['id']; ?>" data-item-name="<?php echo htmlspecialchars($item['name']); ?>" data-item-price="<?php echo htmlspecialchars($item['price']); ?>" data-item-image="<?php echo !empty($item['image']) ? htmlspecialchars($item['image']) : ''; ?>">Add to bag</button><?php endif; ?>
 </div>
-</div>
+</article>
 <?php endforeach; ?>
 </div>
 </section>
@@ -288,6 +288,26 @@ body.nfm-body {
   if (overlay) overlay.addEventListener('click', closeDrawer);
   document.querySelectorAll('.nfm-drawer-link').forEach(function (l) { l.addEventListener('click', closeDrawer); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeDrawer(); });
+})();
+(function(){
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    document.querySelectorAll('.nfm-reveal').forEach(function (el) { el.classList.add('nfm-reveal--in'); });
+    return;
+  }
+  var nodes = document.querySelectorAll('.nfm-reveal');
+  if (!nodes.length) return;
+  if (!('IntersectionObserver' in window)) {
+    nodes.forEach(function (el) { el.classList.add('nfm-reveal--in'); });
+    return;
+  }
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add('nfm-reveal--in');
+      io.unobserve(entry.target);
+    });
+  }, { root: null, rootMargin: '0px 0px -6% 0px', threshold: 0.06 });
+  nodes.forEach(function (el) { io.observe(el); });
 })();
 </script>
 
