@@ -162,16 +162,16 @@ body.nfm-body {
   z-index: 3;
   pointer-events: none;
   overflow: hidden;
-  /* Match JS bandBasePx(): min(38vh, 360px) before footer overlap */
-  height: 38vh;
-  max-height: 360px;
+  /* Match JS bandBasePx(): min(46vh, 520px) before footer overlap */
+  height: 46vh;
+  max-height: 520px;
   transition: height 0.35s ease-out, max-height 0.35s ease-out;
 }
 #nfm-smoke-canvas {
   display: block;
   width: 100%;
   height: 100%;
-  opacity: 0.85;
+  opacity: 1;
 }
 @media (prefers-reduced-motion: reduce) {
   #nfm-smoke-wrap { display: none !important; }
@@ -416,9 +416,9 @@ body.nfm-body {
   if (!ctx) return;
 
   var parts = [];
-  var BASE_VH = 0.38;
-  var MAX_PX_CAP = 360;
-  var MIN_BAND = 44;
+  var BASE_VH = 0.46;
+  var MAX_PX_CAP = 520;
+  var MIN_BAND = 56;
   var dpr = 1;
 
   function bandBasePx() {
@@ -454,18 +454,18 @@ body.nfm-body {
     var h = wrap.clientHeight;
     if (h < 28 || w < 80) return;
     var scale = Math.max(0.35, Math.min(1, (h - MIN_BAND) / (bandBasePx() - MIN_BAND + 1)));
-    var cap = Math.floor((w < 520 ? 36 : 58) * scale);
+    var cap = Math.floor((w < 520 ? 52 : 78) * scale);
     if (parts.length >= cap) return;
-    if (Math.random() > 0.38) return;
+    if (Math.random() > 0.26) return;
     parts.push({
       x: w * (0.1 + Math.random() * 0.8),
       y: h + 6 + Math.random() * 18,
-      vx: (Math.random() - 0.5) * 0.5,
-      vy: -(0.32 + Math.random() * 0.65),
-      r: 5 + Math.random() * 12,
-      a: 0.07 + Math.random() * 0.14,
-      grow: 0.1 + Math.random() * 0.2,
-      warm: Math.random() > 0.38
+      vx: (Math.random() - 0.5) * 0.55,
+      vy: -(0.38 + Math.random() * 0.72),
+      r: 8 + Math.random() * 16,
+      a: 0.14 + Math.random() * 0.2,
+      grow: 0.14 + Math.random() * 0.24,
+      warm: Math.random() > 0.35
     });
   }
 
@@ -474,27 +474,27 @@ body.nfm-body {
     var w = wrap.clientWidth;
     var h = wrap.clientHeight;
     ctx.clearRect(0, 0, w, h);
-    var ceiling = h * 0.12;
+    var ceiling = h * 0.07;
     for (var i = parts.length - 1; i >= 0; i--) {
       var p = parts[i];
       p.x += p.vx;
       p.y += p.vy;
       p.r += p.grow;
-      p.a *= 0.984;
+      p.a *= 0.988;
       p.vy *= 0.997;
-      if (p.y < ceiling || p.a < 0.01 || p.r > Math.max(w, h) * 0.42) {
+      if (p.y < ceiling || p.a < 0.012 || p.r > Math.max(w, h) * 0.48) {
         parts.splice(i, 1);
         continue;
       }
       var g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
       if (p.warm) {
-        g.addColorStop(0, 'rgba(255,205,150,' + (p.a * 0.5) + ')');
-        g.addColorStop(0.32, 'rgba(205,195,185,' + (p.a * 0.32) + ')');
-        g.addColorStop(1, 'rgba(35,35,38,0)');
+        g.addColorStop(0, 'rgba(255,215,170,' + (p.a * 0.82) + ')');
+        g.addColorStop(0.28, 'rgba(220,205,190,' + (p.a * 0.55) + ')');
+        g.addColorStop(1, 'rgba(45,42,40,0)');
       } else {
-        g.addColorStop(0, 'rgba(225,220,215,' + (p.a * 0.38) + ')');
-        g.addColorStop(0.38, 'rgba(155,152,148,' + (p.a * 0.2) + ')');
-        g.addColorStop(1, 'rgba(28,28,30,0)');
+        g.addColorStop(0, 'rgba(235,230,225,' + (p.a * 0.65) + ')');
+        g.addColorStop(0.35, 'rgba(175,170,165,' + (p.a * 0.42) + ')');
+        g.addColorStop(1, 'rgba(32,30,30,0)');
       }
       ctx.fillStyle = g;
       ctx.beginPath();
