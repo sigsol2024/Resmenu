@@ -9,7 +9,7 @@ if (defined('UPLOAD_URL')) { $uploadBaseUrl = rtrim(UPLOAD_URL, '/'); } else {
 $baseUrl = defined('SITE_URL') ? rtrim(SITE_URL, '/') : '';
 if ($baseUrl === '') {
     $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
-    $baseUrl = $protocol . ($_SERVER['HTTP_HOST'] ?? 'localhost') . (dirname(dirname(dirname($_SERVER['SCRIPT_NAME'] ?? '/index.php')))));
+    $baseUrl = $protocol . ($_SERVER['HTTP_HOST'] ?? 'localhost') . (dirname(dirname(dirname($_SERVER['SCRIPT_NAME'] ?? '/index.php'))));
 }
 $nfmTemplateDir = __DIR__;
 $nfmTemplateBaseUrl = rtrim($baseUrl, '/') . '/templates/nostalgia_food_menu';
