@@ -60,24 +60,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if ($subscriptionId > 0 && $days > 0) {
             try {
-                // UI displays trial end using trial_ends_at when status is 'trial'.
-                $stmt = $pdo->prepare("SELECT status FROM subscriptions WHERE id = ?");
+                $stmt = $pdo->prepare("SELECT status, trial_ends_at, current_period_end FROM subscriptions WHERE id = ?");
                 $stmt->execute([$subscriptionId]);
                 $sub = $stmt->fetch(PDO::FETCH_ASSOC);
-                $status = $sub['status'] ?? '';
-                
-                $isTrial = ($status === 'trial');
-                $column = $isTrial ? 'trial_ends_at' : 'current_period_end';
-                
-                // Update the correct end-date field based on current subscription status.
-                $stmt = $pdo->prepare("
-                    UPDATE subscriptions
-                    SET {$column} = DATE_ADD(COALESCE({$column}, NOW()), INTERVAL ? DAY)
-                    WHERE id = ?
-                ");
-                $stmt->execute([$days, $subscriptionId]);
-                $message = "Subscription extended by {$days} days!";
-                $messageType = 'success';
+
+                if (!$sub) {
+                    $message = 'Subscription not found.';
+                    $messageType = 'error';
+                } else {
+                    $status = (string)($sub['status'] ?? '');
+                    $trialEnds = $sub['trial_ends_at'] ?? null;
+                    $periodEnd = $sub['current_period_end'] ?? null;
+                    $hadTrialEnd = ($trialEnds !== null && $trialEnds !== '');
+                    $hadPeriodEnd = ($periodEnd !== null && $periodEnd !== '');
+
+                    if ($status === 'trial') {
+                        // Active trial: extend trial_ends_at from max(stored end, now).
+                        $stmt = $pdo->prepare("
+                            UPDATE subscriptions
+                            SET trial_ends_at = DATE_ADD(GREATEST(COALESCE(trial_ends_at, NOW()), NOW()), INTERVAL ? DAY)
+                            WHERE id = ?
+                        ");
+                        $stmt->execute([$days, $subscriptionId]);
+                    } elseif ($status === 'expired' && $hadTrialEnd && !$hadPeriodEnd) {
+                        // Trial lapsed (cron sets expired); billing period not started — reactivate trial and extend trial_ends_at.
+                        $stmt = $pdo->prepare("
+                            UPDATE subscriptions
+                            SET status = 'trial',
+                                trial_ends_at = DATE_ADD(GREATEST(COALESCE(trial_ends_at, NOW()), NOW()), INTERVAL ? DAY)
+                            WHERE id = ?
+                        ");
+                        $stmt->execute([$days, $subscriptionId]);
+                    } else {
+                        // Paid or mixed: extend billing end; if expired and new end is in the future, reactivate.
+                        $stmt = $pdo->prepare("
+                            UPDATE subscriptions
+                            SET current_period_end = DATE_ADD(GREATEST(COALESCE(current_period_end, NOW()), NOW()), INTERVAL ? DAY),
+                                status = IF(
+                                    status = 'expired'
+                                    AND DATE_ADD(GREATEST(COALESCE(current_period_end, NOW()), NOW()), INTERVAL ? DAY) > NOW(),
+                                    'active',
+                                    status
+                                )
+                            WHERE id = ?
+                        ");
+                        $stmt->execute([$days, $days, $subscriptionId]);
+                    }
+                    $message = "Subscription extended by {$days} days!";
+                    $messageType = 'success';
+                }
             } catch (PDOException $e) {
                 $message = 'Failed to extend subscription.';
                 $messageType = 'error';
