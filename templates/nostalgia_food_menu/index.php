@@ -153,12 +153,36 @@ body.nfm-body {
 }
 /* Hero text fallbacks if Tailwind CDN is blocked or slow */
 .nfm-hero h1 { color: #f2b90d; }
+/* Bottom smoke (canvas) — below content, above texture */
+#nfm-smoke-wrap {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  pointer-events: none;
+  overflow: hidden;
+  /* Match JS bandBasePx(): min(38vh, 360px) before footer overlap */
+  height: 38vh;
+  max-height: 360px;
+  transition: height 0.35s ease-out, max-height 0.35s ease-out;
+}
+#nfm-smoke-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0.85;
+}
+@media (prefers-reduced-motion: reduce) {
+  #nfm-smoke-wrap { display: none !important; }
+}
 </style>
 </head>
 <body class="nfm-body font-sans">
 <div class="nfm-page-bg" aria-hidden="true"></div>
 <div class="nfm-vignette" aria-hidden="true"></div>
 <div class="nfm-shell min-h-screen min-w-0">
+<div id="nfm-smoke-wrap" aria-hidden="true"><canvas id="nfm-smoke-canvas" width="300" height="200"></canvas></div>
 <!-- Slide-out menu (toggle) — not a permanent sidebar rail -->
 <div id="nfm-sidebar-overlay" class="pointer-events-none fixed inset-0 z-[55] bg-black/70 opacity-0 invisible transition-opacity duration-200" aria-hidden="true"></div>
 <aside id="nfm-sidebar" class="fixed top-0 right-0 z-[60] flex h-full w-[min(100vw-3rem,22rem)] max-w-[90vw] translate-x-full flex-col border-l border-brandGold/40 bg-[#0a0a0a]/95 shadow-2xl backdrop-blur-md transition-transform duration-300 ease-out" aria-label="Menu" aria-hidden="true">
@@ -272,7 +296,7 @@ body.nfm-body {
 <?php endforeach; ?>
 <?php endif; ?>
 
-<footer class="mt-4 border-t border-gray-700 py-10 text-center">
+<footer id="nfm-footer" class="relative z-20 mt-4 border-t border-gray-700 bg-[#050505]/95 py-10 text-center backdrop-blur-sm">
   <div class="font-serif text-2xl uppercase tracking-[0.25em] text-brandGold md:text-3xl"><?php echo htmlspecialchars($restaurant['name'] ?? ''); ?></div>
   <?php if (!empty($restaurant['address']) || !empty($restaurant['phone']) || !empty($restaurant['email'])): ?>
   <div class="mx-auto mt-6 flex max-w-2xl flex-wrap justify-center gap-x-4 gap-y-2 text-sm text-gray-400">
@@ -379,5 +403,128 @@ body.nfm-body {
 </a>
 <script>
 (function(){var btn=document.getElementById('scrollToTop');if(btn){window.addEventListener('scroll',function(){var st=window.pageYOffset||document.documentElement.scrollTop;var dh=document.documentElement.scrollHeight-window.innerHeight;if(dh>0&&st>=dh*0.3){btn.style.opacity='1';btn.style.visibility='visible';btn.style.transform='translateY(0)';}else{btn.style.opacity='0';btn.style.visibility='hidden';btn.style.transform='translateY(8px)';}});btn.addEventListener('click',function(e){e.preventDefault();window.scrollTo({top:0,behavior:'smooth'});});}})();
+</script>
+<script>
+(function () {
+  var wrap = document.getElementById('nfm-smoke-wrap');
+  var canvas = document.getElementById('nfm-smoke-canvas');
+  var footer = document.getElementById('nfm-footer');
+  if (!wrap || !canvas) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  var ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  var parts = [];
+  var BASE_VH = 0.38;
+  var MAX_PX_CAP = 360;
+  var MIN_BAND = 44;
+  var dpr = 1;
+
+  function bandBasePx() {
+    return Math.min(window.innerHeight * BASE_VH, MAX_PX_CAP);
+  }
+
+  function updateBandFromFooter() {
+    var base = bandBasePx();
+    if (!footer || !footer.getBoundingClientRect) {
+      wrap.style.height = base + 'px';
+      return;
+    }
+    var rect = footer.getBoundingClientRect();
+    var vh = window.innerHeight;
+    var overlap = Math.max(0, vh - rect.top);
+    var h = Math.max(MIN_BAND, base - overlap * 0.7);
+    wrap.style.height = h + 'px';
+  }
+
+  function resizeCanvas() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = wrap.clientWidth;
+    var hh = Math.max(1, wrap.clientHeight);
+    canvas.width = Math.floor(w * dpr);
+    canvas.height = Math.floor(hh * dpr);
+    canvas.style.width = w + 'px';
+    canvas.style.height = hh + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function spawn() {
+    var w = wrap.clientWidth;
+    var h = wrap.clientHeight;
+    if (h < 28 || w < 80) return;
+    var scale = Math.max(0.35, Math.min(1, (h - MIN_BAND) / (bandBasePx() - MIN_BAND + 1)));
+    var cap = Math.floor((w < 520 ? 36 : 58) * scale);
+    if (parts.length >= cap) return;
+    if (Math.random() > 0.38) return;
+    parts.push({
+      x: w * (0.1 + Math.random() * 0.8),
+      y: h + 6 + Math.random() * 18,
+      vx: (Math.random() - 0.5) * 0.5,
+      vy: -(0.32 + Math.random() * 0.65),
+      r: 5 + Math.random() * 12,
+      a: 0.07 + Math.random() * 0.14,
+      grow: 0.1 + Math.random() * 0.2,
+      warm: Math.random() > 0.38
+    });
+  }
+
+  function tick() {
+    if (document.hidden) return;
+    var w = wrap.clientWidth;
+    var h = wrap.clientHeight;
+    ctx.clearRect(0, 0, w, h);
+    var ceiling = h * 0.12;
+    for (var i = parts.length - 1; i >= 0; i--) {
+      var p = parts[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.r += p.grow;
+      p.a *= 0.984;
+      p.vy *= 0.997;
+      if (p.y < ceiling || p.a < 0.01 || p.r > Math.max(w, h) * 0.42) {
+        parts.splice(i, 1);
+        continue;
+      }
+      var g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
+      if (p.warm) {
+        g.addColorStop(0, 'rgba(255,205,150,' + (p.a * 0.5) + ')');
+        g.addColorStop(0.32, 'rgba(205,195,185,' + (p.a * 0.32) + ')');
+        g.addColorStop(1, 'rgba(35,35,38,0)');
+      } else {
+        g.addColorStop(0, 'rgba(225,220,215,' + (p.a * 0.38) + ')');
+        g.addColorStop(0.38, 'rgba(155,152,148,' + (p.a * 0.2) + ')');
+        g.addColorStop(1, 'rgba(28,28,30,0)');
+      }
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    spawn();
+    requestAnimationFrame(tick);
+  }
+
+  function onLayout() {
+    updateBandFromFooter();
+    resizeCanvas();
+  }
+
+  function init() {
+    onLayout();
+    window.addEventListener('resize', onLayout, { passive: true });
+    window.addEventListener('scroll', updateBandFromFooter, { passive: true });
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden) requestAnimationFrame(tick);
+    });
+    if (footer && 'IntersectionObserver' in window) {
+      new IntersectionObserver(updateBandFromFooter, { threshold: [0, 0.05, 0.1, 0.2, 0.35, 0.5, 0.75, 1] }).observe(footer);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
 </script>
 </body></html>
