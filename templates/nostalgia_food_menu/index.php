@@ -141,15 +141,15 @@ body.nfm-body {
 }
 .divider-line { height: 1px; background: linear-gradient(90deg, transparent 0%, #f2b90d 50%, transparent 100%); margin: 1.5rem 0; }
 #nfm-menu-toggle:focus-visible { outline: 2px solid #f2b90d; outline-offset: 2px; }
-.nfm-hero { min-height: 40vh; min-height: 40dvh; }
+.nfm-hero { min-height: 32vh; min-height: 32dvh; }
 @media (min-width: 640px) {
-  .nfm-hero { min-height: 44vh; min-height: 44dvh; }
+  .nfm-hero { min-height: 36vh; min-height: 36dvh; }
 }
 @media (min-width: 768px) {
-  .nfm-hero { min-height: 46vh; min-height: 46dvh; }
+  .nfm-hero { min-height: 38vh; min-height: 38dvh; }
 }
 @media (min-width: 1024px) {
-  .nfm-hero { min-height: 48vh; min-height: 48dvh; }
+  .nfm-hero { min-height: 44vh; min-height: 44dvh; }
 }
 /* Hero text fallbacks if Tailwind CDN is blocked or slow */
 .nfm-hero h1 { color: #f2b90d; }
@@ -201,7 +201,7 @@ body.nfm-body {
   <div class="absolute inset-0 bg-gradient-to-br from-zinc-800 via-zinc-900 to-black"></div>
   <?php endif; ?>
   <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/35 to-black/15"></div>
-  <div class="relative mx-auto flex max-w-4xl flex-col items-center justify-center px-6 pb-16 pt-20 text-center sm:pb-20 sm:pt-24 md:max-w-5xl md:pb-20 md:pt-28 lg:max-w-6xl lg:pt-24">
+  <div class="relative mx-auto flex max-w-4xl flex-col items-center justify-center px-6 pb-14 pt-16 text-center sm:pb-16 sm:pt-20 md:max-w-5xl md:pb-20 md:pt-24 lg:max-w-6xl lg:pb-20 lg:pt-24">
     <?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?>
       <div class="mb-4"><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="mx-auto h-16 w-auto max-w-[220px] object-contain md:h-20"/></div>
     <?php endif; ?>
@@ -213,10 +213,10 @@ body.nfm-body {
     <?php endif; ?>
     <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
       <?php if (!empty($supportsReservations)): ?>
-        <a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="inline-flex items-center justify-center rounded border-2 border-white bg-white px-6 py-2.5 text-xs font-semibold uppercase tracking-widest text-black transition-colors hover:bg-white/90 md:px-8 md:text-sm">Reserve table</a>
+        <a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="inline-flex items-center justify-center rounded border-2 border-white bg-white px-4 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-black transition-colors hover:bg-white/90 sm:px-5 sm:py-2 sm:text-[11px] md:px-5 md:py-2 md:text-xs">Reserve table</a>
       <?php endif; ?>
       <?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?>
-        <a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="inline-flex items-center justify-center rounded border-2 border-white/80 bg-transparent px-5 py-2.5 text-xs font-semibold uppercase tracking-widest text-white transition-colors hover:bg-white/10 md:text-sm">Full menu</a>
+        <a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="inline-flex items-center justify-center rounded border-2 border-white/80 bg-transparent px-4 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-white transition-colors hover:bg-white/10 sm:px-5 sm:py-2 sm:text-[11px] md:text-xs">Full menu</a>
       <?php endif; ?>
     </div>
   </div>
@@ -228,20 +228,20 @@ body.nfm-body {
     if (empty($section['categories']) || !is_array($section['categories'])) continue;
 ?>
 <div id="section-<?php echo htmlspecialchars($section['slug']); ?>" class="mb-12 md:mb-16">
-<h2 class="nfm-section-title mb-4 text-center <?php echo !empty($singleSectionView) ? 'text-2xl text-gray-400 md:text-3xl' : 'text-3xl text-brandGold sm:text-4xl md:mb-3 md:text-4xl lg:text-5xl'; ?>"><?php if (!empty($fullMenuUrl) && empty($singleSectionView)): ?><a href="<?php echo htmlspecialchars($fullMenuUrl . '/' . $section['slug']); ?>" class="text-brandGold hover:underline"><?php echo htmlspecialchars($section['name']); ?></a><?php else: ?><?php echo htmlspecialchars($section['name']); ?><?php endif; ?></h2>
+<h2 class="nfm-section-title mb-4 text-center <?php echo !empty($singleSectionView) ? 'text-3xl text-gray-400 sm:text-4xl md:mb-4 md:text-4xl lg:text-5xl' : 'text-4xl text-brandGold sm:text-5xl md:mb-4 md:text-5xl lg:text-6xl xl:text-7xl'; ?>"><?php if (!empty($fullMenuUrl) && empty($singleSectionView)): ?><a href="<?php echo htmlspecialchars($fullMenuUrl . '/' . $section['slug']); ?>" class="text-brandGold hover:underline"><?php echo htmlspecialchars($section['name']); ?></a><?php else: ?><?php echo htmlspecialchars($section['name']); ?><?php endif; ?></h2>
 <?php if (empty($singleSectionView) && !empty($section['image']) && empty($isTemplatePreview)): ?>
 <div class="mx-auto mb-4 max-w-[11.5rem] px-1 sm:mb-5 sm:max-w-xs md:mb-6 md:max-w-md">
   <img src="<?php echo $uploadBaseUrl . '/sections/' . htmlspecialchars($section['image']); ?>" alt="" class="mx-auto max-h-[4.25rem] w-full rounded-md object-contain shadow-md sm:max-h-28 md:max-h-36" loading="lazy" decoding="async"/>
 </div>
 <?php endif; ?>
-<div class="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-x-6 md:gap-y-8 lg:gap-x-8 lg:gap-y-10">
+<div class="grid grid-cols-1 gap-y-12 gap-x-0 sm:gap-y-14 md:grid-cols-2 md:gap-x-8 md:gap-y-12 lg:gap-x-10 lg:gap-y-14">
 <?php foreach ($section['categories'] as $catIndex => $category): 
     $slug = isset($category['slug']) ? $category['slug'] : ('cat-'.$catIndex);
     $items = isset($category['menu_items']) ? $category['menu_items'] : [];
     if (empty($items)) continue;
 ?>
 <section class="card-border flex h-full min-w-0 flex-col rounded-sm border-brandGold/30 bg-transparent p-4 sm:p-5 md:p-5 lg:p-6" id="<?php echo htmlspecialchars($slug); ?>">
-<h3 class="nfm-category-title mb-4 flex flex-wrap items-center justify-center gap-3 border-b border-brandGold/25 pb-3 text-center text-4xl leading-tight text-white md:mb-5 md:justify-start md:text-left md:text-5xl lg:text-6xl">
+<h3 class="nfm-category-title mb-4 flex flex-wrap items-center justify-center gap-3 border-b border-brandGold/25 pb-3 text-center text-5xl leading-tight text-white sm:text-5xl md:mb-5 md:justify-start md:text-left md:text-4xl lg:text-5xl xl:text-6xl">
   <?php if (!empty($category['image']) && empty($isTemplatePreview)): ?>
     <img src="<?php echo $uploadBaseUrl . '/categories/' . htmlspecialchars($category['image']); ?>" alt="" class="h-11 w-11 shrink-0 rounded-full object-cover ring-2 ring-brandGold/45 md:h-10 md:w-10" width="44" height="44" loading="lazy" decoding="async"/>
   <?php endif; ?>
