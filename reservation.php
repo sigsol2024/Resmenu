@@ -184,7 +184,7 @@ $restaurantName = htmlspecialchars($restaurant['name']);
 </div>
 
 <!-- Navigation -->
-<nav class="relative z-50 flex items-center justify-between px-6 md:px-8 py-6 max-w-7xl mx-auto">
+<nav class="relative z-50 flex items-center px-6 md:px-8 py-6 max-w-7xl mx-auto w-full">
     <a href="<?php echo htmlspecialchars($menuUrl); ?>" class="flex items-center space-x-2">
         <?php if (!empty($restaurant['logo'])): ?>
             <img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo $restaurantName; ?>" class="h-10 w-auto object-contain">
@@ -195,10 +195,7 @@ $restaurantName = htmlspecialchars($restaurant['name']);
             <span class="text-xl md:text-2xl font-extrabold tracking-tighter text-white uppercase"><?php echo $restaurantName; ?></span>
         <?php endif; ?>
     </a>
-    <div class="flex items-center space-x-4 md:space-x-8 text-sm font-medium text-white/80">
-        <a class="hover:text-primary transition-colors" href="<?php echo htmlspecialchars($menuUrl); ?>">OUR MENU</a>
-        <span class="text-primary font-bold cursor-default select-none" aria-current="page">RESERVE TABLE</span>
-    </div>
+    <a class="ml-auto text-sm font-medium text-white/80 hover:text-primary transition-colors" href="<?php echo htmlspecialchars($menuUrl); ?>">OUR MENU</a>
 </nav>
 
 <!-- Main Content -->
