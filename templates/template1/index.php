@@ -329,7 +329,9 @@ foreach ($sections as $section):
                       <span class="unavailable-badge">Unavailable</span>
                     <?php endif; ?>
                   </div>
-                  <div class="item-price"><?php echo 'N' . number_format($item['price'], 0, '.', ','); ?></div>
+                  <?php if ((float)$item['price'] > 0): ?>
+                    <div class="item-price"><?php echo 'N' . number_format($item['price'], 0, '.', ','); ?></div>
+                  <?php endif; ?>
                   <?php if ($item['description']): ?>
                     <div class="item-description"><?php echo htmlspecialchars($item['description']); ?></div>
                   <?php endif; ?>

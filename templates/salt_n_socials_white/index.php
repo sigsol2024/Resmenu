@@ -18,7 +18,11 @@ $snswPageBgFile = (file_exists($snswTemplateDir . '/Salt-Social-2-copy-1.png')) 
 $snswSideBgFile = (file_exists($snswTemplateDir . '/side-bg-scaled.png')) ? 'side-bg-scaled.png' : 'side-bg-scaled.jpg';
 $currencySymbol = '₦';
 $primaryColor = isset($customization['primary_color']) ? $customization['primary_color'] : '#0D2633';
-function snsw_price($p, $s = '₦') { return $s . number_format((float)$p, 2); }
+function snsw_price($p, $s = '₦') {
+    $n = (float)$p;
+    if ($n == 0.0) return '';
+    return $s . number_format($n, 2);
+}
 $activeCategories = [];
 if (!empty($sections) && is_array($sections)) {
     foreach ($sections as $sec) {

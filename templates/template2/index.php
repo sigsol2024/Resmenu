@@ -56,7 +56,9 @@ if (!empty($singleSectionView) && !empty($sections[0]['image'])) {
 
 // Format price helper function
 function formatPriceTemplate2($price, $currency = '$') {
-    return $currency . number_format($price, 2);
+    $p = (float) $price;
+    if ($p == 0.0) return '';
+    return $currency . number_format($p, 2);
 }
 ?>
 <!DOCTYPE html>

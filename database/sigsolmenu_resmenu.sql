@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: May 13, 2026 at 12:21 AM
+-- Generation Time: May 14, 2026 at 02:49 PM
 -- Server version: 10.6.25-MariaDB
--- PHP Version: 8.4.20
+-- PHP Version: 8.4.21
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -171,7 +171,34 @@ INSERT INTO `categories` (`id`, `restaurant_id`, `section_id`, `name`, `slug`, `
 (140, 19, 15, 'SEAFOOD DISHES', 'seafood-dishes', NULL, '', 4, 1, '2026-05-06 01:48:13', '2026-05-06 01:51:11'),
 (141, 19, 15, 'CHICKEN DISHES', 'chicken-dishes', NULL, '', 3, 1, '2026-05-06 01:48:48', '2026-05-06 01:51:11'),
 (142, 19, 15, 'BEEF DISHES', 'beef-dishes', NULL, '', 2, 1, '2026-05-06 01:49:29', '2026-05-06 01:51:11'),
-(143, 19, 15, 'NIGERIAN DELIGHT', 'nigerian-delight', NULL, 'ALL SOUPS ARE SERVED WITH A CHOICE OF SWALLOW', 1, 1, '2026-05-06 01:51:11', '2026-05-06 01:51:11');
+(143, 19, 15, 'NIGERIAN DELIGHT', 'nigerian-delight', NULL, 'ALL SOUPS ARE SERVED WITH A CHOICE OF SWALLOW', 1, 1, '2026-05-06 01:51:11', '2026-05-06 01:51:11'),
+(144, 4, 18, 'Starters', 'food-starters', '6a045de08b74d.webp', '', 1, 1, '2026-05-13 01:27:51', '2026-05-13 11:17:52'),
+(145, 4, 18, 'Main Course', 'food-main-course', '6a046fe792f15.webp', '', 5, 1, '2026-05-13 01:27:51', '2026-05-13 12:34:47'),
+(146, 4, 18, 'Platters', 'food-platters', NULL, NULL, 9, 1, '2026-05-13 01:27:51', '2026-05-13 01:28:09'),
+(147, 4, 18, 'Salads', 'food-salads', NULL, NULL, 12, 1, '2026-05-13 01:27:51', '2026-05-13 01:28:09'),
+(148, 4, 18, 'Sides', 'food-sides', '6a045e4fe0a49.webp', '', 14, 1, '2026-05-13 01:27:51', '2026-05-13 11:19:43'),
+(149, 4, 18, 'Desserts', 'food-desserts', NULL, NULL, 16, 1, '2026-05-13 01:27:51', '2026-05-13 01:28:09'),
+(150, 4, 19, 'Champagne', 'drink-champagne', '6a046f7a33272.webp', '', 2, 1, '2026-05-13 01:27:51', '2026-05-13 12:32:58'),
+(151, 4, 19, 'Cognac', 'drink-cognac', NULL, NULL, 6, 1, '2026-05-13 01:27:51', '2026-05-13 01:28:09'),
+(152, 4, 19, 'Whisky', 'drink-whisky', NULL, NULL, 10, 1, '2026-05-13 01:27:51', '2026-05-13 01:28:09'),
+(153, 4, 19, 'Tequila', 'drink-tequila', NULL, NULL, 13, 1, '2026-05-13 01:27:51', '2026-05-13 01:28:09'),
+(154, 4, 19, 'Gin', 'drink-gin', NULL, NULL, 15, 1, '2026-05-13 01:27:51', '2026-05-13 01:28:09'),
+(155, 4, 19, 'Creams', 'drink-creams', NULL, NULL, 17, 1, '2026-05-13 01:27:51', '2026-05-13 01:28:09'),
+(156, 4, 19, 'Bitters', 'drink-bitters', NULL, NULL, 18, 1, '2026-05-13 01:27:51', '2026-05-13 01:28:09'),
+(157, 4, 19, 'Rum', 'drink-rum', '6a045fbc01a78.webp', '', 19, 1, '2026-05-13 01:27:51', '2026-05-13 11:25:48'),
+(158, 4, 19, 'Red Wine', 'drink-red-wine', '6a046fb6c2a83.webp', '', 20, 1, '2026-05-13 01:27:51', '2026-05-13 12:33:58'),
+(159, 4, 19, 'White Wine', 'drink-white-wine', NULL, NULL, 21, 1, '2026-05-13 01:27:51', '2026-05-13 01:28:09'),
+(160, 4, 19, 'Cocktails', 'drink-cocktails', NULL, NULL, 22, 1, '2026-05-13 01:27:51', '2026-05-13 01:28:09'),
+(161, 4, 19, 'Virgin Cocktails', 'drink-virgin-cocktails', NULL, NULL, 23, 1, '2026-05-13 01:27:51', '2026-05-13 01:28:09'),
+(162, 4, 19, 'Beers', 'drink-beers', '6a045ebf2fc29.webp', '', 24, 1, '2026-05-13 01:27:51', '2026-05-13 11:21:35'),
+(163, 4, 19, 'Energy Drinks', 'drink-energy-drinks', NULL, NULL, 25, 1, '2026-05-13 01:27:51', '2026-05-13 01:28:09'),
+(164, 4, 19, 'Soft Drinks', 'drink-soft-drinks', NULL, NULL, 26, 1, '2026-05-13 01:27:51', '2026-05-13 01:28:09'),
+(165, 4, 19, 'Milkshakes', 'drink-milkshakes', NULL, NULL, 27, 1, '2026-05-13 01:27:51', '2026-05-13 01:28:09'),
+(166, 4, 20, 'Breakfast Specials', 'brunch-breakfast-specials', NULL, NULL, 3, 1, '2026-05-13 01:27:51', '2026-05-13 01:28:09'),
+(167, 4, 20, 'Brunch Sides', 'brunch-sides', NULL, NULL, 7, 1, '2026-05-13 01:27:51', '2026-05-13 01:28:09'),
+(168, 4, 20, 'Brunch Desserts', 'brunch-desserts', NULL, NULL, 11, 1, '2026-05-13 01:27:51', '2026-05-13 01:28:09'),
+(169, 4, 21, 'Shisha Flavours', 'shisha-flavours', NULL, NULL, 4, 1, '2026-05-13 01:27:51', '2026-05-13 01:28:09'),
+(170, 4, 21, 'Extras', 'shisha-extras', NULL, NULL, 8, 1, '2026-05-13 01:27:51', '2026-05-13 01:28:09');
 
 -- --------------------------------------------------------
 
@@ -275,7 +302,9 @@ INSERT INTO `customization_settings` (`id`, `restaurant_id`, `template_id`, `men
 (14, 13, 1, '#000000', 24, 'Inter', '#000000', 18, 'Inter', '#666666', 14, 'Inter', '#000000', 20, 'Inter', '#FFFFFF', '#FFFFFF', '#111111', '#FFFFFF', '2026-03-12 23:11:27', '2026-03-12 23:11:27'),
 (20, 19, 1, '#000000', 24, 'Inter', '#000000', 18, 'Inter', '#666666', 14, 'Inter', '#000000', 20, 'Inter', '#FFFFFF', '#FFFFFF', '#111111', '#FFFFFF', '2026-04-06 17:01:14', '2026-04-06 17:01:14'),
 (21, 20, 1, '#000000', 24, 'Inter', '#000000', 18, 'Inter', '#666666', 14, 'Inter', '#000000', 20, 'Inter', '#FFFFFF', '#FFFFFF', '#111111', '#FFFFFF', '2026-04-28 20:07:22', '2026-04-28 20:07:22'),
-(22, 21, 1, '#000000', 24, 'Inter', '#000000', 18, 'Inter', '#666666', 14, 'Inter', '#000000', 20, 'Inter', '#FFFFFF', '#FFFFFF', '#111111', '#FFFFFF', '2026-05-09 17:25:57', '2026-05-09 17:25:57');
+(22, 21, 1, '#000000', 24, 'Inter', '#000000', 18, 'Inter', '#666666', 14, 'Inter', '#000000', 20, 'Inter', '#FFFFFF', '#FFFFFF', '#111111', '#FFFFFF', '2026-05-09 17:25:57', '2026-05-09 17:25:57'),
+(25, 24, 1, '#000000', 24, 'Inter', '#000000', 18, 'Inter', '#666666', 14, 'Inter', '#000000', 20, 'Inter', '#FFFFFF', '#FFFFFF', '#111111', '#FFFFFF', '2026-05-14 13:49:32', '2026-05-14 13:49:32'),
+(26, 25, 1, '#000000', 24, 'Inter', '#000000', 18, 'Inter', '#666666', 14, 'Inter', '#000000', 20, 'Inter', '#FFFFFF', '#FFFFFF', '#111111', '#FFFFFF', '2026-05-14 14:20:15', '2026-05-14 14:20:15');
 
 -- --------------------------------------------------------
 
@@ -309,7 +338,7 @@ CREATE TABLE `login_attempts` (
 --
 
 INSERT INTO `login_attempts` (`id`, `ip_address`, `identifier`, `attempted_at`) VALUES
-(51, '46.1.27.140', 'admin', '2026-05-12 22:13:22');
+(53, '98.97.79.156', 'ellipsehotelslagos@gmail.com', '2026-05-13 18:52:06');
 
 -- --------------------------------------------------------
 
@@ -338,7 +367,9 @@ INSERT INTO `managers` (`id`, `username`, `email`, `password_hash`, `restaurant_
 (13, 'heussoestaurant_manager', 'restaurant@lussohotelsabuja.com', '$2y$10$Fh0gC2vv/1u0mPAm9AAO6OAQ1xc3vrLNArRu1ZSbt7b376rcyCQby', 13, '2026-03-12 23:11:27', '2026-03-12 23:11:27'),
 (19, 'restaurant_manager', 'opallagos1@gmail.com', '$2y$10$IG9TuMWMmmp9o6pWrFEGZOpo1N3cDDUJxAQdcYPNVirvtiYUvrewC', 19, '2026-04-06 17:01:14', '2026-04-06 17:01:14'),
 (20, 'wissheistana_manager', 'it.vistana@swissinternationalhotels.com', '$2y$10$4SZDGdX8G.bM0Sp3teev7OPOzbqurIcN7Ex8f4IPSIRKJ8ZEBIRym', 20, '2026-04-28 20:07:22', '2026-04-28 20:07:22'),
-(21, 'llipseotels_manager', 'ellipsehotelslagos@gmail.com', '$2y$10$qf44.BDvK7sAzPEg2tdeUegT3H/4xcDCCBgLw96z1AGtK6bxftR3i', 21, '2026-05-09 17:25:57', '2026-05-09 17:25:57');
+(21, 'llipseotels_manager', 'ellipsehotelslagos@gmail.com', '$2y$10$qf44.BDvK7sAzPEg2tdeUegT3H/4xcDCCBgLw96z1AGtK6bxftR3i', 21, '2026-05-09 17:25:57', '2026-05-09 17:25:57'),
+(24, 'astyistro_manager', 'sigsol2024@gmail.com', '$2y$10$lmF1AYDmZVRgtantU93UMOZbgN5ds5K/W8qunX2BA8oomGtIwqxjm', 24, '2026-05-14 13:49:32', '2026-05-14 13:49:32'),
+(25, 'heaniaouse_manager', 'admin@maniahouse.our-menu.online', '$2y$10$vJ/8ehXrESneVUwPZ8gFwOdp1J/pJCSnQRzdxlUlUkykm8WDXGfuC', 25, '2026-05-14 14:20:15', '2026-05-14 14:20:15');
 
 -- --------------------------------------------------------
 
@@ -985,7 +1016,175 @@ INSERT INTO `menu_items` (`id`, `restaurant_id`, `category_id`, `name`, `slug`, 
 (1124, 19, 132, 'OMELET NATURE', 'omelet-nature', '', 9000.00, NULL, 0, 1, '2026-05-06 02:02:51', '2026-05-06 02:02:51'),
 (1125, 19, 132, 'SUNNY SIDE UP', 'sunny-side-up', '', 9000.00, NULL, 0, 1, '2026-05-06 02:03:11', '2026-05-06 02:03:11'),
 (1126, 19, 132, 'SCRAMBLED', 'scrambled', '', 9000.00, NULL, 0, 1, '2026-05-06 02:04:33', '2026-05-06 02:04:33'),
-(1127, 19, 133, 'CRISPY CHICKEN WINGS', 'crispy-chicken-wings', 'Seasoned deep-fried chicken wings, fried and served with your choice of BBQ or chili sauce.', 17000.00, NULL, 0, 1, '2026-05-06 02:06:18', '2026-05-06 02:06:18');
+(1127, 19, 133, 'CRISPY CHICKEN WINGS', 'crispy-chicken-wings', 'Seasoned deep-fried chicken wings, fried and served with your choice of BBQ or chili sauce.', 17000.00, NULL, 0, 1, '2026-05-06 02:06:18', '2026-05-06 02:06:18'),
+(1128, 4, 144, 'Hunter\'s Soup', 'hunters-soup', 'Goat Meat Chunks, Herbs, Yam Balls', 12500.00, NULL, 1, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1129, 4, 144, 'Seafood Skillet', 'seafood-skillet', 'Mixed Seafood, Eggs, Bell Peppers, Mozzarella Cheese, Marinara Sauce, Agege French Toast', 13500.00, NULL, 2, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1130, 4, 144, 'Beef Sliders', 'beef-sliders', 'Bun, Beef Patties, Lettuce, Tomatoes, Caramelized Onions, Mozzarella Cheese', 15000.00, NULL, 3, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1131, 4, 144, 'Spicy Glazed Lamb Ribs', 'spicy-glazed-lamb-ribs', 'Braised Lamb Ribs, Pickled Shombo, Hoisin Sauce, Sesame Seeds, Petite Salad', 19900.00, NULL, 4, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1132, 4, 144, 'Damgonama Rolls', 'damgonama-rolls', 'Dried Pulled Beef, Cabbage, Bell Peppers, Chili Flakes, Peppered Jam', 10000.00, NULL, 5, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1133, 4, 144, 'Peanut Crusted Suya', 'peanut-crusted-suya', 'Torzo, Chicken Breast, Crushed Peanuts, Yaji, Tomatoes, Onions', 12900.00, NULL, 6, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1134, 4, 144, 'Stuffed Chicken Caesar Salad', 'stuffed-chicken-caesar-salad', 'Chicken Breast, Parmesan Croutons, Iceberg Lettuce, Cherry Tomatoes, Salad Dressing', 19900.00, NULL, 7, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1135, 4, 144, 'Spicy Snails Basket', 'spicy-snails-basket', 'Peppered Snails, Paprika Boli, Iyamase Sauce', 25000.00, NULL, 8, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1136, 4, 144, 'Mixed Meat Taco', 'mixed-meat-taco', 'Brisket, Tortilla, Tomato Salsa, Cucumber Yoghurt Drizzle', 12900.00, NULL, 9, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1137, 4, 144, 'Let\'s Wings It... Chicken Lollipops', 'lets-wings-it-chicken-lollipops', 'Tomato Base, Mushrooms, Caramelized Onions, Cheese. Choice of Sauce: Orange Cumin • Honey Mustard • BBQ Peanut • Lemon Garlic Parmesan • Chilli Sauce • Plain', 14900.00, NULL, 10, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1138, 4, 145, 'Brown Butter Salmon', 'brown-butter-salmon', 'Grilled Salmon, Sweet Potato Fingers, Seasonal Vegetables, Beurre Blanc', 49000.00, NULL, 1, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1139, 4, 145, 'Seafood Pasta', 'seafood-pasta', 'Creamy Seafood Mix, Linguine, Tomatoes, Herbs, Pesto Baguette', 43750.00, NULL, 2, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1140, 4, 145, 'Beef Burger', 'beef-burger', 'Beef Pattie, Lettuce, Fried Egg, Caramelized Onions, Spicy Burger Sauce', 22500.00, NULL, 3, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1141, 4, 145, 'Smoked Short Rib Pasta', 'smoked-short-rib-pasta', 'Short Ribs, Rigatoni, Ragu, Herbs, Mushrooms', 34990.00, NULL, 4, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1142, 4, 145, 'Smoked Chicken Tagliatelle', 'smoked-chicken-tagliatelle', 'Chicken, Macon, Tagliatelle Pasta, Cream, Kale, Peas, Sundried Tomatoes', 29900.00, NULL, 5, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1143, 4, 145, 'Grilled Baby Chicken', 'grilled-baby-chicken', 'Baby Chicken, Oxtail Fried Rice, Potato Crisps, Caramelized Onions, Chili Sauce', 39000.00, NULL, 6, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1144, 4, 145, '700G Grilled Tomahawk Steak (Feeds 2)', '700g-grilled-tomahawk-steak', 'Tomahawk Steak, Oxtail Fried Rice, Seasonal Vegetables, Carrot Puree, Peppercorn Sauce', 90000.00, NULL, 7, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1145, 4, 145, 'Sirloin with Marrow Butter', 'sirloin-with-marrow-butter', '250g Sirloin, Mash Potatoes, Seasonal Vegetables, Carrot Puree, Marrow Butter', 48500.00, NULL, 8, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1146, 4, 145, 'Herb Crusted Lamb Chops', 'herb-crusted-lamb-chops', '450g French Trimmed Cutlets, Oxtail Rice, Seasonal Vegetables. Options: Grilled / Herb-Crusted', 58500.00, NULL, 9, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1147, 4, 145, 'Pan Seared Chicken', 'pan-seared-chicken', 'Grilled Chicken, Sauteed Potatoes, Creamed Corn, Chicken Gravy', 29900.00, NULL, 10, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1148, 4, 145, 'Peri-Peri Jumbo Prawns', 'peri-peri-jumbo-prawns', 'Chargrilled Jumbo Prawns, Shredded Beef, Salsa, Kelewele, Jollof Rice', 45750.00, NULL, 11, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1149, 4, 146, 'Meat Nostalgia', 'meat-nostalgia', 'Braised Short Ribs, Pineapple Chicken Drumsticks, Pulled Brisket Taquitos, Whisky Beef Sliders, Mixed Tubers, Oxtail Fried Rice', 69000.00, NULL, 1, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1150, 4, 146, 'Nostalgia Seafood Sail', 'nostalgia-seafood-sail', 'XXL Croaker, Jumbo Prawns, Baby Calamari, Shrimp Rolls, Curry Snails, Kelewele, Fries', 79500.00, NULL, 2, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1151, 4, 146, 'Smoked Guinea Fowl', 'smoked-guinea-fowl', 'Smoked Guinea Fowl, Sweet Potato Wedges, Corn Ribs, Green Salad', 42000.00, NULL, 3, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1152, 4, 147, 'Chicken & Prawns Caesar Salad', 'chicken-prawns-caesar-salad', 'Jumbo Prawns, Chicken Breast, Iceberg Lettuce, Croutons, Egg, Parmesan Cheese, Caesar Dressing', 33900.00, NULL, 1, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1153, 4, 147, 'Italian Chopped Salad', 'italian-chopped-salad', 'Turkey Ham, Iceberg Lettuce, Feta Cheese, Cherry Tomatoes, Sweet Corn, Olives', 15000.00, NULL, 2, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1154, 4, 147, 'Prawns Salad', 'prawns-salad', 'Jumbo Prawns, Iceberg Lettuce, Croutons, Egg, Parmesan Cheese, Caesar Dressing', 29900.00, NULL, 3, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51');
+INSERT INTO `menu_items` (`id`, `restaurant_id`, `category_id`, `name`, `slug`, `description`, `price`, `image`, `display_order`, `is_available`, `created_at`, `updated_at`) VALUES
+(1155, 4, 147, 'Chicken Caesar Salad', 'chicken-caesar-salad', 'Chicken Breast, Iceberg Lettuce, Croutons, Egg, Parmesan Cheese, Caesar Dressing', 24900.00, NULL, 4, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1156, 4, 148, 'Jollof Rice', 'jollof-rice', NULL, 6000.00, NULL, 1, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1157, 4, 148, 'Oxtail Fried Rice', 'oxtail-fried-rice', NULL, 6900.00, NULL, 2, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1158, 4, 148, 'Kelewele', 'kelewele', NULL, 5000.00, NULL, 3, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1159, 4, 148, 'Mixed Tubers', 'mixed-tubers', NULL, 3900.00, NULL, 4, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1160, 4, 148, 'Mash Potatoes', 'mash-potatoes', NULL, 4500.00, NULL, 5, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1161, 4, 148, 'French Fries', 'french-fries', NULL, 4500.00, NULL, 6, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1162, 4, 148, 'Seasonal Vegetables', 'seasonal-vegetables', NULL, 3500.00, NULL, 7, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1163, 4, 148, 'Prawns', 'prawns-side', NULL, 26800.00, NULL, 8, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1164, 4, 149, 'Bailey Brownie', 'bailey-brownie', 'Baileys Irish Liqueur, Espresso Powder, Truffle Chocolate Cake', 9500.00, NULL, 1, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1165, 4, 149, 'Apple Pie', 'apple-pie', 'Baked Apples, Lemon Butter, Short Crust Pie', 9500.00, NULL, 2, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1166, 4, 149, 'Jamaican Rum Cake', 'jamaican-rum-cake', 'Candied Fruit, Rum, Moist Brown Sponge', 9500.00, NULL, 3, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1167, 4, 150, 'Cristal Louis Roederer', 'cristal-louis-roederer', NULL, 1159200.00, NULL, 1, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1168, 4, 150, 'Cristal Magnum', 'cristal-magnum', NULL, 2600000.00, NULL, 2, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1169, 4, 150, 'Dom Pérignon Brut', 'dom-perignon-brut', NULL, 1034000.00, NULL, 3, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1170, 4, 150, 'Ace of Spades Brut', 'ace-of-spades-brut', NULL, 1140000.00, NULL, 4, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1171, 4, 150, 'Moët Brut Imperial', 'moet-brut-imperial', NULL, 290000.00, NULL, 5, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1172, 4, 150, 'Moët Nectar Imperial Rosé', 'moet-nectar-imperial-rose', NULL, 350000.00, NULL, 6, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1173, 4, 150, 'Veuve Clicquot Brut', 'veuve-clicquot-brut', NULL, 299000.00, NULL, 7, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1174, 4, 150, 'Veuve Clicquot Rich', 'veuve-clicquot-rich', NULL, 450000.00, NULL, 8, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1175, 4, 151, 'Hennessy Paradis', 'hennessy-paradis', NULL, 2875000.00, NULL, 1, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1176, 4, 151, 'Hennessy XO', 'hennessy-xo', NULL, 990000.00, NULL, 2, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1177, 4, 151, 'Hennessy VSOP', 'hennessy-vsop', NULL, 296000.00, NULL, 3, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1178, 4, 151, 'Martell Blue Swift', 'martell-blue-swift', NULL, 270000.00, NULL, 4, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1179, 4, 151, 'Martell XO', 'martell-xo', NULL, 790000.00, NULL, 5, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1180, 4, 151, 'Cognac Shot', 'cognac-shot', NULL, 7000.00, NULL, 6, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1181, 4, 152, 'Glenfiddich 18', 'glenfiddich-18', NULL, 350000.00, NULL, 1, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1182, 4, 152, 'Glenfiddich 21', 'glenfiddich-21', NULL, 850500.00, NULL, 2, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1183, 4, 152, 'Glenfiddich 23', 'glenfiddich-23', NULL, 1250000.00, NULL, 3, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1184, 4, 152, 'Glenfiddich 26', 'glenfiddich-26', NULL, 1825000.00, NULL, 4, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1185, 4, 152, 'Glenfiddich 30', 'glenfiddich-30', NULL, 7000000.00, NULL, 5, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1186, 4, 152, 'Macallan Rare Cask', 'macallan-rare-cask', NULL, 389500.00, NULL, 6, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1187, 4, 152, 'Jameson Black Barrel', 'jameson-black-barrel', NULL, 195000.00, NULL, 7, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1188, 4, 152, 'Whiskey Shot', 'whiskey-shot', NULL, 7000.00, NULL, 8, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1189, 4, 153, 'Don Julio 1942', 'don-julio-1942', NULL, 999000.00, NULL, 1, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1190, 4, 153, 'Clase Azul Reposado', 'clase-azul-reposado', NULL, 950000.00, NULL, 2, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1191, 4, 153, 'Patron Silver', 'patron-silver', NULL, 199000.00, NULL, 3, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1192, 4, 153, 'Adictivo Tequila Extra Añejo', 'adictivo-tequila-extra-anejo', NULL, 750000.00, NULL, 4, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1193, 4, 153, 'Casamigos Reposado', 'casamigos-reposado', NULL, 485000.00, NULL, 5, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1194, 4, 153, 'Tequila Shot', 'tequila-shot', NULL, 6500.00, NULL, 6, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1195, 4, 154, 'Hendrick\'s', 'hendricks', NULL, 169000.00, NULL, 1, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1196, 4, 154, 'Bombay Sapphire', 'bombay-sapphire', NULL, 100000.00, NULL, 2, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1197, 4, 154, 'Tonino Lamborghini Gin', 'tonino-lamborghini-gin', NULL, 189000.00, NULL, 3, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1198, 4, 154, 'Gin Shot', 'gin-shot', NULL, 7000.00, NULL, 4, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1199, 4, 155, 'Baileys', 'baileys', NULL, 90000.00, NULL, 1, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1200, 4, 156, 'Campari', 'campari', NULL, 95000.00, NULL, 1, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1201, 4, 157, 'Bumbu', 'bumbu', NULL, 85500.00, NULL, 1, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1202, 4, 158, 'Château Vartely Sweet Red Wine', 'chateau-vartely-sweet-red-wine', NULL, 90000.00, NULL, 1, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1203, 4, 158, 'Amabile Di Rosa Sweet White', 'amabile-di-rosa-sweet-white-red', NULL, 85000.00, NULL, 2, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1204, 4, 158, 'Shannon Mount Bullet Merlot', 'shannon-mount-bullet-merlot', NULL, 230900.00, NULL, 3, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1205, 4, 158, 'Santa Rita 3 Medallas', 'santa-rita-3-medallas-red', NULL, 51000.00, NULL, 4, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1206, 4, 158, 'Darling Cellar Sweet Rosé', 'darling-cellar-sweet-rose-red', NULL, 85000.00, NULL, 5, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1207, 4, 158, 'Darling Cellars Sweet Red', 'darling-cellars-sweet-red', NULL, 85000.00, NULL, 6, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1208, 4, 158, 'Dona Paula Estate Malbec', 'dona-paula-estate-malbec', NULL, 85000.00, NULL, 7, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1209, 4, 158, 'Ermelinda Vinho Tinto Apostle', 'ermelinda-vinho-tinto-apostle', NULL, 75000.00, NULL, 8, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1210, 4, 158, 'BLABLA Cabernet Sauvignon', 'blabla-cabernet-sauvignon', NULL, 75000.00, NULL, 9, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1211, 4, 158, 'Leopard Leaps', 'leopard-leaps', NULL, 75000.00, NULL, 10, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1212, 4, 159, 'Santa Rita 3 Medallas', 'santa-rita-3-medallas-white', NULL, 65000.00, NULL, 1, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1213, 4, 159, 'Cloudy Bay Sauvignon Blanc', 'cloudy-bay-sauvignon-blanc', NULL, 85500.00, NULL, 2, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1214, 4, 159, 'Fantinel Sun Goddess Pinot', 'fantinel-sun-goddess-pinot', NULL, 94999.00, NULL, 3, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1215, 4, 159, 'Santa Rita 120 Reserva Especial Chardonnay', 'santa-rita-120-reserva-especial-chardonnay', NULL, 75000.00, NULL, 4, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1216, 4, 159, 'Amabile Di Rosa Sweet White', 'amabile-di-rosa-sweet-white-white', NULL, 85000.00, NULL, 5, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1217, 4, 159, 'Château d\'Esclans Whispering Angel Rosé', 'chateau-desclans-whispering-angel-rose', NULL, 75000.00, NULL, 6, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1218, 4, 159, 'Amabile Di Rosa Sweet Rosé', 'amabile-di-rosa-sweet-rose-white', NULL, 75000.00, NULL, 7, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1219, 4, 160, 'Manhattan', 'manhattan', NULL, 13600.00, NULL, 1, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1220, 4, 160, 'Old Fashioned', 'old-fashioned', NULL, 13600.00, NULL, 2, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1221, 4, 160, 'Whiskey Sour', 'whiskey-sour', NULL, 13600.00, NULL, 3, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1222, 4, 160, 'Negroni', 'negroni', NULL, 13600.00, NULL, 4, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1223, 4, 160, 'Gin Basil', 'gin-basil', NULL, 13600.00, NULL, 5, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1224, 4, 160, 'Gin Fizz', 'gin-fizz', NULL, 13600.00, NULL, 6, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1225, 4, 160, 'Margarita', 'margarita', NULL, 13600.00, NULL, 7, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1226, 4, 160, 'Cosmopolitan', 'cosmopolitan', NULL, 13600.00, NULL, 8, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1227, 4, 160, 'Screw Driver', 'screw-driver', NULL, 13600.00, NULL, 9, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1228, 4, 160, 'Mojito', 'mojito', NULL, 13600.00, NULL, 10, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1229, 4, 160, 'Rum Sour', 'rum-sour', NULL, 13600.00, NULL, 11, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1230, 4, 160, 'Daiquiri', 'daiquiri', NULL, 13600.00, NULL, 12, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1231, 4, 160, 'Long Island', 'long-island', NULL, 13600.00, NULL, 13, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1232, 4, 160, 'Pornstar Martini', 'pornstar-martini', NULL, 13600.00, NULL, 14, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1233, 4, 160, 'Mind Twister', 'mind-twister', '(Tequila Based)', 17900.00, NULL, 15, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1234, 4, 160, 'Cody Funk', 'cody-funk', '(Vodka Based)', 14500.00, NULL, 16, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1235, 4, 160, 'Standing Nipple', 'standing-nipple', NULL, 14500.00, NULL, 17, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1236, 4, 161, 'Chapman', 'chapman', NULL, 10000.00, NULL, 1, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1237, 4, 161, 'Virgin Margarita', 'virgin-margarita', NULL, 10000.00, NULL, 2, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1238, 4, 161, 'Virgin Daiquiri', 'virgin-daiquiri', NULL, 10000.00, NULL, 3, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1239, 4, 161, 'Virgin Colada', 'virgin-colada', NULL, 10000.00, NULL, 4, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1240, 4, 161, 'Virgin Mojito', 'virgin-mojito', NULL, 10000.00, NULL, 5, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1241, 4, 162, 'Stout', 'stout', NULL, 4500.00, NULL, 1, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1242, 4, 162, 'Orijin Can', 'orijin-can', NULL, 4500.00, NULL, 2, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1243, 4, 162, 'Gulder', 'gulder', NULL, 4500.00, NULL, 3, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1244, 4, 162, 'Budweiser', 'budweiser', NULL, 4500.00, NULL, 4, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1245, 4, 162, 'Heineken', 'heineken', NULL, 4500.00, NULL, 5, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1246, 4, 163, 'Power Horse', 'power-horse', NULL, 4500.00, NULL, 1, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1247, 4, 164, 'Malta Can', 'malta-can', NULL, 3000.00, NULL, 1, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1248, 4, 164, 'Pet Coke', 'pet-coke', NULL, 3000.00, NULL, 2, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1249, 4, 164, 'Pet Sprite', 'pet-sprite', NULL, 3000.00, NULL, 3, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1250, 4, 164, 'Pet Fanta', 'pet-fanta', NULL, 3000.00, NULL, 4, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1251, 4, 164, 'Can Mojito', 'can-mojito', NULL, 3000.00, NULL, 5, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1252, 4, 164, 'Water', 'water', NULL, 2000.00, NULL, 6, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1253, 4, 164, 'Tonic Water', 'tonic-water', NULL, 3000.00, NULL, 7, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1254, 4, 164, 'Cranberry Juice', 'cranberry-juice', NULL, 10000.00, NULL, 8, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1255, 4, 165, 'Vanilla Milkshake', 'vanilla-milkshake', NULL, 7500.00, NULL, 1, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1256, 4, 165, 'Strawberry Milkshake', 'strawberry-milkshake', NULL, 7500.00, NULL, 2, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1257, 4, 165, 'Chocolate Milkshake', 'chocolate-milkshake', NULL, 7500.00, NULL, 3, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1258, 4, 165, 'Chocy Teaser', 'chocy-teaser', NULL, 9900.00, NULL, 4, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1259, 4, 165, 'Oreo and Waffle', 'oreo-and-waffle', NULL, 9900.00, NULL, 5, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1260, 4, 165, 'Strawberry Gummy', 'strawberry-gummy', NULL, 9900.00, NULL, 6, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1261, 4, 166, 'English Breakfast', 'english-breakfast', 'Eggs, Bacon, Sausages, Baked Beans, Grilled Tomatoes, Toast', 14900.00, NULL, 1, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1262, 4, 166, 'Waffles Delight', 'waffles-delight', 'Crispy Chicken, Waffles, Fried Egg, Green Salad, Syrup', 13900.00, NULL, 2, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1263, 4, 166, 'Buttermilk Blueberry Pancakes', 'buttermilk-blueberry-pancakes', 'Fresh Blueberries, Flour, Eggs, Vanilla Extract. Choice of: Sausages • Bacon • Plain with Syrup', 17500.00, NULL, 3, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1264, 4, 166, 'Popcorn Chicken with French Toast', 'popcorn-chicken-with-french-toast', 'Diced Chicken, French Toast, Fruit Bowl, Whipped Cream', 14900.00, NULL, 4, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1265, 4, 166, 'Turfed Chicken Caesar Salad', 'turfed-chicken-caesar-salad', 'Chicken Breast, Parmesan Croutons, Iceberg Lettuce, Cherry Tomatoes, Salad Dressing', 30500.00, NULL, 5, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1266, 4, 166, 'Philly Omelet', 'philly-omelet', 'Eggs, Pulled Beef, Caramelized Onions, Bell Peppers, Cheese, Chili Sauce. Choice of: Fried Yam • Fried Plantain', 10000.00, NULL, 6, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1267, 4, 166, 'Salmon Skillet', 'salmon-skillet', 'Salmon, Eggs, Bell Peppers, Mozzarella Cheese, Marinara Sauce, Agege French Toast', 25000.00, NULL, 7, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1268, 4, 166, 'Nostalgia Breakfast Burrito', 'nostalgia-breakfast-burrito', 'Tortilla, Scrambled Eggs, Sausages, Bacon, Pulled Beef, Breakfast Potatoes, Lettuce, Caramelized Onions, Cheese, Peppercorn Aioli', 11000.00, NULL, 8, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1269, 4, 166, 'Beef Burger', 'beef-burger-brunch', 'Beef Pattie, Lettuce, Cheese, Tomato Chutney, Caramelized Onions', 15000.00, NULL, 9, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1270, 4, 166, 'Balsamic Braised Lamb Shanks', 'balsamic-braised-lamb-shanks', 'Lamb Shank, Mash Potatoes, Seasonal Vegetables, Balsamic Reduction', 22900.00, NULL, 10, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1271, 4, 166, 'Peri-Peri Jumbo Prawns', 'peri-peri-jumbo-prawns-brunch', 'Chargrilled Jumbo Prawns, Shredded Beef, Salsa, Kelewele, Jollof Rice', 29900.00, NULL, 11, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1272, 4, 166, 'Seafood Pasta', 'seafood-pasta-brunch', 'Creamy Seafood Mix, Linguine, Tomatoes, Herbs, Pesto Baguette', 27900.00, NULL, 12, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1273, 4, 167, 'French Toast', 'french-toast-brunch', NULL, 4000.00, NULL, 1, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1274, 4, 167, 'Waffles', 'waffles-brunch', NULL, 4000.00, NULL, 2, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1275, 4, 167, 'Blueberry Pancakes', 'blueberry-pancakes-brunch', NULL, 4500.00, NULL, 3, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1276, 4, 167, 'Mash Potatoes', 'mash-potatoes-brunch', NULL, 3500.00, NULL, 4, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1277, 4, 167, 'Jollof Rice', 'jollof-rice-brunch', NULL, 3000.00, NULL, 5, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1278, 4, 167, 'French Fries', 'french-fries-brunch', NULL, 3500.00, NULL, 6, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1279, 4, 167, 'Seasonal Vegetables', 'seasonal-vegetables-brunch', NULL, 3500.00, NULL, 7, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1280, 4, 167, 'Kelewele', 'kelewele-brunch', NULL, 3500.00, NULL, 8, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1281, 4, 167, 'Breakfast Extras', 'breakfast-extras', NULL, 2500.00, NULL, 9, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1282, 4, 168, 'Bailey Brownie', 'bailey-brownie-brunch', 'Baileys Irish Liqueur, Espresso Powder, Truffle Chocolate Cake', 7000.00, NULL, 1, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1283, 4, 168, 'Apple Pie', 'apple-pie-brunch', 'Baked Apples, Lemon Butter, Short Crust Pie', 6500.00, NULL, 2, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1284, 4, 168, 'Sticky Toffee Pudding', 'sticky-toffee-pudding', NULL, 6500.00, NULL, 3, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1285, 4, 169, 'Blueberry', 'shisha-blueberry', NULL, 35000.00, NULL, 1, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1286, 4, 169, 'Chocolate', 'shisha-chocolate', NULL, 35000.00, NULL, 2, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1287, 4, 169, 'Cream & Mint', 'shisha-cream-mint', NULL, 35000.00, NULL, 3, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1288, 4, 169, 'Double Apple', 'shisha-double-apple', NULL, 35000.00, NULL, 4, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1289, 4, 169, 'Grape Flavour', 'shisha-grape-flavour', NULL, 35000.00, NULL, 5, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1290, 4, 169, 'Lemon & Mint', 'shisha-lemon-mint', NULL, 35000.00, NULL, 6, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1291, 4, 169, 'Strawberry', 'shisha-strawberry', NULL, 35000.00, NULL, 7, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1292, 4, 169, 'Love 66', 'shisha-love-66', NULL, 35000.00, NULL, 8, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1293, 4, 169, 'Watermelon', 'shisha-watermelon', NULL, 35000.00, NULL, 9, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(1294, 4, 170, 'Extra Flavour', 'extra-flavour', NULL, 12500.00, NULL, 1, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51');
 
 -- --------------------------------------------------------
 
@@ -1349,11 +1548,13 @@ CREATE TABLE `restaurants` (
 INSERT INTO `restaurants` (`id`, `name`, `slug`, `logo`, `hero_image`, `description`, `phone`, `email`, `address`, `website`, `whatsapp_link`, `instagram_url`, `facebook_url`, `twitter_url`, `enable_food_ordering`, `enable_table_reservations`, `map_latitude`, `map_longitude`, `header_menu_items`, `footer_content`, `manager_email`, `google_rating`, `rating_source`, `template_id`, `is_active`, `available_items_count`, `unavailable_items_count`, `subscription_id`, `created_at`, `updated_at`) VALUES
 (2, 'LAVA', 'lava', '69459eb555362.jpg', '69459edb896e3.png', 'Premium dining experience with exquisite cuisine and fine beverages', '+234 800 000 0000', 'info@lava.com', 'LAVA., 5 Adetokunbu Ademola Street, Victoria Island', NULL, '', '', 'https://web.facebook.com/theviewhotellekki', '', 1, 1, NULL, NULL, '[\r\n  {\"label\": \"Menu\", \"url\": \"#menu\"},\r\n  {\"label\": \"Drinks\", \"url\": \"#drinks\"}\r\n]', 'af', 'jamesamaila07@gmail.com', 4.5, 'Google', 3, 1, 65, 0, 1, '2025-12-19 18:43:07', '2026-03-20 14:37:20'),
 (3, 'Theview Hotel Lekki', 'theview-hotel', '698ee78360beb.jpg', '698ee783613af.jpg', 'Our restaurant offers the best platters like our very popular Ogazi Platter (Guinea fowl platter), D View Special Platter and Pacific Platter.', '+23490 9091 3608', 'reservations@theviewlekki.com', '1, Godwin Omene Street, Chief Collins Uchidiuno, Off Fola Osibo, Lekki Phase 1, Lagos, Nigeria', NULL, 'https://wa.link/g1n8bq', 'https://www.instagram.com/theviewlekki/', 'https://web.facebook.com/theviewhotellekki', '', 1, 1, NULL, NULL, NULL, 'Our restaurant offers the best platters like our very popular Ogazi Platter (Guinea fowl platter), D View Special Platter and Pacific Platter.', 'reservations@theviewlekki.com', 4.5, 'Google', 6, 1, 229, 0, 2, '2026-02-13 08:57:39', '2026-05-07 12:44:03'),
-(4, 'NOSTALGIA', 'nostalgia-menu', '69a76f2ad31b1.png', '6a03c39962f34.png', '', '+234 911 311 9337', 'info@nostalgialagos.com', '88 Hakeem Dickson Road, Lekki Phase 1', NULL, '', 'https://www.instagram.com/vcphotels/?hl=en', '', '', 1, 1, NULL, NULL, NULL, 'A Fusion of Culture, Style & Vibrant Nights.  \r\n  Offers both Dine-in and Take-out options.  \r\n    \r\n  ## Operating Hours  \r\n     Open: Tuesdays through Sundays, from 12:00 PM (noon) to 3:00 AM.  \r\n     Closed: Mondays.  \r\n     Sunday Brunch: Available from 12:00 PM (noon) to 4:30 PM.  \r\n\r\n    \r\n  ## Contact & Location  \r\n     Website: nostalgia.our-menu.online (and 1 more link)  \r\n     Address: 88 Hakeem Dickson Road, Lekki Phase 1, Lagos, Nigeria 105102.', 'admin@nostalgia.our-menu.online', 4.5, 'Google', 18, 1, 0, 0, 3, '2026-03-03 23:30:50', '2026-05-13 00:20:47'),
+(4, 'NOSTALGIA', 'nostalgia-menu', '6a03d7489f311.png', '6a045d414dc91.jpg', '', '+234 911 311 9337', 'info@nostalgialagos.com', '88 Hakeem Dickson Road, Lekki Phase 1', NULL, '', 'https://www.instagram.com/vcphotels/?hl=en', '', '', 0, 0, NULL, NULL, NULL, 'A Fusion of Culture, Style & Vibrant Nights.  \r\n  Offers both Dine-in and Take-out options.  \r\n    \r\n  ## Operating Hours  \r\n     Open: Tuesdays through Sundays, from 12:00 PM (noon) to 3:00 AM.  \r\n     Closed: Mondays.  \r\n     Sunday Brunch: Available from 12:00 PM (noon) to 4:30 PM.  \r\n\r\n    \r\n  ## Contact & Location   \r\n     Address: 88 Hakeem Dickson Road, Lekki Phase 1, Lagos, Nigeria 105102.', 'admin@nostalgia.our-menu.online', 4.5, 'Google', 18, 1, 167, 0, 3, '2026-03-03 23:30:50', '2026-05-14 12:13:21'),
 (13, 'Café De Bourgeois', 'the-lusso-restaurant', '69b4163236007.jpg', '69b41a5c8e5f6.jpg', 'The lusso hotel abuja', '', 'restaurant@lussohotelsabuja.com', '33 Usuma St, Maitama, Abuja 904101, Federal Capital Territory', NULL, '', '', '', '', 1, 1, NULL, NULL, NULL, '', 'restaurant@lussohotelsabuja.com', 4.5, 'Google', 6, 1, 307, 0, 12, '2026-03-12 23:11:27', '2026-05-04 11:42:14'),
 (19, 'OPAL CAFE MENU', 'opal-cafe-menu', NULL, NULL, 'Cafe', '2349024262089', 'opallagos1@gmail.com', 'No 5 Adetukunbo Ademola Victoria Island, Lagos', NULL, '', '', '', '', 1, 1, NULL, NULL, NULL, NULL, 'opallagos1@gmail.com', 4.5, 'Google', 1, 1, 18, 0, 18, '2026-04-06 17:01:14', '2026-05-06 02:06:18'),
 (20, 'Swiss The Vistana', 'swiss-the-vistana', NULL, NULL, '', '09168340156', 'it.vistana@swissinternationalhotels.com', '', NULL, '', 'https://l.instagram.com/', '', '', 1, 1, NULL, NULL, NULL, NULL, 'it.vistana@swissinternationalhotels.com', 5.0, 'Google', 1, 1, 0, 0, 19, '2026-04-28 20:07:22', '2026-04-28 20:07:22'),
-(21, 'Ellipse Hotels', 'ellipse-hotels', NULL, NULL, 'Hospitality Industry', '08109453960', 'ellipsehotelslagos@gmail.com', 'N0 31 Shola Adewumi Street, Bucknor Ejigbo Lagos State', NULL, '', '', '', '', 1, 1, NULL, NULL, NULL, NULL, 'ellipsehotelslagos@gmail.com', 4.5, 'Google', 1, 1, 0, 0, 20, '2026-05-09 17:25:57', '2026-05-09 17:25:57');
+(21, 'Ellipse Hotels', 'ellipse-hotels', NULL, NULL, 'Hospitality Industry', '08109453960', 'ellipsehotelslagos@gmail.com', 'N0 31 Shola Adewumi Street, Bucknor Ejigbo Lagos State', NULL, '', '', '', '', 0, 1, NULL, NULL, NULL, NULL, 'ellipsehotelslagos@gmail.com', 4.5, 'Google', 1, 1, 0, 0, 20, '2026-05-09 17:25:57', '2026-05-13 18:54:31'),
+(24, 'Tasty Bistro', 'tasty-bistro', NULL, NULL, 'Tasty bistro is the best restaurant in the world', '091223845674', 'sigsol2024@gmail.com', 'Suite B9 Ajah Shopping Mall', NULL, '', '', '', '', 1, 1, NULL, NULL, NULL, NULL, 'sigsol2024@gmail.com', 4.5, 'Google', 1, 1, 0, 0, 23, '2026-05-14 13:49:32', '2026-05-14 13:49:32'),
+(25, 'The Mania House', 'the-mania-house', NULL, NULL, 'Victoria Island Lagos', '08144258984', 'admin@maniahouse.our-menu.online', '25a Gafari Animashaun St, Victoria Island, Lagos 101241, Lagos', NULL, '', 'https://www.instagram.com/themaniahouse/?hl=en', '', '', 1, 1, NULL, NULL, NULL, NULL, 'admin@maniahouse.our-menu.online', 4.5, 'Google', 1, 1, 0, 0, 24, '2026-05-14 14:20:15', '2026-05-14 14:20:15');
 
 -- --------------------------------------------------------
 
@@ -1480,7 +1681,13 @@ INSERT INTO `sections` (`id`, `restaurant_id`, `name`, `slug`, `image`, `display
 (13, 13, 'À La Carte Menu', 'a-la-carte-menu', NULL, 1, 1, '2026-03-13 10:13:02', '2026-03-13 10:14:12'),
 (14, 13, 'Drinks', 'drinks', NULL, 3, 1, '2026-03-14 17:42:54', '2026-03-14 17:43:53'),
 (15, 19, 'FOOD', 'food', NULL, 3, 1, '2026-05-06 00:53:28', '2026-05-06 01:53:00'),
-(16, 19, 'DRINKS', 'drinks', NULL, 2, 1, '2026-05-06 00:53:48', '2026-05-06 01:53:00');
+(16, 19, 'DRINKS', 'drinks', NULL, 2, 1, '2026-05-06 00:53:48', '2026-05-06 01:53:00'),
+(18, 4, 'Food Menu', 'food-menu', '6a03d58aa458b.webp', 1, 1, '2026-05-13 01:27:51', '2026-05-13 01:36:10'),
+(19, 4, 'Drink Menu', 'drink-menu', '6a045f3fc2b51.webp', 2, 1, '2026-05-13 01:27:51', '2026-05-13 11:23:43'),
+(20, 4, 'Brunch Menu', 'brunch-menu', NULL, 3, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(21, 4, 'Shisha Menu', 'shisha-menu', NULL, 4, 1, '2026-05-13 01:27:51', '2026-05-13 01:27:51'),
+(22, 21, 'Food Menu', 'food-menu', NULL, 2, 1, '2026-05-13 18:58:05', '2026-05-13 18:59:00'),
+(23, 21, 'Drink Menu', 'drink-menu', NULL, 1, 1, '2026-05-13 18:59:00', '2026-05-13 18:59:00');
 
 -- --------------------------------------------------------
 
@@ -1547,7 +1754,9 @@ INSERT INTO `subscriptions` (`id`, `restaurant_id`, `plan_id`, `billing_cycle`, 
 (12, 13, 3, 'monthly', 'trial', '2026-05-18 23:11:27', NULL, '2026-07-13 13:29:58', NULL, '2026-03-12 23:11:27', '2026-03-19 16:52:40'),
 (18, 19, 2, 'annual', 'active', '2026-04-13 17:01:14', '2026-04-06 17:18:09', '2027-04-06 17:18:09', NULL, '2026-04-06 17:01:14', '2026-04-06 17:18:09'),
 (19, 20, 3, 'monthly', 'trial', '2026-05-05 20:07:22', NULL, NULL, NULL, '2026-04-28 20:07:22', '2026-04-28 20:07:22'),
-(20, 21, 3, 'monthly', 'trial', '2026-05-16 17:25:57', NULL, NULL, NULL, '2026-05-09 17:25:57', '2026-05-09 17:25:57');
+(20, 21, 3, 'monthly', 'trial', '2026-05-16 17:25:57', NULL, NULL, NULL, '2026-05-09 17:25:57', '2026-05-09 17:25:57'),
+(23, 24, 3, 'monthly', 'trial', '2026-05-21 13:49:32', NULL, NULL, NULL, '2026-05-14 13:49:32', '2026-05-14 13:49:32'),
+(24, 25, 3, 'monthly', 'trial', '2026-05-21 14:20:15', NULL, NULL, NULL, '2026-05-14 14:20:15', '2026-05-14 14:20:15');
 
 -- --------------------------------------------------------
 
@@ -2463,7 +2672,7 @@ ALTER TABLE `admins`
 -- AUTO_INCREMENT for table `categories`
 --
 ALTER TABLE `categories`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=144;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=177;
 
 --
 -- AUTO_INCREMENT for table `category_secondary_sections`
@@ -2475,7 +2684,7 @@ ALTER TABLE `category_secondary_sections`
 -- AUTO_INCREMENT for table `customization_settings`
 --
 ALTER TABLE `customization_settings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT for table `email_delivery_suppressions`
@@ -2487,19 +2696,19 @@ ALTER TABLE `email_delivery_suppressions`
 -- AUTO_INCREMENT for table `login_attempts`
 --
 ALTER TABLE `login_attempts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=54;
 
 --
 -- AUTO_INCREMENT for table `managers`
 --
 ALTER TABLE `managers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT for table `menu_items`
 --
 ALTER TABLE `menu_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1128;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1296;
 
 --
 -- AUTO_INCREMENT for table `orders`
@@ -2565,7 +2774,7 @@ ALTER TABLE `qr_templates`
 -- AUTO_INCREMENT for table `restaurants`
 --
 ALTER TABLE `restaurants`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT for table `restaurant_payment_settings`
@@ -2589,7 +2798,7 @@ ALTER TABLE `restaurant_reservation_settings`
 -- AUTO_INCREMENT for table `sections`
 --
 ALTER TABLE `sections`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT for table `site_settings`
@@ -2601,7 +2810,7 @@ ALTER TABLE `site_settings`
 -- AUTO_INCREMENT for table `subscriptions`
 --
 ALTER TABLE `subscriptions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `subscription_change_requests`

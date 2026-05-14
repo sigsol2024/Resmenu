@@ -25,7 +25,9 @@ $reservationUrl = $baseUrl . '/restaurant/' . ($restaurant['slug'] ?? '') . '/re
 $primaryColor = isset($customization['primary_color']) ? $customization['primary_color'] : '#D4AF37';
 $siteAssetsBase = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : $baseUrl) . '/uploads/site';
 function the_prime_cut_price($price, $symbol = '₦') {
-    return $symbol . number_format((float)$price, 2);
+    $p = (float) $price;
+    if ($p == 0.0) return '';
+    return $symbol . number_format($p, 2);
 }
 $activeCategories = [];
 if (!empty($sections) && is_array($sections)) {

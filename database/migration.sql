@@ -126,6 +126,11 @@ DELIMITER ;
 -- Juices, Energy Drinks, Beers, Aperitif, Gin, Whisky variants, Vodka, Rum,
 -- Cognac, Tequila, Liquor, Hot Beverages, White/Red/Rosé Wine, Champagne)
 -- with all menu items and prices in ₦. Run once per restaurant.
+--
+-- Mania House (admin@maniahouse.our-menu.online): optional full menu seed
+-- (Wing Mania, Mania Brunch, Hookah Mania sections). Regenerate SQL from
+-- database/build_mania_seed.mjs if you edit menu data, then run:
+--   mysql -u user -p database_name < database/seed_maniahouse_menu.sql
 
 -- ---------------------------------------------------------------------------
 -- 5. Category -> multiple secondary sections (category_secondary_sections)

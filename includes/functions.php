@@ -557,7 +557,11 @@ function createRestaurantWithManager(PDO $pdo, array $input, array $files = [], 
  * @return string
  */
 function formatPrice($price, $currency = '₦') {
-    return $currency . number_format($price, 2);
+    $p = (float) $price;
+    if ($p == 0.0) {
+        return '';
+    }
+    return $currency . number_format($p, 2);
 }
 
 /**

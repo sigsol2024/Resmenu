@@ -22,6 +22,7 @@ $currencySymbol = '₦';
 $primaryColor = isset($customization['primary_color']) ? $customization['primary_color'] : '#f2b90d';
 function nfm_price($p, $s = '₦') {
     $n = (float)$p;
+    if ($n == 0.0) return '';
     $str = number_format($n, 2, '.', ',');
     if (substr($str, -3) === '.00') {
         return $s . substr($str, 0, -3);

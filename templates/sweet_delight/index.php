@@ -14,7 +14,11 @@ if ($baseUrl === '') {
 $reservationUrl = $baseUrl . '/restaurant/' . ($restaurant['slug'] ?? '') . '/reservation';
 $currencySymbol = '₦';
 $primaryColor = isset($customization['primary_color']) ? $customization['primary_color'] : '#FF85A2';
-function sd_price($p, $s = '₦') { return $s . number_format((float)$p, 2); }
+function sd_price($p, $s = '₦') {
+    $n = (float)$p;
+    if ($n == 0.0) return '';
+    return $s . number_format($n, 2);
+}
 $activeCategories = [];
 if (!empty($sections) && is_array($sections)) {
     foreach ($sections as $sec) {

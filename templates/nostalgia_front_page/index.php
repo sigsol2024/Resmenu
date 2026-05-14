@@ -68,7 +68,11 @@ $cardImages = ['https://lh3.googleusercontent.com/aida-public/AB6AXuD-NUGPkPCxpJ
 </div>
 <div class="mt-16 space-y-16">
 <?php 
-function nfp_price($p, $s = '₦') { return $s . number_format((float)$p, 2); }
+function nfp_price($p, $s = '₦') {
+    $n = (float)$p;
+    if ($n == 0.0) return '';
+    return $s . number_format($n, 2);
+}
 foreach ($sections as $section): 
     if (empty($section['categories']) || !is_array($section['categories'])) continue;
 ?>

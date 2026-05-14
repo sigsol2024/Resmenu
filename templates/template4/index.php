@@ -69,7 +69,9 @@ $bgColor = $customization['background_color'] ?? '#f8f5f5';
 $currencySymbol = '₦';
 
 function t4_formatPrice($price, $symbol = '₦') {
-    return $symbol . number_format((float)$price, 2);
+    $p = (float) $price;
+    if ($p == 0.0) return '';
+    return $symbol . number_format($p, 2);
 }
 ?>
 <!DOCTYPE html>

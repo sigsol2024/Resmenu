@@ -10,7 +10,11 @@ $baseUrl = defined('SITE_URL') ? rtrim(SITE_URL, '/') : '';
 $reservationUrl = $baseUrl . '/restaurant/' . ($restaurant['slug'] ?? '') . '/reservation';
 $currencySymbol = '₦';
 $primaryColor = isset($customization['primary_color']) ? $customization['primary_color'] : '#c27d63';
-function ek_price($p, $s = '₦') { return $s . number_format((float)$p, 2); }
+function ek_price($p, $s = '₦') {
+    $n = (float)$p;
+    if ($n == 0.0) return '';
+    return $s . number_format($n, 2);
+}
 $activeCategories = [];
 if (!empty($sections) && is_array($sections)) {
     foreach ($sections as $sec) {
