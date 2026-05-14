@@ -11,6 +11,7 @@ try {
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/order-functions.php';
+require_once __DIR__ . '/../includes/manager-feature-access.php';
 
 // Require either manager or super admin
 if (!isLoggedIn()) {
@@ -38,6 +39,10 @@ if ($isManager) {
     $restaurantId = getCurrentUserRestaurantId();
     if (!$restaurantId) {
         echo json_encode(['success' => false, 'message' => 'No restaurant associated']);
+        exit;
+    }
+    if (!managerRestaurantFoodOrderingUsable((int) $restaurantId)) {
+        echo json_encode(['success' => false, 'message' => 'Food ordering is not available for this restaurant.']);
         exit;
     }
 } else {

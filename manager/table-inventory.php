@@ -27,6 +27,9 @@ if (empty($restaurantSlug)) $restaurantSlug = $restaurant['slug'];
 
 $slugParam = $restaurantSlug ? '?slug=' . urlencode($restaurantSlug) : '';
 
+require_once __DIR__ . '/../includes/manager-feature-access.php';
+assertManagerTableReservationsSubpageOrRedirect($restaurantId, $restaurant, $slugParam);
+
 $pageTitle = 'Table Inventory - ' . htmlspecialchars($restaurant['name']);
 include __DIR__ . '/../includes/manager-layout.php';
 ?>

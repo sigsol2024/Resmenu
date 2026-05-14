@@ -32,6 +32,12 @@ if (!$restaurantId) {
     exit;
 }
 
+require_once __DIR__ . '/../includes/manager-feature-access.php';
+if (!managerRestaurantTableReservationsUsable((int) $restaurantId)) {
+    header('Location: /manager/reservations.php' . $slugPart);
+    exit;
+}
+
 $reservationId = isset($_POST['reservation_id']) ? (int)$_POST['reservation_id'] : 0;
 $status = trim($_POST['status'] ?? '');
 

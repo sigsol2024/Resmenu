@@ -3,7 +3,9 @@
  * Manager upgrade overlay: shown on manager pages when plan doesn't include the feature.
  * Expects: $managerUpgradeFeature ('food_ordering'|'table_reservations'|'payments'), $managerUpgradePlans (array), $managerUpgradeBillingUrl (string).
  */
-if (empty($managerUpgradeFeature) || empty($managerUpgradePlans)) return;
+if (empty($managerUpgradeFeature)) {
+    return;
+}
 
 $title = 'Feature';
 $message = 'Upgrade your plan to unlock this feature.';
@@ -108,11 +110,13 @@ $billingUrl = !empty($managerUpgradeBillingUrl) ? $managerUpgradeBillingUrl : '/
     <div class="resmenu-manager-upgrade-card">
         <h2>Upgrade for <?php echo htmlspecialchars($title); ?></h2>
         <p><?php echo htmlspecialchars($message); ?></p>
+        <?php if (!empty($managerUpgradePlans)): ?>
         <ul class="resmenu-manager-upgrade-plans">
             <?php foreach ($managerUpgradePlans as $p): ?>
             <li><?php echo htmlspecialchars($p['name'] ?? $p['slug'] ?? 'Plan'); ?></li>
             <?php endforeach; ?>
         </ul>
+        <?php endif; ?>
         <div class="resmenu-manager-upgrade-actions">
             <a href="<?php echo htmlspecialchars($billingUrl); ?>" class="btn-upgrade">Upgrade plan</a>
             <button type="button" class="btn-close" onclick="document.getElementById('resmenu-manager-upgrade-overlay').style.display='none';">Close</button>

@@ -166,6 +166,8 @@ if (isset($_GET['message'])) {
     if ($_GET['message'] === 'template_updated') $message = 'Template updated successfully';
     elseif ($_GET['message'] === 'customization_updated') $message = 'Template colors and styles saved. Each template keeps its own settings when you switch.';
     elseif ($_GET['message'] === 'features_updated') $message = 'Ordering & reservation settings updated for your menu.';
+    elseif ($_GET['message'] === 'ordering_disabled') $message = 'Food ordering is turned off for your public menu. Turn it back on under Ordering & reservations below.';
+    elseif ($_GET['message'] === 'reservations_disabled') $message = 'Table reservations are turned off for your public menu. Turn them back on under Ordering & reservations below.';
 }
 
 // Store template ID BEFORE layout include (sidebar overwrites $restaurant with only name/logo)

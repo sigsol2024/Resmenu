@@ -19,6 +19,12 @@ if (!$restaurantId) {
     exit;
 }
 
+require_once __DIR__ . '/../includes/manager-feature-access.php';
+if (!managerRestaurantTableReservationsUsable((int) $restaurantId)) {
+    echo json_encode(['success' => false, 'message' => 'Table reservations are not available for this restaurant.']);
+    exit;
+}
+
 $reservationId = isset($_GET['reservation_id']) ? (int)$_GET['reservation_id'] : 0;
 if (!$reservationId) {
     echo json_encode(['success' => false, 'message' => 'Invalid request']);

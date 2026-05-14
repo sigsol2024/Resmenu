@@ -21,13 +21,17 @@ $restaurant = $stmt->fetch();
 if (!$restaurant) die('Restaurant not found.');
 if (empty($restaurantSlug)) $restaurantSlug = $restaurant['slug'];
 
+$slugParam = $restaurantSlug ? '?slug=' . urlencode($restaurantSlug) : '';
+
+require_once __DIR__ . '/../includes/manager-feature-access.php';
+assertManagerTableReservationsSubpageOrRedirect($restaurantId, $restaurant, $slugParam);
+
 $templateId = (int)($restaurant['template_id'] ?? 1);
 if ($templateId !== 4) {
     header('Location: /manager/reservations.php?slug=' . urlencode($restaurantSlug));
     exit;
 }
 
-$slugParam = $restaurantSlug ? '?slug=' . urlencode($restaurantSlug) : '';
 $statuses = ['pending', 'confirmed', 'rejected', 'cancelled', 'completed'];
 $statusColors = ['pending' => '#f59e0b', 'confirmed' => '#10b981', 'rejected' => '#ef4444', 'cancelled' => '#6b7280', 'completed' => '#3b82f6'];
 $currencySymbol = '₦';

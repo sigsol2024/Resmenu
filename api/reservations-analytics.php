@@ -9,6 +9,7 @@ header('Content-Type: application/json');
 try {
     require_once __DIR__ . '/../includes/auth.php';
     require_once __DIR__ . '/../includes/functions.php';
+    require_once __DIR__ . '/../includes/manager-feature-access.php';
 
     if (!isLoggedIn() || !isManager()) {
         echo json_encode(['success' => false, 'message' => 'Unauthorized']);
@@ -18,6 +19,11 @@ try {
     $restaurantId = getCurrentUserRestaurantId();
     if (!$restaurantId) {
         echo json_encode(['success' => false, 'message' => 'No restaurant associated']);
+        exit;
+    }
+
+    if (!managerRestaurantTableReservationsUsable((int) $restaurantId)) {
+        echo json_encode(['success' => false, 'message' => 'Table reservations are not available for this restaurant.']);
         exit;
     }
 

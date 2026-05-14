@@ -24,6 +24,10 @@ if (empty($restaurantSlug)) $restaurantSlug = $restaurant['slug'];
 
 $slugParam = $restaurantSlug ? '?slug=' . urlencode($restaurantSlug) : '';
 $statuses = ['pending', 'confirmed', 'on_hold', 'cancelled', 'completed'];
+
+require_once __DIR__ . '/../includes/manager-feature-access.php';
+assertManagerFoodOrderingSubpageOrRedirect($restaurantId, $restaurant, $slugParam);
+
 $statusColors = ['pending' => '#f59e0b', 'confirmed' => '#3b82f6', 'on_hold' => '#6b7280', 'cancelled' => '#ef4444', 'completed' => '#10b981'];
 $currencySymbol = '₦';
 

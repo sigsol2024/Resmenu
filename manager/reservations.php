@@ -28,19 +28,8 @@ if (empty($restaurantSlug)) $restaurantSlug = $restaurant['slug'];
 
 $slugParam = $restaurantSlug ? '?slug=' . urlencode($restaurantSlug) : '';
 
-require_once __DIR__ . '/../includes/subscription.php';
-$showManagerUpgradeOverlay = false;
-$managerUpgradePlans = [];
-$managerUpgradeBillingUrl = (defined('SITE_URL') && SITE_URL !== '') ? rtrim(SITE_URL, '/') . '/manager/billing.php' : '/manager/billing.php';
-if (!hasFeatureAccess($restaurantId, 'table_reservations')) {
-    $showManagerUpgradeOverlay = true;
-    $managerUpgradeFeature = 'table_reservations';
-    $allPlans = getSubscriptionPlans(true);
-    foreach ($allPlans as $p) {
-        $slug = strtolower((string)($p['slug'] ?? ''));
-        if ($slug === 'enterprise') $managerUpgradePlans[] = $p;
-    }
-}
+require_once __DIR__ . '/../includes/manager-feature-access.php';
+assertManagerTableReservationsToggleOnOrRedirect($restaurantId, $restaurant);
 
 $reservationSettings = getReservationSettings($restaurantId);
 $depositAmount = (float)($reservationSettings['deposit_amount'] ?? 0);
@@ -65,6 +54,20 @@ $stmt->execute([$restaurantId, $limit]);
 $reservations = $stmt->fetchAll();
 
 $currencySymbol = '₦';
+
+require_once __DIR__ . '/../includes/subscription.php';
+$showManagerUpgradeOverlay = false;
+$managerUpgradePlans = [];
+$managerUpgradeBillingUrl = (defined('SITE_URL') && SITE_URL !== '') ? rtrim(SITE_URL, '/') . '/manager/billing.php' : '/manager/billing.php';
+if (!hasFeatureAccess($restaurantId, 'table_reservations')) {
+    $showManagerUpgradeOverlay = true;
+    $managerUpgradeFeature = 'table_reservations';
+    $allPlans = getSubscriptionPlans(true);
+    foreach ($allPlans as $p) {
+        $slug = strtolower((string)($p['slug'] ?? ''));
+        if ($slug === 'enterprise') $managerUpgradePlans[] = $p;
+    }
+}
 
 $pageTitle = 'Reservations - ' . htmlspecialchars($restaurant['name']);
 include __DIR__ . '/../includes/manager-layout.php';

@@ -39,6 +39,8 @@ $slugParam = $restaurantSlug ? '?slug=' . urlencode($restaurantSlug) : '';
 $userInfo = null;
 $restaurantName = '';
 $restaurantLogo = '';
+$enableFoodOrdering = 1;
+$enableTableReservations = 1;
 if (isLoggedIn() && isManager()) {
     $pdo = getDBConnection();
     if ($pdo) {
@@ -49,11 +51,17 @@ if (isLoggedIn() && isManager()) {
         
         $restaurantId = getCurrentUserRestaurantId();
         if ($restaurantId) {
-            $stmt = $pdo->prepare("SELECT name, logo FROM restaurants WHERE id = ?");
+            $stmt = $pdo->prepare("SELECT name, logo, enable_food_ordering, enable_table_reservations FROM restaurants WHERE id = ?");
             $stmt->execute([$restaurantId]);
             $sidebarRestaurant = $stmt->fetch(PDO::FETCH_ASSOC);
-            $restaurantName = $sidebarRestaurant['name'] ?? '';
-            $restaurantLogo = $sidebarRestaurant['logo'] ?? '';
+            if ($sidebarRestaurant) {
+                $restaurantName = $sidebarRestaurant['name'] ?? '';
+                $restaurantLogo = $sidebarRestaurant['logo'] ?? '';
+                $enableFoodOrdering = array_key_exists('enable_food_ordering', $sidebarRestaurant)
+                    ? (int) $sidebarRestaurant['enable_food_ordering'] : 1;
+                $enableTableReservations = array_key_exists('enable_table_reservations', $sidebarRestaurant)
+                    ? (int) $sidebarRestaurant['enable_table_reservations'] : 1;
+            }
         }
     }
 }
@@ -61,7 +69,7 @@ if (isLoggedIn() && isManager()) {
 // Navigation items for manager
 $navItems = [
     ['id' => 'dashboard', 'name' => 'Dashboard', 'href' => $dashboardHref, 'icon' => 'M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25'],
-    // Orders & reservations are feature-gated by plan (hide nav items if not included).
+    // Orders & reservations: plan feature + manager toggles (Templates → Ordering & reservations).
     ['id' => 'orders', 'name' => 'Orders', 'href' => '/manager/orders.php' . $slugParam, 'icon' => 'M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z', 'requires_feature' => 'food_ordering'],
     ['id' => 'reservations', 'name' => 'Reservations', 'href' => '/manager/reservations.php' . $slugParam, 'icon' => 'M3.75 9h16.5m-16.5 6.75h16.5', 'requires_feature' => 'table_reservations'],
     ['id' => 'menu-items', 'name' => 'Menu Items', 'href' => '/manager/menu-items.php', 'icon' => 'M12 6v12m-3-3h6m-3-3h6'],
@@ -73,15 +81,24 @@ $navItems = [
     ['id' => 'settings', 'name' => 'Settings', 'href' => '/manager/settings.php', 'icon' => 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065zM15 12a3 3 0 11-6 0 3 3 0 016 0z'],
 ];
 
-// Orders and Reservations always show in sidebar; on the page we show upgrade overlay if plan doesn't include the feature.
-// Other feature-gated items (if any) are still filtered.
+// Hide Orders / Reservations when plan lacks the feature or manager turned them off (same flags as public menu).
 if (isLoggedIn() && isManager()) {
-    $rid = (int)getCurrentUserRestaurantId();
+    $rid = (int) getCurrentUserRestaurantId();
     if ($rid > 0) {
-        $navItems = array_values(array_filter($navItems, function ($item) use ($rid) {
-            if (empty($item['requires_feature'])) return true;
-            if ($item['id'] === 'orders' || $item['id'] === 'reservations') return true;
-            return hasFeatureAccess($rid, (string)$item['requires_feature']);
+        $navItems = array_values(array_filter($navItems, function ($item) use ($rid, $enableFoodOrdering, $enableTableReservations) {
+            if (empty($item['requires_feature'])) {
+                return true;
+            }
+            if (!hasFeatureAccess($rid, (string) $item['requires_feature'])) {
+                return false;
+            }
+            if ($item['id'] === 'orders') {
+                return $enableFoodOrdering === 1;
+            }
+            if ($item['id'] === 'reservations') {
+                return $enableTableReservations === 1;
+            }
+            return true;
         }));
     }
 }

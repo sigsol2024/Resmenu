@@ -25,6 +25,9 @@ if (empty($restaurantSlug)) $restaurantSlug = $restaurant['slug'];
 
 $slugParam = $restaurantSlug ? '?slug=' . urlencode($restaurantSlug) : '';
 
+require_once __DIR__ . '/../includes/manager-feature-access.php';
+assertManagerFoodOrderingToggleOnOrRedirect($restaurantId, $restaurant);
+
 // Order stats by status
 $statuses = ['pending', 'confirmed', 'on_hold', 'cancelled', 'completed'];
 $statsByStatus = [];

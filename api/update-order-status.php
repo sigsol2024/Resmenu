@@ -40,6 +40,12 @@ if (!$restaurantId) {
     exit;
 }
 
+require_once __DIR__ . '/../includes/manager-feature-access.php';
+if (!managerRestaurantFoodOrderingUsable((int) $restaurantId)) {
+    header('Location: /manager/orders.php' . $slugPart);
+    exit;
+}
+
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/order-functions.php';
 $pdo = getDBConnection();

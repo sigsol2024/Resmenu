@@ -106,6 +106,9 @@ if ($pdo && $restaurantId) {
     $uniqueLocations = count($qrAnalytics['scans_by_location']);
 }
 
+$dashboardShowOrdersQuickAction = hasFeatureAccess($restaurantId, 'food_ordering')
+    && (array_key_exists('enable_food_ordering', (array) $restaurant) ? (int) $restaurant['enable_food_ordering'] : 1) === 1;
+
 $pageTitle = 'Dashboard - ' . htmlspecialchars($restaurant['name']);
 include __DIR__ . '/../includes/manager-layout.php';
 ?>
@@ -345,6 +348,7 @@ include __DIR__ . '/../includes/manager-layout.php';
       <section class="quick-actions">
         <h2 class="section-title">Quick Actions</h2>
         <div class="actions-grid">
+          <?php if (!empty($dashboardShowOrdersQuickAction)): ?>
           <a href="orders.php<?php echo $restaurantSlug ? '?slug=' . urlencode($restaurantSlug) : ''; ?>" class="action-card">
             <div class="action-header">
               <div class="action-icon">
@@ -362,6 +366,7 @@ include __DIR__ . '/../includes/manager-layout.php';
               </svg>
             </div>
           </a>
+          <?php endif; ?>
           
           <a href="menu-items.php" class="action-card">
             <div class="action-header">
