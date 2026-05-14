@@ -217,29 +217,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 
-    <div class="flex flex-1 flex-col justify-center lg:justify-start px-6 py-8 lg:px-16 lg:py-8 xl:px-20 bg-background-light lg:overflow-y-auto">
-        <div class="mb-6 flex items-center justify-between gap-4">
-            <a href="<?php echo htmlspecialchars($marketingHomeUrl); ?>" class="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-primary transition-colors">
-                <span class="material-symbols-outlined text-base">arrow_back</span>
-                Back to Home
-            </a>
-            <a href="<?php echo htmlspecialchars($marketingHomeUrl); ?>" class="inline-flex items-center gap-2 hover:opacity-90 transition-opacity lg:hidden">
-                <?php if ($siteLogoUrl !== ''): ?>
-                    <img src="<?php echo htmlspecialchars($siteLogoUrl); ?>" alt="<?php echo $siteName; ?>" class="h-10 w-auto">
-                <?php else: ?>
-                    <span class="material-symbols-outlined text-primary text-3xl">restaurant_menu</span>
-                    <span class="text-lg font-bold font-poppins text-slate-900"><?php echo $siteName; ?></span>
-                <?php endif; ?>
-            </a>
-        </div>
-
-        <div class="mx-auto w-full max-w-md">
-            <div class="mb-6">
-                <h2 class="text-3xl font-extrabold tracking-tight text-slate-900 font-poppins">Welcome Back</h2>
-                <p class="mt-2 text-slate-500">Log in to manage your digital menu.</p>
+    <div class="flex flex-1 flex-col justify-center lg:justify-start px-4 py-6 sm:px-6 sm:py-8 lg:px-16 lg:py-8 xl:px-20 bg-background-light lg:overflow-y-auto">
+        <div class="mx-auto w-full max-w-md max-xl:rounded-2xl max-xl:border max-xl:border-slate-200/90 max-xl:bg-white/80 max-xl:backdrop-blur-md max-xl:shadow-lg max-xl:px-4 max-xl:py-5 sm:max-xl:px-6 sm:max-xl:py-6 max-xl:ring-1 max-xl:ring-slate-900/5">
+            <div class="mb-5 flex w-full items-center justify-between gap-3 min-h-[2.5rem]">
+                <a href="<?php echo htmlspecialchars($marketingHomeUrl); ?>" class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-primary transition-colors sm:text-sm shrink-0 self-center">
+                    <span class="material-symbols-outlined text-base sm:text-lg leading-none">arrow_back</span>
+                    <span class="leading-tight">Back to Home</span>
+                </a>
+                <a href="<?php echo htmlspecialchars($marketingHomeUrl); ?>" class="inline-flex items-center justify-end gap-2 hover:opacity-90 transition-opacity lg:hidden shrink-0 self-center h-10">
+                    <?php if ($siteLogoUrl !== ''): ?>
+                        <img src="<?php echo htmlspecialchars($siteLogoUrl); ?>" alt="<?php echo $siteName; ?>" class="h-9 w-auto max-h-10 object-contain sm:h-10">
+                    <?php else: ?>
+                        <span class="material-symbols-outlined text-primary text-2xl sm:text-3xl leading-none">restaurant_menu</span>
+                        <span class="text-sm font-bold font-poppins text-slate-900 sm:text-base leading-tight"><?php echo $siteName; ?></span>
+                    <?php endif; ?>
+                </a>
             </div>
 
-        <form class="space-y-5" method="POST" action="">
+            <div class="mb-5 max-xl:mb-4">
+                <h2 class="text-2xl font-extrabold tracking-tight text-slate-900 font-poppins sm:text-3xl">Welcome Back</h2>
+                <p class="mt-1.5 text-sm text-slate-500 sm:text-base">Log in to manage your digital menu.</p>
+            </div>
+
+        <form class="space-y-4 sm:space-y-5" method="POST" action="">
             <input type="hidden" name="plan" value="<?php echo htmlspecialchars($selectedPlan); ?>">
             <input type="hidden" name="cycle" value="<?php echo htmlspecialchars($selectedCycle); ?>">
             <input type="hidden" name="next" value="<?php echo htmlspecialchars($nextPath); ?>">
@@ -249,7 +249,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <span class="material-symbols-outlined text-slate-400 text-xl">person</span>
                     </div>
-                    <input class="block w-full pl-11 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-primary focus:border-primary transition-colors" id="username" name="username" placeholder="your email or username" type="text" value="<?php echo htmlspecialchars($_POST['username'] ?? ($_POST['email'] ?? '')); ?>" required autofocus/>
+                    <input class="block w-full pl-10 sm:pl-11 pr-3 sm:pr-4 py-3 sm:py-3.5 text-base bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-primary focus:border-primary transition-colors" id="username" name="username" placeholder="your email or username" type="text" value="<?php echo htmlspecialchars($_POST['username'] ?? ($_POST['email'] ?? '')); ?>" required autofocus/>
                 </div>
             </div>
 
@@ -259,7 +259,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <span class="material-symbols-outlined text-slate-400 text-xl">lock</span>
                     </div>
-                    <input class="block w-full pl-11 pr-12 py-3.5 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-primary focus:border-primary transition-colors" id="password" name="password" placeholder="********" type="password" required/>
+                    <input class="block w-full pl-10 sm:pl-11 pr-11 sm:pr-12 py-3 sm:py-3.5 text-base bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-primary focus:border-primary transition-colors" id="password" name="password" placeholder="********" type="password" required/>
                     <button id="togglePassword" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-primary transition-colors" type="button" aria-label="Toggle password visibility">
                         <span id="togglePasswordIcon" class="material-symbols-outlined text-xl">visibility</span>
                     </button>
@@ -280,16 +280,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             <?php endif; ?>
 
-            <button class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-lg shadow-lg shadow-primary/20 transition-all transform hover:-translate-y-0.5 active:translate-y-0" type="submit">
+            <button class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 text-base rounded-lg shadow-lg shadow-primary/20 transition-all sm:py-4 sm:text-lg max-xl:active:scale-[0.99]" type="submit">
                 Login
             </button>
         </form>
 
-        <p class="mt-8 text-center text-sm text-slate-600">
+        <p class="mt-6 text-center text-xs text-slate-600 sm:mt-8 sm:text-sm">
             Don't have an account?
             <a class="font-bold text-primary hover:underline" href="<?php echo htmlspecialchars($registerLink); ?>">Sign Up</a>
         </p>
         </div>
+    </div>
 </div>
 
 <script>
