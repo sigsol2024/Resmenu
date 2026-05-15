@@ -167,6 +167,10 @@ body.nmc-body { overflow-x: clip; min-height: 100vh; min-height: 100dvh; }
 @keyframes nmcRailSlideIn {
   to { opacity: 1; transform: translateX(0); }
 }
+.nmc-rail-scroll {
+  overflow-x: visible;
+  -webkit-overflow-scrolling: touch;
+}
 @media (prefers-reduced-motion: reduce) {
   .nmc-reveal { opacity: 1; transform: none; transition: none; }
   .nmc-rail-link { opacity: 1; transform: none; }
@@ -238,19 +242,19 @@ body.nmc-body { overflow-x: clip; min-height: 100vh; min-height: 100dvh; }
 <?php endif; ?>
 </nav>
 </aside>
-<nav class="fixed left-0 top-0 z-50 flex h-screen w-14 shrink-0 flex-col items-center border-r border-white/10 bg-black/40 py-4 backdrop-blur-md md:w-32 md:py-8" aria-label="Section menu">
-<div class="flex w-full shrink-0 flex-col items-center gap-3 px-1 md:gap-4">
+<nav class="fixed left-0 top-0 z-50 flex h-screen w-20 shrink-0 flex-col items-center overflow-x-visible border-r border-white/10 bg-black/40 py-4 backdrop-blur-md sm:w-[5.25rem] md:w-36 md:py-8" aria-label="Section menu">
+<div class="flex w-full shrink-0 flex-col items-center gap-3 px-1.5 md:gap-4">
 <div class="shrink-0">
-<?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="h-10 w-10 rounded-xl object-contain md:h-12 md:w-12"/><?php else: ?><div class="flex h-10 w-10 rotate-12 items-center justify-center rounded-xl font-black text-xl brand-gradient md:h-12 md:w-12 md:text-2xl"><?php echo strtoupper(substr($restaurant['name'], 0, 1)); ?></div><?php endif; ?>
+<?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="h-11 w-11 rounded-xl object-contain md:h-12 md:w-12"/><?php else: ?><div class="flex h-11 w-11 rotate-12 items-center justify-center rounded-xl font-black text-xl brand-gradient md:h-12 md:w-12 md:text-2xl"><?php echo strtoupper(substr($restaurant['name'], 0, 1)); ?></div><?php endif; ?>
 </div>
-<button type="button" id="nmc-category-toggle" class="lg:hidden flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-orange-500/40 bg-gradient-to-br from-orange-500/15 to-purple-600/15 text-orange-400 shadow-inner shadow-orange-500/10 transition-colors hover:border-orange-400 hover:text-orange-300" aria-controls="nmc-category-drawer" aria-expanded="false" aria-label="Open categories menu">
+<button type="button" id="nmc-category-toggle" class="lg:hidden flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-orange-500/40 bg-gradient-to-br from-orange-500/15 to-purple-600/15 text-orange-400 shadow-inner shadow-orange-500/10 transition-colors hover:border-orange-400 hover:text-orange-300" aria-controls="nmc-category-drawer" aria-expanded="false" aria-label="Open categories menu">
 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
 </button>
 </div>
-<div class="flex min-h-0 w-full flex-1 flex-col items-center justify-center overflow-hidden px-0.5 pb-2">
+<div class="flex min-h-0 w-full flex-1 flex-col items-center justify-center px-1 pb-2 md:px-1.5">
 <?php $nmcRailDelay = 0; ?>
-<div id="nmc-rail-links" class="no-scrollbar flex max-h-full min-h-0 w-full flex-col items-center justify-center gap-y-8 overflow-y-auto overflow-x-hidden py-6 md:gap-y-10 md:py-10">
-<?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?><div class="nmc-rail-link flex w-full min-h-[3rem] items-center justify-center py-2 md:min-h-[3.25rem]" style="animation-delay: <?php echo ($nmcRailDelay * 0.3); ?>s"><?php $nmcRailDelay++; ?><a class="inline-flex max-w-full origin-center -rotate-90 whitespace-nowrap px-1 text-[11px] font-bold uppercase leading-none tracking-widest text-orange-500 hover:opacity-100 md:text-xs" href="<?php echo htmlspecialchars($fullMenuUrl); ?>">View Full menu</a></div><?php endif; ?>
+<div id="nmc-rail-links" class="no-scrollbar nmc-rail-scroll flex max-h-full min-h-0 w-full flex-col items-center justify-center gap-y-7 overflow-y-auto overflow-x-visible py-5 md:gap-y-9 md:py-8">
+<?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?><div class="nmc-rail-link flex w-full min-h-[4.25rem] items-center justify-center py-1 md:min-h-[4.5rem]" style="animation-delay: <?php echo ($nmcRailDelay * 0.3); ?>s"><?php $nmcRailDelay++; ?><a class="inline-flex origin-center -rotate-90 whitespace-nowrap px-0.5 text-xs font-bold uppercase leading-tight tracking-widest text-orange-500 hover:opacity-100 sm:text-[13px] md:text-sm" href="<?php echo htmlspecialchars($fullMenuUrl); ?>">View Full menu</a></div><?php endif; ?>
 <?php
 if (empty($singleSectionView) && !empty($sectionsForNav) && is_array($sectionsForNav) && !empty($fullMenuUrl)):
     $nmcNavSeen = [];
@@ -259,13 +263,13 @@ if (empty($singleSectionView) && !empty($sectionsForNav) && is_array($sectionsFo
         if ($nsk === '' || isset($nmcNavSeen[$nsk])) continue;
         $nmcNavSeen[$nsk] = true;
 ?>
-<div class="nmc-rail-link flex w-full min-h-[3.25rem] items-center justify-center py-2 md:min-h-[3.75rem]" style="animation-delay: <?php echo ($nmcRailDelay * 0.3); ?>s"><?php $nmcRailDelay++; ?><a class="inline-flex max-w-full origin-center -rotate-90 whitespace-nowrap px-1 text-[11px] font-bold uppercase leading-none tracking-widest text-red-500 opacity-95 hover:text-red-400 md:text-xs lg:text-sm" href="<?php echo htmlspecialchars($fullMenuUrl); ?>#section-<?php echo htmlspecialchars($nsk); ?>"><?php echo htmlspecialchars($navSection['name'] ?? ''); ?></a></div>
+<div class="nmc-rail-link flex w-full min-h-[4.25rem] items-center justify-center py-1 md:min-h-[4.75rem]" style="animation-delay: <?php echo ($nmcRailDelay * 0.3); ?>s"><?php $nmcRailDelay++; ?><a class="inline-flex origin-center -rotate-90 whitespace-nowrap px-0.5 text-xs font-bold uppercase leading-tight tracking-widest text-red-500 opacity-95 hover:text-red-400 sm:text-[13px] md:text-sm lg:text-[0.95rem]" href="<?php echo htmlspecialchars($fullMenuUrl); ?>#section-<?php echo htmlspecialchars($nsk); ?>"><?php echo htmlspecialchars($navSection['name'] ?? ''); ?></a></div>
 <?php endforeach; endif; ?>
-<?php if (!empty($supportsReservations)): ?><div class="nmc-rail-link flex w-full min-h-[3rem] items-center justify-center py-2 md:min-h-[3.25rem]" style="animation-delay: <?php echo ($nmcRailDelay * 0.3); ?>s"><?php $nmcRailDelay++; ?><a class="inline-flex max-w-full origin-center -rotate-90 whitespace-nowrap px-1 text-[11px] font-bold uppercase leading-none tracking-widest text-orange-500 md:text-xs" href="<?php echo htmlspecialchars($reservationUrl); ?>">Reserve Table</a></div><?php endif; ?>
+<?php if (!empty($supportsReservations)): ?><div class="nmc-rail-link flex w-full min-h-[4.25rem] items-center justify-center py-1 md:min-h-[4.5rem]" style="animation-delay: <?php echo ($nmcRailDelay * 0.3); ?>s"><?php $nmcRailDelay++; ?><a class="inline-flex origin-center -rotate-90 whitespace-nowrap px-0.5 text-xs font-bold uppercase leading-tight tracking-widest text-orange-500 sm:text-[13px] md:text-sm" href="<?php echo htmlspecialchars($reservationUrl); ?>">Reserve Table</a></div><?php endif; ?>
 </div>
 </div>
 </nav>
-<main class="ml-14 box-border min-w-0 max-w-full flex-1 overflow-x-hidden p-5 sm:p-8 lg:p-16 md:ml-32" id="menu">
+<main class="ml-20 box-border min-w-0 max-w-full flex-1 overflow-x-hidden p-5 sm:ml-[5.25rem] sm:p-8 lg:p-16 md:ml-36" id="menu">
 <header class="mb-10 text-center md:mb-16">
 <h1 class="w-full text-5xl font-black text-white md:text-7xl"><?php echo htmlspecialchars($restaurant['name']); ?></h1>
 <p class="mx-auto mt-4 max-w-2xl text-slate-300"><?php echo htmlspecialchars($restaurant['description'] ?? 'Modern Tech-Forward Cantina'); ?></p>
@@ -280,7 +284,7 @@ if (empty($singleSectionView) && !empty($sectionsForNav) && is_array($sectionsFo
 ?>
 <div id="section-<?php echo htmlspecialchars($section['slug']); ?>" class="mb-14 min-w-0">
 <h2 class="mb-6 text-center text-2xl font-bold text-orange-500 md:mb-8 md:text-3xl"><?php if (!empty($fullMenuUrl) && empty($singleSectionView)): ?><a href="<?php echo htmlspecialchars($fullMenuUrl . '/' . $section['slug']); ?>" class="text-orange-500 hover:underline"><?php echo htmlspecialchars($section['name']); ?></a><?php else: ?><?php echo htmlspecialchars($section['name']); ?><?php endif; ?></h2>
-<?php if (!empty($section['image']) && empty($isTemplatePreview)): ?>
+<?php if (!empty($singleSectionView) && !empty($section['image']) && empty($isTemplatePreview)): ?>
 <div class="mx-auto mb-8 max-w-md px-2 sm:max-w-lg md:max-w-2xl">
 <img src="<?php echo $uploadBaseUrl . '/sections/' . htmlspecialchars($section['image']); ?>" alt="" class="mx-auto max-h-40 w-full rounded-lg object-cover shadow-lg sm:max-h-48 md:max-h-56" loading="lazy" decoding="async"/>
 </div>
@@ -329,7 +333,7 @@ if (empty($singleSectionView) && !empty($sectionsForNav) && is_array($sectionsFo
 <?php if (!empty($supportsOrdering)): ?>
 <?php $nmcAssetBase = rtrim((defined('SITE_URL') && (string)SITE_URL !== '') ? SITE_URL : $baseUrl, '/'); ?>
 <link rel="stylesheet" href="<?php echo $nmcAssetBase; ?>/assets/css/cart-modal.css">
-<div id="resmenu-cart-widget" class="fixed bottom-6 left-[4.25rem] z-50 hidden md:left-40"></div>
+<div id="resmenu-cart-widget" class="fixed bottom-6 left-24 z-50 hidden sm:left-28 md:left-40"></div>
 <script src="<?php echo $nmcAssetBase; ?>/assets/js/cart.js"></script>
 <script src="<?php echo $nmcAssetBase; ?>/assets/js/cart-widget.js"></script>
 <script src="<?php echo $nmcAssetBase; ?>/assets/js/cart-modal.js"></script>
