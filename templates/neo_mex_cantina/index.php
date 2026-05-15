@@ -82,6 +82,14 @@ if (!empty($sections) && is_array($sections)) {
     }
 }
 $nmcShowWelcomeModal = empty($singleSectionView) && !empty($sections) && is_array($sections);
+$nmcCoverUrl = '';
+if (!empty($restaurant['hero_image_url'])) {
+    $nmcCoverUrl = (string) $restaurant['hero_image_url'];
+} elseif (!empty($restaurant['hero_image']) && empty($isTemplatePreview)) {
+    $nmcCoverUrl = $uploadBaseUrl . '/heroes/' . htmlspecialchars($restaurant['hero_image'], ENT_QUOTES, 'UTF-8');
+} elseif (!empty($restaurant['logo']) && empty($isTemplatePreview)) {
+    $nmcCoverUrl = $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo'], ENT_QUOTES, 'UTF-8');
+}
 ?>
 <!DOCTYPE html>
 <html lang="en" class="nmc-html"><head>
@@ -132,9 +140,6 @@ body.nmc-body { overflow-x: clip; min-height: 100vh; min-height: 100dvh; }
   transform: translateY(0);
   will-change: auto;
 }
-@media (prefers-reduced-motion: reduce) {
-  .nmc-reveal { opacity: 1; transform: none; transition: none; }
-}
 @media (min-width: 768px) {
   .nmc-page-bg { background-size: 192px 192px; }
 }
@@ -149,8 +154,23 @@ body.nmc-body { overflow-x: clip; min-height: 100vh; min-height: 100dvh; }
   padding-bottom: 1.25rem;
 }
 #nmc-welcome-close:focus-visible {
-  outline: 2px solid rgba(249, 115, 22, 0.85);
+  outline: 2px solid rgba(239, 68, 68, 0.95);
   outline-offset: 2px;
+}
+.nmc-rail-link {
+  opacity: 0;
+  transform: translateX(-1.25rem);
+}
+.nmc-rail-links--ready .nmc-rail-link {
+  animation: nmcRailSlideIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes nmcRailSlideIn {
+  to { opacity: 1; transform: translateX(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nmc-reveal { opacity: 1; transform: none; transition: none; }
+  .nmc-rail-link { opacity: 1; transform: none; }
+  .nmc-rail-links--ready .nmc-rail-link { animation: none; }
 }
 </style>
 </head>
@@ -185,7 +205,7 @@ body.nmc-body { overflow-x: clip; min-height: 100vh; min-height: 100dvh; }
 <?php endforeach; ?>
 </div>
 <div class="shrink-0 border-t border-white/10 px-5 py-4 sm:px-6">
-<button type="button" id="nmc-welcome-close" class="w-full rounded-xl border border-orange-500/50 bg-gradient-to-r from-orange-500/20 to-purple-600/20 py-3 text-center text-sm font-bold uppercase tracking-widest text-white transition-colors hover:border-orange-400 hover:from-orange-500/30 hover:to-purple-600/30">View full menu</button>
+<button type="button" id="nmc-welcome-close" class="w-full rounded-xl border border-red-600/40 bg-white py-3 text-center text-sm font-bold uppercase tracking-widest text-red-600 shadow-sm transition-colors hover:bg-red-50 hover:text-red-700">View full menu</button>
 </div>
 </div>
 </div>
@@ -227,9 +247,10 @@ body.nmc-body { overflow-x: clip; min-height: 100vh; min-height: 100dvh; }
 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
 </button>
 </div>
-<div class="flex min-h-0 w-full flex-1 flex-col items-center overflow-hidden px-0.5 pb-2">
-<div class="no-scrollbar flex w-full flex-col items-center gap-y-10 overflow-y-auto overflow-x-hidden py-5 md:gap-y-12 md:py-6">
-<?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?><div class="flex w-full min-h-[2.75rem] items-center justify-center py-2"><a class="inline-flex max-w-full origin-center -rotate-90 whitespace-nowrap px-1 text-[9px] font-bold uppercase leading-none tracking-widest text-orange-500 hover:opacity-100 md:text-[10px]" href="<?php echo htmlspecialchars($fullMenuUrl); ?>">View Full menu</a></div><?php endif; ?>
+<div class="flex min-h-0 w-full flex-1 flex-col items-center justify-center overflow-hidden px-0.5 pb-2">
+<?php $nmcRailDelay = 0; ?>
+<div id="nmc-rail-links" class="no-scrollbar flex max-h-full min-h-0 w-full flex-col items-center justify-center gap-y-8 overflow-y-auto overflow-x-hidden py-6 md:gap-y-10 md:py-10">
+<?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?><div class="nmc-rail-link flex w-full min-h-[3rem] items-center justify-center py-2 md:min-h-[3.25rem]" style="animation-delay: <?php echo ($nmcRailDelay * 0.3); ?>s"><?php $nmcRailDelay++; ?><a class="inline-flex max-w-full origin-center -rotate-90 whitespace-nowrap px-1 text-[11px] font-bold uppercase leading-none tracking-widest text-orange-500 hover:opacity-100 md:text-xs" href="<?php echo htmlspecialchars($fullMenuUrl); ?>">View Full menu</a></div><?php endif; ?>
 <?php
 if (empty($singleSectionView) && !empty($sectionsForNav) && is_array($sectionsForNav) && !empty($fullMenuUrl)):
     $nmcNavSeen = [];
@@ -238,9 +259,9 @@ if (empty($singleSectionView) && !empty($sectionsForNav) && is_array($sectionsFo
         if ($nsk === '' || isset($nmcNavSeen[$nsk])) continue;
         $nmcNavSeen[$nsk] = true;
 ?>
-<div class="flex w-full min-h-[3.25rem] items-center justify-center py-2 md:min-h-[3.5rem]"><a class="inline-flex max-w-full origin-center -rotate-90 whitespace-nowrap px-1 text-[9px] font-bold uppercase leading-none tracking-widest text-red-500 opacity-95 hover:text-red-400 md:text-[10px]" href="<?php echo htmlspecialchars($fullMenuUrl); ?>#section-<?php echo htmlspecialchars($nsk); ?>"><?php echo htmlspecialchars($navSection['name'] ?? ''); ?></a></div>
+<div class="nmc-rail-link flex w-full min-h-[3.25rem] items-center justify-center py-2 md:min-h-[3.75rem]" style="animation-delay: <?php echo ($nmcRailDelay * 0.3); ?>s"><?php $nmcRailDelay++; ?><a class="inline-flex max-w-full origin-center -rotate-90 whitespace-nowrap px-1 text-[11px] font-bold uppercase leading-none tracking-widest text-red-500 opacity-95 hover:text-red-400 md:text-xs lg:text-sm" href="<?php echo htmlspecialchars($fullMenuUrl); ?>#section-<?php echo htmlspecialchars($nsk); ?>"><?php echo htmlspecialchars($navSection['name'] ?? ''); ?></a></div>
 <?php endforeach; endif; ?>
-<?php if (!empty($supportsReservations)): ?><div class="flex w-full min-h-[2.75rem] items-center justify-center py-2"><a class="inline-flex max-w-full origin-center -rotate-90 whitespace-nowrap px-1 text-[9px] font-bold uppercase leading-none tracking-widest text-orange-500 md:text-[10px]" href="<?php echo htmlspecialchars($reservationUrl); ?>">Reserve Table</a></div><?php endif; ?>
+<?php if (!empty($supportsReservations)): ?><div class="nmc-rail-link flex w-full min-h-[3rem] items-center justify-center py-2 md:min-h-[3.25rem]" style="animation-delay: <?php echo ($nmcRailDelay * 0.3); ?>s"><?php $nmcRailDelay++; ?><a class="inline-flex max-w-full origin-center -rotate-90 whitespace-nowrap px-1 text-[11px] font-bold uppercase leading-none tracking-widest text-orange-500 md:text-xs" href="<?php echo htmlspecialchars($reservationUrl); ?>">Reserve Table</a></div><?php endif; ?>
 </div>
 </div>
 </nav>
@@ -249,26 +270,17 @@ if (empty($singleSectionView) && !empty($sectionsForNav) && is_array($sectionsFo
 <h1 class="w-full text-5xl font-black text-white md:text-7xl"><?php echo htmlspecialchars($restaurant['name']); ?></h1>
 <p class="mx-auto mt-4 max-w-2xl text-slate-300"><?php echo htmlspecialchars($restaurant['description'] ?? 'Modern Tech-Forward Cantina'); ?></p>
 </header>
-<?php if (empty($singleSectionView) && !empty($fullMenuUrl) && !empty($sectionsForNav) && is_array($sectionsForNav)): ?>
-<?php $nmcMainNavSeen = []; ?>
-<nav class="mb-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-4 px-2 md:mb-14 md:gap-x-12" aria-label="Jump to section">
-<?php foreach ($sectionsForNav as $navSection):
-    $nskMain = isset($navSection['slug']) ? (string) $navSection['slug'] : '';
-    if ($nskMain === '' || isset($nmcMainNavSeen[$nskMain])) {
-        continue;
-    }
-    $nmcMainNavSeen[$nskMain] = true;
-?>
-<a href="<?php echo htmlspecialchars($fullMenuUrl, ENT_QUOTES, 'UTF-8'); ?>#section-<?php echo htmlspecialchars($nskMain); ?>" class="border-b border-dotted border-red-500 pb-0.5 text-center text-xs font-bold uppercase tracking-widest text-red-500 decoration-red-500 hover:text-red-400 sm:text-sm"><?php echo htmlspecialchars($navSection['name'] ?? ''); ?></a>
-<?php endforeach; ?>
-</nav>
+<?php if (!empty($nmcCoverUrl)): ?>
+<div class="mx-auto mb-10 max-w-4xl overflow-hidden rounded-2xl border border-white/10 shadow-xl md:mb-14">
+<img src="<?php echo htmlspecialchars($nmcCoverUrl, ENT_QUOTES, 'UTF-8'); ?>" alt="" class="h-auto w-full max-h-52 object-cover sm:max-h-64 md:max-h-80" loading="lazy" decoding="async"/>
+</div>
 <?php endif; ?>
 <?php foreach ($sections as $section):
     if (empty($section['categories']) || !is_array($section['categories'])) continue;
 ?>
 <div id="section-<?php echo htmlspecialchars($section['slug']); ?>" class="mb-14 min-w-0">
 <h2 class="mb-6 text-center text-2xl font-bold text-orange-500 md:mb-8 md:text-3xl"><?php if (!empty($fullMenuUrl) && empty($singleSectionView)): ?><a href="<?php echo htmlspecialchars($fullMenuUrl . '/' . $section['slug']); ?>" class="text-orange-500 hover:underline"><?php echo htmlspecialchars($section['name']); ?></a><?php else: ?><?php echo htmlspecialchars($section['name']); ?><?php endif; ?></h2>
-<?php if (empty($singleSectionView) && !empty($section['image']) && empty($isTemplatePreview)): ?>
+<?php if (!empty($section['image']) && empty($isTemplatePreview)): ?>
 <div class="mx-auto mb-8 max-w-md px-2 sm:max-w-lg md:max-w-2xl">
 <img src="<?php echo $uploadBaseUrl . '/sections/' . htmlspecialchars($section['image']); ?>" alt="" class="mx-auto max-h-40 w-full rounded-lg object-cover shadow-lg sm:max-h-48 md:max-h-56" loading="lazy" decoding="async"/>
 </div>
@@ -412,6 +424,38 @@ if (empty($singleSectionView) && !empty($sectionsForNav) && is_array($sectionsFo
     if (e.key !== 'Escape') return;
     if (root.style.display === 'none') return;
     closeWelcome();
+  });
+})();
+(function () {
+  var rail = document.getElementById('nmc-rail-links');
+  if (!rail) return;
+  function arm() {
+    rail.classList.add('nmc-rail-links--ready');
+  }
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    arm();
+    return;
+  }
+  var done = false;
+  var io = null;
+  function armOnce() {
+    if (done) return;
+    done = true;
+    arm();
+    if (io) io.disconnect();
+  }
+  if ('IntersectionObserver' in window) {
+    io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) armOnce();
+      });
+    }, { root: null, rootMargin: '0px', threshold: 0.06 });
+    io.observe(rail);
+  }
+  window.requestAnimationFrame(function () {
+    window.requestAnimationFrame(function () {
+      window.setTimeout(armOnce, 72);
+    });
   });
 })();
 </script>
