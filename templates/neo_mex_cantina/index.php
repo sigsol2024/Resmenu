@@ -58,6 +58,29 @@ function nmc_price($p, $s = '₦') {
     if ($n == 0.0) return '';
     return $s . number_format($n, 2);
 }
+$activeCategories = [];
+$nmcCatSeen = [];
+if (!empty($sections) && is_array($sections)) {
+    foreach ($sections as $sec) {
+        if (empty($sec['categories']) || !is_array($sec['categories'])) {
+            continue;
+        }
+        foreach ($sec['categories'] as $ci => $c) {
+            if (empty($c['menu_items']) || !is_array($c['menu_items']) || empty($c['is_active'])) {
+                continue;
+            }
+            $anchor = (!empty($c['slug']) && (string) $c['slug'] !== '')
+                ? (string) $c['slug']
+                : (($sec['slug'] ?? 'section') . '-cat-' . (int) $ci);
+            if (isset($nmcCatSeen[$anchor])) {
+                continue;
+            }
+            $nmcCatSeen[$anchor] = true;
+            $c['__nmc_anchor'] = $anchor;
+            $activeCategories[] = $c;
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en" class="nmc-html"><head>
@@ -78,9 +101,9 @@ body.nmc-body { overflow-x: clip; min-height: 100vh; min-height: 100dvh; }
   pointer-events: none;
   <?php if ($nmcBgCssUrl !== ''): ?>
   background-image: url('<?php echo $nmcBgCssUrl; ?>');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  background-repeat: repeat;
+  background-size: 168px 168px;
+  background-position: 0 0;
   <?php else: ?>
   background: linear-gradient(160deg, #0a0a0c 0%, #1a1025 50%, #0a0a0c 100%);
   <?php endif; ?>
@@ -111,19 +134,59 @@ body.nmc-body { overflow-x: clip; min-height: 100vh; min-height: 100dvh; }
 @media (prefers-reduced-motion: reduce) {
   .nmc-reveal { opacity: 1; transform: none; transition: none; }
 }
+@media (min-width: 768px) {
+  .nmc-page-bg { background-size: 192px 192px; }
+}
+#nmc-category-drawer:focus { outline: none; }
+#nmc-category-toggle:focus-visible {
+  outline: 2px solid rgba(249, 115, 22, 0.85);
+  outline-offset: 3px;
+}
 </style>
 </head>
 <body class="nmc-body bg-transparent text-slate-100 font-sans selection:bg-orange-500/30">
 <div class="nmc-page-bg" aria-hidden="true"></div>
 <div class="nmc-shell flex min-h-screen min-w-0 overflow-x-hidden">
-<nav class="fixed left-0 top-0 z-50 flex h-screen w-20 shrink-0 flex-col items-center border-r border-white/10 bg-black/40 py-6 backdrop-blur-md md:w-32 md:py-8" aria-label="Section menu">
-<div class="mb-6 shrink-0 md:mb-8">
-<?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="h-12 w-12 object-contain rounded-xl"/><?php else: ?><div class="flex h-12 w-12 rotate-12 items-center justify-center rounded-xl font-black text-2xl brand-gradient"><?php echo strtoupper(substr($restaurant['name'], 0, 1)); ?></div><?php endif; ?>
+<div id="nmc-category-overlay" class="pointer-events-none fixed inset-0 z-[55] invisible bg-black/75 opacity-0 transition-opacity duration-200 lg:hidden" aria-hidden="true"></div>
+<aside id="nmc-category-drawer" class="fixed top-0 right-0 z-[60] flex h-full w-[min(100vw-3rem,22rem)] max-w-[min(92vw,22rem)] translate-x-full flex-col border-l border-orange-500/35 bg-[#0a0a0c]/96 shadow-[0_0_40px_rgba(124,58,237,0.12)] backdrop-blur-xl transition-transform duration-300 ease-out lg:hidden" aria-label="Categories" aria-hidden="true" role="dialog">
+<div class="flex shrink-0 items-center justify-between gap-3 border-b border-white/10 px-4 py-4">
+<span class="bg-gradient-to-r from-orange-500 to-purple-600 bg-clip-text text-base font-black uppercase tracking-[0.2em] text-transparent">Categories</span>
+<button type="button" id="nmc-category-close" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/20 text-white transition-colors hover:border-orange-500/60 hover:bg-orange-500/10" aria-label="Close categories">
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+</button>
 </div>
-<div class="flex min-h-0 w-full flex-1 flex-col items-center overflow-hidden">
-<div class="no-scrollbar flex w-full flex-col items-center gap-8 overflow-y-auto overflow-x-hidden py-2">
-<?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?><a class="flex max-w-full flex-col items-center px-1 text-[10px] font-bold uppercase tracking-widest text-orange-500 origin-center -rotate-90 hover:opacity-100 whitespace-nowrap" href="<?php echo htmlspecialchars($fullMenuUrl); ?>">Full menu</a><?php endif; ?>
-<?php if (!empty($fullMenuUrl)): ?><a class="flex max-w-full flex-col items-center px-1 text-[10px] font-bold uppercase tracking-widest text-orange-500 origin-center -rotate-90 hover:opacity-100 whitespace-nowrap" href="<?php echo htmlspecialchars($fullMenuUrl); ?>#menu">View menu</a><?php endif; ?>
+<nav class="no-scrollbar flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-4 pb-8">
+<?php if (!empty($activeCategories) && !empty($fullMenuUrl)): ?>
+<?php foreach ($activeCategories as $i => $cat):
+    $catNavSlug = isset($cat['__nmc_anchor']) ? (string) $cat['__nmc_anchor'] : (isset($cat['slug']) ? (string) $cat['slug'] : ('cat-' . $i));
+    $catNavHref = htmlspecialchars(!empty($fullMenuUrl) ? ((!empty($singleSectionView) && !empty($sections) && is_array($sections) && !empty($sections[0]['slug'])) ? $fullMenuUrl . '/' . $sections[0]['slug'] . '#' . $catNavSlug : $fullMenuUrl . '#' . $catNavSlug) : '#' . $catNavSlug, ENT_QUOTES, 'UTF-8');
+?>
+<a class="nmc-drawer-link rounded-lg border border-white/5 bg-white/[0.04] px-3 py-3 text-sm font-semibold text-slate-200 transition-colors hover:border-orange-500/40 hover:bg-orange-500/10 hover:text-orange-400" href="<?php echo $catNavHref; ?>"><?php echo htmlspecialchars($cat['name'] ?? ''); ?></a>
+<?php endforeach; ?>
+<?php elseif (!empty($activeCategories)): ?>
+<?php foreach ($activeCategories as $i => $cat):
+    $catNavSlug = isset($cat['__nmc_anchor']) ? (string) $cat['__nmc_anchor'] : (isset($cat['slug']) ? (string) $cat['slug'] : ('cat-' . $i));
+?>
+<a class="nmc-drawer-link rounded-lg border border-white/5 bg-white/[0.04] px-3 py-3 text-sm font-semibold text-slate-200" href="#<?php echo htmlspecialchars($catNavSlug); ?>"><?php echo htmlspecialchars($cat['name'] ?? ''); ?></a>
+<?php endforeach; ?>
+<?php else: ?>
+<p class="px-2 text-sm text-slate-500">No categories to show.</p>
+<?php endif; ?>
+</nav>
+</aside>
+<nav class="fixed left-0 top-0 z-50 flex h-screen w-14 shrink-0 flex-col items-center border-r border-white/10 bg-black/40 py-4 backdrop-blur-md md:w-32 md:py-8" aria-label="Section menu">
+<div class="flex w-full shrink-0 flex-col items-center gap-3 px-1 md:gap-4">
+<div class="shrink-0">
+<?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="h-10 w-10 rounded-xl object-contain md:h-12 md:w-12"/><?php else: ?><div class="flex h-10 w-10 rotate-12 items-center justify-center rounded-xl font-black text-xl brand-gradient md:h-12 md:w-12 md:text-2xl"><?php echo strtoupper(substr($restaurant['name'], 0, 1)); ?></div><?php endif; ?>
+</div>
+<button type="button" id="nmc-category-toggle" class="lg:hidden flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-orange-500/40 bg-gradient-to-br from-orange-500/15 to-purple-600/15 text-orange-400 shadow-inner shadow-orange-500/10 transition-colors hover:border-orange-400 hover:text-orange-300" aria-controls="nmc-category-drawer" aria-expanded="false" aria-label="Open categories menu">
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+</button>
+</div>
+<div class="flex min-h-0 w-full flex-1 flex-col items-center overflow-hidden px-0.5 pb-2">
+<div class="no-scrollbar flex w-full flex-col items-center gap-y-10 overflow-y-auto overflow-x-hidden py-5 md:gap-y-12 md:py-6">
+<?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?><div class="flex w-full min-h-[2.75rem] items-center justify-center py-2"><a class="inline-flex max-w-full origin-center -rotate-90 whitespace-nowrap px-1 text-[9px] font-bold uppercase leading-none tracking-widest text-orange-500 hover:opacity-100 md:text-[10px]" href="<?php echo htmlspecialchars($fullMenuUrl); ?>">Full menu</a></div><?php endif; ?>
+<?php if (!empty($fullMenuUrl)): ?><div class="flex w-full min-h-[2.75rem] items-center justify-center py-2"><a class="inline-flex max-w-full origin-center -rotate-90 whitespace-nowrap px-1 text-[9px] font-bold uppercase leading-none tracking-widest text-orange-500 hover:opacity-100 md:text-[10px]" href="<?php echo htmlspecialchars($fullMenuUrl); ?>#menu">View menu</a></div><?php endif; ?>
 <?php
 if (!empty($sectionsForNav) && is_array($sectionsForNav) && !empty($fullMenuUrl)):
     $nmcNavSeen = [];
@@ -132,13 +195,13 @@ if (!empty($sectionsForNav) && is_array($sectionsForNav) && !empty($fullMenuUrl)
         if ($nsk === '' || isset($nmcNavSeen[$nsk])) continue;
         $nmcNavSeen[$nsk] = true;
 ?>
-<a class="flex max-w-full flex-col items-center px-1 text-[10px] font-bold uppercase tracking-widest text-orange-500 origin-center -rotate-90 opacity-80 hover:opacity-100 whitespace-nowrap" href="<?php echo htmlspecialchars($fullMenuUrl); ?>#section-<?php echo htmlspecialchars($nsk); ?>"><?php echo htmlspecialchars($navSection['name'] ?? ''); ?></a>
+<div class="flex w-full min-h-[3.25rem] items-center justify-center py-2 md:min-h-[3.5rem]"><a class="inline-flex max-w-full origin-center -rotate-90 whitespace-nowrap px-1 text-[9px] font-bold uppercase leading-none tracking-widest text-orange-500 opacity-90 hover:opacity-100 md:text-[10px]" href="<?php echo htmlspecialchars($fullMenuUrl); ?>#section-<?php echo htmlspecialchars($nsk); ?>"><?php echo htmlspecialchars($navSection['name'] ?? ''); ?></a></div>
 <?php endforeach; endif; ?>
-<?php if (!empty($supportsReservations)): ?><a class="flex max-w-full flex-col items-center px-1 text-[10px] font-bold uppercase tracking-widest text-orange-500 origin-center -rotate-90" href="<?php echo htmlspecialchars($reservationUrl); ?>">Reserve Table</a><?php endif; ?>
+<?php if (!empty($supportsReservations)): ?><div class="flex w-full min-h-[2.75rem] items-center justify-center py-2"><a class="inline-flex max-w-full origin-center -rotate-90 whitespace-nowrap px-1 text-[9px] font-bold uppercase leading-none tracking-widest text-orange-500 md:text-[10px]" href="<?php echo htmlspecialchars($reservationUrl); ?>">Reserve Table</a></div><?php endif; ?>
 </div>
 </div>
 </nav>
-<main class="ml-20 box-border min-w-0 max-w-full flex-1 overflow-x-hidden p-6 sm:p-8 lg:p-16 md:ml-32" id="menu">
+<main class="ml-14 box-border min-w-0 max-w-full flex-1 overflow-x-hidden p-5 sm:p-8 lg:p-16 md:ml-32" id="menu">
 <header class="mb-16 text-center md:mb-24">
 <h1 class="w-full text-5xl font-black text-white md:text-7xl"><?php echo htmlspecialchars($restaurant['name']); ?></h1>
 <p class="mx-auto mt-4 max-w-2xl text-slate-300"><?php echo htmlspecialchars($restaurant['description'] ?? 'Modern Tech-Forward Cantina'); ?></p>
@@ -154,7 +217,9 @@ if (!empty($sectionsForNav) && is_array($sectionsForNav) && !empty($fullMenuUrl)
 </div>
 <?php endif; ?>
 <?php foreach ($section['categories'] as $catIndex => $category):
-    $slug = isset($category['slug']) ? $category['slug'] : ('cat-'.$catIndex);
+    $slug = (!empty($category['slug']) && (string) $category['slug'] !== '')
+        ? (string) $category['slug']
+        : (($section['slug'] ?? 'section') . '-cat-' . (int) $catIndex);
     $items = isset($category['menu_items']) ? $category['menu_items'] : [];
     if (empty($items)) continue;
 ?>
@@ -169,14 +234,16 @@ if (!empty($sectionsForNav) && is_array($sectionsForNav) && !empty($fullMenuUrl)
 </div>
 <div class="space-y-6">
 <?php foreach ($items as $item): ?>
-<div class="flex min-w-0 gap-4 border-b border-white/10 pb-4 items-start">
-<?php if (!empty($item['image'])): ?><img src="<?php echo $uploadBaseUrl . '/menu-items/' . htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="h-20 w-20 flex-shrink-0 rounded object-cover"/><?php endif; ?>
+<div class="flex min-w-0 gap-3 border-b border-white/10 pb-4 sm:gap-4">
+<?php if (!empty($item['image'])): ?><img src="<?php echo $uploadBaseUrl . '/menu-items/' . htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="h-16 w-16 shrink-0 rounded object-cover sm:h-20 sm:w-20"/><?php endif; ?>
 <div class="min-w-0 flex-1">
-<h3 class="text-lg font-semibold"><?php echo htmlspecialchars($item['name']); ?></h3>
-<p class="text-sm text-slate-400"><?php echo htmlspecialchars($item['description'] ?? ''); ?></p>
+<div class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1 items-start">
+<h4 class="col-start-1 row-start-1 min-w-0 text-left text-lg font-semibold leading-snug text-slate-100"><?php echo htmlspecialchars($item['name']); ?></h4>
+<span class="col-start-2 row-start-1 <?php echo !empty($item['description']) ? 'row-span-2' : 'row-span-1'; ?> self-start justify-self-end font-mono text-sm tabular-nums leading-snug text-red-500 sm:text-base"><?php echo nmc_price($item['price']); ?></span>
+<?php if (!empty($item['description'])): ?><p class="col-start-1 row-start-2 min-w-0 text-left text-sm leading-relaxed text-slate-400"><?php echo htmlspecialchars($item['description']); ?></p><?php endif; ?>
+</div>
 <?php if (!empty($supportsOrdering) && !empty($item['is_available'])): ?><button type="button" class="add-to-bag-btn mt-2 rounded border border-orange-500/60 px-3 py-1.5 text-orange-500 hover:bg-orange-500/20" data-item-id="<?php echo (int)$item['id']; ?>" data-item-name="<?php echo htmlspecialchars($item['name']); ?>" data-item-price="<?php echo htmlspecialchars($item['price']); ?>" data-item-image="<?php echo !empty($item['image']) ? htmlspecialchars($item['image']) : ''; ?>">Add to bag</button><?php endif; ?>
 </div>
-<span class="flex-shrink-0 font-mono text-red-500"><?php echo nmc_price($item['price']); ?></span>
 </div>
 <?php endforeach; ?>
 </div>
@@ -193,7 +260,7 @@ if (!empty($sectionsForNav) && is_array($sectionsForNav) && !empty($fullMenuUrl)
 <?php if (!empty($supportsOrdering)): ?>
 <?php $nmcAssetBase = rtrim((defined('SITE_URL') && (string)SITE_URL !== '') ? SITE_URL : $baseUrl, '/'); ?>
 <link rel="stylesheet" href="<?php echo $nmcAssetBase; ?>/assets/css/cart-modal.css">
-<div id="resmenu-cart-widget" class="fixed bottom-6 left-24 z-50 hidden md:left-40"></div>
+<div id="resmenu-cart-widget" class="fixed bottom-6 left-[4.25rem] z-50 hidden md:left-40"></div>
 <script src="<?php echo $nmcAssetBase; ?>/assets/js/cart.js"></script>
 <script src="<?php echo $nmcAssetBase; ?>/assets/js/cart-widget.js"></script>
 <script src="<?php echo $nmcAssetBase; ?>/assets/js/cart-modal.js"></script>
@@ -233,6 +300,36 @@ if (!empty($sectionsForNav) && is_array($sectionsForNav) && !empty($fullMenuUrl)
   }
   if (document.readyState === 'complete') deferArm();
   else window.addEventListener('load', deferArm);
+})();
+(function () {
+  var openBtn = document.getElementById('nmc-category-toggle');
+  var closeBtn = document.getElementById('nmc-category-close');
+  var drawer = document.getElementById('nmc-category-drawer');
+  var overlay = document.getElementById('nmc-category-overlay');
+  if (!drawer || !overlay) return;
+  function openDrawer() {
+    drawer.classList.remove('translate-x-full');
+    drawer.setAttribute('aria-hidden', 'false');
+    overlay.classList.remove('opacity-0', 'invisible', 'pointer-events-none');
+    overlay.classList.add('opacity-100');
+    overlay.setAttribute('aria-hidden', 'false');
+    if (openBtn) openBtn.setAttribute('aria-expanded', 'true');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeDrawer() {
+    drawer.classList.add('translate-x-full');
+    drawer.setAttribute('aria-hidden', 'true');
+    overlay.classList.add('opacity-0', 'invisible', 'pointer-events-none');
+    overlay.classList.remove('opacity-100');
+    overlay.setAttribute('aria-hidden', 'true');
+    if (openBtn) openBtn.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
+  }
+  if (openBtn) openBtn.addEventListener('click', function (e) { e.stopPropagation(); openDrawer(); });
+  if (closeBtn) closeBtn.addEventListener('click', function (e) { e.preventDefault(); closeDrawer(); });
+  overlay.addEventListener('click', closeDrawer);
+  document.querySelectorAll('.nmc-drawer-link').forEach(function (l) { l.addEventListener('click', closeDrawer); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeDrawer(); });
 })();
 </script>
 <!-- Back to top -->
