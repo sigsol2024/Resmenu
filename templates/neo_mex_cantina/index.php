@@ -183,51 +183,48 @@ body.nmc-body { overflow-x: clip; min-height: 100vh; min-height: 100dvh; }
 .nmc-rail-scroll {
   overflow-x: visible;
   -webkit-overflow-scrolling: touch;
-  padding-top: 2.25rem;
-  padding-bottom: 2.75rem;
+  padding-top: 3rem;
+  padding-bottom: 3.25rem;
 }
 @media (min-width: 768px) {
-  .nmc-rail-scroll { padding-top: 2.5rem; padding-bottom: 3rem; }
+  .nmc-rail-scroll { padding-top: 3.25rem; padding-bottom: 3.75rem; }
 }
 .nmc-rail-item {
+  position: relative;
   display: flex;
   width: 100%;
-  min-height: 5.25rem;
+  min-height: 6.25rem;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  padding: 1.125rem 0.25rem;
+  padding: 1.5rem 0.35rem;
   box-sizing: border-box;
 }
 @media (min-width: 768px) {
-  .nmc-rail-item { min-height: 5.75rem; padding: 1.375rem 0.5rem; }
+  .nmc-rail-item { min-height: 6.75rem; padding: 1.75rem 0.6rem; }
+}
+.nmc-rail-item:not(:first-child)::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 18%;
+  right: 18%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(239, 68, 68, 0.38) 50%, transparent 100%);
 }
 .nmc-rail-item a {
-  font-size: 0.9375rem;
-  line-height: 1.2;
-  letter-spacing: 0.14em;
+  font-size: 1.05rem;
+  line-height: 1.15;
+  letter-spacing: 0.16em;
 }
 @media (min-width: 640px) {
-  .nmc-rail-item a { font-size: 1rem; }
+  .nmc-rail-item a { font-size: 1.1rem; }
 }
 @media (min-width: 768px) {
-  .nmc-rail-item a { font-size: 1.0625rem; }
+  .nmc-rail-item a { font-size: 1.15rem; }
 }
 @media (min-width: 1024px) {
-  .nmc-rail-item a { font-size: 1.125rem; }
-}
-.nmc-rail-divider {
-  display: block;
-  width: 82%;
-  max-width: 5rem;
-  margin: 0.85rem auto;
-  flex-shrink: 0;
-  border: 0;
-  border-top: 2px dotted #ef4444;
-  opacity: 1;
-}
-@media (min-width: 768px) {
-  .nmc-rail-divider { margin: 0.85rem auto; }
+  .nmc-rail-item a { font-size: 1.22rem; }
 }
 .nmc-cat-head {
   overflow: visible;
@@ -327,11 +324,11 @@ if (empty($singleSectionView) && !empty($sectionsForNav) && is_array($sectionsFo
         if ($nsk === '' || isset($nmcNavSeen[$nsk])) continue;
         $nmcNavSeen[$nsk] = true;
         if ($nmcRailIdx > 0): ?>
-<hr class="nmc-rail-divider" aria-hidden="true"/>
+<?php /* divider handled via CSS (nmc-rail-item::before) */ ?>
 <?php endif; $nmcRailIdx++; ?>
 <div class="nmc-rail-link nmc-rail-item" style="animation-delay: <?php echo ($nmcRailDelay * 0.3); ?>s"><?php $nmcRailDelay++; ?><a class="inline-flex origin-center -rotate-90 whitespace-nowrap font-bold uppercase text-red-500 opacity-95 hover:text-red-400" href="<?php echo htmlspecialchars($fullMenuUrl); ?>#section-<?php echo htmlspecialchars($nsk); ?>"><?php echo htmlspecialchars($navSection['name'] ?? ''); ?></a></div>
 <?php endforeach; endif; ?>
-<?php if (!empty($supportsReservations)): ?><?php if ($nmcRailDelay > 0): ?><hr class="nmc-rail-divider" aria-hidden="true"/><?php endif; ?><div class="nmc-rail-link nmc-rail-item" style="animation-delay: <?php echo ($nmcRailDelay * 0.3); ?>s"><?php $nmcRailDelay++; ?><a class="inline-flex origin-center -rotate-90 whitespace-nowrap font-bold uppercase text-orange-500" href="<?php echo htmlspecialchars($reservationUrl); ?>">Reserve Table</a></div><?php endif; ?>
+<?php if (!empty($supportsReservations)): ?><div class="nmc-rail-link nmc-rail-item" style="animation-delay: <?php echo ($nmcRailDelay * 0.3); ?>s"><?php $nmcRailDelay++; ?><a class="inline-flex origin-center -rotate-90 whitespace-nowrap font-bold uppercase text-orange-500" href="<?php echo htmlspecialchars($reservationUrl); ?>">Reserve Table</a></div><?php endif; ?>
 </div>
 </div>
 </nav>
