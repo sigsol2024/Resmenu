@@ -12,6 +12,7 @@ if ($baseUrl === '') {
     $baseUrl = $protocol . ($_SERVER['HTTP_HOST'] ?? 'localhost') . (dirname(dirname(dirname($_SERVER['SCRIPT_NAME'] ?? '/index.php'))));
 }
 $nmcTemplateDir = __DIR__;
+$nmcUploadsRoot = defined('UPLOAD_PATH') ? rtrim(UPLOAD_PATH, '/\\') : dirname(dirname(__DIR__)) . DIRECTORY_SEPARATOR . 'uploads';
 $nmcTemplateBaseUrl = rtrim($baseUrl, '/') . '/templates/neo_mex_cantina';
 $nmcBgCandidates = [
     'binding_dark.webp',
@@ -58,6 +59,88 @@ function nmc_price($p, $s = '₦') {
     if ($n == 0.0) return '';
     return $s . number_format($n, 2);
 }
+/**
+ * PNG-like assets (incl. transparent WebP): no border/radius. JPEG-like: photo framing.
+ * @return 'alpha'|'photo'
+ */
+function nmc_image_surface_kind($fileRef, $diskSubdir = null) {
+    if ($fileRef === null || $fileRef === '') {
+        return 'photo';
+    }
+    $fileRef = (string) $fileRef;
+    $diskPath = null;
+    if ($diskSubdir !== null && $fileRef !== '' && strpos($fileRef, '://') === false) {
+        global $nmcUploadsRoot;
+        $diskPath = $nmcUploadsRoot . DIRECTORY_SEPARATOR . trim(str_replace('/', DIRECTORY_SEPARATOR, $diskSubdir), DIRECTORY_SEPARATOR)
+            . DIRECTORY_SEPARATOR . ltrim($fileRef, '/\\');
+    } elseif (is_file($fileRef)) {
+        $diskPath = $fileRef;
+    }
+    if ($diskPath !== null && is_file($diskPath)) {
+        return nmc_image_surface_kind_from_file($diskPath);
+    }
+    $path = parse_url($fileRef, PHP_URL_PATH);
+    if (!is_string($path) || $path === '') {
+        $path = $fileRef;
+    }
+    $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+    if ($ext === 'png' || $ext === 'gif') {
+        return 'alpha';
+    }
+    if (in_array($ext, ['jpg', 'jpeg'], true)) {
+        return 'photo';
+    }
+    return 'photo';
+}
+function nmc_image_surface_kind_from_file($path) {
+    $data = @file_get_contents($path, false, null, 0, 32);
+    if ($data === false || strlen($data) < 12) {
+        $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        return ($ext === 'png' || $ext === 'gif') ? 'alpha' : 'photo';
+    }
+    if (substr($data, 0, 8) === "\x89PNG\r\n\x1a\n") {
+        return 'alpha';
+    }
+    if (substr($data, 0, 2) === "\xFF\xD8") {
+        return 'photo';
+    }
+    if (substr($data, 0, 3) === 'GIF') {
+        return 'alpha';
+    }
+    if (substr($data, 0, 4) === 'RIFF' && strlen($data) >= 16 && substr($data, 8, 4) === 'WEBP') {
+        $chunk = substr($data, 12, 4);
+        if ($chunk === 'VP8L' && strlen($data) >= 22) {
+            return ((ord($data[21]) >> 3) & 1) ? 'alpha' : 'photo';
+        }
+        if ($chunk === 'VP8X' && strlen($data) >= 21) {
+            return (ord($data[20]) & 2) ? 'alpha' : 'photo';
+        }
+        if ($chunk === 'VP8 ') {
+            return 'photo';
+        }
+    }
+    if (function_exists('finfo_open')) {
+        $fi = finfo_open(FILEINFO_MIME_TYPE);
+        $mime = ($fi && is_file($path)) ? finfo_file($fi, $path) : null;
+        if ($fi) {
+            finfo_close($fi);
+        }
+        if ($mime === 'image/png' || $mime === 'image/gif') {
+            return 'alpha';
+        }
+    }
+    $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+    return ($ext === 'png' || $ext === 'gif') ? 'alpha' : 'photo';
+}
+function nmc_img_class($sizeClasses, $fileRef, $diskSubdir, $photoClasses = '') {
+    $kind = nmc_image_surface_kind($fileRef, $diskSubdir);
+    $sizeClasses = trim((string) $sizeClasses);
+    if ($kind === 'alpha') {
+        return $sizeClasses . ' nmc-img-alpha';
+    }
+    $photoClasses = trim((string) $photoClasses);
+    return trim($sizeClasses . ' nmc-img-photo ' . $photoClasses);
+}
 $activeCategories = [];
 $nmcCatSeen = [];
 if (!empty($sections) && is_array($sections)) {
@@ -83,12 +166,22 @@ if (!empty($sections) && is_array($sections)) {
 }
 $nmcShowWelcomeModal = empty($singleSectionView) && !empty($sections) && is_array($sections);
 $nmcCoverUrl = '';
+$nmcHeroImageFile = '';
+$nmcHeroImageSubdir = null;
+$nmcHeroSurfaceKind = 'photo';
 if (!empty($restaurant['hero_image_url'])) {
     $nmcCoverUrl = (string) $restaurant['hero_image_url'];
+    $nmcHeroSurfaceKind = nmc_image_surface_kind($nmcCoverUrl, null);
 } elseif (!empty($restaurant['hero_image']) && empty($isTemplatePreview)) {
-    $nmcCoverUrl = $uploadBaseUrl . '/heroes/' . htmlspecialchars($restaurant['hero_image'], ENT_QUOTES, 'UTF-8');
+    $nmcHeroImageFile = (string) $restaurant['hero_image'];
+    $nmcHeroImageSubdir = 'heroes';
+    $nmcCoverUrl = $uploadBaseUrl . '/heroes/' . htmlspecialchars($nmcHeroImageFile, ENT_QUOTES, 'UTF-8');
+    $nmcHeroSurfaceKind = nmc_image_surface_kind($nmcHeroImageFile, $nmcHeroImageSubdir);
 } elseif (!empty($restaurant['logo']) && empty($isTemplatePreview)) {
-    $nmcCoverUrl = $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo'], ENT_QUOTES, 'UTF-8');
+    $nmcHeroImageFile = (string) $restaurant['logo'];
+    $nmcHeroImageSubdir = 'logos';
+    $nmcCoverUrl = $uploadBaseUrl . '/logos/' . htmlspecialchars($nmcHeroImageFile, ENT_QUOTES, 'UTF-8');
+    $nmcHeroSurfaceKind = nmc_image_surface_kind($nmcHeroImageFile, $nmcHeroImageSubdir);
 }
 $nmcHeaderTitle = $restaurant['name'] ?? '';
 $nmcHeroImageUrl = $nmcCoverUrl;
@@ -98,9 +191,14 @@ if (!empty($singleSectionView) && !empty($sections) && is_array($sections) && !e
         $nmcHeaderTitle = $nmcSec0['name'];
     }
     if (!empty($nmcSec0['image']) && empty($isTemplatePreview)) {
-        $nmcHeroImageUrl = $uploadBaseUrl . '/sections/' . htmlspecialchars($nmcSec0['image'], ENT_QUOTES, 'UTF-8');
+        $nmcHeroImageFile = (string) $nmcSec0['image'];
+        $nmcHeroImageSubdir = 'sections';
+        $nmcHeroImageUrl = $uploadBaseUrl . '/sections/' . htmlspecialchars($nmcHeroImageFile, ENT_QUOTES, 'UTF-8');
+        $nmcHeroSurfaceKind = nmc_image_surface_kind($nmcHeroImageFile, $nmcHeroImageSubdir);
     } else {
         $nmcHeroImageUrl = '';
+        $nmcHeroImageFile = '';
+        $nmcHeroImageSubdir = null;
     }
 }
 ?>
@@ -335,6 +433,25 @@ nav[aria-label="Section menu"] .nmc-rail-slot {
 .nmc-cat-head img {
   display: block;
 }
+img.nmc-img-alpha {
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  --tw-ring-offset-shadow: 0 0 #0000 !important;
+  --tw-ring-shadow: 0 0 #0000 !important;
+  object-fit: contain;
+  object-position: center;
+}
+img.nmc-img-photo {
+  object-fit: cover;
+  object-position: center;
+}
+.nmc-hero-frame--alpha {
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
 .nmc-section-title {
   font-size: 1.5rem;
   line-height: 1.2;
@@ -395,7 +512,7 @@ nav[aria-label="Section menu"] .nmc-rail-slot {
 ?>
 <a href="<?php echo $nmcWelHref; ?>" class="nmc-welcome-section-link nmc-welcome-sep block py-1 text-center">
 <?php if (!empty($nmcWelSec['image']) && empty($isTemplatePreview)): ?>
-<div class="mx-auto mb-1.5 flex justify-center"><img src="<?php echo $uploadBaseUrl . '/sections/' . htmlspecialchars($nmcWelSec['image']); ?>" alt="" class="nmc-welcome-section-img w-auto rounded-md object-contain object-center shadow-sm" loading="eager" decoding="async"/></div>
+<div class="mx-auto mb-1.5 flex justify-center"><img src="<?php echo $uploadBaseUrl . '/sections/' . htmlspecialchars($nmcWelSec['image']); ?>" alt="" class="<?php echo htmlspecialchars(nmc_img_class('nmc-welcome-section-img w-auto', $nmcWelSec['image'], 'sections', 'rounded-md shadow-sm'), ENT_QUOTES, 'UTF-8'); ?>" loading="eager" decoding="async"/></div>
 <?php endif; ?>
 <span class="text-xs font-bold uppercase tracking-[0.18em] text-red-500 sm:text-sm"><?php echo $nmcWelName; ?></span>
 </a>
@@ -438,7 +555,7 @@ nav[aria-label="Section menu"] .nmc-rail-slot {
 <nav class="fixed left-0 top-0 z-50 flex h-screen w-24 shrink-0 flex-col items-center overflow-x-visible border-r border-white/10 bg-black/40 py-3 backdrop-blur-md sm:w-24 md:w-28 lg:w-32 md:py-4" aria-label="Section menu">
 <div class="flex w-full shrink-0 flex-col items-center gap-3 px-1.5 md:gap-4">
 <div class="shrink-0">
-<?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="h-11 w-11 rounded-xl object-contain md:h-12 md:w-12"/><?php else: ?><div class="flex h-11 w-11 rotate-12 items-center justify-center rounded-xl font-black text-xl brand-gradient md:h-12 md:w-12 md:text-2xl"><?php echo strtoupper(substr($restaurant['name'], 0, 1)); ?></div><?php endif; ?>
+<?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="<?php echo htmlspecialchars(nmc_img_class('h-11 w-11 md:h-12 md:w-12', $restaurant['logo'], 'logos', 'rounded-xl'), ENT_QUOTES, 'UTF-8'); ?>"/><?php else: ?><div class="flex h-11 w-11 rotate-12 items-center justify-center rounded-xl font-black text-xl brand-gradient md:h-12 md:w-12 md:text-2xl"><?php echo strtoupper(substr($restaurant['name'], 0, 1)); ?></div><?php endif; ?>
 </div>
 <button type="button" id="nmc-category-toggle" class="lg:hidden flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-orange-500/40 bg-gradient-to-br from-orange-500/15 to-purple-600/15 text-orange-400 shadow-inner shadow-orange-500/10 transition-colors hover:border-orange-400 hover:text-orange-300" aria-controls="nmc-category-drawer" aria-expanded="false" aria-label="Open categories menu">
 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
@@ -471,8 +588,8 @@ if (empty($singleSectionView) && !empty($sectionsForNav) && is_array($sectionsFo
 <?php endif; ?>
 </header>
 <?php if (!empty($nmcHeroImageUrl)): ?>
-<div class="mx-auto mb-10 max-w-4xl overflow-hidden rounded-2xl border border-white/10 shadow-xl md:mb-14">
-<img src="<?php echo htmlspecialchars($nmcHeroImageUrl, ENT_QUOTES, 'UTF-8'); ?>" alt="" class="h-auto w-full max-h-52 object-cover sm:max-h-64 md:max-h-80" loading="lazy" decoding="async"/>
+<div class="mx-auto mb-10 max-w-4xl overflow-hidden md:mb-14<?php echo $nmcHeroSurfaceKind === 'alpha' ? ' nmc-hero-frame--alpha' : ' rounded-2xl border border-white/10 shadow-xl'; ?>">
+<img src="<?php echo htmlspecialchars($nmcHeroImageUrl, ENT_QUOTES, 'UTF-8'); ?>" alt="" class="<?php echo htmlspecialchars(nmc_img_class('h-auto w-full max-h-52 sm:max-h-64 md:max-h-80', $nmcHeroImageFile !== '' ? $nmcHeroImageFile : $nmcHeroImageUrl, $nmcHeroImageSubdir, 'rounded-2xl'), ENT_QUOTES, 'UTF-8'); ?>" loading="lazy" decoding="async"/>
 </div>
 <?php endif; ?>
 <?php foreach ($sections as $section):
@@ -494,14 +611,14 @@ if (empty($singleSectionView) && !empty($sectionsForNav) && is_array($sectionsFo
 <h3 class="nmc-cat-title block w-full border-b-2 border-orange-500 pb-2 font-bold text-white"><?php echo htmlspecialchars($category['name']); ?></h3>
 <?php if (!empty($category['image']) && empty($isTemplatePreview)): ?>
 <div class="mt-3 w-full max-w-md overflow-visible">
-<img src="<?php echo $uploadBaseUrl . '/categories/' . htmlspecialchars($category['image']); ?>" alt="" class="h-auto max-h-48 w-full rounded-lg object-cover object-center ring-1 ring-white/15 sm:max-h-52" loading="lazy" decoding="async"/>
+<img src="<?php echo $uploadBaseUrl . '/categories/' . htmlspecialchars($category['image']); ?>" alt="" class="<?php echo htmlspecialchars(nmc_img_class('h-auto max-h-48 w-full sm:max-h-52', $category['image'], 'categories', 'rounded-lg ring-1 ring-white/15'), ENT_QUOTES, 'UTF-8'); ?>" loading="lazy" decoding="async"/>
 </div>
 <?php endif; ?>
 </div>
 <div class="space-y-6">
 <?php foreach ($items as $item): ?>
 <div class="flex min-w-0 gap-3 border-b border-white/10 pb-4 sm:gap-4">
-<?php if (!empty($item['image'])): ?><img src="<?php echo $uploadBaseUrl . '/menu-items/' . htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="h-16 w-16 shrink-0 rounded object-cover sm:h-20 sm:w-20"/><?php endif; ?>
+<?php if (!empty($item['image'])): ?><img src="<?php echo $uploadBaseUrl . '/menu-items/' . htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="<?php echo htmlspecialchars(nmc_img_class('h-16 w-16 shrink-0 sm:h-20 sm:w-20', $item['image'], 'menu-items', 'rounded'), ENT_QUOTES, 'UTF-8'); ?>"/><?php endif; ?>
 <div class="min-w-0 flex-1">
 <div class="flex min-w-0 items-baseline justify-between gap-3">
 <h4 class="nmc-item-title min-w-0 flex-1 text-left font-semibold text-slate-100"><?php echo htmlspecialchars($item['name']); ?></h4>
