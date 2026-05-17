@@ -496,14 +496,60 @@ img.nmc-img-photo {
   width: auto;
   height: auto;
   max-width: 100%;
-  max-height: 10rem;
+  max-height: 3.5rem;
   object-fit: contain !important;
   object-position: top left;
 }
-@media (min-width: 640px) {
+@media (min-width: 640px) and (max-width: 1023px) {
   .nmc-menu-item__media img.nmc-menu-item__img {
-    max-height: 12rem;
+    max-height: 4.25rem;
   }
+}
+@media (min-width: 1024px) {
+  .nmc-menu-item__media img.nmc-menu-item__img {
+    max-height: 8rem;
+  }
+}
+.nmc-order-btn {
+  margin-top: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fff;
+  background-color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.85);
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.nmc-order-btn:hover {
+  background-color: #dc2626;
+  border-color: #dc2626;
+}
+/* Template 16 only: floating cart — right side, price red, white label */
+body.nmc-body #resmenu-cart-widget {
+  left: auto !important;
+  right: 1.5rem !important;
+  bottom: 1.5rem !important;
+  z-index: 9999 !important;
+}
+body.nmc-body #resmenu-cart-widget .resmenu-cart-widget-btn {
+  background-color: #ef4444 !important;
+  color: #fff !important;
+  box-shadow: 0 10px 25px rgba(239, 68, 68, 0.35) !important;
+}
+body.nmc-body #resmenu-cart-widget .resmenu-cart-widget-btn:hover {
+  background-color: #dc2626 !important;
+}
+body.nmc-body #resmenu-cart-widget .resmenu-cart-widget-btn .resmenu-icon,
+body.nmc-body #resmenu-cart-widget .resmenu-cart-widget-btn span {
+  color: #fff !important;
+}
+body.nmc-body #scrollToTop {
+  bottom: 5.75rem;
 }
 @media (prefers-reduced-motion: reduce) {
   .nmc-reveal { opacity: 1; transform: none; transition: none; }
@@ -660,7 +706,7 @@ if (empty($singleSectionView) && !empty($sectionsForNav) && is_array($sectionsFo
 <?php if ($nmcItemPrice !== ''): ?><span class="shrink-0 font-mono text-sm tabular-nums leading-snug text-red-500 sm:text-base"><?php echo $nmcItemPrice; ?></span><?php endif; ?>
 </div>
 <?php if (!empty($item['description'])): ?><p class="mt-1.5 w-full text-left text-sm leading-relaxed text-slate-400"><?php echo htmlspecialchars($item['description']); ?></p><?php endif; ?>
-<?php if (!empty($supportsOrdering) && !empty($item['is_available'])): ?><button type="button" class="add-to-bag-btn mt-2 rounded border border-orange-500/60 px-3 py-1.5 text-orange-500 hover:bg-orange-500/20" data-item-id="<?php echo (int)$item['id']; ?>" data-item-name="<?php echo htmlspecialchars($item['name']); ?>" data-item-price="<?php echo htmlspecialchars($item['price']); ?>" data-item-image="<?php echo !empty($item['image']) ? htmlspecialchars($item['image']) : ''; ?>">Add to bag</button><?php endif; ?>
+<?php if (!empty($supportsOrdering) && !empty($item['is_available'])): ?><button type="button" class="add-to-bag-btn nmc-order-btn" data-item-id="<?php echo (int)$item['id']; ?>" data-item-name="<?php echo htmlspecialchars($item['name']); ?>" data-item-price="<?php echo htmlspecialchars($item['price']); ?>" data-item-image="<?php echo !empty($item['image']) ? htmlspecialchars($item['image']) : ''; ?>">Order</button><?php endif; ?>
 </div>
 </div>
 <?php endforeach; ?>
@@ -678,7 +724,7 @@ if (empty($singleSectionView) && !empty($sectionsForNav) && is_array($sectionsFo
 <?php if (!empty($supportsOrdering)): ?>
 <?php $nmcAssetBase = rtrim((defined('SITE_URL') && (string)SITE_URL !== '') ? SITE_URL : $baseUrl, '/'); ?>
 <link rel="stylesheet" href="<?php echo $nmcAssetBase; ?>/assets/css/cart-modal.css">
-<div id="resmenu-cart-widget" class="fixed bottom-6 left-24 z-50 hidden sm:left-24 md:left-28 lg:left-32"></div>
+<div id="resmenu-cart-widget" class="nmc-cart-widget fixed bottom-6 right-6 z-50 hidden"></div>
 <script src="<?php echo $nmcAssetBase; ?>/assets/js/cart.js"></script>
 <script src="<?php echo $nmcAssetBase; ?>/assets/js/cart-widget.js"></script>
 <script src="<?php echo $nmcAssetBase; ?>/assets/js/cart-modal.js"></script>
