@@ -478,32 +478,32 @@ img.nmc-img-photo {
   .nmc-item-title { font-size: 0.95rem; }
 }
 .nmc-menu-item--has-image {
+  flex-direction: column;
   align-items: flex-start;
+}
+.nmc-menu-item--has-image .nmc-menu-item__text {
+  width: 100%;
 }
 .nmc-menu-item__media {
-  width: 4rem;
-  height: 4rem;
+  width: 100%;
+  max-width: 100%;
   flex-shrink: 0;
-  align-self: flex-start;
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
-  overflow: visible;
-}
-@media (min-width: 640px) {
-  .nmc-menu-item__media {
-    width: 5rem;
-    height: 5rem;
-  }
+  display: block;
+  line-height: 0;
 }
 .nmc-menu-item__media img.nmc-menu-item__img {
   display: block;
   width: auto;
   height: auto;
   max-width: 100%;
-  max-height: 100%;
+  max-height: 10rem;
   object-fit: contain !important;
   object-position: top left;
+}
+@media (min-width: 640px) {
+  .nmc-menu-item__media img.nmc-menu-item__img {
+    max-height: 12rem;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .nmc-reveal { opacity: 1; transform: none; transition: none; }
@@ -654,7 +654,7 @@ if (empty($singleSectionView) && !empty($sectionsForNav) && is_array($sectionsFo
 <img src="<?php echo $uploadBaseUrl . '/menu-items/' . htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="<?php echo htmlspecialchars(nmc_img_class('nmc-menu-item__img', $item['image'], 'menu-items', ''), ENT_QUOTES, 'UTF-8'); ?>"/>
 </div>
 <?php endif; ?>
-<div class="min-w-0 flex-1">
+<div class="nmc-menu-item__text min-w-0<?php echo $nmcItemHasImage ? ' w-full' : ' flex-1'; ?>">
 <div class="flex min-w-0 items-baseline justify-between gap-3">
 <h4 class="nmc-item-title min-w-0 flex-1 text-left font-semibold text-slate-100"><?php echo htmlspecialchars($item['name']); ?></h4>
 <?php if ($nmcItemPrice !== ''): ?><span class="shrink-0 font-mono text-sm tabular-nums leading-snug text-red-500 sm:text-base"><?php echo $nmcItemPrice; ?></span><?php endif; ?>
