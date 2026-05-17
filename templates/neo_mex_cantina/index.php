@@ -173,28 +173,66 @@ body.nmc-body { overflow-x: clip; min-height: 100vh; min-height: 100dvh; }
   .nmc-welcome-panel { max-width: 24rem; max-height: min(92vh, 40rem); }
 }
 .nmc-welcome-scroll {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
   max-height: min(62vh, 24rem);
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
 }
 @media (min-width: 640px) {
-  .nmc-welcome-scroll { max-height: min(66vh, 28rem); }
+  .nmc-welcome-scroll { max-height: min(66vh, 28rem); gap: 0.5rem; }
 }
 @media (min-width: 768px) {
   .nmc-welcome-scroll { max-height: min(68vh, 30rem); }
 }
-.nmc-welcome-scroll a.nmc-welcome-sep:not(:last-child) {
-  border-bottom: 1px dotted #ef4444;
-  margin-bottom: 0.65rem;
-  padding-bottom: 0.65rem;
+.nmc-welcome-section-link {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
+  text-decoration: none;
+}
+.nmc-welcome-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  max-width: 100%;
+  padding: 0.45rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.03) 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: border-color 0.2s, background 0.2s;
+}
+.nmc-welcome-section-link:hover .nmc-welcome-btn,
+.nmc-welcome-section-link:focus-visible .nmc-welcome-btn {
+  border-color: rgba(249, 115, 22, 0.45);
+  background: linear-gradient(145deg, rgba(249, 115, 22, 0.18) 0%, rgba(124, 58, 237, 0.12) 100%);
 }
 .nmc-welcome-section-img {
-  max-width: 7.5rem;
-  max-height: 3.25rem;
+  max-width: 4.5rem;
+  max-height: 2rem;
+  margin-bottom: 0.35rem;
 }
 @media (min-width: 640px) {
-  .nmc-welcome-section-img { max-width: 9rem; max-height: 4rem; }
+  .nmc-welcome-section-img { max-width: 5rem; max-height: 2.25rem; }
+  .nmc-welcome-btn { font-size: 0.72rem; padding: 0.5rem 0.8rem; }
 }
 #nmc-welcome-modal {
   display: flex;
@@ -219,8 +257,8 @@ body.nmc-body { overflow-x: clip; min-height: 100vh; min-height: 100dvh; }
   overflow-x: visible !important;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
-  padding-top: 0.25rem;
-  padding-bottom: 0.35rem;
+  padding-top: 0.15rem;
+  padding-bottom: 0.2rem;
   height: 100%;
 }
 #nmc-rail-links {
@@ -241,14 +279,14 @@ body.nmc-body { overflow-x: clip; min-height: 100vh; min-height: 100dvh; }
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 1 1 0;
+  flex: 0 0 auto;
   min-height: 0;
   max-height: none;
 
   width: 100%;
   box-sizing: border-box;
 
-  padding: 0.2rem 0;
+  padding: 0.08rem 0;
 
   overflow: visible;
   isolation: isolate;
@@ -351,11 +389,11 @@ nav[aria-label="Section menu"] .nmc-rail-slot {
         ? htmlspecialchars(rtrim($fullMenuUrl, '/') . '/' . $nmcWelSlugRaw, ENT_QUOTES, 'UTF-8')
         : '#section-' . htmlspecialchars($nmcWelSlugRaw, ENT_QUOTES, 'UTF-8');
 ?>
-<a href="<?php echo $nmcWelHref; ?>" class="nmc-welcome-section-link nmc-welcome-sep block py-1 text-center">
+<a href="<?php echo $nmcWelHref; ?>" class="nmc-welcome-section-link">
 <?php if (!empty($nmcWelSec['image']) && empty($isTemplatePreview)): ?>
-<div class="mx-auto mb-1.5 flex justify-center"><img src="<?php echo $uploadBaseUrl . '/sections/' . htmlspecialchars($nmcWelSec['image']); ?>" alt="" class="nmc-welcome-section-img w-auto rounded-md object-contain object-center shadow-sm" loading="eager" decoding="async"/></div>
+<img src="<?php echo $uploadBaseUrl . '/sections/' . htmlspecialchars($nmcWelSec['image']); ?>" alt="" class="nmc-welcome-section-img w-auto rounded object-contain object-center" loading="eager" decoding="async"/>
 <?php endif; ?>
-<span class="text-xs font-bold uppercase tracking-[0.18em] text-red-500 sm:text-sm"><?php echo $nmcWelName; ?></span>
+<span class="nmc-welcome-btn"><?php echo $nmcWelName; ?></span>
 </a>
 <?php endforeach; ?>
 </div>
