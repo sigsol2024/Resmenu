@@ -190,6 +190,12 @@ body.nmc-body { overflow-x: clip; min-height: 100vh; min-height: 100dvh; }
 @media (min-width: 640px) {
   .nmc-welcome-section-img { max-width: 9rem; max-height: 4rem; }
 }
+#nmc-welcome-modal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
 #nmc-welcome-close:focus-visible {
   outline: 2px solid rgba(239, 68, 68, 0.95);
   outline-offset: 2px;
@@ -207,11 +213,11 @@ body.nmc-body { overflow-x: clip; min-height: 100vh; min-height: 100dvh; }
 .nmc-rail-scroll {
   overflow-x: visible;
   -webkit-overflow-scrolling: touch;
-  padding-top: 3rem;
-  padding-bottom: 3.25rem;
+  padding-top: 1.25rem;
+  padding-bottom: 1.5rem;
 }
 @media (min-width: 768px) {
-  .nmc-rail-scroll { padding-top: 3.25rem; padding-bottom: 3.75rem; }
+  .nmc-rail-scroll { padding-top: 1.5rem; padding-bottom: 1.75rem; }
 }
 .nmc-rail-item {
   position: relative;
@@ -221,11 +227,17 @@ body.nmc-body { overflow-x: clip; min-height: 100vh; min-height: 100dvh; }
   flex-shrink: 0;
 
   width: 100%;
-  min-height: 11rem;
+  min-height: 6.75rem;
 
-  padding: 2rem 0;
+  padding: 0.85rem 0;
 
   overflow: visible;
+}
+@media (min-width: 768px) {
+  .nmc-rail-item {
+    min-height: 7.25rem;
+    padding: 1rem 0;
+  }
 }
 
 .nmc-rail-item:not(:first-child)::before {
@@ -250,15 +262,21 @@ body.nmc-body { overflow-x: clip; min-height: 100vh; min-height: 100dvh; }
 
   white-space: nowrap;
 
-  font-size: 0.95rem;
-  font-weight: 800;
+  font-size: 0.78rem;
+  font-weight: 700;
   line-height: 1;
 
-  letter-spacing: 0.22em;
+  letter-spacing: 0.12em;
 
   text-align: center;
 
   max-width: none;
+}
+@media (min-width: 768px) {
+  .nmc-rail-item a {
+    font-size: 0.82rem;
+    letter-spacing: 0.14em;
+  }
 }
 .nmc-cat-head {
   overflow: visible;
@@ -276,7 +294,7 @@ body.nmc-body { overflow-x: clip; min-height: 100vh; min-height: 100dvh; }
 <body class="nmc-body bg-transparent text-slate-100 font-sans selection:bg-orange-500/30">
 <div class="nmc-page-bg" aria-hidden="true"></div>
 <?php if (!empty($nmcShowWelcomeModal)): ?>
-<div id="nmc-welcome-modal" class="fixed inset-0 z-[100] flex items-end justify-center bg-black/80 p-3 pb-4 sm:items-center sm:p-5" role="dialog" aria-modal="true" aria-labelledby="nmc-welcome-title">
+<div id="nmc-welcome-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80" role="dialog" aria-modal="true" aria-labelledby="nmc-welcome-title">
 <div class="nmc-welcome-panel flex h-auto min-h-0 flex-col overflow-hidden rounded-xl border border-white/15 bg-black/50 shadow-[0_0_32px_rgba(124,58,237,0.18)] backdrop-blur-xl sm:rounded-2xl">
 <div class="shrink-0 border-b border-white/10 px-4 py-3 text-center sm:px-5 sm:py-4">
 <?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?>
@@ -351,7 +369,7 @@ body.nmc-body { overflow-x: clip; min-height: 100vh; min-height: 100dvh; }
 </div>
 <div class="flex min-h-0 w-full flex-1 flex-col items-stretch justify-start px-0.5 pb-3 pt-1 md:px-1">
 <?php $nmcRailDelay = 0; $nmcNavSeen = []; ?>
-<div id="nmc-rail-links" class="no-scrollbar nmc-rail-scroll -mt-5 flex max-h-full min-h-0 w-full flex-col items-stretch justify-start overflow-y-auto overflow-x-visible py-2 md:-mt-7 md:py-3">
+<div id="nmc-rail-links" class="no-scrollbar nmc-rail-scroll flex max-h-full min-h-0 w-full flex-col items-stretch justify-start overflow-y-auto overflow-x-visible py-1 md:py-2">
 <?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?><div class="nmc-rail-link nmc-rail-item" style="animation-delay: <?php echo ($nmcRailDelay * 0.3); ?>s"><?php $nmcRailDelay++; ?><a class="font-bold uppercase text-red-500 opacity-95 hover:text-red-400" href="<?php echo htmlspecialchars($fullMenuUrl); ?>">View Full menu</a></div><?php endif; ?>
 <?php
 if (empty($singleSectionView) && !empty($sectionsForNav) && is_array($sectionsForNav) && !empty($fullMenuUrl)):
@@ -360,7 +378,7 @@ if (empty($singleSectionView) && !empty($sectionsForNav) && is_array($sectionsFo
         if ($nsk === '' || isset($nmcNavSeen[$nsk])) continue;
         $nmcNavSeen[$nsk] = true;
 ?>
-<div class="nmc-rail-link nmc-rail-item" style="animation-delay: <?php echo ($nmcRailDelay * 0.3); ?>s"><?php $nmcRailDelay++; ?><a class="font-bold uppercase text-red-500 opacity-95 hover:text-red-400" href="<?php echo htmlspecialchars($fullMenuUrl); ?>#section-<?php echo htmlspecialchars($nsk); ?>"><?php echo htmlspecialchars($navSection['name'] ?? ''); ?></a></div>
+<div class="nmc-rail-link nmc-rail-item" style="animation-delay: <?php echo ($nmcRailDelay * 0.3); ?>s"><?php $nmcRailDelay++; ?><a class="font-bold uppercase text-red-500 opacity-95 hover:text-red-400" href="<?php echo htmlspecialchars(rtrim($fullMenuUrl, '/') . '/' . $nsk); ?>"><?php echo htmlspecialchars($navSection['name'] ?? ''); ?></a></div>
 <?php endforeach; endif; ?>
 <?php if (!empty($supportsReservations)): ?><div class="nmc-rail-link nmc-rail-item" style="animation-delay: <?php echo ($nmcRailDelay * 0.3); ?>s"><?php $nmcRailDelay++; ?><a class="font-bold uppercase text-orange-500" href="<?php echo htmlspecialchars($reservationUrl); ?>">Reserve Table</a></div><?php endif; ?>
 </div>
