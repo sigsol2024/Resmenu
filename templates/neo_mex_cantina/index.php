@@ -248,26 +248,30 @@ body.nmc-body { overflow-x: clip; min-height: 100vh; min-height: 100dvh; }
   width: 100%;
   box-sizing: border-box;
 
-  padding: 0.08rem 0;
+  padding: 0.2rem 0;
+  margin-bottom: 0.15rem;
 
   overflow: visible;
   isolation: isolate;
 }
-.nmc-rail-item:not(:first-child)::before {
+.nmc-rail-item:not(:last-child)::after {
   content: '';
   position: absolute;
-  top: 0;
   left: 22%;
   right: 22%;
+  bottom: -0.28rem;
   height: 1px;
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(239, 68, 68, 0.4) 50%,
+    rgba(239, 68, 68, 0.45) 50%,
     transparent 100%
   );
-  z-index: 2;
+  z-index: 0;
   pointer-events: none;
+}
+.nmc-rail-item + .nmc-rail-item {
+  margin-top: 0.45rem;
 }
 .nmc-vertical-link {
   display: inline-flex;
@@ -341,6 +345,31 @@ nav[aria-label="Section menu"] .nmc-rail-slot {
 }
 .nmc-cat-head img {
   display: block;
+}
+.nmc-section-title {
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+@media (min-width: 768px) {
+  .nmc-section-title { font-size: 1.875rem; }
+}
+.nmc-cat-title {
+  font-size: 1.05rem;
+  line-height: 1.3;
+  text-align: center;
+}
+@media (min-width: 768px) {
+  .nmc-cat-title {
+    font-size: 1.2rem;
+    text-align: left;
+  }
+}
+.nmc-item-title {
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+@media (min-width: 640px) {
+  .nmc-item-title { font-size: 0.95rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   .nmc-reveal { opacity: 1; transform: none; transition: none; }
@@ -460,7 +489,7 @@ if (empty($singleSectionView) && !empty($sectionsForNav) && is_array($sectionsFo
 ?>
 <div id="section-<?php echo htmlspecialchars($section['slug']); ?>" class="mb-14 min-w-0">
 <?php if (empty($singleSectionView)): ?>
-<h2 class="mb-6 text-center text-2xl font-bold text-orange-500 md:mb-8 md:text-3xl"><?php if (!empty($fullMenuUrl)): ?><a href="<?php echo htmlspecialchars($fullMenuUrl . '/' . $section['slug']); ?>" class="text-orange-500 hover:underline"><?php echo htmlspecialchars($section['name']); ?></a><?php else: ?><?php echo htmlspecialchars($section['name']); ?><?php endif; ?></h2>
+<h2 class="nmc-section-title mb-6 text-center font-bold text-orange-500 md:mb-8"><?php if (!empty($fullMenuUrl)): ?><a href="<?php echo htmlspecialchars($fullMenuUrl . '/' . $section['slug']); ?>" class="text-orange-500 hover:underline"><?php echo htmlspecialchars($section['name']); ?></a><?php else: ?><?php echo htmlspecialchars($section['name']); ?><?php endif; ?></h2>
 <?php endif; ?>
 <?php foreach ($section['categories'] as $catIndex => $category):
     $slug = (!empty($category['slug']) && (string) $category['slug'] !== '')
@@ -471,7 +500,7 @@ if (empty($singleSectionView) && !empty($sectionsForNav) && is_array($sectionsFo
 ?>
 <section class="nmc-reveal mb-20 min-w-0 overflow-visible rounded-2xl glass-card p-6 sm:p-8" id="<?php echo htmlspecialchars($slug); ?>">
 <div class="nmc-cat-head mb-8 min-w-0">
-<h3 class="block w-full border-b-2 border-orange-500 pb-2 text-2xl font-bold text-white"><?php echo htmlspecialchars($category['name']); ?></h3>
+<h3 class="nmc-cat-title block w-full border-b-2 border-orange-500 pb-2 font-bold text-white"><?php echo htmlspecialchars($category['name']); ?></h3>
 <?php if (!empty($category['image']) && empty($isTemplatePreview)): ?>
 <div class="mt-3 w-full max-w-md overflow-visible">
 <img src="<?php echo $uploadBaseUrl . '/categories/' . htmlspecialchars($category['image']); ?>" alt="" class="h-auto max-h-48 w-full rounded-lg object-cover object-center ring-1 ring-white/15 sm:max-h-52" loading="lazy" decoding="async"/>
@@ -484,7 +513,7 @@ if (empty($singleSectionView) && !empty($sectionsForNav) && is_array($sectionsFo
 <?php if (!empty($item['image'])): ?><img src="<?php echo $uploadBaseUrl . '/menu-items/' . htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="h-16 w-16 shrink-0 rounded object-cover sm:h-20 sm:w-20"/><?php endif; ?>
 <div class="min-w-0 flex-1">
 <div class="flex min-w-0 items-baseline justify-between gap-3">
-<h4 class="min-w-0 flex-1 text-left text-lg font-semibold leading-snug text-slate-100"><?php echo htmlspecialchars($item['name']); ?></h4>
+<h4 class="nmc-item-title min-w-0 flex-1 text-left font-semibold text-slate-100"><?php echo htmlspecialchars($item['name']); ?></h4>
 <span class="shrink-0 font-mono text-sm tabular-nums leading-snug text-red-500 sm:text-base"><?php echo nmc_price($item['price']); ?></span>
 </div>
 <?php if (!empty($item['description'])): ?><p class="mt-1.5 w-full text-left text-sm leading-relaxed text-slate-400"><?php echo htmlspecialchars($item['description']); ?></p><?php endif; ?>
