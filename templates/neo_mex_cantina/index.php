@@ -217,36 +217,38 @@ body.nmc-body { overflow-x: clip; min-height: 100vh; min-height: 100dvh; }
 }
 .nmc-rail-scroll {
   overflow-x: visible !important;
-  overflow-y: auto;
+  overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
-  padding-top: 0.75rem;
-  padding-bottom: 1rem;
+  padding-top: 0.25rem;
+  padding-bottom: 0.35rem;
+  height: 100%;
 }
 #nmc-rail-links {
   display: flex;
   flex-direction: column;
   align-items: stretch !important;
-  justify-content: flex-start !important;
-  align-content: flex-start;
+  justify-content: space-evenly !important;
+  align-content: stretch;
   gap: 0 !important;
   flex: 1 1 auto;
   min-height: 0;
+  height: 100%;
   width: 100%;
-  overflow-x: visible !important;
+  overflow: hidden;
 }
 .nmc-rail-item {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 auto;
-  flex-shrink: 0;
+  flex: 1 1 0;
+  min-height: 0;
+  max-height: none;
 
   width: 100%;
-  min-height: 8rem;
   box-sizing: border-box;
 
-  padding: 0.75rem 0;
+  padding: 0.2rem 0;
 
   overflow: visible;
   isolation: isolate;
@@ -283,14 +285,15 @@ body.nmc-body { overflow-x: clip; min-height: 100vh; min-height: 100dvh; }
 
   white-space: nowrap;
 
-  font-size: 0.82rem;
-  font-weight: 800;
-  line-height: 1;
+  font-size: clamp(0.65rem, 1.85vh, 0.78rem);
+  font-weight: 700;
+  line-height: 1.1;
 
-  letter-spacing: 0.16em;
+  letter-spacing: 0.12em;
 
-  width: 100%;
-  height: 100%;
+  width: auto;
+  height: auto;
+  max-height: 100%;
 
   text-align: center;
 
@@ -306,8 +309,8 @@ nav[aria-label="Section menu"] .nmc-rail-slot {
   flex: 1 1 auto;
   flex-direction: column;
   align-items: stretch;
-  justify-content: flex-start !important;
-  overflow: visible;
+  justify-content: stretch;
+  overflow: hidden;
 }
 .nmc-cat-head {
   overflow: visible;
@@ -399,9 +402,9 @@ nav[aria-label="Section menu"] .nmc-rail-slot {
 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
 </button>
 </div>
-<div class="nmc-rail-slot w-full flex-1 px-0.5 pb-3 pt-1 md:px-1">
+<div class="nmc-rail-slot flex w-full min-h-0 flex-1 flex-col px-0.5 pb-2 pt-0">
 <?php $nmcRailDelay = 0; $nmcNavSeen = []; ?>
-<div id="nmc-rail-links" class="no-scrollbar nmc-rail-scroll max-h-full min-h-0 w-full">
+<div id="nmc-rail-links" class="nmc-rail-scroll no-scrollbar min-h-0 w-full flex-1">
 <?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?><div class="nmc-rail-link nmc-rail-item" style="animation-delay: <?php echo ($nmcRailDelay * 0.3); ?>s"><?php $nmcRailDelay++; ?><a class="nmc-vertical-link font-bold uppercase text-red-500 opacity-95 hover:text-red-400" href="<?php echo htmlspecialchars($fullMenuUrl); ?>">View Full menu</a></div><?php endif; ?>
 <?php
 if (empty($singleSectionView) && !empty($sectionsForNav) && is_array($sectionsForNav) && !empty($fullMenuUrl)):
