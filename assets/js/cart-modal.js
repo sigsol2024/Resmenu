@@ -147,9 +147,20 @@
         }
     }
 
+    function ensureMaterialSymbolsFont() {
+        if (document.getElementById('resmenu-material-symbols-font')) return;
+        var link = document.createElement('link');
+        link.id = 'resmenu-material-symbols-font';
+        link.rel = 'stylesheet';
+        link.href = 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap';
+        document.head.appendChild(link);
+    }
+
     function init(cfg) {
         config = cfg || {};
         if (!config.restaurantSlug) return;
+
+        ensureMaterialSymbolsFont();
 
         overlay = document.getElementById('resmenu-cart-overlay');
         if (!overlay) {

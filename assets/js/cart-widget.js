@@ -54,11 +54,25 @@
         }
     }
 
+    function ensureMaterialSymbolsFont() {
+        if (document.getElementById('resmenu-material-symbols-font')) return;
+        const link = document.createElement('link');
+        link.id = 'resmenu-material-symbols-font';
+        link.rel = 'stylesheet';
+        link.href = 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap';
+        document.head.appendChild(link);
+    }
+
     function ensureWidgetStyles() {
+        ensureMaterialSymbolsFont();
         if (document.getElementById('resmenu-cart-widget-styles')) return;
         const style = document.createElement('style');
         style.id = 'resmenu-cart-widget-styles';
-        style.textContent = '#resmenu-cart-widget{z-index:9999!important}.resmenu-cart-widget-btn:hover{background-color:#121212!important}';
+        style.textContent = [
+            '#resmenu-cart-widget{z-index:9999!important}',
+            '.resmenu-cart-widget-btn:hover{background-color:#121212!important}',
+            '#resmenu-cart-widget .material-symbols-outlined{font-family:"Material Symbols Outlined",sans-serif!important;font-weight:normal!important;font-style:normal!important;line-height:1!important;letter-spacing:normal!important;text-transform:none!important;display:inline-block!important;white-space:nowrap!important;font-variation-settings:"FILL" 0,"wght" 400,"GRAD" 0,"opsz" 24!important;font-size:1.5rem!important}'
+        ].join('');
         document.head.appendChild(style);
     }
 
