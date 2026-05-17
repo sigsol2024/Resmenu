@@ -280,12 +280,12 @@ body.nmc-body { overflow-x: clip; min-height: 100vh; min-height: 100dvh; }
 <div class="nmc-welcome-panel flex h-auto min-h-0 flex-col overflow-hidden rounded-xl border border-white/15 bg-black/50 shadow-[0_0_32px_rgba(124,58,237,0.18)] backdrop-blur-xl sm:rounded-2xl">
 <div class="shrink-0 border-b border-white/10 px-4 py-3 text-center sm:px-5 sm:py-4">
 <?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?>
-<div class="mb-2 flex justify-center"><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="mx-auto h-14 w-auto max-w-[200px] object-contain md:h-16"/></div>
+<div class="mb-2 flex justify-center"><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="mx-auto h-9 w-auto max-w-[140px] object-contain sm:h-10 sm:max-w-[160px]"/></div>
 <?php else: ?>
 <div class="mb-2 flex justify-center"><div class="flex h-9 w-9 rotate-12 items-center justify-center rounded-lg text-lg font-black brand-gradient sm:h-10 sm:w-10 sm:text-xl"><?php echo strtoupper(substr($restaurant['name'], 0, 1)); ?></div></div>
 <?php endif; ?>
-<h2 id="nmc-welcome-title" class="text-xl font-black uppercase tracking-wide text-white md:text-2xl"><?php echo htmlspecialchars($restaurant['name']); ?></h2>
-<p class="mt-1 text-xs uppercase tracking-widest text-orange-500/90">Choose a section</p>
+<h2 id="nmc-welcome-title" class="text-base font-black uppercase tracking-wide text-white sm:text-lg"><?php echo htmlspecialchars($restaurant['name']); ?></h2>
+<p class="mt-0.5 text-[10px] uppercase tracking-widest text-orange-500/90 sm:text-xs">Choose a section</p>
 </div>
 <div class="no-scrollbar nmc-welcome-scroll px-4 py-2.5 sm:px-5 sm:py-3">
 <?php foreach ($sections as $nmcWelSec):
@@ -306,8 +306,8 @@ body.nmc-body { overflow-x: clip; min-height: 100vh; min-height: 100dvh; }
 </a>
 <?php endforeach; ?>
 </div>
-<div class="shrink-0 border-t border-white/10 px-5 py-4 sm:px-6">
-<button type="button" id="nmc-welcome-close" class="w-full rounded-xl border border-red-600/40 bg-white py-3 text-center text-sm font-bold uppercase tracking-widest text-red-600 shadow-sm transition-colors hover:bg-red-50 hover:text-red-700">View full menu</button>
+<div class="shrink-0 border-t border-white/10 px-4 py-2.5 sm:px-5 sm:py-3">
+<button type="button" id="nmc-welcome-close" class="w-full rounded-lg border border-red-600/40 bg-white py-2 text-center text-xs font-bold uppercase tracking-widest text-red-600 shadow-sm transition-colors hover:bg-red-50 hover:text-red-700 sm:py-2.5 sm:text-sm">View full menu</button>
 </div>
 </div>
 </div>
@@ -518,7 +518,18 @@ if (empty($singleSectionView) && !empty($sectionsForNav) && is_array($sectionsFo
   if (closeBtn) closeBtn.addEventListener('click', function (e) { e.preventDefault(); closeWelcome(); });
   root.addEventListener('click', function (e) { if (e.target === root) closeWelcome(); });
   document.querySelectorAll('.nmc-welcome-section-link').forEach(function (a) {
-    a.addEventListener('click', function () { closeWelcome(); });
+    a.addEventListener('click', function (e) {
+      var href = a.getAttribute('href') || '';
+      if (href.charAt(0) === '#') {
+        e.preventDefault();
+        closeWelcome();
+        var id = href.slice(1);
+        var el = id ? document.getElementById(id) : null;
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+      closeWelcome();
+    });
   });
   document.addEventListener('keydown', function (e) {
     if (e.key !== 'Escape') return;
