@@ -477,6 +477,66 @@ img.nmc-img-photo {
 @media (min-width: 640px) {
   .nmc-item-title { font-size: 0.95rem; }
 }
+.nmc-menu-item--has-image {
+  align-items: flex-start;
+}
+.nmc-menu-item__media {
+  width: 4rem;
+  height: 4rem;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+@media (min-width: 640px) {
+  .nmc-menu-item__media {
+    width: 5rem;
+    height: 5rem;
+  }
+}
+.nmc-menu-item__media .nmc-menu-item__img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+}
+.nmc-menu-item__media img.nmc-img-alpha.nmc-menu-item__img {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain !important;
+}
+.nmc-menu-item__media img.nmc-img-photo.nmc-menu-item__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover !important;
+}
+.nmc-menu-item__body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+.nmc-menu-item__price {
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.875rem;
+  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
+  color: #ef4444;
+}
+@media (min-width: 640px) {
+  .nmc-menu-item__price { font-size: 1rem; }
+}
+.nmc-menu-item__desc {
+  margin: 0;
+  width: 100%;
+  text-align: left;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: rgb(148 163 184);
+}
 @media (prefers-reduced-motion: reduce) {
   .nmc-reveal { opacity: 1; transform: none; transition: none; }
   .nmc-rail-link { opacity: 1; }
@@ -616,17 +676,31 @@ if (empty($singleSectionView) && !empty($sectionsForNav) && is_array($sectionsFo
 <?php endif; ?>
 </div>
 <div class="space-y-6">
-<?php foreach ($items as $item): ?>
-<div class="flex min-w-0 gap-3 border-b border-white/10 pb-4 sm:gap-4">
-<?php if (!empty($item['image'])): ?><img src="<?php echo $uploadBaseUrl . '/menu-items/' . htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="<?php echo htmlspecialchars(nmc_img_class('h-16 w-16 shrink-0 sm:h-20 sm:w-20', $item['image'], 'menu-items', 'rounded'), ENT_QUOTES, 'UTF-8'); ?>"/><?php endif; ?>
+<?php foreach ($items as $item):
+    $nmcItemPrice = nmc_price($item['price']);
+    $nmcItemHasImage = !empty($item['image']);
+?>
+<div class="nmc-menu-item flex min-w-0 gap-3 border-b border-white/10 pb-4 sm:gap-4<?php echo $nmcItemHasImage ? ' nmc-menu-item--has-image' : ''; ?>">
+<?php if ($nmcItemHasImage): ?>
+<div class="nmc-menu-item__media">
+<img src="<?php echo $uploadBaseUrl . '/menu-items/' . htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="<?php echo htmlspecialchars(nmc_img_class('nmc-menu-item__img', $item['image'], 'menu-items', 'rounded'), ENT_QUOTES, 'UTF-8'); ?>"/>
+</div>
+<div class="nmc-menu-item__body min-w-0 flex-1">
+<h4 class="nmc-item-title m-0 w-full text-left font-semibold text-slate-100"><?php echo htmlspecialchars($item['name']); ?></h4>
+<?php if ($nmcItemPrice !== ''): ?><p class="nmc-menu-item__price"><?php echo $nmcItemPrice; ?></p><?php endif; ?>
+<?php if (!empty($item['description'])): ?><p class="nmc-menu-item__desc"><?php echo htmlspecialchars($item['description']); ?></p><?php endif; ?>
+<?php if (!empty($supportsOrdering) && !empty($item['is_available'])): ?><button type="button" class="add-to-bag-btn mt-1 rounded border border-orange-500/60 px-3 py-1.5 text-orange-500 hover:bg-orange-500/20" data-item-id="<?php echo (int)$item['id']; ?>" data-item-name="<?php echo htmlspecialchars($item['name']); ?>" data-item-price="<?php echo htmlspecialchars($item['price']); ?>" data-item-image="<?php echo htmlspecialchars($item['image']); ?>">Add to bag</button><?php endif; ?>
+</div>
+<?php else: ?>
 <div class="min-w-0 flex-1">
 <div class="flex min-w-0 items-baseline justify-between gap-3">
 <h4 class="nmc-item-title min-w-0 flex-1 text-left font-semibold text-slate-100"><?php echo htmlspecialchars($item['name']); ?></h4>
-<span class="shrink-0 font-mono text-sm tabular-nums leading-snug text-red-500 sm:text-base"><?php echo nmc_price($item['price']); ?></span>
+<?php if ($nmcItemPrice !== ''): ?><span class="shrink-0 font-mono text-sm tabular-nums leading-snug text-red-500 sm:text-base"><?php echo $nmcItemPrice; ?></span><?php endif; ?>
 </div>
 <?php if (!empty($item['description'])): ?><p class="mt-1.5 w-full text-left text-sm leading-relaxed text-slate-400"><?php echo htmlspecialchars($item['description']); ?></p><?php endif; ?>
-<?php if (!empty($supportsOrdering) && !empty($item['is_available'])): ?><button type="button" class="add-to-bag-btn mt-2 rounded border border-orange-500/60 px-3 py-1.5 text-orange-500 hover:bg-orange-500/20" data-item-id="<?php echo (int)$item['id']; ?>" data-item-name="<?php echo htmlspecialchars($item['name']); ?>" data-item-price="<?php echo htmlspecialchars($item['price']); ?>" data-item-image="<?php echo !empty($item['image']) ? htmlspecialchars($item['image']) : ''; ?>">Add to bag</button><?php endif; ?>
+<?php if (!empty($supportsOrdering) && !empty($item['is_available'])): ?><button type="button" class="add-to-bag-btn mt-2 rounded border border-orange-500/60 px-3 py-1.5 text-orange-500 hover:bg-orange-500/20" data-item-id="<?php echo (int)$item['id']; ?>" data-item-name="<?php echo htmlspecialchars($item['name']); ?>" data-item-price="<?php echo htmlspecialchars($item['price']); ?>" data-item-image="">Add to bag</button><?php endif; ?>
 </div>
+<?php endif; ?>
 </div>
 <?php endforeach; ?>
 </div>
