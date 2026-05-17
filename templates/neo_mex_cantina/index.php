@@ -58,6 +58,19 @@ function nmc_price($p, $s = '₦') {
     if ($n == 0.0) return '';
     return $s . number_format($n, 2);
 }
+function nmc_rail_min_height_rem($label) {
+    $len = mb_strlen(trim((string) $label));
+    if ($len <= 9) {
+        return 11;
+    }
+    if ($len <= 13) {
+        return 12;
+    }
+    if ($len <= 17) {
+        return 13;
+    }
+    return 14;
+}
 $activeCategories = [];
 $nmcCatSeen = [];
 if (!empty($sections) && is_array($sections)) {
@@ -163,20 +176,26 @@ body.nmc-body { overflow-x: clip; min-height: 100vh; min-height: 100dvh; }
 }
 .nmc-welcome-panel {
   width: 100%;
-  max-width: 18.5rem;
-  max-height: min(88vh, 24.5rem);
+  max-width: 20rem;
+  max-height: min(92vh, 34rem);
 }
 @media (min-width: 640px) {
-  .nmc-welcome-panel { max-width: 21rem; max-height: min(88vh, 28rem); }
+  .nmc-welcome-panel { max-width: 22rem; max-height: min(92vh, 38rem); }
+}
+@media (min-width: 768px) {
+  .nmc-welcome-panel { max-width: 24rem; max-height: min(92vh, 40rem); }
 }
 .nmc-welcome-scroll {
-  max-height: min(46vh, 13.5rem);
+  max-height: min(62vh, 24rem);
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
 }
 @media (min-width: 640px) {
-  .nmc-welcome-scroll { max-height: min(50vh, 16rem); }
+  .nmc-welcome-scroll { max-height: min(66vh, 28rem); }
+}
+@media (min-width: 768px) {
+  .nmc-welcome-scroll { max-height: min(68vh, 30rem); }
 }
 .nmc-welcome-scroll a.nmc-welcome-sep:not(:last-child) {
   border-bottom: 1px dotted #ef4444;
@@ -202,44 +221,49 @@ body.nmc-body { overflow-x: clip; min-height: 100vh; min-height: 100dvh; }
 }
 .nmc-rail-link {
   opacity: 0;
-  transform: translateX(-1.25rem);
 }
 .nmc-rail-links--ready .nmc-rail-link {
-  animation: nmcRailSlideIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: nmcRailFadeIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
-@keyframes nmcRailSlideIn {
-  to { opacity: 1; transform: translateX(0); }
+@keyframes nmcRailFadeIn {
+  to { opacity: 1; }
 }
 .nmc-rail-scroll {
-  overflow-x: visible;
+  overflow-x: visible !important;
+  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding-top: 1.25rem;
-  padding-bottom: 1.5rem;
+  padding-top: 0.5rem;
+  padding-bottom: 1rem;
 }
-@media (min-width: 768px) {
-  .nmc-rail-scroll { padding-top: 1.5rem; padding-bottom: 1.75rem; }
+#nmc-rail-links {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+  align-content: flex-start;
+  gap: 0 !important;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  overflow-x: visible !important;
 }
 .nmc-rail-item {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex: 0 0 auto;
   flex-shrink: 0;
 
   width: 100%;
-  min-height: 6.75rem;
+  min-height: 11rem;
+  box-sizing: border-box;
 
-  padding: 0.85rem 0;
+  padding: 2rem 0;
 
   overflow: visible;
+  isolation: isolate;
 }
-@media (min-width: 768px) {
-  .nmc-rail-item {
-    min-height: 7.25rem;
-    padding: 1rem 0;
-  }
-}
-
 .nmc-rail-item:not(:first-child)::before {
   content: '';
   position: absolute;
@@ -253,30 +277,42 @@ body.nmc-body { overflow-x: clip; min-height: 100vh; min-height: 100dvh; }
     rgba(239, 68, 68, 0.4) 50%,
     transparent 100%
   );
+  z-index: 2;
+  pointer-events: none;
 }
-
 .nmc-rail-item a {
   display: inline-block;
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
 
   transform: rotate(-90deg);
+  transform-origin: center center;
 
   white-space: nowrap;
 
-  font-size: 0.78rem;
-  font-weight: 700;
+  font-size: 0.95rem;
+  font-weight: 800;
   line-height: 1;
 
-  letter-spacing: 0.12em;
+  letter-spacing: 0.22em;
 
   text-align: center;
 
   max-width: none;
+  pointer-events: auto;
 }
-@media (min-width: 768px) {
-  .nmc-rail-item a {
-    font-size: 0.82rem;
-    letter-spacing: 0.14em;
-  }
+nav[aria-label="Section menu"] {
+  overflow-x: visible;
+}
+nav[aria-label="Section menu"] .nmc-rail-slot {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start !important;
+  overflow: visible;
 }
 .nmc-cat-head {
   overflow: visible;
@@ -367,20 +403,21 @@ body.nmc-body { overflow-x: clip; min-height: 100vh; min-height: 100dvh; }
 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
 </button>
 </div>
-<div class="flex min-h-0 w-full flex-1 flex-col items-stretch justify-start px-0.5 pb-3 pt-1 md:px-1">
+<div class="nmc-rail-slot w-full flex-1 px-0.5 pb-3 pt-1 md:px-1">
 <?php $nmcRailDelay = 0; $nmcNavSeen = []; ?>
-<div id="nmc-rail-links" class="no-scrollbar nmc-rail-scroll flex max-h-full min-h-0 w-full flex-col items-stretch justify-start overflow-y-auto overflow-x-visible py-1 md:py-2">
-<?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?><div class="nmc-rail-link nmc-rail-item" style="animation-delay: <?php echo ($nmcRailDelay * 0.3); ?>s"><?php $nmcRailDelay++; ?><a class="font-bold uppercase text-red-500 opacity-95 hover:text-red-400" href="<?php echo htmlspecialchars($fullMenuUrl); ?>">View Full menu</a></div><?php endif; ?>
+<div id="nmc-rail-links" class="no-scrollbar nmc-rail-scroll max-h-full min-h-0 w-full">
+<?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?><div class="nmc-rail-link nmc-rail-item" style="animation-delay: <?php echo ($nmcRailDelay * 0.3); ?>s; min-height: <?php echo (int) nmc_rail_min_height_rem('View Full menu'); ?>rem"><?php $nmcRailDelay++; ?><a class="uppercase text-red-500 opacity-95 hover:text-red-400" href="<?php echo htmlspecialchars($fullMenuUrl); ?>">View Full menu</a></div><?php endif; ?>
 <?php
 if (empty($singleSectionView) && !empty($sectionsForNav) && is_array($sectionsForNav) && !empty($fullMenuUrl)):
     foreach ($sectionsForNav as $navSection):
         $nsk = isset($navSection['slug']) ? (string)$navSection['slug'] : '';
         if ($nsk === '' || isset($nmcNavSeen[$nsk])) continue;
         $nmcNavSeen[$nsk] = true;
+        $nmcRailMinH = nmc_rail_min_height_rem($navSection['name'] ?? '');
 ?>
-<div class="nmc-rail-link nmc-rail-item" style="animation-delay: <?php echo ($nmcRailDelay * 0.3); ?>s"><?php $nmcRailDelay++; ?><a class="font-bold uppercase text-red-500 opacity-95 hover:text-red-400" href="<?php echo htmlspecialchars(rtrim($fullMenuUrl, '/') . '/' . $nsk); ?>"><?php echo htmlspecialchars($navSection['name'] ?? ''); ?></a></div>
+<div class="nmc-rail-link nmc-rail-item" style="animation-delay: <?php echo ($nmcRailDelay * 0.3); ?>s; min-height: <?php echo (int) $nmcRailMinH; ?>rem"><?php $nmcRailDelay++; ?><a class="uppercase text-red-500 opacity-95 hover:text-red-400" href="<?php echo htmlspecialchars(rtrim($fullMenuUrl, '/') . '/' . $nsk); ?>"><?php echo htmlspecialchars($navSection['name'] ?? ''); ?></a></div>
 <?php endforeach; endif; ?>
-<?php if (!empty($supportsReservations)): ?><div class="nmc-rail-link nmc-rail-item" style="animation-delay: <?php echo ($nmcRailDelay * 0.3); ?>s"><?php $nmcRailDelay++; ?><a class="font-bold uppercase text-orange-500" href="<?php echo htmlspecialchars($reservationUrl); ?>">Reserve Table</a></div><?php endif; ?>
+<?php if (!empty($supportsReservations)): ?><div class="nmc-rail-link nmc-rail-item" style="animation-delay: <?php echo ($nmcRailDelay * 0.3); ?>s; min-height: <?php echo (int) nmc_rail_min_height_rem('Reserve Table'); ?>rem"><?php $nmcRailDelay++; ?><a class="uppercase text-orange-500" href="<?php echo htmlspecialchars($reservationUrl); ?>">Reserve Table</a></div><?php endif; ?>
 </div>
 </div>
 </nav>
