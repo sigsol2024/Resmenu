@@ -161,10 +161,34 @@ body.nmc-body { overflow-x: clip; min-height: 100vh; min-height: 100dvh; }
   outline: 2px solid rgba(249, 115, 22, 0.85);
   outline-offset: 3px;
 }
+.nmc-welcome-panel {
+  width: 100%;
+  max-width: 18.5rem;
+  max-height: min(88vh, 24.5rem);
+}
+@media (min-width: 640px) {
+  .nmc-welcome-panel { max-width: 21rem; max-height: min(88vh, 28rem); }
+}
+.nmc-welcome-scroll {
+  max-height: min(46vh, 13.5rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+@media (min-width: 640px) {
+  .nmc-welcome-scroll { max-height: min(50vh, 16rem); }
+}
 .nmc-welcome-scroll a.nmc-welcome-sep:not(:last-child) {
   border-bottom: 1px dotted #ef4444;
-  margin-bottom: 1.25rem;
-  padding-bottom: 1.25rem;
+  margin-bottom: 0.65rem;
+  padding-bottom: 0.65rem;
+}
+.nmc-welcome-section-img {
+  max-width: 7.5rem;
+  max-height: 3.25rem;
+}
+@media (min-width: 640px) {
+  .nmc-welcome-section-img { max-width: 9rem; max-height: 4rem; }
 }
 #nmc-welcome-close:focus-visible {
   outline: 2px solid rgba(239, 68, 68, 0.95);
@@ -252,30 +276,33 @@ body.nmc-body { overflow-x: clip; min-height: 100vh; min-height: 100dvh; }
 <body class="nmc-body bg-transparent text-slate-100 font-sans selection:bg-orange-500/30">
 <div class="nmc-page-bg" aria-hidden="true"></div>
 <?php if (!empty($nmcShowWelcomeModal)): ?>
-<div id="nmc-welcome-modal" class="fixed inset-0 z-[100] flex items-end justify-center bg-black/80 p-4 pb-6 sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-labelledby="nmc-welcome-title">
-<div class="flex max-h-[min(92vh,720px)] w-full max-w-lg min-h-0 flex-col overflow-hidden rounded-2xl border border-white/15 bg-black/50 shadow-[0_0_48px_rgba(124,58,237,0.2)] backdrop-blur-xl sm:max-w-xl">
-<div class="shrink-0 border-b border-white/10 px-5 py-5 text-center sm:px-6 sm:py-6">
+<div id="nmc-welcome-modal" class="fixed inset-0 z-[100] flex items-end justify-center bg-black/80 p-3 pb-4 sm:items-center sm:p-5" role="dialog" aria-modal="true" aria-labelledby="nmc-welcome-title">
+<div class="nmc-welcome-panel flex h-auto min-h-0 flex-col overflow-hidden rounded-xl border border-white/15 bg-black/50 shadow-[0_0_32px_rgba(124,58,237,0.18)] backdrop-blur-xl sm:rounded-2xl">
+<div class="shrink-0 border-b border-white/10 px-4 py-3 text-center sm:px-5 sm:py-4">
 <?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?>
-<div class="mb-3 flex justify-center"><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="mx-auto h-14 w-auto max-w-[200px] object-contain md:h-16"/></div>
+<div class="mb-2 flex justify-center"><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="mx-auto h-14 w-auto max-w-[200px] object-contain md:h-16"/></div>
 <?php else: ?>
-<div class="mb-3 flex justify-center"><div class="flex h-14 w-14 rotate-12 items-center justify-center rounded-xl text-2xl font-black brand-gradient md:h-16 md:w-16 md:text-3xl"><?php echo strtoupper(substr($restaurant['name'], 0, 1)); ?></div></div>
+<div class="mb-2 flex justify-center"><div class="flex h-9 w-9 rotate-12 items-center justify-center rounded-lg text-lg font-black brand-gradient sm:h-10 sm:w-10 sm:text-xl"><?php echo strtoupper(substr($restaurant['name'], 0, 1)); ?></div></div>
 <?php endif; ?>
 <h2 id="nmc-welcome-title" class="text-xl font-black uppercase tracking-wide text-white md:text-2xl"><?php echo htmlspecialchars($restaurant['name']); ?></h2>
 <p class="mt-1 text-xs uppercase tracking-widest text-orange-500/90">Choose a section</p>
 </div>
-<div class="no-scrollbar nmc-welcome-scroll min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6 sm:py-5">
+<div class="no-scrollbar nmc-welcome-scroll px-4 py-2.5 sm:px-5 sm:py-3">
 <?php foreach ($sections as $nmcWelSec):
     if (empty($nmcWelSec['slug'])) {
         continue;
     }
-    $nmcWelSlug = htmlspecialchars((string) $nmcWelSec['slug'], ENT_QUOTES, 'UTF-8');
+    $nmcWelSlugRaw = (string) $nmcWelSec['slug'];
     $nmcWelName = htmlspecialchars($nmcWelSec['name'] ?? '', ENT_QUOTES, 'UTF-8');
+    $nmcWelHref = !empty($fullMenuUrl)
+        ? htmlspecialchars(rtrim($fullMenuUrl, '/') . '/' . $nmcWelSlugRaw, ENT_QUOTES, 'UTF-8')
+        : '#section-' . htmlspecialchars($nmcWelSlugRaw, ENT_QUOTES, 'UTF-8');
 ?>
-<a href="#section-<?php echo $nmcWelSlug; ?>" class="nmc-welcome-section-link nmc-welcome-sep block text-center">
+<a href="<?php echo $nmcWelHref; ?>" class="nmc-welcome-section-link nmc-welcome-sep block py-1 text-center">
 <?php if (!empty($nmcWelSec['image']) && empty($isTemplatePreview)): ?>
-<div class="mx-auto mb-3 max-w-[220px]"><img src="<?php echo $uploadBaseUrl . '/sections/' . htmlspecialchars($nmcWelSec['image']); ?>" alt="" class="mx-auto max-h-28 w-full rounded-lg object-contain object-center shadow-md sm:max-h-32" loading="eager" decoding="async"/></div>
+<div class="mx-auto mb-1.5 flex justify-center"><img src="<?php echo $uploadBaseUrl . '/sections/' . htmlspecialchars($nmcWelSec['image']); ?>" alt="" class="nmc-welcome-section-img w-auto rounded-md object-contain object-center shadow-sm" loading="eager" decoding="async"/></div>
 <?php endif; ?>
-<span class="text-base font-bold uppercase tracking-widest text-red-500 sm:text-lg"><?php echo $nmcWelName; ?></span>
+<span class="text-xs font-bold uppercase tracking-[0.18em] text-red-500 sm:text-sm"><?php echo $nmcWelName; ?></span>
 </a>
 <?php endforeach; ?>
 </div>
