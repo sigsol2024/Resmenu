@@ -38,7 +38,6 @@ $masonryClasses = ['masonry-item-sm', 'masonry-item-md', 'masonry-item-lg'];
 <title><?php echo htmlspecialchars($restaurant['name']); ?><?php if (!empty($singleSectionView) && !empty($sections[0]['name'])): ?> - <?php echo htmlspecialchars($sections[0]['name']); ?><?php endif; ?></title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Bungee&amp;family=Inter:wght@400;700;900&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <script>
     tailwind.config = { theme: { extend: { colors: { brandYellow: '#FFD700', brandBlack: '#1A1A1A' }, fontFamily: { chunky: ['Bungee', 'cursive'], sans: ['Inter', 'sans-serif'] }, boxShadow: { brutal: '8px 8px 0px 0px #1A1A1A', 'brutal-sm': '4px 4px 0px 0px #1A1A1A' } } } }
   </script>
@@ -88,7 +87,6 @@ $masonryClasses = ['masonry-item-sm', 'masonry-item-md', 'masonry-item-lg'];
 @media (min-width: 1024px) { .sfh-card .sfh-img { height: 12rem; margin-bottom: 1rem; } }
 @keyframes wiggle { 0%, 100% { transform: rotate(-1deg); } 50% { transform: rotate(1deg); } }
 .animate-wiggle { animation: wiggle 2s infinite ease-in-out; }
-.material-symbols-outlined { font-family: 'Material Symbols Outlined', sans-serif; font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
 body.sfh-body { position: relative; min-height: 100vh; }
 body.sfh-body .sfh-bg { position: absolute; inset: 0; pointer-events: none; background-image: url('<?php echo htmlspecialchars($siteAssetsBase . '/bg_black.png'); ?>'); background-repeat: repeat; background-size: 280px 280px; opacity: 0.06; z-index: 0; }
 </style>
@@ -97,7 +95,7 @@ body.sfh-body .sfh-bg { position: absolute; inset: 0; pointer-events: none; back
 <div class="sfh-bg" aria-hidden="true"></div>
 <div class="sfh-toggle-wrap fixed top-4 right-4 z-[60] flex items-center justify-center w-12 h-12 bg-white comic-border shadow-brutal-sm" id="sfh-toggle-wrap">
 <button type="button" id="sfh-menu-toggle" class="flex items-center justify-center w-full h-full text-brandBlack hover:bg-brandBlack hover:text-white transition-colors" aria-label="Open menu">
-<span class="material-symbols-outlined text-2xl">menu</span>
+<?php echo resmenu_icon('menu', ['size' => 24, 'class' => 'text-2xl']); ?>
 </button>
 </div>
 <div class="fixed inset-0 z-[45] bg-black/40 opacity-0 invisible pointer-events-none transition-opacity duration-200" id="sfh-sidebar-overlay"></div>
@@ -105,7 +103,7 @@ body.sfh-body .sfh-bg { position: absolute; inset: 0; pointer-events: none; back
 <div class="p-6 sticky top-0 bg-brandYellow z-10 flex items-center justify-between border-b-4 border-brandBlack pb-4 mb-4">
 <h3 class="font-chunky text-xl">Menu</h3>
 <button type="button" id="sfh-sidebar-close" class="flex items-center justify-center w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] text-brandBlack hover:bg-brandBlack hover:text-white comic-border transition-colors" aria-label="Close">
-<span class="material-symbols-outlined text-2xl">close</span>
+<?php echo resmenu_icon('close', ['size' => 24, 'class' => 'text-2xl']); ?>
 </button>
 </div>
 <nav class="flex flex-col gap-2 sfh-nav-links px-6 pb-6">

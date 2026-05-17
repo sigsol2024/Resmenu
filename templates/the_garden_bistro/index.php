@@ -38,7 +38,6 @@ if (!empty($sections) && is_array($sections)) {
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&amp;family=Inter:wght@300;400;500&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <script>
     tailwind.config = { theme: { extend: { colors: { pastel: { sage: '#E2E8E4', rose: '#F7E7E6', cream: '#F9F7F2', blue: '#E3EBF0' }, charcoal: '#333333' }, fontFamily: { serif: ['Playfair Display', 'serif'], sans: ['Inter', 'sans-serif'] } } } }
   </script>
@@ -48,7 +47,6 @@ h1, h2, h3 { font-family: 'Playfair Display', serif; }
 .menu-item-price::before { content: '₦'; }
 .divider { height: 1px; background-color: #D1D1D1; width: 100%; margin: 1.5rem 0; }
 .circular-image { aspect-ratio: 1/1; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 6px -1px rgb(0 0 0/0.1); }
-.material-symbols-outlined { font-family: 'Material Symbols Outlined', sans-serif; font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
 .garden-bistro-inner-bg { position: absolute; inset: 0; pointer-events: none; background-image: url('<?php echo htmlspecialchars($siteAssetsBase . '/bg_black.png'); ?>'); background-repeat: repeat; background-size: 280px 280px; opacity: 0.06; border-radius: inherit; }
 </style>
 </head>

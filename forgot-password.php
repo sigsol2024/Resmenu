@@ -45,7 +45,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Forgot Password | <?php echo $siteName; ?></title>
     <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
     <script>
         tailwind.config = {
             theme: {
@@ -63,14 +62,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="w-full max-w-md rounded-2xl bg-white shadow-xl border border-slate-200 p-6 sm:p-8">
         <div class="mb-6 flex items-center justify-between gap-4">
             <a href="<?php echo htmlspecialchars($marketingHomeUrl); ?>" class="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-primary transition-colors">
-                <span class="material-symbols-outlined text-base">arrow_back</span>
+                <?php echo resmenu_icon('arrow_back', ['size' => 16, 'class' => 'text-base']); ?>
                 Back to Home
             </a>
             <a href="<?php echo htmlspecialchars($marketingHomeUrl); ?>" class="inline-flex items-center gap-2">
                 <?php if ($siteLogoUrl !== ''): ?>
                     <img src="<?php echo htmlspecialchars($siteLogoUrl); ?>" alt="<?php echo $siteName; ?>" class="h-9 w-auto">
                 <?php else: ?>
-                    <span class="material-symbols-outlined text-primary text-3xl">restaurant_menu</span>
+                    <?php echo resmenu_icon('restaurant_menu', ['size' => 28, 'class' => 'text-primary text-3xl']); ?>
                 <?php endif; ?>
             </a>
         </div>

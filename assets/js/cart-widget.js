@@ -7,9 +7,17 @@
     'use strict';
 
     const CART = window.RESMENU_CART;
+    const ICONS = window.RESMENU_ICONS;
     if (!CART) return;
 
     let container = null;
+
+    function cartIcon(name, size, className) {
+        if (ICONS && typeof ICONS.icon === 'function') {
+            return ICONS.icon(name, { size: size || 24, className: className || '' });
+        }
+        return '';
+    }
 
     function render(config) {
         const slug = config.restaurantSlug || '';
@@ -29,7 +37,7 @@
         const primaryColor = config.primaryColor || '#f20d0d';
         container.innerHTML = `
             <button type="button" id="resmenu-cart-widget-btn" class="resmenu-cart-widget-btn flex items-center gap-3 px-4 py-3 rounded-full text-white shadow-lg transition-colors border-0 cursor-pointer font-display" style="background-color:${primaryColor}">
-                <span class="material-symbols-outlined text-2xl">shopping_bag</span>
+                ${cartIcon('shopping-bag', 24, 'shrink-0')}
                 <span class="flex flex-col items-start">
                     <span class="text-xs font-bold uppercase tracking-wider opacity-90">${count} item${count !== 1 ? 's' : ''}</span>
                     <span class="text-sm font-bold">${CART.formatPrice(total, symbol)}</span>
@@ -54,25 +62,11 @@
         }
     }
 
-    function ensureMaterialSymbolsFont() {
-        if (document.getElementById('resmenu-material-symbols-font')) return;
-        const link = document.createElement('link');
-        link.id = 'resmenu-material-symbols-font';
-        link.rel = 'stylesheet';
-        link.href = 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap';
-        document.head.appendChild(link);
-    }
-
     function ensureWidgetStyles() {
-        ensureMaterialSymbolsFont();
         if (document.getElementById('resmenu-cart-widget-styles')) return;
         const style = document.createElement('style');
         style.id = 'resmenu-cart-widget-styles';
-        style.textContent = [
-            '#resmenu-cart-widget{z-index:9999!important}',
-            '.resmenu-cart-widget-btn:hover{background-color:#121212!important}',
-            '#resmenu-cart-widget .material-symbols-outlined{font-family:"Material Symbols Outlined",sans-serif!important;font-weight:normal!important;font-style:normal!important;line-height:1!important;letter-spacing:normal!important;text-transform:none!important;display:inline-block!important;white-space:nowrap!important;font-variation-settings:"FILL" 0,"wght" 400,"GRAD" 0,"opsz" 24!important;font-size:1.5rem!important}'
-        ].join('');
+        style.textContent = '#resmenu-cart-widget{z-index:9999!important}.resmenu-cart-widget-btn:hover{background-color:#121212!important}.resmenu-cart-widget-btn .resmenu-icon{display:inline-block;line-height:0;flex-shrink:0}';
         document.head.appendChild(style);
     }
 

@@ -7,7 +7,15 @@
     'use strict';
 
     const CART = window.RESMENU_CART;
+    const ICONS = window.RESMENU_ICONS;
     if (!CART) return;
+
+    function cartIcon(name, size, className) {
+        if (ICONS && typeof ICONS.icon === 'function') {
+            return ICONS.icon(name, { size: size || 24, className: className || '' });
+        }
+        return '';
+    }
 
     let overlay = null;
     let modalEl = null;
@@ -60,11 +68,11 @@
                         </div>
                         <div class="flex items-center gap-3 mt-1">
                             <button type="button" class="cart-qty-minus text-gray-500 hover:text-primary transition-colors p-1" data-item-id="${item.id}" aria-label="Decrease">
-                                <span class="material-symbols-outlined text-sm">remove</span>
+                                ${cartIcon('minus', 18, '')}
                             </button>
                             <span class="text-xs font-medium text-gray-900 min-w-[1.5rem] text-center">${item.quantity || 1}</span>
                             <button type="button" class="cart-qty-plus text-gray-500 hover:text-primary transition-colors p-1" data-item-id="${item.id}" aria-label="Increase">
-                                <span class="material-symbols-outlined text-sm">add</span>
+                                ${cartIcon('plus', 18, '')}
                             </button>
                         </div>
                     </div>
@@ -80,7 +88,7 @@
                 <div class="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
                     <h3 class="text-xl font-bold text-gray-900">Shopping Bag</h3>
                     <button type="button" id="resmenu-cart-modal-close" class="p-2 text-gray-500 hover:text-primary transition-colors" aria-label="Close">
-                        <span class="material-symbols-outlined">close</span>
+                        ${cartIcon('x', 24, '')}
                     </button>
                 </div>
                 <div class="flex-1 overflow-y-auto p-6 min-h-0">
@@ -147,20 +155,9 @@
         }
     }
 
-    function ensureMaterialSymbolsFont() {
-        if (document.getElementById('resmenu-material-symbols-font')) return;
-        var link = document.createElement('link');
-        link.id = 'resmenu-material-symbols-font';
-        link.rel = 'stylesheet';
-        link.href = 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap';
-        document.head.appendChild(link);
-    }
-
     function init(cfg) {
         config = cfg || {};
         if (!config.restaurantSlug) return;
-
-        ensureMaterialSymbolsFont();
 
         overlay = document.getElementById('resmenu-cart-overlay');
         if (!overlay) {

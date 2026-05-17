@@ -50,7 +50,6 @@ if (!empty($sections) && is_array($sections)) {
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&amp;family=Montserrat:wght@300;400;600&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <script>
     tailwind.config = {
       theme: {
@@ -70,7 +69,6 @@ if (!empty($sections) && is_array($sections)) {
     }
   </script>
 <style data-purpose="custom-textures">
-.material-symbols-outlined { font-family: 'Material Symbols Outlined', sans-serif; font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
 body.prime-cut-outer { background-color: #0f172a; position: relative; overflow-x: hidden; }
 body.prime-cut-outer .prime-cut-outer-bg { position: absolute; inset: 0; pointer-events: none; background-image: url('<?php echo htmlspecialchars($siteAssetsBase . '/bh_pattern-orange.png'); ?>'); background-repeat: repeat; background-size: 280px 280px; opacity: 0.12; }
 .menu-page {
@@ -110,7 +108,7 @@ body.prime-cut-outer .prime-cut-outer-bg { position: absolute; inset: 0; pointer
     body.prime-cut-outer { padding-left: 1.5rem; padding-right: 1.5rem; }
     .menu-page.prime-cut-main { max-width: calc(100vw - 3rem); width: 100%; margin-top: 2.5rem; }
     .prime-cut-toggle-wrap { top: 0.75rem !important; right: 1.25rem !important; width: 3.25rem !important; height: 3.25rem !important; min-width: 3.25rem !important; min-height: 3.25rem !important; }
-    .prime-cut-toggle-wrap .material-symbols-outlined { font-size: 1.75rem !important; }
+    .prime-cut-toggle-wrap .resmenu-icon { width: 1.75rem; height: 1.75rem; }
     .prime-cut-toggle-wrap.sidebar-open { visibility: hidden; pointer-events: none; }
     .prime-cut-logo { max-height: 4rem !important; height: auto !important; width: auto !important; }
 }
@@ -121,7 +119,7 @@ body.prime-cut-outer .prime-cut-outer-bg { position: absolute; inset: 0; pointer
 <!-- Categories sidebar (desktop + mobile) -->
 <div class="prime-cut-toggle-wrap fixed top-4 right-4 z-[60] flex items-center justify-center w-12 h-12 min-w-[3rem] min-h-[3rem] rounded-full border-2 border-gold/60 text-gold hover:bg-gold/20 transition-colors bg-black/40" id="prime-cut-toggle-wrap">
     <button type="button" id="prime-cut-menu-toggle" class="flex items-center justify-center w-full h-full rounded-full" aria-label="Open menu categories">
-        <span class="material-symbols-outlined text-2xl">menu</span>
+        <?php echo resmenu_icon('menu', ['size' => 24, 'class' => 'text-2xl']); ?>
     </button>
 </div>
 <div class="fixed inset-0 z-[45] bg-black/50 opacity-0 invisible pointer-events-none transition-opacity duration-200" id="prime-cut-sidebar-overlay"></div>
@@ -130,7 +128,7 @@ body.prime-cut-outer .prime-cut-outer-bg { position: absolute; inset: 0; pointer
         <div class="flex items-center justify-between mb-6">
             <h3 class="font-serif text-xl text-gold uppercase tracking-widest">Categories</h3>
             <button type="button" id="prime-cut-sidebar-close" class="relative z-10 flex items-center justify-center w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] text-gold hover:bg-gold/10 rounded-full transition-colors" aria-label="Close">
-                <span class="material-symbols-outlined text-2xl">close</span>
+                <?php echo resmenu_icon('close', ['size' => 24, 'class' => 'text-2xl']); ?>
             </button>
         </div>
         <nav class="flex flex-col gap-2">

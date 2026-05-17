@@ -1,0 +1,9 @@
+.resmenu-icon {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+  line-height: 0;
+}
+.resmenu-icon svg {
+  display: block;
+}

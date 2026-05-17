@@ -68,7 +68,6 @@ function formatPriceTemplate2($price, $currency = '$') {
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title><?php echo htmlspecialchars($restaurant['name']); ?><?php if (!empty($singleSectionView) && !empty($sections[0]['name'])): ?> - <?php echo htmlspecialchars($sections[0]['name']); ?><?php else: ?> - <?php echo htmlspecialchars($restaurant['description'] ?? 'Restaurant Menu'); ?><?php endif; ?></title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;900&family=Noto+Sans:wght@400;500;700;900&display=swap" rel="stylesheet"/>
@@ -115,7 +114,7 @@ function formatPriceTemplate2($price, $currency = '$') {
     <span class="text-lg font-bold">Logo</span>
 <?php else: ?>
     <div class="size-8 flex items-center justify-center text-primary">
-        <span class="material-symbols-outlined text-3xl">restaurant_menu</span>
+        <?php echo resmenu_icon('restaurant_menu', ['size' => 28, 'class' => 'text-3xl']); ?>
     </div>
 <?php endif; ?>
 <h2 class="text-lg font-bold leading-tight tracking-[-0.015em]"><?php echo htmlspecialchars($restaurant['name'] ?? 'Restaurant'); ?></h2>
@@ -135,7 +134,7 @@ function formatPriceTemplate2($price, $currency = '$') {
 <span class="border-l border-[#1b0e0e]/30 dark:border-gray-200/30 h-4" aria-hidden="true"></span>
 <?php if ($useToggleMenu): ?>
     <button class="flex items-center gap-2 text-[#1b0e0e] dark:text-gray-200 text-sm font-medium hover:text-primary transition-colors" onclick="toggleCategoryMenu()">
-        <span class="material-symbols-outlined">menu</span>
+        <?php echo resmenu_icon('menu', ['size' => 24]); ?>
         <span>Categories</span>
     </button>
 <?php else: ?>
@@ -157,7 +156,7 @@ function formatPriceTemplate2($price, $currency = '$') {
 <?php endif; ?>
 </div>
 <div class="md:hidden text-[#1b0e0e] dark:text-white">
-<span class="material-symbols-outlined cursor-pointer text-3xl" onclick="toggleMobileMenu()">menu</span>
+<?php echo resmenu_icon('menu', ['size' => 28, 'class' => 'cursor-pointer text-3xl']); ?>
 </div>
 </div>
 </nav>
@@ -169,7 +168,7 @@ function formatPriceTemplate2($price, $currency = '$') {
 <div class="flex items-center justify-between mb-6">
 <h3 class="text-xl font-bold">Menu Categories</h3>
 <button onclick="toggleCategoryMenu()" class="text-gray-500 hover:text-gray-700">
-<span class="material-symbols-outlined">close</span>
+<?php echo resmenu_icon('close', ['size' => 24]); ?>
 </button>
 </div>
 <nav class="flex flex-col gap-2">
@@ -301,7 +300,7 @@ endif;
     data-item-name="<?php echo htmlspecialchars($item['name']); ?>"
     data-item-price="<?php echo htmlspecialchars($item['price']); ?>"
     data-item-image="<?php echo !empty($item['image']) ? htmlspecialchars($item['image']) : ''; ?>">
-    Add to Order <span class="material-symbols-outlined text-base text-primary transition-transform group-hover/btn:translate-x-1">add_circle</span>
+    Add to Order <?php echo resmenu_icon('add_circle', ['size' => 18, 'class' => 'text-base text-primary transition-transform group-hover/btn:translate-x-1']); ?>
 </button>
 <?php endif; ?>
 </div>
@@ -444,7 +443,7 @@ function toggleCategoryMenu() {
     }
 })();
 </script>
-<a id="scrollToTop" href="#" class="fixed bottom-6 right-6 z-30 w-12 h-12 flex items-center justify-center rounded-full bg-primary text-white shadow-lg opacity-0 invisible translate-y-2 transition-all duration-300 hover:bg-primary/90" aria-label="Scroll to top" style="pointer-events:none;"><span class="material-symbols-outlined text-2xl">arrow_upward</span></a>
+<a id="scrollToTop" href="#" class="fixed bottom-6 right-6 z-30 w-12 h-12 flex items-center justify-center rounded-full bg-primary text-white shadow-lg opacity-0 invisible translate-y-2 transition-all duration-300 hover:bg-primary/90" aria-label="Scroll to top" style="pointer-events:none;"><?php echo resmenu_icon('arrow_upward', ['size' => 24, 'class' => 'text-2xl']); ?></a>
 <style>#scrollToTop.visible{opacity:1!important;visibility:visible!important;transform:translateY(0)!important;pointer-events:auto!important;}</style>
 
 </body>

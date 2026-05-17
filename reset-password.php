@@ -41,7 +41,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reset Password | <?php echo $siteName; ?></title>
     <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
     <script>
         tailwind.config = {
             theme: {
@@ -59,14 +58,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="w-full max-w-md rounded-2xl bg-white shadow-xl border border-slate-200 p-6 sm:p-8">
         <div class="mb-6 flex items-center justify-between gap-4">
             <a href="<?php echo htmlspecialchars($marketingHomeUrl); ?>" class="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-primary transition-colors">
-                <span class="material-symbols-outlined text-base">arrow_back</span>
+                <?php echo resmenu_icon('arrow_back', ['size' => 16, 'class' => 'text-base']); ?>
                 Back to Home
             </a>
             <a href="<?php echo htmlspecialchars($marketingHomeUrl); ?>" class="inline-flex items-center gap-2">
                 <?php if ($siteLogoUrl !== ''): ?>
                     <img src="<?php echo htmlspecialchars($siteLogoUrl); ?>" alt="<?php echo $siteName; ?>" class="h-9 w-auto">
                 <?php else: ?>
-                    <span class="material-symbols-outlined text-primary text-3xl">restaurant_menu</span>
+                    <?php echo resmenu_icon('restaurant_menu', ['size' => 28, 'class' => 'text-primary text-3xl']); ?>
                 <?php endif; ?>
             </a>
         </div>
@@ -106,8 +105,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             placeholder="Enter new password"
                             required
                         />
-                        <button type="button" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-primary transition-colors" aria-label="Toggle password visibility" id="togglePassword">
-                            <span class="material-symbols-outlined text-xl" id="togglePasswordIcon">visibility</span>
+                        <button type="button" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-primary transition-colors" aria-label="Toggle password visibility" id="togglePassword" data-password-toggle="password">
+                            <?php echo resmenu_password_toggle_icons(20, 'text-xl'); ?>
                         </button>
                     </div>
                 </div>
@@ -123,8 +122,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             placeholder="Confirm new password"
                             required
                         />
-                        <button type="button" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-primary transition-colors" aria-label="Toggle password visibility" id="toggleConfirmPassword">
-                            <span class="material-symbols-outlined text-xl" id="toggleConfirmPasswordIcon">visibility</span>
+                        <button type="button" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-primary transition-colors" aria-label="Toggle password visibility" id="toggleConfirmPassword" data-password-toggle="confirm_password">
+                            <?php echo resmenu_password_toggle_icons(20, 'text-xl'); ?>
                         </button>
                     </div>
                 </div>
@@ -134,23 +133,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </form>
         <?php endif; ?>
     </div>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    function setupToggle(inputId, btnId, iconId) {
-        var input = document.getElementById(inputId);
-        var btn = document.getElementById(btnId);
-        var icon = document.getElementById(iconId);
-        if (input && btn && icon) {
-            btn.addEventListener('click', function() {
-                var isPassword = input.type === 'password';
-                input.type = isPassword ? 'text' : 'password';
-                icon.textContent = isPassword ? 'visibility_off' : 'visibility';
-            });
-        }
-    }
-    setupToggle('password', 'togglePassword', 'togglePasswordIcon');
-    setupToggle('confirm_password', 'toggleConfirmPassword', 'toggleConfirmPasswordIcon');
-});
-</script>
+<script src="/assets/js/resmenu-icons.js"></script>
 </body>
 </html>

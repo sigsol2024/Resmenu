@@ -38,7 +38,6 @@ if (!empty($sections) && is_array($sections)) {
 <script>
     tailwind.config = { theme: { extend: { colors: { 'pastel-pink': '#FFD1DC', 'pastel-mint': '#B2F2BB', 'cream': '#FFF9E5', 'soft-berry': '#FF85A2', 'mint-dark': '#7BC992' }, borderRadius: { xlarge: '2rem' } } } }
   </script>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@400;600&display=swap');
 body { font-family: 'Quicksand', sans-serif; background-color: #FFF9E5; }
@@ -46,10 +45,9 @@ h1, h2, h3 { font-family: 'Fredoka One', cursive; }
 .blob { position: fixed; z-index: -1; filter: blur(40px); opacity: 0.4; }
 .blob-pink { top: 10%; left: 5%; width: 300px; height: 300px; background-color: #FFD1DC; border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; }
 .blob-mint { bottom: 10%; right: 5%; width: 400px; height: 400px; background-color: #B2F2BB; border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
-.material-symbols-outlined { font-family: 'Material Symbols Outlined', sans-serif; font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
 /* Cart widget: template green + pink */
 #resmenu-cart-widget .resmenu-cart-widget-btn { background-color: #7BC992 !important; color: #FF85A2 !important; }
-#resmenu-cart-widget .resmenu-cart-widget-btn .material-symbols-outlined { color: #FF85A2 !important; }
+#resmenu-cart-widget .resmenu-cart-widget-btn .resmenu-icon { color: #FF85A2 !important; }
 #resmenu-cart-widget .resmenu-cart-widget-btn:hover { background-color: #6ab87e !important; }
 @media (max-width: 1024px) {
   .sd-desktop-nav { display: none; }
@@ -67,7 +65,7 @@ h1, h2, h3 { font-family: 'Fredoka One', cursive; }
 <div class="blob blob-mint"></div>
 <div class="sd-mobile-toggle-wrap fixed top-4 right-4 z-[60] hidden items-center justify-center w-12 h-12 rounded-full bg-white border-2 border-soft-berry shadow-lg" id="sd-toggle-wrap">
 <button type="button" id="sd-menu-toggle" class="flex items-center justify-center w-full h-full rounded-full text-soft-berry" aria-label="Open menu">
-<span class="material-symbols-outlined text-2xl">menu</span>
+<?php echo resmenu_icon('menu', ['size' => 24, 'class' => 'text-2xl']); ?>
 </button>
 </div>
 <div class="fixed inset-0 z-[45] bg-black/40 opacity-0 invisible pointer-events-none transition-opacity duration-200" id="sd-sidebar-overlay"></div>
@@ -75,7 +73,7 @@ h1, h2, h3 { font-family: 'Fredoka One', cursive; }
 <div class="p-6 sticky top-0 bg-white z-10 flex items-center justify-between border-b border-soft-berry/20 pb-4 mb-4 -mt-2">
 <h3 class="text-xl font-bold text-soft-berry">Menu</h3>
 <button type="button" id="sd-sidebar-close" class="flex items-center justify-center w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] text-soft-berry hover:bg-pastel-pink rounded-full transition-colors shrink-0" aria-label="Close">
-<span class="material-symbols-outlined text-2xl">close</span>
+<?php echo resmenu_icon('close', ['size' => 24, 'class' => 'text-2xl']); ?>
 </button>
 </div>
 <div class="px-6 pb-6">

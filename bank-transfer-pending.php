@@ -75,7 +75,6 @@ $orderCreatedAtUnix = strtotime($draft['created_at'] ?? 'now');
     <title>Complete Bank Transfer - <?php echo $restaurantName; ?></title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
     <script>
         tailwind.config = {
             theme: {
@@ -90,7 +89,7 @@ $orderCreatedAtUnix = strtotime($draft['created_at'] ?? 'now');
 <body class="bg-[#f2f4f7] font-display min-h-screen flex flex-col">
 <header class="sticky top-0 z-50 flex items-center justify-between border-b border-gray-200 px-6 lg:px-10 py-3 bg-white">
     <a href="<?php echo htmlspecialchars($menuUrl); ?>" class="flex items-center gap-4 text-gray-900">
-        <span class="material-symbols-outlined text-2xl" style="color:<?php echo htmlspecialchars($primaryColor); ?>">restaurant_menu</span>
+        <?php echo resmenu_icon('restaurant_menu', ['size' => 24, 'class' => 'text-2xl', 'style' => 'color:' . htmlspecialchars($primaryColor, ENT_QUOTES, 'UTF-8')]); ?>
         <h2 class="text-xl font-bold"><?php echo $restaurantName; ?></h2>
     </a>
 </header>
@@ -99,7 +98,7 @@ $orderCreatedAtUnix = strtotime($draft['created_at'] ?? 'now');
     <div id="order-details-view">
         <div class="text-center mb-8">
             <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 text-blue-600 mb-4">
-                <span class="material-symbols-outlined text-4xl">account_balance</span>
+                <?php echo resmenu_icon('account_balance', ['size' => 40, 'class' => 'text-4xl']); ?>
             </div>
             <h1 class="text-2xl lg:text-3xl font-bold text-gray-900 mb-2"><?php echo $isReservation ? 'Complete Your Reservation Deposit' : 'Complete Your Payment'; ?></h1>
             <p class="text-gray-600">Complete your bank transfer using the details below. You have 15 minutes.</p>
@@ -121,7 +120,7 @@ $orderCreatedAtUnix = strtotime($draft['created_at'] ?? 'now');
                     <p class="text-sm text-amber-800 mt-3">Transfer exactly <strong><?php echo $currencySymbol . number_format((float)$draft['total'], 2); ?></strong> and use <strong>#<?php echo htmlspecialchars($displayRef); ?></strong> as the reference.</p>
                 </div>
                 <div id="countdown-box" class="mb-6 flex items-center justify-center gap-2 py-3 px-4 rounded-lg bg-gray-100 text-gray-800">
-                    <span class="material-symbols-outlined">schedule</span>
+                    <?php echo resmenu_icon('schedule', ['size' => 20]); ?>
                     <span id="countdown-text" class="font-mono font-bold text-lg">15:00</span>
                 </div>
                 <div class="mb-4">
@@ -157,7 +156,7 @@ $orderCreatedAtUnix = strtotime($draft['created_at'] ?? 'now');
 
         <div class="text-center">
             <button type="button" id="payment-confirmed-btn" class="inline-flex items-center justify-center gap-2 w-full sm:w-auto h-12 px-8 rounded-lg text-white font-bold text-base shadow-lg transition-all hover:opacity-90" style="background-color:<?php echo htmlspecialchars($primaryColor); ?>">
-                <span class="material-symbols-outlined">check_circle</span> I have made this payment
+                <?php echo resmenu_icon('check_circle', ['size' => 20]); ?> I have made this payment
             </button>
         </div>
     </div>
@@ -165,14 +164,14 @@ $orderCreatedAtUnix = strtotime($draft['created_at'] ?? 'now');
     <div id="thank-you-view" class="hidden">
         <div class="text-center mb-8">
             <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 text-green-600 mb-4">
-                <span class="material-symbols-outlined text-4xl">check_circle</span>
+                <?php echo resmenu_icon('check_circle', ['size' => 40, 'class' => 'text-4xl']); ?>
             </div>
             <h1 class="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Thank you!</h1>
             <p class="text-gray-600"><?php echo $isReservation ? 'Your reservation deposit has been recorded. We look forward to seeing you!' : 'Your order has been recorded. It will be approved once payment is confirmed.'; ?></p>
         </div>
         <div class="text-center">
             <a href="<?php echo $isReservation ? htmlspecialchars($baseUrl . '/restaurant/' . $slug . '/reservation') : htmlspecialchars($menuUrl); ?>" class="inline-flex items-center justify-center gap-2 w-full sm:w-auto h-14 px-8 rounded-lg text-white font-bold text-base shadow-lg transition-all hover:opacity-90" style="background-color:<?php echo htmlspecialchars($primaryColor); ?>">
-                <span class="material-symbols-outlined">done</span> <?php echo $isReservation ? 'Back to Reservation' : 'Done'; ?>
+                <?php echo resmenu_icon('done', ['size' => 20]); ?> <?php echo $isReservation ? 'Back to Reservation' : 'Done'; ?>
             </a>
         </div>
     </div>
@@ -180,14 +179,14 @@ $orderCreatedAtUnix = strtotime($draft['created_at'] ?? 'now');
     <div id="expired-view" class="hidden">
         <div class="text-center mb-8">
             <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 text-red-600 mb-4">
-                <span class="material-symbols-outlined text-4xl">cancel</span>
+                <?php echo resmenu_icon('cancel', ['size' => 40, 'class' => 'text-4xl']); ?>
             </div>
             <h1 class="text-2xl lg:text-3xl font-bold text-gray-900 mb-2"><?php echo $isReservation ? 'Payment window expired' : 'Order invoice expired'; ?></h1>
             <p class="text-gray-600"><?php echo $isReservation ? 'The payment window has expired. Please make a new reservation if you still wish to book.' : 'The payment window has expired. This order was not recorded. Please place a new order if you still wish to order.'; ?></p>
         </div>
         <div class="text-center">
             <a href="<?php echo $isReservation ? htmlspecialchars($baseUrl . '/restaurant/' . $slug . '/reservation') : htmlspecialchars($menuUrl); ?>" class="inline-flex items-center justify-center gap-2 w-full sm:w-auto h-14 px-8 rounded-lg text-white font-bold text-base shadow-lg transition-all hover:opacity-90" style="background-color:<?php echo htmlspecialchars($primaryColor); ?>">
-                <span class="material-symbols-outlined">arrow_back</span> <?php echo $isReservation ? 'Back to Reservation' : 'Back to Menu'; ?>
+                <?php echo resmenu_icon('arrow_back', ['size' => 20]); ?> <?php echo $isReservation ? 'Back to Reservation' : 'Back to Menu'; ?>
             </a>
         </div>
     </div>

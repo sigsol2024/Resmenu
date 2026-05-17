@@ -155,7 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Login | <?php echo $siteName; ?></title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Poppins:wght@600;700&amp;display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="/assets/css/resmenu-icons.css"/>
     <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -192,7 +192,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <img src="<?php echo htmlspecialchars($siteLogoUrl); ?>" alt="<?php echo $siteName; ?>" class="h-12 w-auto rounded-lg bg-white p-1.5">
                 <?php else: ?>
                     <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20">
-                        <span class="material-symbols-outlined text-white">restaurant_menu</span>
+                        <?php echo resmenu_icon('restaurant_menu', ['size' => 24, 'class' => 'text-white']); ?>
                     </div>
                     <span class="text-2xl font-bold tracking-tight font-poppins text-white"><?php echo $siteName; ?></span>
                 <?php endif; ?>
@@ -221,14 +221,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="mx-auto w-full max-w-md max-xl:rounded-2xl max-xl:border max-xl:border-slate-200/90 max-xl:bg-white/80 max-xl:backdrop-blur-md max-xl:shadow-lg max-xl:px-4 max-xl:py-5 sm:max-xl:px-6 sm:max-xl:py-6 max-xl:ring-1 max-xl:ring-slate-900/5">
             <div class="mb-5 flex w-full items-center justify-between gap-3 min-h-[2.5rem]">
                 <a href="<?php echo htmlspecialchars($marketingHomeUrl); ?>" class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-primary transition-colors sm:text-sm shrink-0 self-center">
-                    <span class="material-symbols-outlined text-base sm:text-lg leading-none">arrow_back</span>
+                    <?php echo resmenu_icon('arrow_back', ['size' => 20, 'class' => 'text-base sm:text-lg leading-none']); ?>
                     <span class="leading-tight">Back to Home</span>
                 </a>
                 <a href="<?php echo htmlspecialchars($marketingHomeUrl); ?>" class="inline-flex items-center justify-end gap-2 hover:opacity-90 transition-opacity lg:hidden shrink-0 self-center h-10">
                     <?php if ($siteLogoUrl !== ''): ?>
                         <img src="<?php echo htmlspecialchars($siteLogoUrl); ?>" alt="<?php echo $siteName; ?>" class="h-9 w-auto max-h-10 object-contain sm:h-10">
                     <?php else: ?>
-                        <span class="material-symbols-outlined text-primary text-2xl sm:text-3xl leading-none">restaurant_menu</span>
+                        <?php echo resmenu_icon('restaurant_menu', ['size' => 28, 'class' => 'text-primary text-2xl sm:text-3xl leading-none']); ?>
                         <span class="text-sm font-bold font-poppins text-slate-900 sm:text-base leading-tight"><?php echo $siteName; ?></span>
                     <?php endif; ?>
                 </a>
@@ -247,7 +247,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2" for="username">Email or Username</label>
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <span class="material-symbols-outlined text-slate-400 text-xl">person</span>
+                        <?php echo resmenu_icon('person', ['size' => 20, 'class' => 'text-slate-400 text-xl']); ?>
                     </div>
                     <input class="block w-full pl-10 sm:pl-11 pr-3 sm:pr-4 py-3 sm:py-3.5 text-base bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-primary focus:border-primary transition-colors" id="username" name="username" placeholder="your email or username" type="text" value="<?php echo htmlspecialchars($_POST['username'] ?? ($_POST['email'] ?? '')); ?>" required autofocus/>
                 </div>
@@ -257,11 +257,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2" for="password">Password</label>
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <span class="material-symbols-outlined text-slate-400 text-xl">lock</span>
+                        <?php echo resmenu_icon('lock', ['size' => 20, 'class' => 'text-slate-400 text-xl']); ?>
                     </div>
                     <input class="block w-full pl-10 sm:pl-11 pr-11 sm:pr-12 py-3 sm:py-3.5 text-base bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-primary focus:border-primary transition-colors" id="password" name="password" placeholder="********" type="password" required/>
-                    <button id="togglePassword" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-primary transition-colors" type="button" aria-label="Toggle password visibility">
-                        <span id="togglePasswordIcon" class="material-symbols-outlined text-xl">visibility</span>
+                    <button id="togglePassword" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-primary transition-colors" type="button" aria-label="Toggle password visibility" data-password-toggle="password">
+                        <?php echo resmenu_password_toggle_icons(20, 'text-xl'); ?>
                     </button>
                 </div>
             </div>
@@ -293,20 +293,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        var password = document.getElementById('password');
-        var toggle = document.getElementById('togglePassword');
-        var icon = document.getElementById('togglePasswordIcon');
-
-        if (password && toggle && icon) {
-            toggle.addEventListener('click', function () {
-                var isPassword = password.type === 'password';
-                password.type = isPassword ? 'text' : 'password';
-                icon.textContent = isPassword ? 'visibility_off' : 'visibility';
-            });
-        }
-    });
-</script>
+<script src="/assets/js/resmenu-icons.js"></script>
 </body>
 </html>

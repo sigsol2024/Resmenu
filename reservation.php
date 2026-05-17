@@ -153,8 +153,6 @@ $restaurantName = htmlspecialchars($restaurant['name']);
     <title>Table Reservation | <?php echo $restaurantName; ?></title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
     <script>
         tailwind.config = {
             darkMode: "class",
@@ -190,7 +188,7 @@ $restaurantName = htmlspecialchars($restaurant['name']);
             <img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo $restaurantName; ?>" class="h-10 w-auto object-contain">
         <?php else: ?>
             <div class="w-10 h-10 bg-primary flex items-center justify-center rounded-lg">
-                <span class="material-icons text-white">restaurant</span>
+                <?php echo resmenu_icon('restaurant', ['size' => 24, 'class' => 'text-white']); ?>
             </div>
             <span class="text-xl md:text-2xl font-extrabold tracking-tighter text-white uppercase"><?php echo $restaurantName; ?></span>
         <?php endif; ?>
@@ -262,13 +260,13 @@ $restaurantName = htmlspecialchars($restaurant['name']);
                                 <input type="hidden" name="reservation_date" id="reservation-date-input" value="<?php echo htmlspecialchars($_POST['reservation_date'] ?? $selectedDate); ?>" required/>
                                 <div id="reservation-date-trigger" class="border border-gray-200 rounded-lg p-4 bg-gray-50 cursor-pointer hover:border-gray-300 transition-colors flex items-center justify-between" role="button" tabindex="0">
                                     <span id="res-date-display" class="text-gray-600 font-medium">Click to select date</span>
-                                    <span class="material-icons text-gray-500 text-lg">expand_more</span>
+                                    <?php echo resmenu_icon('expand_more', ['size' => 20, 'class' => 'text-gray-500 text-lg']); ?>
                                 </div>
                                 <div id="reservation-calendar-wrap" class="border border-gray-200 rounded-lg p-4 bg-gray-50 mt-3 hidden">
                                     <div class="flex justify-between items-center mb-4">
-                                        <button type="button" id="res-cal-prev" class="p-2 rounded hover:bg-gray-200 text-gray-600"><span class="material-icons text-lg">chevron_left</span></button>
+                                        <button type="button" id="res-cal-prev" class="p-2 rounded hover:bg-gray-200 text-gray-600"><?php echo resmenu_icon('chevron_left', ['size' => 20, 'class' => 'text-lg']); ?></button>
                                         <span id="res-cal-month" class="font-bold text-gray-800 text-sm"></span>
-                                        <button type="button" id="res-cal-next" class="p-2 rounded hover:bg-gray-200 text-gray-600"><span class="material-icons text-lg">chevron_right</span></button>
+                                        <button type="button" id="res-cal-next" class="p-2 rounded hover:bg-gray-200 text-gray-600"><?php echo resmenu_icon('chevron_right', ['size' => 20, 'class' => 'text-lg']); ?></button>
                                     </div>
                                     <div id="reservation-calendar" class="grid grid-cols-7 gap-1 text-center text-xs"></div>
                                     <p id="res-cal-legend" class="mt-3 text-xs text-gray-500 flex flex-wrap gap-4"><span><span class="inline-block w-3 h-3 rounded bg-green-500 mr-1"></span>Available</span><span><span class="inline-block w-3 h-3 rounded bg-amber-400 mr-1"></span>Limited</span><span><span class="inline-block w-3 h-3 rounded bg-gray-300 mr-1"></span>Full</span></p>
@@ -278,11 +276,11 @@ $restaurantName = htmlspecialchars($restaurant['name']);
                                 <label class="block text-sm font-semibold uppercase tracking-wider mb-3 text-gray-700">Number of Guests</label>
                                 <div class="flex items-center justify-between px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg">
                                     <button type="button" id="party-minus" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 border border-gray-300 text-gray-700 hover:bg-primary hover:text-white hover:border-primary transition-colors shadow-sm">
-                                        <span class="material-icons text-sm">remove</span>
+                                        <?php echo resmenu_icon('remove', ['size' => 16, 'class' => 'text-sm']); ?>
                                     </button>
                                     <span id="party-display" class="font-bold text-lg px-4 text-gray-900"><?php echo (int) ($_POST['party_size'] ?? 1); ?> Guest<?php echo ($_POST['party_size'] ?? 1) != 1 ? 's' : ''; ?></span>
                                     <button type="button" id="party-plus" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 border border-gray-300 text-gray-700 hover:bg-primary hover:text-white hover:border-primary transition-colors shadow-sm">
-                                        <span class="material-icons text-sm">add</span>
+                                        <?php echo resmenu_icon('add', ['size' => 16, 'class' => 'text-sm']); ?>
                                     </button>
                                 </div>
                             </div>
@@ -379,7 +377,7 @@ $restaurantName = htmlspecialchars($restaurant['name']);
                         <img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo $restaurantName; ?>" class="h-10 w-auto object-contain">
                     <?php else: ?>
                         <div class="w-8 h-8 bg-primary flex items-center justify-center rounded-lg">
-                            <span class="material-icons text-white text-sm">restaurant</span>
+                            <?php echo resmenu_icon('restaurant', ['size' => 18, 'class' => 'text-white text-sm']); ?>
                         </div>
                         <span class="text-xl font-extrabold tracking-tighter uppercase"><?php echo $restaurantName; ?></span>
                     <?php endif; ?>
@@ -412,13 +410,13 @@ $restaurantName = htmlspecialchars($restaurant['name']);
                 <h4 class="font-bold text-sm uppercase tracking-widest mb-6">Contact</h4>
                 <ul class="space-y-3 text-zinc-400 text-sm">
                     <?php if (!empty($restaurant['address'])): ?>
-                        <li class="flex items-center gap-3"><span class="material-icons text-primary text-sm">place</span> <?php echo nl2br(htmlspecialchars($restaurant['address'])); ?></li>
+                        <li class="flex items-center gap-3"><?php echo resmenu_icon('place', ['size' => 16, 'class' => 'text-primary text-sm']); ?> <?php echo nl2br(htmlspecialchars($restaurant['address'])); ?></li>
                     <?php endif; ?>
                     <?php if (!empty($restaurant['phone'])): ?>
-                        <li class="flex items-center gap-3"><span class="material-icons text-primary text-sm">phone</span> <a href="tel:<?php echo htmlspecialchars(preg_replace('/\s+/', '', $restaurant['phone'])); ?>" class="hover:text-white"><?php echo htmlspecialchars($restaurant['phone']); ?></a></li>
+                        <li class="flex items-center gap-3"><?php echo resmenu_icon('phone', ['size' => 16, 'class' => 'text-primary text-sm']); ?> <a href="tel:<?php echo htmlspecialchars(preg_replace('/\s+/', '', $restaurant['phone'])); ?>" class="hover:text-white"><?php echo htmlspecialchars($restaurant['phone']); ?></a></li>
                     <?php endif; ?>
                     <?php if (!empty($restaurant['email'])): ?>
-                        <li class="flex items-center gap-3"><span class="material-icons text-primary text-sm">email</span> <a href="mailto:<?php echo htmlspecialchars($restaurant['email']); ?>" class="hover:text-white"><?php echo htmlspecialchars($restaurant['email']); ?></a></li>
+                        <li class="flex items-center gap-3"><?php echo resmenu_icon('email', ['size' => 16, 'class' => 'text-primary text-sm']); ?> <a href="mailto:<?php echo htmlspecialchars($restaurant['email']); ?>" class="hover:text-white"><?php echo htmlspecialchars($restaurant['email']); ?></a></li>
                     <?php endif; ?>
                 </ul>
             </div>

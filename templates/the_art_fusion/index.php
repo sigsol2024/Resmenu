@@ -36,7 +36,6 @@ if (!empty($sections) && is_array($sections)) {
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title><?php echo htmlspecialchars($restaurant['name']); ?><?php if (!empty($singleSectionView) && !empty($sections[0]['name'])): ?> - <?php echo htmlspecialchars($sections[0]['name']); ?><?php endif; ?></title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,700;1,6..96,400&family=Noto+Sans+JP:wght@300;400;500&display=swap');
 body { font-family: 'Noto Sans JP', sans-serif; color: #1a1a1a; }
@@ -51,7 +50,6 @@ h1, h2, h3, .serif-font { font-family: 'Bodoni Moda', serif; }
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 .menu-section { scroll-margin-top: 100px; }
-.material-symbols-outlined { font-family: 'Material Symbols Outlined', sans-serif; font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
 .art-fusion-toggle-wrap.sidebar-open { visibility: hidden; pointer-events: none; }
 </style>
 </head>
@@ -68,7 +66,7 @@ h1, h2, h3, .serif-font { font-family: 'Bodoni Moda', serif; }
 </div>
 <div class="art-fusion-toggle-wrap flex items-center justify-center w-12 h-12 flex-shrink-0" id="art-fusion-toggle-wrap">
 <button type="button" id="art-fusion-menu-toggle" class="flex items-center justify-center w-full h-full rounded border border-gray-300 hover:border-[#bc002d] hover:text-[#bc002d] transition-colors" aria-label="Open menu">
-<span class="material-symbols-outlined text-2xl">menu</span>
+<?php echo resmenu_icon('menu', ['size' => 24, 'class' => 'text-2xl']); ?>
 </button>
 </div>
 </div>
@@ -79,7 +77,7 @@ h1, h2, h3, .serif-font { font-family: 'Bodoni Moda', serif; }
 <div class="flex items-center justify-between mb-6">
 <h3 class="text-lg font-bold tracking-[0.2em] uppercase text-gray-800">Menu</h3>
 <button type="button" id="art-fusion-sidebar-close" class="relative z-10 flex items-center justify-center w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] text-gray-600 hover:text-[#bc002d] hover:bg-gray-100 rounded-full transition-colors" aria-label="Close">
-<span class="material-symbols-outlined text-2xl">close</span>
+<?php echo resmenu_icon('close', ['size' => 24, 'class' => 'text-2xl']); ?>
 </button>
 </div>
 <nav class="flex flex-col gap-1">

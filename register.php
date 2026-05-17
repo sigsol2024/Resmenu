@@ -387,7 +387,6 @@ function oldValue($key, $default = '') {
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
     <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -432,7 +431,7 @@ $heroImg = $assetBase . '/assets/images/woman_work.jpg';
                     <img src="<?php echo htmlspecialchars($siteLogoUrl); ?>" alt="<?php echo $siteName; ?>" class="h-12 w-auto rounded-lg bg-white p-1.5">
                 <?php else: ?>
                     <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-                        <span class="material-symbols-outlined text-white">restaurant_menu</span>
+                        <?php echo resmenu_icon('restaurant_menu', ['size' => 24, 'class' => 'text-white']); ?>
                     </div>
                     <span class="text-2xl font-bold tracking-tight font-poppins text-white"><?php echo $siteName; ?></span>
                 <?php endif; ?>
@@ -460,14 +459,14 @@ $heroImg = $assetBase . '/assets/images/woman_work.jpg';
     <div class="flex flex-1 flex-col justify-center lg:justify-start px-6 py-8 lg:px-16 lg:py-8 xl:px-20 bg-background-light lg:overflow-y-auto">
         <div class="mb-6 flex items-center justify-between gap-4">
             <a href="<?php echo htmlspecialchars($marketingHomeUrl); ?>" class="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-primary transition-colors">
-                <span class="material-symbols-outlined text-base">arrow_back</span>
+                <?php echo resmenu_icon('arrow_back', ['size' => 16, 'class' => 'text-base']); ?>
                 Back to Home
             </a>
             <a href="<?php echo htmlspecialchars($marketingHomeUrl); ?>" class="inline-flex items-center gap-2 hover:opacity-90 transition-opacity lg:hidden">
                 <?php if ($siteLogoUrl !== ''): ?>
                     <img src="<?php echo htmlspecialchars($siteLogoUrl); ?>" alt="<?php echo $siteName; ?>" class="h-10 w-auto">
                 <?php else: ?>
-                    <span class="material-symbols-outlined text-primary text-3xl">restaurant_menu</span>
+                    <?php echo resmenu_icon('restaurant_menu', ['size' => 28, 'class' => 'text-primary text-3xl']); ?>
                     <span class="text-lg font-bold font-poppins text-slate-900"><?php echo $siteName; ?></span>
                 <?php endif; ?>
             </a>
@@ -581,7 +580,7 @@ $heroImg = $assetBase . '/assets/images/woman_work.jpg';
                         <div class="relative">
                             <input class="block w-full rounded-lg border-slate-200 bg-white px-4 py-3 pr-12 text-slate-900 placeholder:text-slate-400 focus:border-primary focus:ring-primary sm:text-sm shadow-sm" id="manager_password" name="manager_password" placeholder="Enter password" type="password" minlength="8" required/>
                             <button type="button" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-primary transition-colors" aria-label="Toggle password visibility" data-password-toggle="manager_password">
-                                <span class="material-symbols-outlined text-xl">visibility</span>
+                                <?php echo resmenu_password_toggle_icons(20, 'text-xl'); ?>
                             </button>
                         </div>
                     </div>
@@ -590,7 +589,7 @@ $heroImg = $assetBase . '/assets/images/woman_work.jpg';
                         <div class="relative">
                             <input class="block w-full rounded-lg border-slate-200 bg-white px-4 py-3 pr-12 text-slate-900 placeholder:text-slate-400 focus:border-primary focus:ring-primary sm:text-sm shadow-sm" id="manager_password_confirm" name="manager_password_confirm" placeholder="Confirm password" type="password" minlength="8" required/>
                             <button type="button" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-primary transition-colors" aria-label="Toggle password visibility" data-password-toggle="manager_password_confirm">
-                                <span class="material-symbols-outlined text-xl">visibility</span>
+                                <?php echo resmenu_password_toggle_icons(20, 'text-xl'); ?>
                             </button>
                         </div>
                     </div>
@@ -750,19 +749,6 @@ $heroImg = $assetBase . '/assets/images/woman_work.jpg';
         });
     }
 
-    document.querySelectorAll('[data-password-toggle]').forEach(function(btn) {
-        var id = btn.getAttribute('data-password-toggle');
-        var input = document.getElementById(id);
-        var icon = btn.querySelector('.material-symbols-outlined');
-        if (input && icon) {
-            btn.addEventListener('click', function() {
-                var isPassword = input.type === 'password';
-                input.type = isPassword ? 'text' : 'password';
-                icon.textContent = isPassword ? 'visibility_off' : 'visibility';
-            });
-        }
-    });
-
     // Client-side guard: ensure reCAPTCHA is completed before submitting registration.
     <?php if ($recaptchaEnabled && $recaptchaSiteKey !== ''): ?>
     const registerForm = document.getElementById('registerForm');
@@ -805,5 +791,6 @@ $heroImg = $assetBase . '/assets/images/woman_work.jpg';
     updateStep();
 })();
 </script>
+<script src="/assets/js/resmenu-icons.js"></script>
 </body>
 </html>

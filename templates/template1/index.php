@@ -39,7 +39,6 @@ if (!empty($singleSectionView) && !empty($sections[0]['image'])) {
 <link rel="stylesheet" href="<?php echo $baseUrl . '/templates/template1/style.css'; ?>">
 <?php if (!empty($supportsOrdering)): ?>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&amp;display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : $baseUrl, '/'); ?>/assets/css/cart-widget-standalone.css">
 <?php endif; ?>
 <style>

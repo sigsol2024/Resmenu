@@ -6,6 +6,28 @@
 
 (function (window) {
     'use strict';
+    var PATHS = {
+        'shopping-bag': '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>',
+        plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
+        minus: '<path d="M5 12h14"/>',
+        x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>'
+    };
+    var ALIASES = { shopping_bag: 'shopping-bag', remove: 'minus', add: 'plus', close: 'x' };
+    window.RESMENU_ICONS = {
+        icon: function (name, opts) {
+            opts = opts || {};
+            var resolved = ALIASES[name] || name;
+            var path = PATHS[resolved];
+            if (!path) return '';
+            var size = opts.size || 24;
+            var cls = 'resmenu-icon resmenu-icon--' + resolved + (opts.className ? ' ' + opts.className : '');
+            return '<svg xmlns="http://www.w3.org/2000/svg" width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="' + cls + '" aria-hidden="true">' + path + '</svg>';
+        }
+    };
+})(window);
+
+(function (window) {
+    'use strict';
 
     const STORAGE_PREFIX = 'cart_';
     const CART_UPDATE_EVENT = 'resmenu:cart-update';

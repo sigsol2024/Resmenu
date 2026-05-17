@@ -68,7 +68,6 @@ function formatPriceTemplate3($price, $currency = '$') {
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title><?php echo htmlspecialchars($restaurant['name']); ?><?php if (!empty($singleSectionView) && !empty($sections[0]['name'])): ?> - <?php echo htmlspecialchars($sections[0]['name']); ?><?php else: ?> - <?php echo htmlspecialchars($restaurant['description'] ?? 'Restaurant Menu'); ?><?php endif; ?></title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;900&family=Noto+Sans:wght@400;500;700;900&display=swap" rel="stylesheet"/>
@@ -115,7 +114,7 @@ function formatPriceTemplate3($price, $currency = '$') {
     <span class="text-lg font-bold">Logo</span>
 <?php else: ?>
     <div class="size-8 flex items-center justify-center text-primary">
-        <span class="material-symbols-outlined text-3xl">restaurant_menu</span>
+        <?php echo resmenu_icon('restaurant_menu', ['size' => 28, 'class' => 'text-3xl']); ?>
     </div>
 <?php endif; ?>
 <h2 class="text-lg font-bold leading-tight tracking-[-0.015em]"><?php echo htmlspecialchars($restaurant['name'] ?? 'Restaurant'); ?></h2>
@@ -135,7 +134,7 @@ function formatPriceTemplate3($price, $currency = '$') {
 <span class="border-l border-white/30 h-4" aria-hidden="true"></span>
 <?php if ($useToggleMenu): ?>
     <button class="flex items-center gap-2 text-white text-sm font-medium hover:text-primary transition-colors" onclick="toggleCategoryMenu()">
-        <span class="material-symbols-outlined">menu</span>
+        <?php echo resmenu_icon('menu', ['size' => 24]); ?>
         <span>Categories</span>
     </button>
 <?php else: ?>
@@ -157,7 +156,7 @@ function formatPriceTemplate3($price, $currency = '$') {
 <?php endif; ?>
 </div>
 <div class="md:hidden text-white">
-<span class="material-symbols-outlined cursor-pointer text-3xl" onclick="toggleMobileMenu()">menu</span>
+<?php echo resmenu_icon('menu', ['size' => 28, 'class' => 'cursor-pointer text-3xl']); ?>
 </div>
 </div>
 </nav>
@@ -169,7 +168,7 @@ function formatPriceTemplate3($price, $currency = '$') {
 <div class="flex items-center justify-between mb-6">
 <h3 class="text-xl font-bold text-white">Menu Categories</h3>
 <button onclick="toggleCategoryMenu()" class="text-gray-400 hover:text-white">
-<span class="material-symbols-outlined">close</span>
+<?php echo resmenu_icon('close', ['size' => 24]); ?>
 </button>
 </div>
 <nav class="flex flex-col gap-2">
@@ -298,7 +297,7 @@ endif;
     data-item-name="<?php echo htmlspecialchars($item['name']); ?>"
     data-item-price="<?php echo htmlspecialchars($item['price']); ?>"
     data-item-image="<?php echo !empty($item['image']) ? htmlspecialchars($item['image']) : ''; ?>">
-    Add to Order <span class="material-symbols-outlined text-base text-primary transition-transform group-hover/btn:translate-x-1">add_circle</span>
+    Add to Order <?php echo resmenu_icon('add_circle', ['size' => 18, 'class' => 'text-base text-primary transition-transform group-hover/btn:translate-x-1']); ?>
 </button>
 <?php endif; ?>
 </div>

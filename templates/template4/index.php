@@ -82,7 +82,6 @@ function t4_formatPrice($price, $symbol = '₦') {
 <title><?php echo htmlspecialchars($restaurant['name']); ?><?php if (!empty($singleSectionView) && !empty($sections[0]['name'])): ?> - <?php echo htmlspecialchars($sections[0]['name']); ?><?php else: ?> - Menu<?php endif; ?></title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <script id="tailwind-config">
     tailwind.config = {
         darkMode: "class",
@@ -218,7 +217,7 @@ function t4_formatPrice($price, $symbol = '₦') {
         </div>
         <div class="flex items-center gap-4 ml-auto">
             <button id="menuToggle" class="p-2 text-white/80 hover:text-white" aria-label="Open menu">
-                <span class="material-symbols-outlined text-3xl">menu</span>
+                <?php echo resmenu_icon('menu', ['size' => 28, 'class' => 'text-3xl']); ?>
             </button>
         </div>
     </div>
@@ -229,7 +228,7 @@ function t4_formatPrice($price, $symbol = '₦') {
 <div id="menuPanel" class="fixed top-0 w-72 h-full bg-gray-900/85 backdrop-blur-xl border-l border-white/10 z-50 sidebar-pattern overflow-hidden flex flex-col">
     <div class="relative z-10 flex-1 min-h-0 overflow-y-auto p-6 pt-20">
         <button id="menuClose" class="absolute top-4 right-4 text-white/80 hover:text-white" aria-label="Close menu">
-            <span class="material-symbols-outlined text-3xl">close</span>
+            <?php echo resmenu_icon('close', ['size' => 28, 'class' => 'text-3xl']); ?>
         </button>
         <nav class="flex flex-col gap-4">
             <?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?>
@@ -284,7 +283,7 @@ function t4_formatPrice($price, $symbol = '₦') {
     </div>
     <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
         <span class="text-white/40 text-xs font-bold tracking-[0.3em] uppercase">Scroll</span>
-        <span class="material-symbols-outlined text-white/40 animate-bounce">expand_more</span>
+        <?php echo resmenu_icon('expand_more', ['size' => 24, 'class' => 'text-white/40 animate-bounce']); ?>
     </div>
 </section>
 
@@ -353,7 +352,7 @@ function t4_formatPrice($price, $symbol = '₦') {
                                             data-item-name="<?php echo htmlspecialchars($item['name']); ?>"
                                             data-item-price="<?php echo htmlspecialchars($item['price']); ?>"
                                             data-item-image="<?php echo !empty($item['image']) ? htmlspecialchars($item['image']) : ''; ?>">
-                                            <span class="material-symbols-outlined text-sm md:text-xs">shopping_bag</span>
+                                            <?php echo resmenu_icon('shopping_bag', ['size' => 16, 'class' => 'text-sm md:text-xs']); ?>
                                             Add to bag
                                         </button>
                                     </div>
@@ -432,19 +431,19 @@ function t4_formatPrice($price, $symbol = '₦') {
                 <ul class="space-y-4 text-sm text-white/60">
                     <?php if (!empty($restaurant['address'])): ?>
                         <li class="flex items-start gap-3">
-                            <span class="material-symbols-outlined text-primary text-lg">location_on</span>
+                            <?php echo resmenu_icon('location_on', ['size' => 20, 'class' => 'text-primary text-lg']); ?>
                             <span><?php echo nl2br(htmlspecialchars($restaurant['address'])); ?></span>
                         </li>
                     <?php endif; ?>
                     <?php if (!empty($restaurant['phone'])): ?>
                         <li class="flex items-center gap-3">
-                            <span class="material-symbols-outlined text-primary text-lg">call</span>
+                            <?php echo resmenu_icon('call', ['size' => 20, 'class' => 'text-primary text-lg']); ?>
                             <a href="tel:<?php echo htmlspecialchars(preg_replace('/\s+/', '', $restaurant['phone'])); ?>" class="hover:text-white transition-colors"><?php echo htmlspecialchars($restaurant['phone']); ?></a>
                         </li>
                     <?php endif; ?>
                     <?php if (!empty($restaurant['email'])): ?>
                         <li class="flex items-center gap-3">
-                            <span class="material-symbols-outlined text-primary text-lg">mail</span>
+                            <?php echo resmenu_icon('email', ['size' => 20, 'class' => 'text-primary text-lg']); ?>
                             <a href="mailto:<?php echo htmlspecialchars($restaurant['email']); ?>" class="hover:text-white transition-colors"><?php echo htmlspecialchars($restaurant['email']); ?></a>
                         </li>
                     <?php endif; ?>
@@ -564,7 +563,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 <a id="scrollToTop" href="#" class="scroll-to-top flex items-center justify-center rounded-full bg-charcoal text-white hover:bg-primary transition-colors shadow-lg w-12 h-12" aria-label="Scroll to top">
-    <span class="material-symbols-outlined text-2xl">arrow_upward</span>
+    <?php echo resmenu_icon('arrow_upward', ['size' => 24, 'class' => 'text-2xl']); ?>
 </a>
 </body>
 </html>
