@@ -219,7 +219,7 @@ body.nmc-body { overflow-x: clip; min-height: 100vh; min-height: 100dvh; }
   overflow-x: visible !important;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding-top: 0.5rem;
+  padding-top: 0.75rem;
   padding-bottom: 1rem;
 }
 #nmc-rail-links {
@@ -243,10 +243,10 @@ body.nmc-body { overflow-x: clip; min-height: 100vh; min-height: 100dvh; }
   flex-shrink: 0;
 
   width: 100%;
-  min-height: 14rem;
+  min-height: 8rem;
   box-sizing: border-box;
 
-  padding: 1.5rem 0;
+  padding: 0.75rem 0;
 
   overflow: visible;
   isolation: isolate;
@@ -283,11 +283,11 @@ body.nmc-body { overflow-x: clip; min-height: 100vh; min-height: 100dvh; }
 
   white-space: nowrap;
 
-  font-size: 0.95rem;
+  font-size: 0.82rem;
   font-weight: 800;
   line-height: 1;
 
-  letter-spacing: 0.28em;
+  letter-spacing: 0.16em;
 
   width: 100%;
   height: 100%;
