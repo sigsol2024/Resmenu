@@ -45,6 +45,16 @@ if (!empty($sections) && is_array($sections)) {
     }
 }
 $snswShowWelcomeModal = empty($singleSectionView) && !empty($sections) && is_array($sections);
+$snswHeaderTitle = $restaurant['name'] ?? 'Menu';
+$snswSectionHeroUrl = '';
+if (!empty($singleSectionView) && !empty($sections) && is_array($sections) && !empty($sections[0])) {
+    if (!empty($sections[0]['name'])) {
+        $snswHeaderTitle = $sections[0]['name'];
+    }
+    if (!empty($sections[0]['image']) && empty($isTemplatePreview)) {
+        $snswSectionHeroUrl = $uploadBaseUrl . '/sections/' . rawurlencode((string) $sections[0]['image']);
+    }
+}
 $brandName = $restaurant['name'] ?? 'Menu';
 $tagline = !empty($restaurant['description']) ? strtoupper(preg_replace('/\s+/', ' . ', trim(mb_substr($restaurant['description'], 0, 30)))) : 'SIP . SAVOR . SOCIALIZE';
 function snsw_brand_markup($name) {
@@ -87,17 +97,29 @@ $snswSideBgUrl = htmlspecialchars($snswTemplateBaseUrl . '/' . $snswSideBgFile, 
 <style>
 html { overflow-x: clip; }
 body.snsw-body { overflow-x: clip; background-color: #E4DABF; font-family: Roboto, sans-serif; color: #2C263F; min-width: 0; }
+.snsw-shell {
+  position: relative;
+  display: flex;
+  min-height: 100vh;
+  min-width: 0;
+  overflow-x: clip;
+}
 .snsw-page-bg {
-  position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  min-height: 100%;
   background-image: url('<?php echo htmlspecialchars($snswTemplateBaseUrl . '/' . $snswPageBgFile); ?>');
   background-repeat: repeat;
   background-size: 280px 280px;
   opacity: 0.03;
-  z-index: -1;
+  z-index: 0;
   pointer-events: none;
 }
-.snsw-shell { display: flex; min-height: 100vh; min-width: 0; overflow-x: clip; }
+.snsw-shell > .snsw-main-wrap,
+.snsw-shell > nav.snsw-rail { position: relative; z-index: 1; }
 .snsw-main-wrap {
   flex: 1 1 auto;
   min-width: 0;
@@ -140,10 +162,10 @@ body.snsw-body { overflow-x: clip; background-color: #E4DABF; font-family: Robot
   font-size: 1.35rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  border-bottom: 6px solid #0D2633;
+  border-bottom: 10px solid #0D2633;
   display: inline-block;
-  padding-bottom: 6px;
-  margin-bottom: 24px;
+  padding-bottom: 10px;
+  margin-bottom: 28px;
   width: 100%;
   max-width: 320px;
   color: #2C263F;
@@ -156,7 +178,17 @@ body.snsw-body { overflow-x: clip; background-color: #E4DABF; font-family: Robot
   text-transform: uppercase;
   color: #2C263F;
 }
-/* Right rail */
+.snsw-section-hero {
+  max-width: 100%;
+  max-height: 10rem;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+@media (min-width: 768px) {
+  .snsw-section-hero { max-height: 12rem; }
+}
+/* Right rail: #002F47 + vertical pattern overlay */
 .snsw-rail {
   position: fixed;
   top: 0;
@@ -167,14 +199,25 @@ body.snsw-body { overflow-x: clip; background-color: #E4DABF; font-family: Robot
   align-items: center;
   width: 3rem;
   height: 100vh;
-  border-left: 3px solid #002F47;
-  background-color: #E4DABF;
+  border-left: 3px solid #001f30;
+  background-color: #002F47;
+  padding: 0.75rem 0.25rem;
+  overflow-x: visible;
+}
+.snsw-rail::before {
+  content: '';
+  position: absolute;
+  inset: 0;
   background-image: url('<?php echo $snswSideBgUrl; ?>');
   background-repeat: repeat-y;
   background-position: top center;
   background-size: 100% auto;
-  padding: 0.75rem 0.25rem;
-  overflow-x: visible;
+  opacity: 0.42;
+  pointer-events: none;
+}
+.snsw-rail-inner {
+  position: relative;
+  z-index: 1;
 }
 @media (min-width: 768px) {
   .snsw-rail { width: 5.5rem; padding: 1rem 0.35rem; }
@@ -212,8 +255,8 @@ body.snsw-body { overflow-x: clip; background-color: #E4DABF; font-family: Robot
   flex: 0 0 auto;
   width: 56%;
   height: 2px;
-  background: linear-gradient(90deg, transparent, #0D2633 50%, transparent);
-  opacity: 0.35;
+  background: linear-gradient(90deg, transparent, rgba(196, 164, 132, 0.75) 50%, transparent);
+  opacity: 0.65;
 }
 .snsw-vertical-link {
   display: inline-flex;
@@ -231,21 +274,21 @@ body.snsw-body { overflow-x: clip; background-color: #E4DABF; font-family: Robot
   line-height: 1.1;
   padding: 0.35rem 0.28rem;
   border-radius: 0.35rem;
-  border: 1px solid rgba(13, 38, 51, 0.2);
-  background: rgba(255, 255, 255, 0.45);
-  color: #0D2633;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.1);
+  color: #F3FAFD;
   text-decoration: none;
   transition: background 0.2s, border-color 0.2s, color 0.2s;
 }
 .snsw-vertical-link:hover,
 .snsw-vertical-link:focus-visible {
-  background: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.22);
   border-color: #C4A484;
-  color: #002F47;
+  color: #fff;
 }
 .snsw-vertical-link--accent {
-  color: #002F47;
-  border-color: rgba(0, 47, 71, 0.35);
+  color: #E4DABF;
+  border-color: rgba(196, 164, 132, 0.55);
 }
 #snsw-category-toggle {
   flex-shrink: 0;
@@ -417,7 +460,7 @@ body.snsw-body #scrollToTop {
 }
 @media (max-width: 767px) {
   .snsw-main-wrap { margin-right: 3rem; }
-  .section-header { font-size: 1.1rem; letter-spacing: 0.1em; margin-bottom: 16px; border-bottom-width: 5px; padding-bottom: 5px; }
+  .section-header { font-size: 1.1rem; letter-spacing: 0.1em; margin-bottom: 16px; border-bottom-width: 8px; padding-bottom: 8px; }
   .item-name { font-size: 0.85rem; }
   .item-price { font-size: 0.85rem; }
   .snsw-section-title { font-size: 1.35rem; }
@@ -434,7 +477,6 @@ body.snsw-body #scrollToTop {
 </style>
 </head>
 <body class="snsw-body flex min-h-screen min-w-0">
-<div class="snsw-page-bg"></div>
 <?php if (!empty($snswShowWelcomeModal)): ?>
 <div id="snsw-welcome-modal" class="fixed inset-0 z-[100] bg-[#0D2633]/75" role="dialog" aria-modal="true" aria-labelledby="snsw-welcome-title">
 <div class="snsw-welcome-panel">
@@ -498,18 +540,25 @@ body.snsw-body #scrollToTop {
 </aside>
 
 <div class="snsw-shell flex-1 w-full min-w-0">
+<div class="snsw-page-bg" aria-hidden="true"></div>
 <div class="snsw-main-wrap">
 <main class="snsw-main mx-auto min-w-0 max-w-4xl flex-grow overflow-x-hidden px-4 py-6 sm:px-6 md:px-12 md:py-8">
   <header class="mb-10 border-b border-gray-200 pb-4 text-center md:mb-16">
     <div class="mb-2 flex justify-center text-accent-gold">
       <svg class="h-3 w-3 sm:h-4 sm:w-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 12l-6-6h12l-6 6z"></path></svg>
     </div>
-    <?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?>
+    <?php if (!empty($restaurant['logo']) && empty($isTemplatePreview) && empty($singleSectionView)): ?>
     <div class="mb-3 md:mb-4"><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="mx-auto h-12 w-auto max-w-full object-contain sm:h-16"/></div>
-    <?php else: ?>
-    <h1 class="font-cinzel-deco break-words text-lg font-light tracking-[0.2em] text-menu-text sm:text-xl md:text-2xl sm:tracking-[0.3em]"><?php echo htmlspecialchars(strtoupper($restaurant['name'])); ?></h1>
+    <?php elseif (empty($singleSectionView) || $snswSectionHeroUrl === ''): ?>
+    <h1 class="font-cinzel-deco break-words text-lg font-light tracking-[0.2em] text-menu-text sm:text-xl md:text-2xl sm:tracking-[0.3em]"><?php echo htmlspecialchars(strtoupper($snswHeaderTitle)); ?></h1>
     <?php endif; ?>
-    <?php if (!empty($restaurant['description']) && empty($restaurant['logo'])): ?><p class="mt-1 break-words text-[10px] tracking-widest text-gray-700 sm:text-xs"><?php echo htmlspecialchars(mb_substr($restaurant['description'], 0, 60)); ?></p><?php endif; ?>
+    <?php if ($snswSectionHeroUrl !== ''): ?>
+    <div class="mb-4 flex justify-center md:mb-6">
+      <img src="<?php echo htmlspecialchars($snswSectionHeroUrl, ENT_QUOTES, 'UTF-8'); ?>" alt="<?php echo htmlspecialchars($snswHeaderTitle); ?>" class="snsw-section-hero rounded shadow-sm"/>
+    </div>
+    <h1 class="font-cinzel-deco snsw-section-title mb-2 text-center"><?php echo htmlspecialchars($snswHeaderTitle); ?></h1>
+    <?php endif; ?>
+    <?php if (!empty($restaurant['description']) && empty($restaurant['logo']) && empty($singleSectionView)): ?><p class="mt-1 break-words text-[10px] tracking-widest text-gray-700 sm:text-xs"><?php echo htmlspecialchars(mb_substr($restaurant['description'], 0, 60)); ?></p><?php endif; ?>
     <?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?><p class="mt-2 md:mt-3"><a href="<?php echo htmlspecialchars($fullMenuUrl); ?>" class="text-xs font-semibold text-[#002F47] hover:underline sm:text-sm">Full menu</a></p><?php endif; ?>
     <?php if (!empty($supportsReservations)): ?><p class="mt-2 md:mt-3"><a href="<?php echo htmlspecialchars($reservationUrl); ?>" class="text-xs font-semibold text-[#002F47] hover:underline sm:text-sm">Reserve Table</a></p><?php endif; ?>
   </header>
@@ -518,7 +567,9 @@ body.snsw-body #scrollToTop {
     if (empty($section['categories']) || !is_array($section['categories'])) continue;
   ?>
   <div class="mb-12 min-w-0 md:mb-16" id="section-<?php echo htmlspecialchars($section['slug']); ?>">
-    <h2 class="snsw-section-title mb-8 text-center"><?php if (!empty($fullMenuUrl) && empty($singleSectionView)): ?><a href="<?php echo htmlspecialchars($fullMenuUrl . '/' . $section['slug']); ?>" class="hover:underline"><?php echo htmlspecialchars($section['name']); ?></a><?php else: ?><?php echo htmlspecialchars($section['name']); ?><?php endif; ?></h2>
+    <?php if (empty($singleSectionView)): ?>
+    <h2 class="snsw-section-title mb-8 text-center"><?php if (!empty($fullMenuUrl)): ?><a href="<?php echo htmlspecialchars($fullMenuUrl . '/' . $section['slug']); ?>" class="hover:underline"><?php echo htmlspecialchars($section['name']); ?></a><?php else: ?><?php echo htmlspecialchars($section['name']); ?><?php endif; ?></h2>
+    <?php endif; ?>
   <?php foreach ($section['categories'] as $catIndex => $category):
     $slug = isset($category['slug']) ? $category['slug'] : ('cat-'.$catIndex);
     $items = isset($category['menu_items']) ? $category['menu_items'] : [];
