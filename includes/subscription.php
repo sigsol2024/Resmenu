@@ -72,26 +72,33 @@ function getRestaurantSubscription($restaurantId) {
  * @return array
  */
 function getSubscriptionPlans($activeOnly = true) {
-    global $pdo;
-    
-    if (!$pdo) return [];
-    
+    $pdo = getSubscriptionPdo();
+
+    if (!$pdo) {
+        return [];
+    }
+
     try {
         $sql = "SELECT * FROM subscription_plans";
         if ($activeOnly) {
             $sql .= " WHERE is_active = 1";
         }
         $sql .= " ORDER BY display_order ASC";
-        
+
         $stmt = $pdo->query($sql);
         $plans = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
+
         foreach ($plans as &$plan) {
-            if ($plan['features']) {
-                $plan['features'] = json_decode($plan['features'], true);
+            $features = $plan['features'] ?? [];
+            if (is_string($features) && $features !== '') {
+                $decoded = json_decode($features, true);
+                $plan['features'] = is_array($decoded) ? $decoded : [];
+            } elseif (!is_array($features)) {
+                $plan['features'] = [];
             }
         }
-        
+        unset($plan);
+
         return $plans;
     } catch (PDOException $e) {
         error_log("Error getting plans: " . $e->getMessage());
