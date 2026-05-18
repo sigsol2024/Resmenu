@@ -136,8 +136,9 @@ function getAvailableTemplates() {
 
 /**
  * Get templates visible and usable for a restaurant (plan + private assignment).
- * Returns templates the restaurant can see; can_use indicates if they can select/use it (plan in template_plans).
- * If they see only via private assignment and can_use is false, they must upgrade to use.
+ * Public templates (is_private = 0): visible when linked to at least one subscription plan.
+ * Private templates (is_private = 1): visible only to restaurants in template_restaurants.
+ * can_use is true only when the restaurant's plan is in template_plans (private templates still require a plan).
  *
  * @param int $restaurantId
  * @return array List of template records with id, name, description, preview_image, listing_image, path, can_use, can_see
@@ -164,8 +165,11 @@ function getTemplatesAvailableForRestaurant($restaurantId) {
             FROM templates t
             WHERE t.is_active = 1
             AND (
-                EXISTS (SELECT 1 FROM template_plans tp WHERE tp.template_id = t.id)
-                OR (t.is_private = 1 AND EXISTS (SELECT 1 FROM template_restaurants tr WHERE tr.template_id = t.id AND tr.restaurant_id = ?))
+                (COALESCE(t.is_private, 0) = 0 AND EXISTS (SELECT 1 FROM template_plans tp2 WHERE tp2.template_id = t.id))
+                OR (COALESCE(t.is_private, 0) = 1 AND EXISTS (
+                    SELECT 1 FROM template_restaurants tr
+                    WHERE tr.template_id = t.id AND tr.restaurant_id = ?
+                ))
             )
             ORDER BY t.id ASC
         ");

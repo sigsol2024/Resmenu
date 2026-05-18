@@ -4,65 +4,16 @@
  * Admin can view all templates, names, marketing, and plan/private assignment.
  */
 
-// #region agent log
-$__dbgLog = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'debug-fef746.log';
-$__dbg = static function (string $hypothesisId, string $location, string $message, array $data = []) use (&$__dbgLog): void {
-    $line = json_encode([
-        'sessionId' => 'fef746',
-        'hypothesisId' => $hypothesisId,
-        'location' => $location,
-        'message' => $message,
-        'data' => $data,
-        'timestamp' => (int) round(microtime(true) * 1000),
-    ], JSON_UNESCAPED_SLASHES);
-    if ($line !== false) {
-        @file_put_contents($__dbgLog, $line . "\n", FILE_APPEND | LOCK_EX);
-    }
-};
-register_shutdown_function(static function () use (&$__dbgLog): void {
-    $e = error_get_last();
-    if ($e && in_array($e['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR], true)) {
-        $line = json_encode([
-            'sessionId' => 'fef746',
-            'hypothesisId' => 'H1',
-            'location' => ($e['file'] ?? '') . ':' . ($e['line'] ?? 0),
-            'message' => 'shutdown_fatal',
-            'data' => ['type' => $e['type'], 'msg' => $e['message'] ?? ''],
-            'timestamp' => (int) round(microtime(true) * 1000),
-        ], JSON_UNESCAPED_SLASHES);
-        if ($line !== false) {
-            @file_put_contents($__dbgLog, $line . "\n", FILE_APPEND | LOCK_EX);
-        }
-    }
-});
-$__dbg('H2', 'templates.php:entry', 'script_started', [
-    'bom' => (file_get_contents(__FILE__, false, null, 0, 3) === "\xEF\xBB\xBF"),
-    'method' => $_SERVER['REQUEST_METHOD'] ?? '',
-]);
-// #endregion
-
 require_once __DIR__ . '/../includes/auth.php';
-// #region agent log
-$__dbg('H4', 'templates.php:after_auth_include', 'auth_included', []);
-// #endregion
 requireSuperAdmin();
-// #region agent log
-$__dbg('H4', 'templates.php:after_requireSuperAdmin', 'super_admin_ok', []);
-// #endregion
 
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/template-loader.php';
 require_once __DIR__ . '/../includes/subscription.php';
-// #region agent log
-$__dbg('H1', 'templates.php:after_includes', 'includes_loaded', []);
-// #endregion
 
 global $pdo;
 $pdo = getDBConnection();
-// #region agent log
-$__dbg('H3', 'templates.php:after_pdo', 'pdo_ready', ['pdo' => $pdo !== null]);
-// #endregion
 $message = '';
 $error = '';
 
@@ -160,9 +111,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Get all templates
 $availableTemplates = getAvailableTemplates();
-// #region agent log
-$__dbg('H3', 'templates.php:after_getAvailableTemplates', 'templates_loaded', ['count' => count($availableTemplates)]);
-// #endregion
 
 // Subscription plans (for plan checkboxes)
 $subscriptionPlans = getSubscriptionPlans(false);
@@ -229,16 +177,7 @@ if ($pdo && !empty($allAssignedIds)) {
 }
 
 $pageTitle = 'Template Management';
-// #region agent log
-$__dbg('H5', 'templates.php:before_layout', 'about_to_render_layout', [
-    'template_count' => count($availableTemplates),
-    'plan_count' => count($subscriptionPlans),
-]);
-// #endregion
 include __DIR__ . '/../includes/admin-layout.php';
-// #region agent log
-$__dbg('H5', 'templates.php:after_layout', 'layout_included', []);
-// #endregion
 ?>
 
 <style>
@@ -758,10 +697,5 @@ $__dbg('H5', 'templates.php:after_layout', 'layout_included', []);
         });
     </script>
 
-<?php
-// #region agent log
-$__dbg('H5', 'templates.php:end', 'page_render_complete', []);
-// #endregion
-include __DIR__ . '/../includes/admin-footer.php';
-?>
+<?php include __DIR__ . '/../includes/admin-footer.php'; ?>
 

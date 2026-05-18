@@ -60,8 +60,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             require_once __DIR__ . '/../includes/template-loader.php';
             $availableForRestaurant = getTemplatesAvailableForRestaurant($restaurantId);
             $canUseIds = array_column(array_filter($availableForRestaurant, function ($t) { return !empty($t['can_use']); }), 'id');
-            if (!in_array($templateId, $canUseIds)) {
-                $error = 'This template is assigned to you but requires a higher plan to use. Please upgrade your subscription to use it.';
+            $canSeeIds = array_column($availableForRestaurant, 'id');
+            if (!in_array($templateId, $canSeeIds, true)) {
+                $error = 'You do not have access to this template.';
+            } elseif (!in_array($templateId, $canUseIds, true)) {
+                $error = 'This template requires a higher subscription plan. Please upgrade to use it.';
             } else {
                 try {
                     $stmt = $pdo->prepare("UPDATE restaurants SET template_id = ? WHERE id = ?");
