@@ -118,11 +118,17 @@ body.snsw-body { overflow-x: clip; background-color: #E4DABF; font-family: Robot
   z-index: 0;
   pointer-events: none;
 }
-.snsw-shell > .snsw-main-wrap,
-.snsw-shell > nav.snsw-rail { position: relative; z-index: 1; }
+.snsw-shell > .snsw-main-wrap { position: relative; z-index: 1; }
 .snsw-main-wrap {
   flex: 1 1 auto;
   min-width: 0;
+  margin-right: 3rem;
+}
+@media (min-width: 768px) {
+  .snsw-main-wrap { margin-right: 5.5rem; }
+}
+@media (min-width: 1024px) {
+  .snsw-main-wrap { margin-right: 7rem; }
 }
 .menu-item-row { display: flex; align-items: baseline; width: 100%; min-width: 0; }
 .item-dots { flex-grow: 1; flex-shrink: 0; min-width: 12px; border-bottom: 1px dotted #2C263F; margin: 0 6px; opacity: 0.3; }
@@ -147,7 +153,8 @@ body.snsw-body { overflow-x: clip; background-color: #E4DABF; font-family: Robot
   font-size: 0.8125rem;
   line-height: 1.45;
   color: #4a5568;
-  font-style: italic;
+  font-style: normal;
+  font-weight: 400;
 }
 .section-header {
   font-family: "Cinzel Decorative", Cinzel, serif;
@@ -155,15 +162,15 @@ body.snsw-body { overflow-x: clip; background-color: #E4DABF; font-family: Robot
   font-size: 1.35rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  border-bottom: 12px solid #B91C1C;
+  border-bottom: 12px solid #7A1519;
   display: inline-block;
   padding-bottom: 8px;
   margin-bottom: 28px;
   width: 100%;
-  max-width: 11rem;
+  max-width: 16rem;
   color: #2C263F;
 }
-.section-header--red { border-bottom-color: #B91C1C; }
+.section-header--red { border-bottom-color: #7A1519; }
 .section-header--rail { border-bottom-color: #002F47; }
 .snsw-section-title {
   font-family: "Cinzel Decorative", Cinzel, serif;
@@ -183,18 +190,18 @@ body.snsw-body { overflow-x: clip; background-color: #E4DABF; font-family: Robot
 @media (min-width: 768px) {
   .snsw-section-hero { max-height: 12rem; }
 }
-/* Right rail: full page height, #002F47 + white vertical pattern */
+/* Right section rail: fixed, #002F47 + subtle white vertical pattern */
 .snsw-rail {
-  position: sticky;
+  position: fixed;
   top: 0;
-  align-self: stretch;
+  right: 0;
   z-index: 50;
   display: flex;
   flex-direction: column;
   align-items: center;
-  flex: 0 0 auto;
   width: 3rem;
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
   border-left: 3px solid #001f30;
   background-color: #002F47;
   padding: 0.75rem 0.25rem;
@@ -208,9 +215,14 @@ body.snsw-body { overflow-x: clip; background-color: #E4DABF; font-family: Robot
   background-repeat: repeat-y;
   background-position: top center;
   background-size: 100% auto;
-  opacity: 0.22;
+  opacity: 0.18;
   filter: brightness(0) invert(1);
   pointer-events: none;
+}
+.snsw-rail-top,
+.snsw-rail-slot {
+  position: relative;
+  z-index: 1;
 }
 @media (min-width: 768px) {
   .snsw-rail { width: 5.5rem; padding: 1rem 0.35rem; }
@@ -218,16 +230,23 @@ body.snsw-body { overflow-x: clip; background-color: #E4DABF; font-family: Robot
 @media (min-width: 1024px) {
   .snsw-rail { width: 7rem; padding: 1.25rem 0.5rem; }
 }
-.snsw-rail-inner {
-  position: relative;
-  z-index: 1;
+.snsw-rail-top {
   display: flex;
+  width: 100%;
+  flex-shrink: 0;
   flex-direction: column;
   align-items: center;
-  width: 100%;
-  min-height: 100%;
-  flex: 1 1 auto;
   gap: 0.5rem;
+  padding: 0 0.15rem;
+}
+.snsw-rail-slot {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  overflow: hidden;
 }
 .snsw-rail-menu-block {
   display: flex;
@@ -250,16 +269,33 @@ body.snsw-body { overflow-x: clip; background-color: #E4DABF; font-family: Robot
   color: rgba(243, 250, 253, 0.85);
 }
 .snsw-rail-scroll {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  flex: 1 1 auto;
+  overflow-x: visible !important;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
   min-height: 0;
   width: 100%;
+  height: 100%;
+  flex: 1 1 auto;
+}
+#snsw-rail-links {
+  display: flex;
+  flex-direction: column;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  width: 100%;
   overflow: hidden;
-  gap: 0.45rem;
-  padding: 0.25rem 0;
+  padding: 0.35rem 0;
+}
+.snsw-rail-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 100%;
 }
 .snsw-rail-link { opacity: 0; }
 .snsw-rail-links--ready .snsw-rail-link {
@@ -326,6 +362,7 @@ body.snsw-body { overflow-x: clip; background-color: #E4DABF; font-family: Robot
   outline: 2px solid #C4A484;
   outline-offset: 2px;
 }
+/* Category drawer: plain cream — no vertical pattern (pattern stays on section rail only) */
 #snsw-category-drawer {
   position: fixed;
   top: 0;
@@ -340,9 +377,7 @@ body.snsw-body { overflow-x: clip; background-color: #E4DABF; font-family: Robot
   transition: transform 0.3s ease-out;
   border-left: 3px solid #002F47;
   background-color: #E4DABF;
-  background-image: url('<?php echo $snswSideBgUrl; ?>');
-  background-repeat: repeat-y;
-  background-size: 100% auto;
+  background-image: none;
   box-shadow: -8px 0 24px rgba(13, 38, 51, 0.15);
 }
 #snsw-category-drawer.is-open { transform: translateX(0); }
@@ -474,7 +509,7 @@ body.snsw-body #scrollToTop {
   body.snsw-body #scrollToTop { bottom: 5.5rem; right: 8rem; }
 }
 @media (max-width: 767px) {
-  .section-header { font-size: 1.1rem; letter-spacing: 0.05em; margin-bottom: 16px; border-bottom-width: 10px; padding-bottom: 6px; max-width: 9rem; }
+  .section-header { font-size: 1.1rem; letter-spacing: 0.05em; margin-bottom: 16px; border-bottom-width: 10px; padding-bottom: 6px; max-width: 13rem; }
   .item-name { font-size: 0.85rem; }
   .item-price { font-size: 0.85rem; }
   .snsw-section-title { font-size: 1.35rem; }
@@ -640,7 +675,7 @@ body.snsw-body #scrollToTop {
 </div>
 
 <nav class="snsw-rail" aria-label="Section menu">
-<div class="snsw-rail-inner">
+<div class="snsw-rail-top">
 <div class="snsw-rail-menu-block">
 <button type="button" id="snsw-category-toggle" aria-controls="snsw-category-drawer" aria-expanded="false" aria-label="Open categories menu">
 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
@@ -652,8 +687,9 @@ body.snsw-body #scrollToTop {
 <img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="" class="mx-auto h-8 w-8 rounded object-contain md:h-10 md:w-10"/>
 </div>
 <?php endif; ?>
-<div class="snsw-rail-scroll min-h-0 w-full flex-1">
-<div id="snsw-rail-links" class="flex min-h-0 w-full flex-1 flex-col items-center justify-center gap-2">
+</div>
+<div class="snsw-rail-slot">
+<div id="snsw-rail-links" class="snsw-rail-scroll no-scrollbar">
 <?php $snswRailDelay = 0; $snswNavSeen = []; $snswRailNeedSep = false; ?>
 <?php if (!empty($singleSectionView) && !empty($fullMenuUrl)): ?>
 <div class="snsw-rail-link" style="animation-delay: <?php echo ($snswRailDelay * 0.3); ?>s"><?php $snswRailDelay++; ?><a class="snsw-vertical-link" href="<?php echo htmlspecialchars($fullMenuUrl); ?>">View Full menu</a></div>
@@ -674,7 +710,6 @@ if (empty($singleSectionView) && !empty($sectionsForNav) && is_array($sectionsFo
 <?php if ($snswRailNeedSep): ?><div class="snsw-rail-divider" aria-hidden="true"></div><?php endif; ?>
 <div class="snsw-rail-link" style="animation-delay: <?php echo ($snswRailDelay * 0.3); ?>s"><?php $snswRailDelay++; ?><a class="snsw-vertical-link snsw-vertical-link--accent" href="<?php echo htmlspecialchars($reservationUrl); ?>">Reserve Table</a></div>
 <?php endif; ?>
-</div>
 </div>
 </div>
 </nav>

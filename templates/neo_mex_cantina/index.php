@@ -259,6 +259,26 @@ body.nmc-body { overflow-x: clip; min-height: 100vh; min-height: 100dvh; }
   outline: 2px solid rgba(249, 115, 22, 0.85);
   outline-offset: 3px;
 }
+.nmc-rail-menu-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  flex-shrink: 0;
+  width: 2.5rem;
+}
+.nmc-rail-menu-label {
+  display: block;
+  width: 100%;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.5rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  text-align: center;
+  line-height: 1;
+  color: rgba(251, 146, 60, 0.9);
+}
 .nmc-welcome-panel {
   width: 100%;
   max-width: 20rem;
@@ -631,9 +651,12 @@ body.nmc-body #scrollToTop {
 <div class="shrink-0">
 <?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?><img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="<?php echo htmlspecialchars(nmc_img_class('h-11 w-11 md:h-12 md:w-12', $restaurant['logo'], 'logos', 'rounded-xl'), ENT_QUOTES, 'UTF-8'); ?>"/><?php else: ?><div class="flex h-11 w-11 rotate-12 items-center justify-center rounded-xl font-black text-xl brand-gradient md:h-12 md:w-12 md:text-2xl"><?php echo strtoupper(substr($restaurant['name'], 0, 1)); ?></div><?php endif; ?>
 </div>
-<button type="button" id="nmc-category-toggle" class="lg:hidden flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-orange-500/40 bg-gradient-to-br from-orange-500/15 to-purple-600/15 text-orange-400 shadow-inner shadow-orange-500/10 transition-colors hover:border-orange-400 hover:text-orange-300" aria-controls="nmc-category-drawer" aria-expanded="false" aria-label="Open categories menu">
+<div class="nmc-rail-menu-block lg:hidden">
+<button type="button" id="nmc-category-toggle" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-orange-500/40 bg-gradient-to-br from-orange-500/15 to-purple-600/15 text-orange-400 shadow-inner shadow-orange-500/10 transition-colors hover:border-orange-400 hover:text-orange-300" aria-controls="nmc-category-drawer" aria-expanded="false" aria-label="Open categories menu">
 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
 </button>
+<span class="nmc-rail-menu-label" aria-hidden="true">menu</span>
+</div>
 </div>
 <div class="nmc-rail-slot flex w-full min-h-0 flex-1 flex-col px-0.5 pb-2 pt-0">
 <?php $nmcRailDelay = 0; $nmcNavSeen = []; $nmcRailNeedSep = false; ?>
