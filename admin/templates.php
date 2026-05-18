@@ -382,7 +382,7 @@ include __DIR__ . '/../includes/admin-layout.php';
                             <h2 class="card-title" style="margin: 0;"><?php echo htmlspecialchars($template['name']); ?></h2>
                             <div style="display: flex; align-items: center; gap: 8px;">
                                 <a href="<?php echo htmlspecialchars($previewUrl); ?>" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="margin: 0;" onclick="event.stopPropagation();">Preview</a>
-                                <span id="toggle-<?php echo $template['id']; ?>" style="font-size: 20px;"><?php echo $isExpanded ? "\u{25BC}" : "\u{25B6}"; ?></span>
+                                <span id="toggle-<?php echo $template['id']; ?>" style="font-size: 20px;"><?php echo $isExpanded ? "\xE2\x96\xBC" : "\xE2\x96\xB6"; ?></span>
                             </div>
                         </div>
                     </div>
