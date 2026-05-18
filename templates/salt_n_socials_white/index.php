@@ -215,7 +215,7 @@ body.snsw-body { overflow-x: clip; background-color: #E4DABF; font-family: Robot
   background-repeat: repeat-y;
   background-position: top center;
   background-size: 100% auto;
-  opacity: 0.18;
+  opacity: 0.09;
   filter: brightness(0) invert(1);
   pointer-events: none;
 }
