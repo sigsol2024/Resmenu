@@ -130,6 +130,18 @@ body.snsw-body { overflow-x: clip; background-color: #E4DABF; font-family: Robot
 @media (min-width: 1024px) {
   .snsw-main-wrap { margin-right: 7rem; }
 }
+.snsw-menu-items {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+@media (min-width: 768px) {
+  .snsw-menu-items { gap: 2rem; }
+}
+.menu-item {
+  min-width: 0;
+  padding-bottom: 0.15rem;
+}
 .menu-item-row { display: flex; align-items: baseline; width: 100%; min-width: 0; }
 .item-dots { flex-grow: 1; flex-shrink: 0; min-width: 12px; border-bottom: 1px dotted #2C263F; margin: 0 6px; opacity: 0.3; }
 .item-name {
@@ -325,21 +337,28 @@ body.snsw-body { overflow-x: clip; background-color: #E4DABF; font-family: Robot
   line-height: 1.1;
   padding: 0.35rem 0.28rem;
   border-radius: 0.35rem;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  background: rgba(255, 255, 255, 0.1);
-  color: #F3FAFD;
+  border: 1px solid #5c1014;
+  background: #7A1519;
+  color: #fff;
   text-decoration: none;
   transition: background 0.2s, border-color 0.2s, color 0.2s;
 }
 .snsw-vertical-link:hover,
 .snsw-vertical-link:focus-visible {
-  background: rgba(255, 255, 255, 0.22);
-  border-color: #C4A484;
+  background: #5c1014;
+  border-color: #4a0d10;
   color: #fff;
 }
 .snsw-vertical-link--accent {
-  color: #E4DABF;
-  border-color: rgba(196, 164, 132, 0.55);
+  background: #002F47;
+  border-color: #001f30;
+  color: #fff;
+}
+.snsw-vertical-link--accent:hover,
+.snsw-vertical-link--accent:focus-visible {
+  background: #001f30;
+  border-color: #001522;
+  color: #fff;
 }
 #snsw-category-toggle {
   display: flex;
@@ -633,11 +652,11 @@ body.snsw-body #scrollToTop {
   <section class="mb-10 min-w-0 md:mb-16" id="<?php echo htmlspecialchars($slug); ?>">
     <h3 class="section-header <?php echo $snswDividerClass; ?>"><?php echo htmlspecialchars($category['name']); ?></h3>
     <?php if ($useBox): ?><div class="min-w-0 border border-divider-dark bg-white bg-opacity-40 p-4 md:p-6"><?php endif; ?>
-    <div class="space-y-5 md:space-y-8">
+    <div class="snsw-menu-items">
       <?php foreach ($items as $item):
         $itemAvailable = !isset($item['is_available']) || $item['is_available'];
       ?>
-      <div class="menu-item min-w-0">
+      <div class="menu-item">
         <?php if (!empty($item['image'])): ?><div class="mb-2"><img src="<?php echo $uploadBaseUrl . '/menu-items/' . htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="max-h-20 w-full max-w-full rounded object-cover md:max-h-24"/></div><?php endif; ?>
         <div class="menu-item-row">
           <span class="item-name"><?php echo htmlspecialchars($item['name']); ?></span>
