@@ -13,7 +13,7 @@ $currentDir = dirname($_SERVER['SCRIPT_NAME'] ?? '/');
 $currentDir = ($currentDir === '/' || $currentDir === '\\') ? '' : rtrim($currentDir, '/');
 $baseUrl = $protocol . $host . $currentDir;
 $uploadBaseUrl = $baseUrl . '/uploads';
-$template1BaseUrl = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : $baseUrl) . '/templates/template1';
+$template1BaseUrl = isset($templateAssetBaseUrl) ? $templateAssetBaseUrl : ((defined('SITE_URL') ? rtrim(SITE_URL, '/') : $baseUrl) . '/templates/template1');
 $reservationUrl = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : $baseUrl) . '/restaurant/' . ($restaurant['slug'] ?? '') . '/reservation';
 $currencySymbol = '₦';
 $primaryColor = isset($customization['primary_color']) ? $customization['primary_color'] : '#f20d0d';
@@ -36,7 +36,7 @@ if (!empty($singleSectionView) && !empty($sections[0]['image'])) {
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title><?php echo htmlspecialchars($restaurant['name']); ?><?php if (!empty($singleSectionView) && !empty($sections[0]['name'])): ?> - <?php echo htmlspecialchars($sections[0]['name']); ?><?php endif; ?></title>
-<link rel="stylesheet" href="<?php echo $baseUrl . '/templates/template1/style.css'; ?>">
+<link rel="stylesheet" href="<?php echo htmlspecialchars($template1BaseUrl . '/style.css', ENT_QUOTES, 'UTF-8'); ?>">
 <?php if (!empty($supportsOrdering)): ?>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link rel="stylesheet" href="<?php echo rtrim(defined('SITE_URL') ? SITE_URL : $baseUrl, '/'); ?>/assets/css/cart-widget-standalone.css">

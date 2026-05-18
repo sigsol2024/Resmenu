@@ -12,7 +12,7 @@ if ($baseUrl === '') {
     $baseUrl = $protocol . ($_SERVER['HTTP_HOST'] ?? 'localhost') . (dirname(dirname(dirname($_SERVER['SCRIPT_NAME'] ?? '/index.php'))));
 }
 $nfmTemplateDir = __DIR__;
-$nfmTemplateBaseUrl = rtrim($baseUrl, '/') . '/templates/nostalgia_food_menu';
+$nfmTemplateBaseUrl = isset($templateAssetBaseUrl) ? $templateAssetBaseUrl : (rtrim($baseUrl, '/') . '/templates/template18');
 $nfmPageBgFile = 'bg_white.png';
 if (!file_exists($nfmTemplateDir . '/' . $nfmPageBgFile)) {
     $nfmPageBgFile = (file_exists($nfmTemplateDir . '/bg_white.jpg')) ? 'bg_white.jpg' : 'bg_white.png';

@@ -12,7 +12,7 @@ if ($baseUrl === '') {
     $baseUrl = $protocol . ($_SERVER['HTTP_HOST'] ?? 'localhost') . (dirname(dirname(dirname($_SERVER['SCRIPT_NAME'] ?? '/index.php'))));
 }
 $reservationUrl = $baseUrl . '/restaurant/' . ($restaurant['slug'] ?? '') . '/reservation';
-$snswTemplateBaseUrl = rtrim($baseUrl, '/') . '/templates/salt_n_socials_white';
+$snswTemplateBaseUrl = isset($templateAssetBaseUrl) ? $templateAssetBaseUrl : (rtrim($baseUrl, '/') . '/templates/template10');
 $snswTemplateDir = __DIR__;
 $snswPageBgFile = (file_exists($snswTemplateDir . '/Salt-Social-2-copy-1.png')) ? 'Salt-Social-2-copy-1.png' : 'Salt-Social-2-copy-1.jpg';
 $snswSideBgFile = (file_exists($snswTemplateDir . '/side-bg-scaled.png')) ? 'side-bg-scaled.png' : 'side-bg-scaled.jpg';

@@ -18,26 +18,27 @@ function templateSupportsOrdering($templateId) {
 }
 
 /**
- * Resolve template directory name from id (and optional slug from DB)
+ * Resolve template directory name from id (filesystem only; display name lives in DB).
  * @param int $templateId
- * @return string Directory name under templates/ (e.g. template1 or the_prime_cut)
+ * @return string Directory name under templates/ (e.g. template1, template10)
  */
 function getTemplateDirName($templateId) {
-    $templateId = intval($templateId);
-    $pdo = getDBConnection();
-    if ($pdo) {
-        try {
-            $stmt = $pdo->prepare("SELECT slug FROM templates WHERE id = ?");
-            $stmt->execute([$templateId]);
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            if ($row && !empty($row['slug'])) {
-                return $row['slug'];
-            }
-        } catch (PDOException $e) {
-            // ignore
-        }
-    }
+    $templateId = max(1, (int) $templateId);
     return 'template' . $templateId;
+}
+
+/**
+ * Public URL base for a template's static assets (images, CSS in template folder).
+ * @param int $templateId
+ * @return string e.g. https://example.com/templates/template10
+ */
+function getTemplateAssetBaseUrl($templateId) {
+    $base = defined('SITE_URL') ? rtrim(SITE_URL, '/') : '';
+    if ($base === '') {
+        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+        $base = $scheme . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+    }
+    return $base . '/templates/' . getTemplateDirName($templateId);
 }
 
 /**
@@ -90,7 +91,7 @@ function getAvailableTemplates() {
             
             foreach ($dbTemplates as $dbTemplate) {
                 $templateId = $dbTemplate['id'];
-                $dirName = !empty($dbTemplate['slug']) ? $dbTemplate['slug'] : ('template' . $templateId);
+                $dirName = getTemplateDirName($templateId);
                 $templatePath = __DIR__ . "/../templates/{$dirName}/index.php";
                 
                 if (file_exists($templatePath)) {
@@ -184,7 +185,7 @@ function getTemplatesAvailableForRestaurant($restaurantId) {
     $templates = [];
     foreach ($rows as $row) {
         $templateId = (int) $row['id'];
-        $dirName = !empty($row['slug']) ? $row['slug'] : ('template' . $templateId);
+        $dirName = getTemplateDirName($templateId);
         $templatePath = __DIR__ . "/../templates/{$dirName}/index.php";
         if (!file_exists($templatePath)) {
             continue;
@@ -266,7 +267,9 @@ function loadTemplate($restaurant, $sections, $customization, $headerMenuItems =
         'supportsReservations' => $supportsReservations,
         'isTemplatePreview' => $isTemplatePreview,
         'singleSectionView' => $singleSectionView,
-        'fullMenuUrl' => $fullMenuUrl
+        'fullMenuUrl' => $fullMenuUrl,
+        'templateId' => (int) $templateId,
+        'templateAssetBaseUrl' => getTemplateAssetBaseUrl($templateId),
     ], EXTR_SKIP);
     
     // Include the template

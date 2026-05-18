@@ -13,7 +13,7 @@ if ($baseUrl === '') {
 }
 $nmcTemplateDir = __DIR__;
 $nmcUploadsRoot = defined('UPLOAD_PATH') ? rtrim(UPLOAD_PATH, '/\\') : dirname(dirname(__DIR__)) . DIRECTORY_SEPARATOR . 'uploads';
-$nmcTemplateBaseUrl = rtrim($baseUrl, '/') . '/templates/neo_mex_cantina';
+$nmcTemplateBaseUrl = isset($templateAssetBaseUrl) ? $templateAssetBaseUrl : (rtrim($baseUrl, '/') . '/templates/template16');
 $nmcBgCandidates = [
     'binding_dark.webp',
     'binding_dark.jpg',
