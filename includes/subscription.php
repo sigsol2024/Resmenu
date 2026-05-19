@@ -791,75 +791,137 @@ function activateSubscription($subscriptionId, $billingCycle = 'monthly') {
 }
 
 /**
+ * Effective status from stored status + period/trial end dates (matches access checks).
+ *
+ * @param array $subscription
+ * @return string trial|active|expired|cancelled|pending|...
+ */
+function resolveEffectiveSubscriptionStatus(array $subscription) {
+    $status = (string)($subscription['status'] ?? '');
+
+    if ($status === 'trial') {
+        return isTrialActive($subscription) ? 'trial' : 'expired';
+    }
+
+    if ($status === 'active') {
+        if (!empty($subscription['current_period_end']) && strtotime($subscription['current_period_end']) <= time()) {
+            return 'expired';
+        }
+        return 'active';
+    }
+
+    return $status;
+}
+
+/**
+ * Mark overdue trials and paid periods as expired in the database.
+ *
+ * @param PDO|null $pdo
+ * @return int Rows updated
+ */
+function syncExpiredSubscriptionStatuses($pdo = null) {
+    $pdo = $pdo ?: getDBConnection();
+    if (!$pdo) {
+        return 0;
+    }
+
+    try {
+        $updated = 0;
+        $updated += (int)$pdo->exec("
+            UPDATE subscriptions
+            SET status = 'expired', updated_at = NOW()
+            WHERE status = 'active'
+              AND current_period_end IS NOT NULL
+              AND current_period_end < NOW()
+        ");
+        $updated += (int)$pdo->exec("
+            UPDATE subscriptions
+            SET status = 'expired', updated_at = NOW()
+            WHERE status = 'trial'
+              AND trial_ends_at IS NOT NULL
+              AND trial_ends_at < NOW()
+        ");
+        return $updated;
+    } catch (PDOException $e) {
+        error_log('syncExpiredSubscriptionStatuses: ' . $e->getMessage());
+        return 0;
+    }
+}
+
+/**
  * Get subscription status display info
  * 
  * @param array $subscription
- * @return array ['label' => string, 'class' => string, 'description' => string]
+ * @return array ['label' => string, 'class' => string, 'description' => string, 'effective_status' => string]
  */
 function getSubscriptionStatusInfo($subscription) {
     if (!$subscription) {
         return [
             'label' => 'No Subscription',
             'class' => 'badge-secondary',
-            'description' => 'No active subscription'
+            'description' => 'No active subscription',
+            'effective_status' => 'none',
         ];
     }
-    
-    $status = $subscription['status'];
-    
+
+    $status = resolveEffectiveSubscriptionStatus($subscription);
+
     switch ($status) {
         case 'trial':
             $daysLeft = getTrialDaysRemaining($subscription);
-            if ($daysLeft > 0) {
-                return [
-                    'label' => 'Trial',
-                    'class' => 'badge-info',
-                    'description' => "{$daysLeft} days remaining"
-                ];
-            } else {
-                return [
-                    'label' => 'Trial Expired',
-                    'class' => 'badge-warning',
-                    'description' => 'Please subscribe to continue'
-                ];
-            }
-            
+            return [
+                'label' => 'Trial',
+                'class' => 'badge-info',
+                'description' => "{$daysLeft} days remaining",
+                'effective_status' => 'trial',
+            ];
+
         case 'active':
-            $endDate = $subscription['current_period_end'] 
+            $endDate = $subscription['current_period_end']
                 ? date('M j, Y', strtotime($subscription['current_period_end']))
                 : 'N/A';
             return [
                 'label' => 'Active',
                 'class' => 'badge-success',
-                'description' => "Renews on {$endDate}"
+                'description' => "Renews on {$endDate}",
+                'effective_status' => 'active',
             ];
-            
+
         case 'expired':
+            $endedAt = $subscription['current_period_end'] ?? $subscription['trial_ends_at'] ?? null;
+            $description = 'Please renew to continue';
+            if ($endedAt) {
+                $description = 'Ended on ' . date('M j, Y', strtotime($endedAt));
+            }
             return [
                 'label' => 'Expired',
                 'class' => 'badge-danger',
-                'description' => 'Please renew to continue'
+                'description' => $description,
+                'effective_status' => 'expired',
             ];
-            
+
         case 'cancelled':
             return [
                 'label' => 'Cancelled',
                 'class' => 'badge-secondary',
-                'description' => 'Subscription has been cancelled'
+                'description' => 'Subscription has been cancelled',
+                'effective_status' => 'cancelled',
             ];
-            
+
         case 'pending':
             return [
                 'label' => 'Pending',
                 'class' => 'badge-warning',
-                'description' => 'Awaiting payment confirmation'
+                'description' => 'Awaiting payment confirmation',
+                'effective_status' => 'pending',
             ];
-            
+
         default:
             return [
                 'label' => ucfirst($status),
                 'class' => 'badge-secondary',
-                'description' => ''
+                'description' => '',
+                'effective_status' => $status,
             ];
     }
 }

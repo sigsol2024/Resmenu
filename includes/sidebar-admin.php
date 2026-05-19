@@ -148,18 +148,6 @@ $userInitials = strtoupper(substr($username, 0, 2));
             <?php endif; ?>
         </div>
 
-        <!-- Help Center -->
-        <div class="sidebar-logout">
-            <a href="https://resmenu.net/contact" class="logout-btn help-btn" target="_blank" rel="noopener noreferrer" title="Help Center">
-                <div class="nav-icon-wrapper" aria-hidden="true">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="nav-icon">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.09 9a3 3 0 015.82 1c0 2-3 2-3 4m.008 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </div>
-                <span class="nav-text">Help Center</span>
-            </a>
-        </div>
-
         <!-- Logout Button -->
         <div class="sidebar-logout">
             <form action="/admin/logout.php" method="post">

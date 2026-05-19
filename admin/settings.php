@@ -24,6 +24,10 @@ if (!$admin) {
     exit;
 }
 
+$stmt = $pdo->query("SELECT id, username, email, created_at, updated_at FROM admins ORDER BY id ASC");
+$allAdmins = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$primaryAdminId = !empty($allAdmins) ? (int)$allAdmins[0]['id'] : (int)$adminId;
+
 $siteSettings = getSiteSettings();
 $siteLogoUrl = !empty($siteSettings['site_logo']) ? (UPLOAD_URL . '/site/' . $siteSettings['site_logo']) : null;
 $faviconUrl = !empty($siteSettings['favicon']) ? (UPLOAD_URL . '/site/' . $siteSettings['favicon']) : null;
@@ -198,6 +202,124 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     }
+
+    if ($action === 'add_admin') {
+        $newUsername = sanitize($_POST['new_admin_username'] ?? '');
+        $newEmail = trim($_POST['new_admin_email'] ?? '');
+        $newPassword = $_POST['new_admin_password'] ?? '';
+
+        if ($newUsername === '' || $newEmail === '' || $newPassword === '') {
+            $error = $error ?: 'Username, email, and password are required for a new admin';
+        } elseif (!isValidEmail($newEmail)) {
+            $error = $error ?: 'Invalid email address';
+        } else {
+            $pwErr = getPasswordPolicyError($newPassword);
+            if ($pwErr !== null) {
+                $error = $error ?: $pwErr;
+            } else {
+                $stmt = $pdo->prepare("SELECT id FROM admins WHERE email = ? OR username = ?");
+                $stmt->execute([$newEmail, $newUsername]);
+                if ($stmt->fetch()) {
+                    $error = $error ?: 'Username or email is already in use';
+                } else {
+                    try {
+                        $hash = hashPassword($newPassword);
+                        $stmt = $pdo->prepare("INSERT INTO admins (username, email, password_hash, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())");
+                        $stmt->execute([$newUsername, $newEmail, $hash]);
+                        $message = $message ?: 'Administrator account created successfully';
+                        $stmt = $pdo->query("SELECT id, username, email, created_at, updated_at FROM admins ORDER BY id ASC");
+                        $allAdmins = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    } catch (PDOException $e) {
+                        $error = $error ?: ('Error creating admin: ' . $e->getMessage());
+                    }
+                }
+            }
+        }
+    }
+
+    if ($action === 'update_admin') {
+        $targetId = (int)($_POST['target_admin_id'] ?? 0);
+        $newUsername = sanitize($_POST['target_username'] ?? '');
+        $newEmail = trim($_POST['target_email'] ?? '');
+        $newPassword = $_POST['target_new_password'] ?? '';
+
+        if ($targetId <= 0 || $newUsername === '' || $newEmail === '') {
+            $error = $error ?: 'Username and email are required';
+        } elseif (!isValidEmail($newEmail)) {
+            $error = $error ?: 'Invalid email address';
+        } else {
+            $stmt = $pdo->prepare("SELECT id FROM admins WHERE id = ?");
+            $stmt->execute([$targetId]);
+            if (!$stmt->fetch()) {
+                $error = $error ?: 'Administrator not found';
+            } else {
+                $stmt = $pdo->prepare("SELECT id FROM admins WHERE (email = ? OR username = ?) AND id != ?");
+                $stmt->execute([$newEmail, $newUsername, $targetId]);
+                if ($stmt->fetch()) {
+                    $error = $error ?: 'Username or email is already in use by another admin';
+                } else {
+                    if ($newPassword !== '') {
+                        $pwErr = getPasswordPolicyError($newPassword);
+                        if ($pwErr !== null) {
+                            $error = $error ?: $pwErr;
+                        }
+                    }
+                    if (empty($error)) {
+                        try {
+                            if ($newPassword !== '') {
+                                $hash = hashPassword($newPassword);
+                                $stmt = $pdo->prepare("UPDATE admins SET username = ?, email = ?, password_hash = ?, updated_at = NOW() WHERE id = ?");
+                                $stmt->execute([$newUsername, $newEmail, $hash, $targetId]);
+                            } else {
+                                $stmt = $pdo->prepare("UPDATE admins SET username = ?, email = ?, updated_at = NOW() WHERE id = ?");
+                                $stmt->execute([$newUsername, $newEmail, $targetId]);
+                            }
+                            if ($targetId === $adminId) {
+                                $_SESSION['username'] = $newUsername;
+                                $stmt = $pdo->prepare("SELECT id, username, email, created_at FROM admins WHERE id = ?");
+                                $stmt->execute([$adminId]);
+                                $admin = $stmt->fetch();
+                            }
+                            $message = $message ?: 'Administrator updated successfully';
+                            $stmt = $pdo->query("SELECT id, username, email, created_at, updated_at FROM admins ORDER BY id ASC");
+                            $allAdmins = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                        } catch (PDOException $e) {
+                            $error = $error ?: ('Error updating admin: ' . $e->getMessage());
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if ($action === 'delete_admin') {
+        $targetId = (int)($_POST['target_admin_id'] ?? 0);
+
+        if ($targetId <= 0) {
+            $error = $error ?: 'Invalid administrator';
+        } elseif ($targetId === $adminId) {
+            $error = $error ?: 'You cannot delete your own account';
+        } elseif ($targetId === $primaryAdminId) {
+            $error = $error ?: 'The primary administrator account cannot be deleted';
+        } elseif (count($allAdmins) <= 1) {
+            $error = $error ?: 'At least one administrator must remain';
+        } else {
+            try {
+                $stmt = $pdo->prepare("DELETE FROM admins WHERE id = ?");
+                $stmt->execute([$targetId]);
+                if ($stmt->rowCount() > 0) {
+                    $message = $message ?: 'Administrator deleted successfully';
+                    $stmt = $pdo->query("SELECT id, username, email, created_at, updated_at FROM admins ORDER BY id ASC");
+                    $allAdmins = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    $primaryAdminId = !empty($allAdmins) ? (int)$allAdmins[0]['id'] : (int)$adminId;
+                } else {
+                    $error = $error ?: 'Administrator not found';
+                }
+            } catch (PDOException $e) {
+                $error = $error ?: ('Error deleting admin: ' . $e->getMessage());
+            }
+        }
+    }
 }
 
 $pageTitle = 'Settings';
@@ -233,6 +355,22 @@ include __DIR__ . '/../includes/admin-layout.php';
 .tab-button.active { color: #111827; border-bottom-color: #111827; background: #fff; }
 .tab-content { display: none; padding: 20px 24px; }
 .tab-content.active { display: block; }
+.admin-list { list-style: none; margin: 0; padding: 0; }
+.admin-list-item { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 16px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+.admin-list-meta { font-size: 0.8125rem; color: #6b7280; margin-top: 4px; }
+.admin-badge { display: inline-block; font-size: 0.6875rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: #dbeafe; color: #1e40af; margin-left: 8px; vertical-align: middle; }
+.admin-badge-you { background: #d1fae5; color: #065f46; }
+.admin-badge-primary { background: #fef3c7; color: #92400e; }
+.admin-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.btn-sm { padding: 8px 14px; font-size: 0.8125rem; }
+.btn-danger { background: #dc2626; color: #fff; }
+.btn-danger:hover { background: #b91c1c; }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 16px; }
+.modal-overlay.active { display: flex; }
+.modal-box { background: #fff; border-radius: 10px; padding: 24px; width: 100%; max-width: 440px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.modal-title { font-size: 1.125rem; font-weight: 600; margin: 0; }
+.modal-close { background: none; border: none; font-size: 1.5rem; line-height: 1; cursor: pointer; color: #6b7280; }
 </style>
 
 <div class="page-header">
@@ -386,6 +524,47 @@ include __DIR__ . '/../includes/admin-layout.php';
     </div>
 
     <div class="tab-content" id="tab-account">
+        <div class="card" style="margin-bottom:16px;">
+            <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+                <h2 class="card-title" style="margin:0;">Administrators (<?php echo count($allAdmins); ?>)</h2>
+                <button type="button" class="btn btn-primary btn-sm" onclick="openAddAdminModal()">Add Administrator</button>
+            </div>
+            <div class="card-body">
+                <p style="margin:0 0 16px;color:#6b7280;font-size:0.875rem;">Create additional admin logins, edit their details, reset passwords, or remove accounts. The primary account cannot be deleted.</p>
+                <ul class="admin-list">
+                    <?php foreach ($allAdmins as $row): ?>
+                    <li class="admin-list-item">
+                        <div>
+                            <strong><?php echo htmlspecialchars($row['username']); ?></strong>
+                            <?php if ((int)$row['id'] === $primaryAdminId): ?>
+                                <span class="admin-badge admin-badge-primary">Primary</span>
+                            <?php endif; ?>
+                            <?php if ((int)$row['id'] === $adminId): ?>
+                                <span class="admin-badge admin-badge-you">You</span>
+                            <?php endif; ?>
+                            <div class="admin-list-meta"><?php echo htmlspecialchars($row['email']); ?></div>
+                            <div class="admin-list-meta">Added <?php echo $row['created_at'] ? date('M j, Y', strtotime($row['created_at'])) : 'N/A'; ?></div>
+                        </div>
+                        <div class="admin-actions">
+                            <button type="button" class="btn btn-secondary btn-sm btn-edit-admin"
+                                data-id="<?php echo (int)$row['id']; ?>"
+                                data-username="<?php echo htmlspecialchars($row['username'], ENT_QUOTES, 'UTF-8'); ?>"
+                                data-email="<?php echo htmlspecialchars($row['email'], ENT_QUOTES, 'UTF-8'); ?>">Edit</button>
+                            <?php if ((int)$row['id'] !== $adminId && (int)$row['id'] !== $primaryAdminId): ?>
+                            <form method="POST" style="display:inline;" onsubmit="return confirm('Delete this administrator? This cannot be undone.');">
+                                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
+                                <input type="hidden" name="action" value="delete_admin">
+                                <input type="hidden" name="target_admin_id" value="<?php echo (int)$row['id']; ?>">
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            </form>
+                            <?php endif; ?>
+                        </div>
+                    </li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+        </div>
+
         <!-- Profile (merged from profile.php) -->
         <div class="card" style="margin-bottom:16px;">
             <div class="card-header">
@@ -443,7 +622,7 @@ include __DIR__ . '/../includes/admin-layout.php';
                     <div class="form-group">
                         <label class="form-label" for="new_password">New Password *</label>
                         <input type="password" id="new_password" name="new_password" class="form-input" required minlength="8">
-                        <small style="color: #6b7280; display: block; margin-top: 5px; font-size: 0.75rem;">Password must be at least 6 characters</small>
+                        <small style="color: #6b7280; display: block; margin-top: 5px; font-size: 0.75rem;">At least 8 characters with a letter and a number</small>
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="confirm_password">Confirm New Password *</label>
@@ -456,7 +635,104 @@ include __DIR__ . '/../includes/admin-layout.php';
     </div>
 </div>
 
+<div class="modal-overlay" id="addAdminModal" aria-hidden="true">
+    <div class="modal-box" role="dialog" aria-labelledby="addAdminModalTitle">
+        <div class="modal-header">
+            <h3 class="modal-title" id="addAdminModalTitle">Add Administrator</h3>
+            <button type="button" class="modal-close" onclick="closeAddAdminModal()" aria-label="Close">&times;</button>
+        </div>
+        <form method="POST">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
+            <input type="hidden" name="action" value="add_admin">
+            <div class="form-group">
+                <label class="form-label" for="new_admin_username">Username *</label>
+                <input type="text" id="new_admin_username" name="new_admin_username" class="form-input" required autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="new_admin_email">Email *</label>
+                <input type="email" id="new_admin_email" name="new_admin_email" class="form-input" required autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="new_admin_password">Password *</label>
+                <input type="password" id="new_admin_password" name="new_admin_password" class="form-input" required autocomplete="new-password">
+                <small style="color:#6b7280;display:block;margin-top:4px;font-size:0.75rem;">At least 8 characters with a letter and a number</small>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:8px;">
+                <button type="submit" class="btn btn-primary">Add Administrator</button>
+                <button type="button" class="btn btn-secondary" onclick="closeAddAdminModal()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal-overlay" id="editAdminModal" aria-hidden="true">
+    <div class="modal-box" role="dialog" aria-labelledby="editAdminModalTitle">
+        <div class="modal-header">
+            <h3 class="modal-title" id="editAdminModalTitle">Edit Administrator</h3>
+            <button type="button" class="modal-close" onclick="closeEditAdminModal()" aria-label="Close">&times;</button>
+        </div>
+        <form method="POST" id="editAdminForm">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCSRFToken()); ?>">
+            <input type="hidden" name="action" value="update_admin">
+            <input type="hidden" name="target_admin_id" id="edit_target_admin_id" value="">
+            <div class="form-group">
+                <label class="form-label" for="target_username">Username *</label>
+                <input type="text" id="target_username" name="target_username" class="form-input" required autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="target_email">Email *</label>
+                <input type="email" id="target_email" name="target_email" class="form-input" required autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="target_new_password">New password</label>
+                <input type="password" id="target_new_password" name="target_new_password" class="form-input" autocomplete="new-password" placeholder="Leave blank to keep current">
+                <small style="color:#6b7280;display:block;margin-top:4px;font-size:0.75rem;">Only fill in to reset this admin&apos;s password</small>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:8px;">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <button type="button" class="btn btn-secondary" onclick="closeEditAdminModal()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
+function openAddAdminModal() {
+    document.getElementById('addAdminModal').classList.add('active');
+    document.getElementById('new_admin_username').focus();
+}
+function closeAddAdminModal() {
+    document.getElementById('addAdminModal').classList.remove('active');
+}
+function openEditAdminModal(id, username, email) {
+    document.getElementById('edit_target_admin_id').value = id;
+    document.getElementById('target_username').value = username;
+    document.getElementById('target_email').value = email;
+    document.getElementById('target_new_password').value = '';
+    document.getElementById('editAdminModal').classList.add('active');
+}
+function closeEditAdminModal() {
+    document.getElementById('editAdminModal').classList.remove('active');
+    document.getElementById('editAdminForm').reset();
+}
+document.querySelectorAll('.btn-edit-admin').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        openEditAdminModal(
+            parseInt(this.getAttribute('data-id'), 10),
+            this.getAttribute('data-username') || '',
+            this.getAttribute('data-email') || ''
+        );
+    });
+});
+['addAdminModal', 'editAdminModal'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('click', function(e) {
+        if (e.target === el) {
+            if (id === 'addAdminModal') closeAddAdminModal();
+            else closeEditAdminModal();
+        }
+    });
+});
 (function() {
     var buttons = document.querySelectorAll('.tab-button');
     var contents = {

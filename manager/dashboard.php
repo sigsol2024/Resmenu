@@ -157,7 +157,7 @@ include __DIR__ . '/../includes/manager-layout.php';
                       Subscribe Now
                   </a>
               </div>
-          <?php elseif ($subscription['status'] === 'expired'): ?>
+          <?php elseif ($subscription['status'] === 'expired' || (!$subscriptionAccess['valid'] && ($subscriptionAccess['lockout_reason'] ?? '') === 'subscription_expired')): ?>
               <!-- Subscription Expired Banner -->
               <div class="subscription-banner expired-banner">
                   <div class="banner-icon">

@@ -144,6 +144,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+// Align DB status with period/trial end dates (cron may not have run yet)
+syncExpiredSubscriptionStatuses($pdo);
+
 // Filters
 $statusFilter = $_GET['status'] ?? '';
 $searchQuery = trim($_GET['search'] ?? '');
@@ -737,6 +740,7 @@ include __DIR__ . '/../includes/admin-layout.php';
                 <?php foreach ($subscriptions as $sub): ?>
                     <?php
                     $statusInfo = getSubscriptionStatusInfo($sub);
+                    $effectiveStatus = $statusInfo['effective_status'] ?? resolveEffectiveSubscriptionStatus($sub);
                     $periodEnd = $sub['current_period_end'] ? date('M j, Y', strtotime($sub['current_period_end'])) : 'N/A';
                     $trialEnd = $sub['trial_ends_at'] ? date('M j, Y', strtotime($sub['trial_ends_at'])) : 'N/A';
                     $price = $sub['billing_cycle'] === 'annual' ? $sub['annual_price'] : $sub['monthly_price'];
@@ -754,8 +758,8 @@ include __DIR__ . '/../includes/admin-layout.php';
                             </span>
                         </td>
                         <td>
-                            <span class="status-badge status-<?php echo $sub['status']; ?>">
-                                <?php echo ucfirst($sub['status']); ?>
+                            <span class="status-badge status-<?php echo htmlspecialchars($effectiveStatus); ?>" title="<?php echo htmlspecialchars($statusInfo['description'] ?? ''); ?>">
+                                <?php echo htmlspecialchars($statusInfo['label'] ?? ucfirst($effectiveStatus)); ?>
                             </span>
                         </td>
                         <td>
@@ -766,9 +770,12 @@ include __DIR__ . '/../includes/admin-layout.php';
                         </td>
                         <td>
                             <div class="date-info">
-                                <?php if ($sub['status'] === 'trial'): ?>
+                                <?php if ($effectiveStatus === 'trial'): ?>
                                     <span class="date-label">Trial ends:</span><br>
                                     <?php echo $trialEnd; ?>
+                                <?php elseif ($effectiveStatus === 'expired'): ?>
+                                    <span class="date-label">Ended:</span><br>
+                                    <?php echo $sub['current_period_end'] ? $periodEnd : ($sub['trial_ends_at'] ? $trialEnd : 'N/A'); ?>
                                 <?php else: ?>
                                     <span class="date-label">Renews:</span><br>
                                     <?php echo $periodEnd; ?>
