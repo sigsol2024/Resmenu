@@ -31,18 +31,15 @@ if (!empty($sections) && is_array($sections)) {
     }
 }
 
-// Upload base URL — same approach as templates 2/3 (logo already uses this and works)
+// Upload base URL — same request-based path as templates 2/3 (logo + hero use this)
 $t4Protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
 $t4Host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $t4ScriptDir = dirname($_SERVER['SCRIPT_NAME'] ?? '/');
 $t4ScriptDir = ($t4ScriptDir === '/' || $t4ScriptDir === '\\') ? '' : rtrim($t4ScriptDir, '/');
 $t4AppBase = $t4Protocol . $t4Host . $t4ScriptDir;
+$uploadBaseUrl = $t4AppBase . '/uploads';
 if (defined('CANONICAL_UPLOAD_URL') && CANONICAL_UPLOAD_URL !== '') {
     $uploadBaseUrl = rtrim(CANONICAL_UPLOAD_URL, '/');
-} elseif (defined('UPLOAD_URL') && UPLOAD_URL !== '') {
-    $uploadBaseUrl = rtrim(UPLOAD_URL, '/');
-} else {
-    $uploadBaseUrl = $t4AppBase . '/uploads';
 }
 
 $template4BaseUrl = isset($templateAssetBaseUrl) ? $templateAssetBaseUrl : ((defined('SITE_URL') ? rtrim(SITE_URL, '/') : $t4AppBase) . '/templates/template4');
@@ -65,9 +62,9 @@ function t4_formatPrice($price, $symbol = '₦') {
 }
 
 /**
- * Public URL for an uploaded file (same pattern as template 2/3 — no disk check).
+ * Public URL for an uploaded file (basename only — matches working backup / template 2).
  */
-function t4_upload_src($subdir, $filename) {
+function t4_upload_url($subdir, $filename) {
     global $uploadBaseUrl;
     if ($filename === null || trim((string) $filename) === '') {
         return '';
@@ -76,26 +73,22 @@ function t4_upload_src($subdir, $filename) {
     if (preg_match('#^https?://#i', $file)) {
         return $file;
     }
-    $path = ltrim(str_replace('\\', '/', $file), '/');
-    if (preg_match('#^uploads/(.+)$#i', $path, $m)) {
-        $path = $m[1];
-    }
     $subdir = trim(str_replace('\\', '/', (string) $subdir), '/');
-    if ($subdir !== '' && strpos($path, $subdir . '/') !== 0 && $path !== $subdir) {
-        $path = $subdir . '/' . basename($path);
+    $name = basename(str_replace('\\', '/', $file));
+    if ($name === '' || $name === '.' || $name === '..') {
+        return '';
     }
-    $segments = explode('/', $path);
-    return rtrim($uploadBaseUrl, '/') . '/' . implode('/', array_map('rawurlencode', $segments));
+    return rtrim($uploadBaseUrl, '/') . '/' . $subdir . '/' . rawurlencode($name);
 }
 
 // Hero / cover image (section image on section pages; else restaurant hero; else fallback)
 $heroBgImage = '';
 if (!empty($singleSectionView) && !empty($sections[0]['image'])) {
-    $heroBgImage = t4_upload_src('sections', $sections[0]['image']);
+    $heroBgImage = t4_upload_url('sections', $sections[0]['image']);
 } elseif (!empty($restaurant['hero_image_url'])) {
     $heroBgImage = $restaurant['hero_image_url'];
 } elseif (!empty($restaurant['hero_image'])) {
-    $heroBgImage = t4_upload_src('heroes', $restaurant['hero_image']);
+    $heroBgImage = t4_upload_url('heroes', $restaurant['hero_image']);
 } else {
     $heroBgImage = 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1600&h=900&fit=crop';
 }
@@ -234,7 +227,7 @@ if (!empty($singleSectionView) && !empty($sections[0]['image'])) {
     <div class="max-w-7xl mx-auto flex items-center justify-between">
         <div class="flex items-center gap-2">
             <?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?>
-                <img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="h-10 w-auto object-contain">
+                <img src="<?php echo htmlspecialchars(t4_upload_url('logos', $restaurant['logo']), ENT_QUOTES, 'UTF-8'); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="h-10 w-auto object-contain">
             <?php elseif (!empty($isTemplatePreview)): ?>
                 <span class="text-white text-xl font-bold tracking-tight">Logo</span>
             <?php else: ?>
@@ -285,10 +278,11 @@ if (!empty($singleSectionView) && !empty($sections[0]['image'])) {
 
 <!-- Hero Section -->
 <section class="relative min-h-[85vh] flex items-center justify-center bg-charcoal overflow-hidden pt-20">
-    <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('<?php echo htmlspecialchars($heroBgImage); ?>');"></div>
+    <?php if ($heroBgImage !== ''): ?>
+    <img src="<?php echo htmlspecialchars($heroBgImage, ENT_QUOTES, 'UTF-8'); ?>" alt="" class="absolute inset-0 w-full h-full object-cover object-center" decoding="async" fetchpriority="high"/>
+    <?php endif; ?>
     <div class="absolute inset-0 herb-pattern pointer-events-none"></div>
-    <!-- Darker overlay for stronger contrast -->
-    <div class="absolute inset-0 bg-gradient-to-t from-charcoal via-black/50 to-black/20"></div>
+    <div class="absolute inset-0 bg-gradient-to-t from-charcoal via-black/40 to-black/10 pointer-events-none"></div>
     <div class="relative z-10 text-center max-w-4xl px-6">
         <h2 class="text-white text-6xl md:text-8xl font-serif font-black mb-6 tracking-tight">
             <?php echo htmlspecialchars($restaurant['name']); ?>
@@ -345,7 +339,7 @@ if (!empty($singleSectionView) && !empty($sections[0]['image'])) {
                 </div>
                 <?php if (empty($singleSectionView) && !empty($section['image']) && empty($isTemplatePreview)): ?>
                 <div class="flex justify-center mb-10 px-4">
-                    <img src="<?php echo htmlspecialchars(t4_upload_src('sections', $section['image'])); ?>" alt="" class="max-h-32 md:max-h-40 w-auto max-w-full rounded-xl object-contain shadow-md" loading="lazy" decoding="async"/>
+                    <img src="<?php echo htmlspecialchars(t4_upload_url('sections', $section['image'])); ?>" alt="" class="max-h-32 md:max-h-40 w-auto max-w-full rounded-xl object-contain shadow-md" loading="lazy" decoding="async"/>
                 </div>
                 <?php endif; ?>
             </div>
@@ -355,7 +349,7 @@ if (!empty($singleSectionView) && !empty($sections[0]['image'])) {
                 <div class="mb-24" id="<?php echo htmlspecialchars($category['slug']); ?>-section">
                     <div class="flex items-center gap-4 md:gap-6 mb-8 category-title-animate">
                         <?php if (!empty($category['image']) && empty($isTemplatePreview)): ?>
-                        <img src="<?php echo htmlspecialchars(t4_upload_src('categories', $category['image'])); ?>" alt="" class="h-14 w-14 md:h-16 md:w-16 shrink-0 rounded-xl object-cover shadow-sm ring-2 ring-charcoal/10" loading="lazy" decoding="async"/>
+                        <img src="<?php echo htmlspecialchars(t4_upload_url('categories', $category['image'])); ?>" alt="" class="h-14 w-14 md:h-16 md:w-16 shrink-0 rounded-xl object-cover shadow-sm ring-2 ring-charcoal/10" loading="lazy" decoding="async"/>
                         <?php endif; ?>
                         <h3 class="text-base md:text-lg font-serif font-black tracking-tight bg-charcoal rounded-xl px-4 py-3 shrink-0" style="color: <?php echo htmlspecialchars($categoryTitleColor); ?>"><?php echo htmlspecialchars($category['name']); ?></h3>
                         <div class="h-px flex-1 bg-charcoal/20"></div>
@@ -363,7 +357,7 @@ if (!empty($singleSectionView) && !empty($sections[0]['image'])) {
                     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-4">
                         <?php foreach (($category['menu_items'] ?? []) as $item): ?>
                             <?php
-                            $itemImage = !empty($item['image']) ? t4_upload_src('menu-items', $item['image']) : '';
+                            $itemImage = !empty($item['image']) ? t4_upload_url('menu-items', $item['image']) : '';
                             $hasImage = $itemImage !== '';
                             ?>
                             <div class="menu-card-animate bg-white border border-charcoal/5 rounded-2xl overflow-hidden flex flex-col <?php echo $hasImage ? '' : 'menu-card-no-image'; ?> hover:shadow-xl hover:border-primary/10 transition-shadow duration-300 group relative">
@@ -398,7 +392,7 @@ if (!empty($singleSectionView) && !empty($sections[0]['image'])) {
                     <div class="h-px flex-1 bg-charcoal/20"></div>
                     <div class="shrink-0 flex items-center justify-center px-4">
                         <?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?>
-                            <img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="h-8 w-auto object-contain max-w-[120px]">
+                            <img src="<?php echo htmlspecialchars(t4_upload_url('logos', $restaurant['logo']), ENT_QUOTES, 'UTF-8'); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="h-8 w-auto object-contain max-w-[120px]">
                         <?php elseif (!empty($isTemplatePreview)): ?>
                             <span class="text-primary font-bold text-sm md:text-base tracking-wide whitespace-nowrap">Logo</span>
                         <?php else: ?>
@@ -421,7 +415,7 @@ if (!empty($singleSectionView) && !empty($sections[0]['image'])) {
             <div class="space-y-6">
                 <div class="flex items-center gap-2">
                     <?php if (!empty($restaurant['logo']) && empty($isTemplatePreview)): ?>
-                        <img src="<?php echo $uploadBaseUrl . '/logos/' . htmlspecialchars($restaurant['logo']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="h-10 w-auto object-contain">
+                        <img src="<?php echo htmlspecialchars(t4_upload_url('logos', $restaurant['logo']), ENT_QUOTES, 'UTF-8'); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" class="h-10 w-auto object-contain">
                     <?php elseif (!empty($isTemplatePreview)): ?>
                         <span class="text-white text-xl font-bold tracking-tight">Logo</span>
                     <?php else: ?>
