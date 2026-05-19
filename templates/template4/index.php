@@ -328,7 +328,9 @@ function t4_formatPrice($price, $symbol = '₦') {
                 <div class="mb-24" id="<?php echo htmlspecialchars($category['slug']); ?>-section">
                     <div class="flex items-center gap-4 md:gap-6 mb-8 category-title-animate">
                         <?php if (!empty($category['image']) && empty($isTemplatePreview)): ?>
-                        <img src="<?php echo $uploadBaseUrl . '/categories/' . htmlspecialchars($category['image']); ?>" alt="" class="h-14 w-14 md:h-16 md:w-16 shrink-0 rounded-xl object-cover shadow-sm ring-2 ring-charcoal/10" loading="lazy" decoding="async"/>
+                        <div class="h-20 w-20 md:h-24 md:w-24 lg:h-28 lg:w-28 shrink-0 rounded-xl border-2 border-charcoal/15 bg-white shadow-sm flex items-center justify-center overflow-hidden p-2 md:p-2.5 box-border" aria-hidden="true">
+                            <img src="<?php echo $uploadBaseUrl . '/categories/' . htmlspecialchars($category['image']); ?>" alt="" class="max-h-full max-w-full w-auto h-auto object-contain object-center" loading="lazy" decoding="async"/>
+                        </div>
                         <?php endif; ?>
                         <h3 class="text-base md:text-lg font-serif font-black tracking-tight bg-charcoal rounded-xl px-4 py-3 shrink-0" style="color: <?php echo htmlspecialchars($categoryTitleColor); ?>"><?php echo htmlspecialchars($category['name']); ?></h3>
                         <div class="h-px flex-1 bg-charcoal/20"></div>
