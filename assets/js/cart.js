@@ -105,7 +105,12 @@
     }
 
     function formatPrice(amount, symbol = '₦') {
-        return symbol + parseFloat(amount).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const n = parseFloat(amount) || 0;
+        let str = n.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        if (str.endsWith('.00')) {
+            str = str.slice(0, -3);
+        }
+        return symbol + str;
     }
 
     window.RESMENU_CART = {

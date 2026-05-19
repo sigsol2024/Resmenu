@@ -19,13 +19,7 @@ $snswSideBgFile = (file_exists($snswTemplateDir . '/side-bg-scaled.png')) ? 'sid
 $currencySymbol = '₦';
 $primaryColor = isset($customization['primary_color']) ? $customization['primary_color'] : '#0D2633';
 function snsw_price($p, $s = '₦') {
-    $n = (float)$p;
-    if ($n == 0.0) return '';
-    $str = number_format($n, 2, '.', ',');
-    if (substr($str, -3) === '.00') {
-        return $s . substr($str, 0, -3);
-    }
-    return $s . $str;
+    return formatPrice($p, $s);
 }
 $activeCategories = [];
 $snswCatSeen = [];

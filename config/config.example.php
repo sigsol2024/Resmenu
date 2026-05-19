@@ -11,6 +11,9 @@
 // define('DB_USER', 'your-db-user');
 // define('DB_PASS', 'your-db-password');
 // define('DB_CHARSET', 'utf8mb4');
+
+// Menu on a custom subdomain but files uploaded on the main app host (fixes 404 on category/item images)
+// define('CANONICAL_UPLOAD_URL', 'https://our-menu.online/uploads');
 // define('SMTP_HOST', 'smtp.example.com');
 // define('SMTP_PORT', '465');
 // define('SMTP_SECURE', 'ssl');

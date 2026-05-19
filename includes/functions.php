@@ -65,6 +65,73 @@ function sanitizeUrl($url) {
 }
 
 /**
+ * Base URL for publicly served upload files (categories, menu-items, sections, etc.).
+ * Uses CANONICAL_UPLOAD_URL when set so custom menu domains still load files from the app host.
+ *
+ * @return string e.g. https://our-menu.online/uploads
+ */
+function getUploadPublicBaseUrl() {
+    if (defined('CANONICAL_UPLOAD_URL') && CANONICAL_UPLOAD_URL !== '') {
+        return rtrim(CANONICAL_UPLOAD_URL, '/');
+    }
+    if (defined('UPLOAD_URL') && UPLOAD_URL !== '') {
+        return rtrim(UPLOAD_URL, '/');
+    }
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    return $protocol . $host . '/uploads';
+}
+
+/**
+ * Build a public URL for an uploaded file and verify it exists on disk when possible.
+ *
+ * @param string $subdir e.g. categories, menu-items, sections, heroes, logos
+ * @param string|null $filename Stored DB value (basename or path under uploads)
+ * @param bool $requireFileOnDisk If true, return '' when the file is missing (avoids broken icons)
+ * @return string
+ */
+function getUploadPublicUrl($subdir, $filename, $requireFileOnDisk = true) {
+    if ($filename === null || $filename === '') {
+        return '';
+    }
+    $file = trim((string) $filename);
+    if ($file === '') {
+        return '';
+    }
+    if (preg_match('#^https?://#i', $file)) {
+        return $file;
+    }
+
+    $path = ltrim(str_replace('\\', '/', $file), '/');
+    if (preg_match('#^uploads/(.+)$#i', $path, $m)) {
+        $path = $m[1];
+    }
+
+    $subdir = trim(str_replace('\\', '/', (string) $subdir), '/');
+    if ($subdir !== '' && (strpos($path, $subdir . '/') === 0 || $path === $subdir)) {
+        $relative = $path;
+    } elseif ($subdir !== '') {
+        $relative = $subdir . '/' . basename($path);
+    } else {
+        $relative = $path;
+    }
+
+    $diskRelative = str_replace('/', DIRECTORY_SEPARATOR, $relative);
+    if ($requireFileOnDisk && defined('UPLOAD_PATH')) {
+        $diskPath = rtrim(UPLOAD_PATH, '/\\') . DIRECTORY_SEPARATOR . $diskRelative;
+        if (!is_file($diskPath)) {
+            error_log('getUploadPublicUrl: file not found on disk: ' . $diskPath);
+            return '';
+        }
+    }
+
+    $segments = explode('/', $relative);
+    $encoded = implode('/', array_map('rawurlencode', $segments));
+
+    return getUploadPublicBaseUrl() . '/' . $encoded;
+}
+
+/**
  * Sanitize and validate email. Returns null if invalid.
  * @param string $email
  * @return string|null
@@ -562,7 +629,11 @@ function formatPrice($price, $currency = '₦') {
     if ($p == 0.0) {
         return '';
     }
-    return $currency . number_format($p, 2);
+    $str = number_format($p, 2, '.', ',');
+    if (substr($str, -3) === '.00') {
+        $str = substr($str, 0, -3);
+    }
+    return $currency . $str;
 }
 
 /**

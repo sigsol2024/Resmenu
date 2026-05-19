@@ -305,14 +305,30 @@ $categories = [];
 if ($pdo && $restaurantId) {
     normalizeCategoryDisplayOrder($restaurantId);
     try {
-        $stmt = $pdo->prepare("SELECT c.*, s.name AS section_name FROM categories c LEFT JOIN sections s ON s.id = c.section_id WHERE c.restaurant_id = ? ORDER BY COALESCE(s.display_order, 0) ASC, c.display_order ASC, c.name ASC");
+        $stmt = $pdo->prepare("
+            SELECT c.*, s.name AS section_name,
+                   (SELECT COUNT(*) FROM menu_items mi WHERE mi.category_id = c.id AND mi.restaurant_id = c.restaurant_id) AS item_count
+            FROM categories c
+            LEFT JOIN sections s ON s.id = c.section_id
+            WHERE c.restaurant_id = ?
+            ORDER BY COALESCE(s.display_order, 0) ASC, c.display_order ASC, c.name ASC
+        ");
         $stmt->execute([$restaurantId]);
         $categories = $stmt->fetchAll();
     } catch (Throwable $e) {
-        $stmt = $pdo->prepare("SELECT * FROM categories WHERE restaurant_id = ? ORDER BY display_order ASC, name ASC");
+        $stmt = $pdo->prepare("
+            SELECT c.*,
+                   (SELECT COUNT(*) FROM menu_items mi WHERE mi.category_id = c.id AND mi.restaurant_id = c.restaurant_id) AS item_count
+            FROM categories c
+            WHERE c.restaurant_id = ?
+            ORDER BY c.display_order ASC, c.name ASC
+        ");
         $stmt->execute([$restaurantId]);
         $categories = $stmt->fetchAll();
-        foreach ($categories as &$c) { $c['section_name'] = null; }
+        foreach ($categories as &$c) {
+            $c['section_name'] = null;
+        }
+        unset($c);
     }
 }
 
@@ -523,6 +539,7 @@ include __DIR__ . '/../includes/manager-layout.php';
                         <th>Image</th>
                         <th>Name</th>
                         <th>Section</th>
+                        <th>Items</th>
                         <th>Order</th>
                         <th>Status</th>
                         <th>Actions</th>
@@ -531,7 +548,7 @@ include __DIR__ . '/../includes/manager-layout.php';
                 <tbody>
                     <?php if (empty($categories)): ?>
                         <tr>
-                            <td colspan="6" style="text-align: center; padding: 40px; color: var(--muted);">No categories found.</td>
+                            <td colspan="7" style="text-align: center; padding: 40px; color: var(--muted);">No categories found.</td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($categories as $category): ?>
@@ -545,6 +562,10 @@ include __DIR__ . '/../includes/manager-layout.php';
                                 </td>
                                 <td><?php echo htmlspecialchars($category['name']); ?></td>
                                 <td><?php echo htmlspecialchars($category['section_name'] ?? '—'); ?></td>
+                                <td>
+                                    <?php $itemCount = (int)($category['item_count'] ?? 0); ?>
+                                    <a href="menu-items.php?category_id=<?php echo (int)$category['id']; ?><?php echo isSuperAdmin() && isset($restaurantId) && $restaurantId ? '&restaurant_id=' . urlencode($restaurantId) : ''; ?>" class="cat-item-count-link" title="View menu items in this category"><?php echo $itemCount; ?> <?php echo $itemCount === 1 ? 'item' : 'items'; ?></a>
+                                </td>
                                 <td><?php echo $category['display_order']; ?></td>
                                 <td><span style="padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; background: <?php echo $category['is_active'] ? '#d1fae5' : '#fee2e2'; ?>; color: <?php echo $category['is_active'] ? '#065f46' : '#991b1b'; ?>"><?php echo $category['is_active'] ? 'Active' : 'Inactive'; ?></span></td>
                                 <td class="actions-cell">
@@ -583,6 +604,9 @@ include __DIR__ . '/../includes/manager-layout.php';
                                     <div class="cat-main">
                                         <div class="cat-name"><?php echo htmlspecialchars($category['name']); ?></div>
                                         <div class="cat-meta">
+                                            <?php $itemCountMobile = (int)($category['item_count'] ?? 0); ?>
+                                            <span><?php echo $itemCountMobile; ?> <?php echo $itemCountMobile === 1 ? 'item' : 'items'; ?></span>
+                                            <span class="cat-dot">•</span>
                                             <span>Order: <?php echo (int)$category['display_order']; ?></span>
                                             <span class="cat-dot">•</span>
                                             <span><?php echo htmlspecialchars($category['slug']); ?></span>
@@ -909,6 +933,8 @@ include __DIR__ . '/../includes/manager-layout.php';
     .cat-name { font-weight:700; color:#111827; font-size:0.95rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 220px; }
     .cat-meta { color:#6b7280; font-size:0.8rem; display:flex; gap:8px; align-items:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .cat-dot { color:#9ca3af; }
+    .cat-item-count-link { color: var(--primary, #ea2a33); font-weight: 600; text-decoration: none; }
+    .cat-item-count-link:hover { text-decoration: underline; }
     .cat-right { display:flex; align-items:center; gap:10px; flex-shrink:0; }
     .cat-status { padding:4px 10px; border-radius:999px; font-size:0.7rem; font-weight:700; }
     .cat-chevron { color:#6b7280; transition: transform .15s ease; }

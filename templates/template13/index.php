@@ -11,9 +11,7 @@ $reservationUrl = $baseUrl . '/restaurant/' . ($restaurant['slug'] ?? '') . '/re
 $currencySymbol = '₦';
 $primaryColor = isset($customization['primary_color']) ? $customization['primary_color'] : '#ffbf00';
 function fis_price($p, $s = '₦') {
-    $n = (float)$p;
-    if ($n == 0.0) return '';
-    return $s . number_format($n, 2);
+    return formatPrice($p, $s);
 }
 $activeCategories = [];
 if (!empty($sections) && is_array($sections)) {

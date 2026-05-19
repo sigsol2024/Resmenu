@@ -16,9 +16,7 @@ $reservationUrl = $baseUrl . '/restaurant/' . ($restaurant['slug'] ?? '') . '/re
 $currencySymbol = '₦';
 $primaryColor = isset($customization['primary_color']) ? $customization['primary_color'] : '#333333';
 function tgb_price($p, $s = '₦') {
-    $n = (float)$p;
-    if ($n == 0.0) return '';
-    return $s . number_format($n, 2);
+    return formatPrice($p, $s);
 }
 $activeCategories = [];
 if (!empty($sections) && is_array($sections)) {
@@ -90,7 +88,7 @@ h1, h2, h3 { font-family: 'Playfair Display', serif; }
 <?php if ($imgSrc): ?><img alt="<?php echo htmlspecialchars($item['name']); ?>" class="circular-image w-24 h-24 flex-shrink-0 object-cover" src="<?php echo $imgSrc; ?>"/><?php endif; ?>
 <div>
 <h3 class="text-xl font-semibold mb-0.5"><?php echo htmlspecialchars($item['name']); ?></h3>
-<p class="menu-item-price font-medium text-stone-600 mb-2"><?php echo number_format((float)$item['price'], 2); ?></p>
+<p class="menu-item-price font-medium text-stone-600 mb-2"><?php echo tgb_price($item['price'], ''); ?></p>
 <p class="text-stone-500 text-sm leading-relaxed"><?php echo htmlspecialchars($item['description'] ?? ''); ?></p>
 <?php if (!empty($supportsOrdering) && $itemAvailable): ?><button type="button" class="add-to-bag-btn mt-2 text-sm font-medium text-charcoal border border-stone-300 px-4 py-2 rounded hover:bg-stone-100" data-item-id="<?php echo (int)$item['id']; ?>" data-item-name="<?php echo htmlspecialchars($item['name']); ?>" data-item-price="<?php echo htmlspecialchars($item['price']); ?>" data-item-image="<?php echo !empty($item['image']) ? htmlspecialchars($item['image']) : ''; ?>">Add to bag</button><?php endif; ?>
 </div>

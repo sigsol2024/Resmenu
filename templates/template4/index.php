@@ -31,19 +31,21 @@ if (!empty($sections) && is_array($sections)) {
     }
 }
 
-// Base URLs
-if (defined('UPLOAD_URL')) {
+// Upload base URL — same approach as templates 2/3 (logo already uses this and works)
+$t4Protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+$t4Host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+$t4ScriptDir = dirname($_SERVER['SCRIPT_NAME'] ?? '/');
+$t4ScriptDir = ($t4ScriptDir === '/' || $t4ScriptDir === '\\') ? '' : rtrim($t4ScriptDir, '/');
+$t4AppBase = $t4Protocol . $t4Host . $t4ScriptDir;
+if (defined('CANONICAL_UPLOAD_URL') && CANONICAL_UPLOAD_URL !== '') {
+    $uploadBaseUrl = rtrim(CANONICAL_UPLOAD_URL, '/');
+} elseif (defined('UPLOAD_URL') && UPLOAD_URL !== '') {
     $uploadBaseUrl = rtrim(UPLOAD_URL, '/');
 } else {
-    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
-    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-    $scriptPath = $_SERVER['SCRIPT_NAME'] ?? '/index.php';
-    $baseDir = dirname($scriptPath);
-    $baseDir = ($baseDir === '/' || $baseDir === '\\') ? '' : rtrim($baseDir, '/');
-    $uploadBaseUrl = $protocol . $host . $baseDir . '/uploads';
+    $uploadBaseUrl = $t4AppBase . '/uploads';
 }
 
-$template4BaseUrl = isset($templateAssetBaseUrl) ? $templateAssetBaseUrl : ((defined('SITE_URL') ? rtrim(SITE_URL, '/') : ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https://' : 'http://') . ($_SERVER['HTTP_HOST'] ?? 'localhost'))) . '/templates/template4');
+$template4BaseUrl = isset($templateAssetBaseUrl) ? $templateAssetBaseUrl : ((defined('SITE_URL') ? rtrim(SITE_URL, '/') : $t4AppBase) . '/templates/template4');
 $reservationUrl = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : '') . '/restaurant/' . ($restaurant['slug'] ?? '') . '/reservation';
 
 // Customization colors
@@ -59,41 +61,41 @@ $bgColor = $customization['background_color'] ?? '#f8f5f5';
 $currencySymbol = '₦';
 
 function t4_formatPrice($price, $symbol = '₦') {
-    $p = (float) $price;
-    if ($p == 0.0) return '';
-    return $symbol . number_format($p, 2);
+    return formatPrice($price, $symbol);
 }
 
 /**
- * Build a public URL for an uploaded file (filename or full/relative path).
+ * Public URL for an uploaded file (same pattern as template 2/3 — no disk check).
  */
-function t4_upload_url($subdir, $filename) {
+function t4_upload_src($subdir, $filename) {
     global $uploadBaseUrl;
-    if ($filename === null || $filename === '') {
+    if ($filename === null || trim((string) $filename) === '') {
         return '';
     }
     $file = trim((string) $filename);
-    if ($file === '') {
-        return '';
-    }
     if (preg_match('#^https?://#i', $file)) {
         return $file;
     }
     $path = ltrim(str_replace('\\', '/', $file), '/');
-    if (strpos($path, 'uploads/') === 0) {
-        return rtrim($uploadBaseUrl, '/') . '/' . substr($path, strlen('uploads/'));
+    if (preg_match('#^uploads/(.+)$#i', $path, $m)) {
+        $path = $m[1];
     }
-    return rtrim($uploadBaseUrl, '/') . '/' . trim($subdir, '/') . '/' . $path;
+    $subdir = trim(str_replace('\\', '/', (string) $subdir), '/');
+    if ($subdir !== '' && strpos($path, $subdir . '/') !== 0 && $path !== $subdir) {
+        $path = $subdir . '/' . basename($path);
+    }
+    $segments = explode('/', $path);
+    return rtrim($uploadBaseUrl, '/') . '/' . implode('/', array_map('rawurlencode', $segments));
 }
 
-// Hero image (section image for section pages if set; else restaurant hero, fallback)
+// Hero / cover image (section image on section pages; else restaurant hero; else fallback)
 $heroBgImage = '';
 if (!empty($singleSectionView) && !empty($sections[0]['image'])) {
-    $heroBgImage = t4_upload_url('sections', $sections[0]['image']);
+    $heroBgImage = t4_upload_src('sections', $sections[0]['image']);
 } elseif (!empty($restaurant['hero_image_url'])) {
     $heroBgImage = $restaurant['hero_image_url'];
 } elseif (!empty($restaurant['hero_image'])) {
-    $heroBgImage = t4_upload_url('heroes', $restaurant['hero_image']);
+    $heroBgImage = t4_upload_src('heroes', $restaurant['hero_image']);
 } else {
     $heroBgImage = 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1600&h=900&fit=crop';
 }
@@ -148,9 +150,9 @@ if (!empty($singleSectionView) && !empty($sections[0]['image'])) {
     z-index: 0;
 }
 .menu-card-animate {
-    opacity: 0;
-    transform: translateY(80px);
-    transition: opacity 4s cubic-bezier(0.25, 0.1, 0.25, 1), transform 4s cubic-bezier(0.25, 0.1, 0.25, 1) !important;
+    opacity: 1;
+    transform: translateY(24px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
 }
 .menu-card-animate.visible {
     opacity: 1;
@@ -171,9 +173,9 @@ if (!empty($singleSectionView) && !empty($sections[0]['image'])) {
     pointer-events: none;
 }
 .category-title-animate {
-    opacity: 0;
-    transform: translateX(-40px);
-    transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+    opacity: 1;
+    transform: translateX(0);
+    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
 }
 .category-title-animate.visible {
     opacity: 1;
@@ -286,7 +288,7 @@ if (!empty($singleSectionView) && !empty($sections[0]['image'])) {
     <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('<?php echo htmlspecialchars($heroBgImage); ?>');"></div>
     <div class="absolute inset-0 herb-pattern pointer-events-none"></div>
     <!-- Darker overlay for stronger contrast -->
-    <div class="absolute inset-0 bg-gradient-to-t from-charcoal via-black/70 to-transparent opacity-90"></div>
+    <div class="absolute inset-0 bg-gradient-to-t from-charcoal via-black/50 to-black/20"></div>
     <div class="relative z-10 text-center max-w-4xl px-6">
         <h2 class="text-white text-6xl md:text-8xl font-serif font-black mb-6 tracking-tight">
             <?php echo htmlspecialchars($restaurant['name']); ?>
@@ -343,7 +345,7 @@ if (!empty($singleSectionView) && !empty($sections[0]['image'])) {
                 </div>
                 <?php if (empty($singleSectionView) && !empty($section['image']) && empty($isTemplatePreview)): ?>
                 <div class="flex justify-center mb-10 px-4">
-                    <img src="<?php echo htmlspecialchars(t4_upload_url('sections', $section['image'])); ?>" alt="" class="max-h-32 md:max-h-40 w-auto max-w-full rounded-xl object-contain shadow-md" loading="lazy" decoding="async"/>
+                    <img src="<?php echo htmlspecialchars(t4_upload_src('sections', $section['image'])); ?>" alt="" class="max-h-32 md:max-h-40 w-auto max-w-full rounded-xl object-contain shadow-md" loading="lazy" decoding="async"/>
                 </div>
                 <?php endif; ?>
             </div>
@@ -353,7 +355,7 @@ if (!empty($singleSectionView) && !empty($sections[0]['image'])) {
                 <div class="mb-24" id="<?php echo htmlspecialchars($category['slug']); ?>-section">
                     <div class="flex items-center gap-4 md:gap-6 mb-8 category-title-animate">
                         <?php if (!empty($category['image']) && empty($isTemplatePreview)): ?>
-                        <img src="<?php echo htmlspecialchars(t4_upload_url('categories', $category['image'])); ?>" alt="" class="h-14 w-14 md:h-16 md:w-16 shrink-0 rounded-xl object-cover shadow-sm ring-2 ring-charcoal/10" loading="lazy" decoding="async"/>
+                        <img src="<?php echo htmlspecialchars(t4_upload_src('categories', $category['image'])); ?>" alt="" class="h-14 w-14 md:h-16 md:w-16 shrink-0 rounded-xl object-cover shadow-sm ring-2 ring-charcoal/10" loading="lazy" decoding="async"/>
                         <?php endif; ?>
                         <h3 class="text-base md:text-lg font-serif font-black tracking-tight bg-charcoal rounded-xl px-4 py-3 shrink-0" style="color: <?php echo htmlspecialchars($categoryTitleColor); ?>"><?php echo htmlspecialchars($category['name']); ?></h3>
                         <div class="h-px flex-1 bg-charcoal/20"></div>
@@ -361,7 +363,7 @@ if (!empty($singleSectionView) && !empty($sections[0]['image'])) {
                     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-4">
                         <?php foreach (($category['menu_items'] ?? []) as $item): ?>
                             <?php
-                            $itemImage = t4_upload_url('menu-items', $item['image'] ?? '');
+                            $itemImage = !empty($item['image']) ? t4_upload_src('menu-items', $item['image']) : '';
                             $hasImage = $itemImage !== '';
                             ?>
                             <div class="menu-card-animate bg-white border border-charcoal/5 rounded-2xl overflow-hidden flex flex-col <?php echo $hasImage ? '' : 'menu-card-no-image'; ?> hover:shadow-xl hover:border-primary/10 transition-shadow duration-300 group relative">
@@ -553,25 +555,44 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    var menuCards = document.querySelectorAll('.menu-card-animate');
-    var cardObserver = new IntersectionObserver(function(entries) {
-        entries.forEach(function(entry) {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('visible');
+    function t4RevealAnimated(selector) {
+        document.querySelectorAll(selector).forEach(function(el) {
+            el.classList.add('visible');
+        });
+    }
+    if (typeof IntersectionObserver !== 'undefined') {
+        var menuCards = document.querySelectorAll('.menu-card-animate');
+        var cardObserver = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.05, rootMargin: '0px 0px 120px 0px' });
+        menuCards.forEach(function(card) {
+            cardObserver.observe(card);
+            var rect = card.getBoundingClientRect();
+            if (rect.top < window.innerHeight + 120) {
+                card.classList.add('visible');
             }
         });
-    }, { threshold: 0.05, rootMargin: '0px 0px 180px 0px' });
-    menuCards.forEach(function(card) { cardObserver.observe(card); });
 
-    var categoryTitles = document.querySelectorAll('.category-title-animate');
-    var titleObserver = new IntersectionObserver(function(entries) {
-        entries.forEach(function(entry) {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('visible');
-            }
+        var categoryTitles = document.querySelectorAll('.category-title-animate');
+        var titleObserver = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.05, rootMargin: '0px 0px 80px 0px' });
+        categoryTitles.forEach(function(el) {
+            titleObserver.observe(el);
+            el.classList.add('visible');
         });
-    }, { threshold: 0.1, rootMargin: '0px 0px 50px 0px' });
-    categoryTitles.forEach(function(el) { titleObserver.observe(el); });
+    } else {
+        t4RevealAnimated('.menu-card-animate');
+        t4RevealAnimated('.category-title-animate');
+    }
 
     var scrollBtn = document.getElementById('scrollToTop');
     if (scrollBtn) {

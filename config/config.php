@@ -30,6 +30,16 @@ define('BASE_PATH', dirname(__DIR__));
 define('UPLOAD_PATH', BASE_PATH . '/uploads');
 define('UPLOAD_URL', SITE_URL . '/uploads');
 
+// When the menu is opened on a custom domain/subdomain (e.g. opal.our-menu.online) but uploads
+// are stored on the main app host, set CANONICAL_UPLOAD_URL in config.local.php, e.g.:
+// define('CANONICAL_UPLOAD_URL', 'https://our-menu.online/uploads');
+if (!defined('CANONICAL_UPLOAD_URL')) {
+    $envCanonicalUpload = getenv('CANONICAL_UPLOAD_URL');
+    if ($envCanonicalUpload !== false && $envCanonicalUpload !== '') {
+        define('CANONICAL_UPLOAD_URL', rtrim($envCanonicalUpload, '/'));
+    }
+}
+
 // Session configuration
 define('SESSION_LIFETIME', 3600 * 24); // 24 hours (PHP session.gc_maxlifetime should align on the server)
 

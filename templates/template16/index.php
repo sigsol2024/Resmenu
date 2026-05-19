@@ -55,9 +55,7 @@ $reservationUrl = $baseUrl . '/restaurant/' . ($restaurant['slug'] ?? '') . '/re
 $currencySymbol = '₦';
 $primaryColor = isset($customization['primary_color']) ? $customization['primary_color'] : '#f97316';
 function nmc_price($p, $s = '₦') {
-    $n = (float)$p;
-    if ($n == 0.0) return '';
-    return $s . number_format($n, 2);
+    return formatPrice($p, $s);
 }
 /**
  * PNG-like assets (incl. transparent WebP): no border/radius. JPEG-like: photo framing.
