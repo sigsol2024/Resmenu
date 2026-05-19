@@ -46,24 +46,14 @@ if (defined('UPLOAD_URL')) {
 $template4BaseUrl = isset($templateAssetBaseUrl) ? $templateAssetBaseUrl : ((defined('SITE_URL') ? rtrim(SITE_URL, '/') : ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https://' : 'http://') . ($_SERVER['HTTP_HOST'] ?? 'localhost'))) . '/templates/template4');
 $reservationUrl = (defined('SITE_URL') ? rtrim(SITE_URL, '/') : '') . '/restaurant/' . ($restaurant['slug'] ?? '') . '/reservation';
 
-// Hero image (section image for section pages if set; else restaurant hero, fallback)
-$heroBgImage = '';
-if (!empty($singleSectionView) && !empty($sections[0]['image'])) {
-    $heroBgImage = $uploadBaseUrl . '/sections/' . htmlspecialchars($sections[0]['image']);
-} elseif (!empty($restaurant['hero_image_url'])) {
-    $heroBgImage = $restaurant['hero_image_url'];
-} elseif (!empty($restaurant['hero_image'])) {
-    $heroBgImage = $uploadBaseUrl . '/heroes/' . htmlspecialchars($restaurant['hero_image']);
-} else {
-    $heroBgImage = 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1600&h=900&fit=crop';
-}
-
 // Customization colors
 $primaryColor = $customization['primary_color'] ?? '#f20d0d';
 $menuTitleColor = $customization['menu_title_color'] ?? '#121212';
 $priceColor = $customization['price_color'] ?? '#f20d0d';
+$priceSize = (int) ($customization['price_size'] ?? 18);
+$priceFont = $customization['price_font'] ?? 'Epilogue';
 $descColor = $customization['description_color'] ?? '#666666';
-$categoryTitleColor = $customization['category_title_color'] ?? '#121212';
+$categoryTitleColor = $customization['category_title_color'] ?? '#ffffff';
 $bgColor = $customization['background_color'] ?? '#f8f5f5';
 
 $currencySymbol = '₦';
@@ -72,6 +62,40 @@ function t4_formatPrice($price, $symbol = '₦') {
     $p = (float) $price;
     if ($p == 0.0) return '';
     return $symbol . number_format($p, 2);
+}
+
+/**
+ * Build a public URL for an uploaded file (filename or full/relative path).
+ */
+function t4_upload_url($subdir, $filename) {
+    global $uploadBaseUrl;
+    if ($filename === null || $filename === '') {
+        return '';
+    }
+    $file = trim((string) $filename);
+    if ($file === '') {
+        return '';
+    }
+    if (preg_match('#^https?://#i', $file)) {
+        return $file;
+    }
+    $path = ltrim(str_replace('\\', '/', $file), '/');
+    if (strpos($path, 'uploads/') === 0) {
+        return rtrim($uploadBaseUrl, '/') . '/' . substr($path, strlen('uploads/'));
+    }
+    return rtrim($uploadBaseUrl, '/') . '/' . trim($subdir, '/') . '/' . $path;
+}
+
+// Hero image (section image for section pages if set; else restaurant hero, fallback)
+$heroBgImage = '';
+if (!empty($singleSectionView) && !empty($sections[0]['image'])) {
+    $heroBgImage = t4_upload_url('sections', $sections[0]['image']);
+} elseif (!empty($restaurant['hero_image_url'])) {
+    $heroBgImage = $restaurant['hero_image_url'];
+} elseif (!empty($restaurant['hero_image'])) {
+    $heroBgImage = t4_upload_url('heroes', $restaurant['hero_image']);
+} else {
+    $heroBgImage = 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1600&h=900&fit=crop';
 }
 ?>
 <!DOCTYPE html>
@@ -317,33 +341,38 @@ function t4_formatPrice($price, $symbol = '₦') {
                     </h2>
                     <div class="h-px flex-1 max-w-[160px] bg-charcoal/15"></div>
                 </div>
+                <?php if (empty($singleSectionView) && !empty($section['image']) && empty($isTemplatePreview)): ?>
+                <div class="flex justify-center mb-10 px-4">
+                    <img src="<?php echo htmlspecialchars(t4_upload_url('sections', $section['image'])); ?>" alt="" class="max-h-32 md:max-h-40 w-auto max-w-full rounded-xl object-contain shadow-md" loading="lazy" decoding="async"/>
+                </div>
+                <?php endif; ?>
             </div>
             <?php foreach ($section['categories'] as $category): ?>
             <?php if (empty($category['menu_items']) || !is_array($category['menu_items'])) continue; ?>
             <?php $categoryIndex++; ?>
                 <div class="mb-24" id="<?php echo htmlspecialchars($category['slug']); ?>-section">
-                    <div class="flex items-center gap-6 mb-8 category-title-animate">
-                        <h3 class="text-base md:text-lg font-serif font-black text-white tracking-tight bg-charcoal rounded-xl px-4 py-3 shrink-0"><?php echo htmlspecialchars($category['name']); ?></h3>
+                    <div class="flex items-center gap-4 md:gap-6 mb-8 category-title-animate">
+                        <?php if (!empty($category['image']) && empty($isTemplatePreview)): ?>
+                        <img src="<?php echo htmlspecialchars(t4_upload_url('categories', $category['image'])); ?>" alt="" class="h-14 w-14 md:h-16 md:w-16 shrink-0 rounded-xl object-cover shadow-sm ring-2 ring-charcoal/10" loading="lazy" decoding="async"/>
+                        <?php endif; ?>
+                        <h3 class="text-base md:text-lg font-serif font-black tracking-tight bg-charcoal rounded-xl px-4 py-3 shrink-0" style="color: <?php echo htmlspecialchars($categoryTitleColor); ?>"><?php echo htmlspecialchars($category['name']); ?></h3>
                         <div class="h-px flex-1 bg-charcoal/20"></div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-4">
                         <?php foreach (($category['menu_items'] ?? []) as $item): ?>
                             <?php
-                            $itemImage = '';
-                            if (!empty($item['image'])) {
-                                $itemImage = $uploadBaseUrl . '/menu-items/' . htmlspecialchars($item['image']);
-                            }
-                            $hasImage = !empty($itemImage);
+                            $itemImage = t4_upload_url('menu-items', $item['image'] ?? '');
+                            $hasImage = $itemImage !== '';
                             ?>
                             <div class="menu-card-animate bg-white border border-charcoal/5 rounded-2xl overflow-hidden flex flex-col <?php echo $hasImage ? '' : 'menu-card-no-image'; ?> hover:shadow-xl hover:border-primary/10 transition-shadow duration-300 group relative">
                                 <?php if ($hasImage): ?>
-                                <div class="w-full h-44 md:h-36 lg:h-32 shrink-0 bg-cover bg-center rounded-t-2xl" style="background-image: url('<?php echo htmlspecialchars($itemImage); ?>');"></div>
+                                <img src="<?php echo htmlspecialchars($itemImage); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" class="w-full h-44 md:h-36 lg:h-32 shrink-0 object-cover rounded-t-2xl" loading="lazy" decoding="async"/>
                                 <?php endif; ?>
                                 <div class="flex-1 flex flex-col justify-center p-5 md:p-3 lg:p-3 relative z-10 min-w-0">
                                     <h4 class="text-lg md:text-base lg:text-sm font-bold group-hover:text-primary transition-colors mb-0.5 md:mb-0 line-clamp-2" style="color: <?php echo htmlspecialchars($menuTitleColor); ?>"><?php echo htmlspecialchars($item['name']); ?></h4>
-                                    <span class="font-black text-xl md:text-lg lg:text-base mb-2 md:mb-1" style="color: #f20d0d"><?php echo t4_formatPrice($item['price'], $currencySymbol); ?></span>
+                                    <span class="font-black text-xl md:text-lg lg:text-base mb-2 md:mb-1" style="color: <?php echo htmlspecialchars($priceColor); ?>; font-size: <?php echo $priceSize; ?>px; font-family: <?php echo htmlspecialchars($priceFont, ENT_QUOTES, 'UTF-8'); ?>, sans-serif;"><?php echo t4_formatPrice($item['price'], $currencySymbol); ?></span>
                                     <?php if (!empty($item['description'])): ?>
-                                        <p class="text-charcoal/60 text-sm md:text-xs leading-relaxed mb-3 md:mb-2 line-clamp-2"><?php echo nl2br(htmlspecialchars($item['description'])); ?></p>
+                                        <p class="text-sm md:text-xs leading-relaxed mb-3 md:mb-2 line-clamp-2" style="color: <?php echo htmlspecialchars($descColor); ?>"><?php echo nl2br(htmlspecialchars($item['description'])); ?></p>
                                     <?php endif; ?>
                                     <?php if (!empty($supportsOrdering)): ?>
                                     <div class="flex justify-start mt-auto">
